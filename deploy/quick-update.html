@@ -313,11 +313,13 @@
       document.getElementById('qu-loading').style.display = 'none';
       document.getElementById('qu-form-container').style.display = 'block';
 
+      // Reset form first (this hides messages)
+      this.resetForm();
+
+      // Then show success message
       var successDiv = document.getElementById('qu-success-message');
       successDiv.textContent = message;
       successDiv.style.display = 'block';
-
-      this.resetForm();
 
       setTimeout(function() {
         successDiv.style.display = 'none';
