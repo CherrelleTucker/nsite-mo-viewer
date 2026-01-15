@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSITE System Architecture</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0f1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a2234;
+            --border-subtle: #2d3a50;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-orange: #f97316;
+            --accent-orange-glow: rgba(249, 115, 22, 0.3);
+            --accent-blue: #3b82f6;
+            --accent-blue-glow: rgba(59, 130, 246, 0.3);
+            --accent-green: #10b981;
+            --accent-green-glow: rgba(16, 185, 129, 0.3);
+            --accent-purple: #8b5cf6;
+            --accent-purple-glow: rgba(139, 92, 246, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 40px;
+            background-image: 
+                radial-gradient(ellipse at 20% 20%, rgba(249, 115, 22, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .architecture {
+            display: grid;
+            grid-template-columns: 180px 260px 140px 1fr;
+            gap: 30px;
+            align-items: start;
+            position: relative;
+            min-width: 1200px;
+        }
+
+        @media (min-width: 1600px) {
+            .architecture {
+                grid-template-columns: 200px 280px 160px 1fr;
+                gap: 40px;
+            }
+        }
+
+        @media (max-width: 1400px) {
+            .architecture {
+                grid-template-columns: 1fr 1fr;
+                min-width: unset;
+                gap: 30px;
+            }
+            
+            .input-section {
+                grid-column: 1;
+                grid-row: 1;
+            }
+            
+            .source-section {
+                grid-column: 2;
+                grid-row: 1;
+            }
+            
+            .storage-section {
+                grid-column: 1;
+                grid-row: 2;
+            }
+            
+            .outputs-section {
+                grid-column: 1 / -1;
+                grid-row: 3;
+            }
+            
+            .dashboard-container {
+                min-width: unset;
+            }
+        }
+
+        .phase-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        /* INPUT SECTION */
+        .input-section {
+            padding-top: 80px;
+        }
+
+        .quick-update-form {
+            background: var(--bg-card);
+            border: 2px dashed var(--accent-orange);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .quick-update-form::before {
+            content: 'Quick Update Form';
+            position: absolute;
+            top: -10px;
+            left: 16px;
+            background: var(--bg-primary);
+            padding: 0 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-orange);
+        }
+
+        .quick-update-form::after {
+            content: '↔ Lives in Dashboard';
+            position: absolute;
+            bottom: -10px;
+            right: 16px;
+            background: var(--bg-primary);
+            padding: 0 8px;
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .form-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-item {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .form-item::before {
+            content: '—';
+            position: absolute;
+            left: 0;
+            color: var(--text-muted);
+        }
+
+        /* SOURCE OF TRUTH */
+        .source-section {
+            position: relative;
+        }
+
+        .source-of-truth {
+            position: relative;
+        }
+
+        .source-label {
+            background: linear-gradient(135deg, var(--accent-orange), #ea580c);
+            color: white;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 8px 16px;
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+            box-shadow: 0 0 30px var(--accent-orange-glow);
+        }
+
+        .source-box {
+            background: var(--bg-card);
+            border: 2px solid var(--accent-orange);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            padding: 16px;
+            box-shadow: 0 0 40px var(--accent-orange-glow);
+        }
+
+        .agenda-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .agenda-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .agenda-item:hover {
+            border-color: var(--accent-orange);
+            transform: translateX(4px);
+        }
+
+        .arrow-icon {
+            color: var(--accent-orange);
+            font-size: 1rem;
+        }
+
+        .agenda-label {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .agenda-detail {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-left: auto;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        /* NOTE BOX */
+        .note-box {
+            margin-top: 30px;
+            background: rgba(249, 115, 22, 0.1);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            border-radius: 10px;
+            padding: 16px;
+            position: relative;
+        }
+
+        .note-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--accent-orange);
+            font-size: 0.85rem;
+        }
+
+        .note-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .note-text strong {
+            color: var(--accent-orange);
+        }
+
+        /* STORAGE SECTION */
+        .storage-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 100px;
+        }
+
+        .database-box {
+            background: var(--bg-card);
+            border: 2px solid var(--accent-purple);
+            border-radius: 12px;
+            padding: 24px 32px;
+            text-align: center;
+            box-shadow: 0 0 40px var(--accent-purple-glow);
+            position: relative;
+        }
+
+        .database-box::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 16px;
+            background: var(--bg-card);
+            border: 2px solid var(--accent-purple);
+            border-bottom: none;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .database-label {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        /* OUTPUTS SECTION */
+        .outputs-section {
+            position: relative;
+        }
+
+        .dashboard-container {
+            background: var(--bg-card);
+            border: 2px solid var(--accent-blue);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 0 50px var(--accent-blue-glow);
+            min-width: 700px;
+        }
+
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .dashboard-title {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--accent-blue);
+        }
+
+        .dashboard-badge {
+            background: var(--accent-blue);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .dashboard-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .dashboard-card.implementation {
+            border-left: 3px solid var(--accent-green);
+        }
+
+        .dashboard-card.sep {
+            border-left: 3px solid var(--accent-blue);
+        }
+
+        .dashboard-card.contacts {
+            border-left: 3px solid var(--accent-purple);
+        }
+
+        .dashboard-card.reports {
+            border-left: 3px solid var(--accent-orange);
+        }
+
+        .dashboard-card.comms {
+            border-left: 3px solid #ec4899;
+        }
+
+        /* EXPANDED DASHBOARD DETAILS */
+        .dashboard-grid-expanded {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (min-width: 1400px) {
+            .dashboard-grid-expanded {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .dashboard-detail-card .detail-content {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+            
+            .dashboard-detail-card .detail-section {
+                margin-bottom: 0;
+            }
+        }
+
+        .dashboard-detail-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .dashboard-detail-card.implementation {
+            border-top: 3px solid var(--accent-green);
+        }
+
+        .dashboard-detail-card.sep {
+            border-top: 3px solid var(--accent-blue);
+        }
+
+        .dashboard-detail-card.comms {
+            border-top: 3px solid #ec4899;
+        }
+
+        .detail-header {
+            padding: 16px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .detail-title {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .detail-focus {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .dashboard-detail-card.implementation .detail-focus { color: var(--accent-green); }
+        .dashboard-detail-card.sep .detail-focus { color: var(--accent-blue); }
+        .dashboard-detail-card.comms .detail-focus { color: #ec4899; }
+
+        .detail-content {
+            padding: 16px;
+        }
+
+        .detail-section {
+            margin-bottom: 16px;
+        }
+
+        .detail-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-section-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .detail-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .detail-item {
+            background: rgba(255,255,255,0.05);
+            font-size: 0.75rem;
+            padding: 5px 10px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+        }
+
+        .detail-item.highlight {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+            font-weight: 500;
+        }
+
+        .detail-question {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+
+        .detail-question:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-sources {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .source-tag {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            padding-left: 12px;
+            position: relative;
+        }
+
+        .source-tag::before {
+            content: '←';
+            position: absolute;
+            left: 0;
+            color: var(--accent-orange);
+        }
+
+        /* Milestone Table */
+        .milestone-table {
+            font-size: 0.7rem;
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .milestone-header {
+            display: grid;
+            grid-template-columns: 1fr 50px 50px;
+            background: rgba(255,255,255,0.05);
+            padding: 6px 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .milestone-header span:first-child {
+            text-align: left;
+        }
+
+        .milestone-row {
+            display: grid;
+            grid-template-columns: 1fr 50px 50px;
+            padding: 6px 10px;
+            border-top: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+        }
+
+        .milestone-cell {
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        /* Needs Definition */
+        .needs-definition {
+            background: rgba(236, 72, 153, 0.1);
+            border: 1px dashed rgba(236, 72, 153, 0.4);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .needs-badge {
+            display: inline-block;
+            background: #ec4899;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .detail-note {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        /* Pipeline Funnel */
+        .pipeline-funnel {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .funnel-stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(236, 72, 153, 0.15);
+            border-radius: 6px;
+            padding: 8px 10px;
+            min-width: 50px;
+        }
+
+        .funnel-count {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ec4899;
+        }
+
+        .funnel-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .funnel-arrow {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Source Sheets */
+        .source-sheets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .sheet-tag {
+            background: rgba(236, 72, 153, 0.2);
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: #ec4899;
+        }
+
+        /* Touchpoint Tracker */
+        .touchpoint-tracker {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .touchpoint-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 8px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 4px;
+            border-left: 2px solid var(--accent-blue);
+        }
+
+        .touchpoint-num {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .touchpoint-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        /* Metrics List */
+        .metrics-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 4px;
+        }
+
+        .metric-name {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .metric-target {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.15);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        /* Ownership Tags */
+        .ownership-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .ownership-tag {
+            font-size: 0.6rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .ownership-tag.sep-dir {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .ownership-tag.proj-led {
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--accent-purple);
+        }
+
+        .ownership-tag.sport-dir {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+        }
+
+        /* MO Milestones */
+        .mo-milestones {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .mo-milestone-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 8px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 4px;
+            border-left: 2px solid var(--accent-green);
+        }
+
+        .mo-badge {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .mo-badge.pending {
+            color: var(--accent-orange);
+            background: rgba(249, 115, 22, 0.2);
+        }
+
+        .mo-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        /* Tracking Pattern */
+        .tracking-pattern {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .pattern-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 4px;
+        }
+
+        .pattern-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .pattern-desc {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Cycle Tracker */
+        .cycle-tracker {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .cycle-row {
+            display: grid;
+            grid-template-columns: 32px 40px 1fr;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 6px;
+            background: rgba(16, 185, 129, 0.08);
+            border-radius: 4px;
+            border-left: 2px solid var(--accent-green);
+        }
+
+        .cycle-row.future {
+            opacity: 0.5;
+            border-left-style: dashed;
+        }
+
+        .cycle-badge {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.2);
+            padding: 2px 4px;
+            border-radius: 3px;
+            text-align: center;
+        }
+
+        .cycle-year {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+        }
+
+        .cycle-solutions {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Document Tracker */
+        .doc-tracker {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .doc-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 4px;
+        }
+
+        .doc-name {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .doc-status {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.55rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.1);
+            color: var(--text-muted);
+        }
+
+        .doc-status.review {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .doc-status.progress {
+            background: rgba(249, 115, 22, 0.2);
+            color: var(--accent-orange);
+        }
+
+        .shared-resources {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--border-subtle);
+        }
+
+        .shared-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .shared-icon {
+            font-size: 1rem;
+        }
+
+        .shared-badge {
+            margin-left: auto;
+            background: rgba(255,255,255,0.08);
+            font-size: 0.65rem;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 20px;
+            color: var(--text-muted);
+        }
+
+        .shared-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .shared-grid-expanded {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        @media (max-width: 1200px) {
+            .shared-grid-expanded {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 800px) {
+            .shared-grid-expanded {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .shared-grid-expanded .dashboard-card {
+            padding: 12px;
+        }
+
+        .shared-grid-expanded .card-title {
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+        }
+
+        .shared-grid-expanded .card-tag {
+            font-size: 0.6rem;
+        }
+
+        .dashboard-card.schedule {
+            border-left: 3px solid #f59e0b;
+        }
+
+        .dashboard-card.actions {
+            border-left: 3px solid #ef4444;
+        }
+
+        .dashboard-card.templates {
+            border-left: 3px solid #6366f1;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .card-subtitle {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .card-items {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .card-tag {
+            background: rgba(255,255,255,0.05);
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: var(--text-secondary);
+        }
+
+        /* QUICK UPDATE OUTPUT */
+        .quick-update-output {
+            margin-top: 16px;
+            background: var(--bg-secondary);
+            border: 2px dashed var(--accent-orange);
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .quick-update-output-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(249, 115, 22, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-orange);
+        }
+
+        .quick-update-output-text {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .same-component-badge {
+            margin-left: auto;
+            background: var(--accent-orange);
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 4px;
+            letter-spacing: 0.05em;
+        }
+
+        /* CONNECTOR ANNOTATION */
+        .connector-annotation {
+            margin-top: 40px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 24px;
+            background: rgba(249, 115, 22, 0.1);
+            border: 1px dashed var(--accent-orange);
+            border-radius: 10px;
+        }
+
+        .connector-line {
+            width: 40px;
+            height: 2px;
+            background: var(--accent-orange);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .connector-line::before,
+        .connector-line::after {
+            content: '◆';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent-orange);
+            font-size: 0.5rem;
+        }
+
+        .connector-line::before {
+            left: -6px;
+        }
+
+        .connector-line::after {
+            right: -6px;
+        }
+
+        .connector-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* FLOW ARROWS */
+        .flow-arrows {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .flow-arrows svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .flow-line {
+            fill: none;
+            stroke: var(--border-subtle);
+            stroke-width: 2;
+            stroke-dasharray: 8 4;
+            animation: flowDash 1s linear infinite;
+        }
+
+        .flow-line.active {
+            stroke: var(--accent-orange);
+            stroke-dasharray: none;
+            stroke-width: 2;
+        }
+
+        @keyframes flowDash {
+            to {
+                stroke-dashoffset: -12;
+            }
+        }
+
+        .arrow-marker {
+            fill: var(--text-muted);
+        }
+
+        /* LEGEND */
+        .legend {
+            margin-top: 60px;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.orange { background: var(--accent-orange); }
+        .legend-dot.blue { background: var(--accent-blue); }
+        .legend-dot.purple { background: var(--accent-purple); }
+        .legend-dot.green { background: var(--accent-green); }
+
+        /* FEEDBACK LOOP */
+        .feedback-loop {
+            position: absolute;
+            bottom: -60px;
+            left: 50px;
+            right: 50%;
+            height: 80px;
+            border: 2px dashed var(--text-muted);
+            border-top: none;
+            border-radius: 0 0 40px 40px;
+            opacity: 0.4;
+        }
+
+        .feedback-label {
+            position: absolute;
+            bottom: -90px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* CONNECTION LINES */
+        .connections {
+            position: absolute;
+            top: 140px;
+            left: 200px;
+            right: 0;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .connection-line {
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent-purple), var(--accent-blue));
+            position: relative;
+        }
+
+        .connection-arrow {
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid var(--accent-blue);
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .connections {
+                display: none;
+            }
+
+            .input-section, .storage-section {
+                padding-top: 0;
+            }
+        }
+        
+        body {
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>NSITE Dashboard System Architecture</h1>
+            <p class="subtitle">Data Flow & Integration Overview</p>
+        </header>
+
+        <div class="architecture">
+            <!-- INPUT COLUMN -->
+            <div class="input-section">
+                <div class="phase-header">Input</div>
+                <div class="quick-update-form">
+                    <div class="form-items">
+                        <div class="form-item">Action</div>
+                        <div class="form-item">Milestone</div>
+                        <div class="form-item">General</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SOURCE OF TRUTH -->
+            <div class="source-section">
+                <div class="phase-header">Source of Truth</div>
+                <div class="source-of-truth">
+                    <div class="source-label">📋 Source of Truth</div>
+                    <div class="source-box">
+                        <div class="agenda-item">
+                            <span class="arrow-icon">→</span>
+                            <span class="agenda-label">Internal Agenda</span>
+                            <span class="agenda-detail">Weekly Planning Notes</span>
+                        </div>
+                        <div class="agenda-item">
+                            <span class="arrow-icon">→</span>
+                            <span class="agenda-label">SEP Agenda</span>
+                            <span class="agenda-detail">Weekly Meeting Notes</span>
+                        </div>
+                        <div class="agenda-item">
+                            <span class="arrow-icon">→</span>
+                            <span class="agenda-label">Comms Tracking</span>
+                            <span class="agenda-detail">Story Tracking Workbook</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="note-box">
+                    <div class="note-header">
+                        <span>⚠️</span>
+                        <span>Database here? No.</span>
+                    </div>
+                    <div class="note-text">
+                        Will miss ad hoc updates in notes. <strong>Weekly notes are source of truth.</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STORAGE -->
+            <div class="storage-section">
+                <div class="phase-header">Storage</div>
+                <div class="database-box">
+                    <div class="database-label">Database</div>
+                </div>
+            </div>
+
+            <!-- OUTPUTS -->
+            <div class="outputs-section">
+                <div class="phase-header">Outputs</div>
+                <div class="dashboard-container">
+                    <div class="dashboard-header">
+                        <span class="dashboard-title">NSITE Dashboard</span>
+                        <span class="dashboard-badge">Main Interface</span>
+                    </div>
+                    <div class="dashboard-grid-expanded">
+                        <!-- Implementation Dashboard -->
+                        <div class="dashboard-detail-card implementation">
+                            <div class="detail-header">
+                                <div class="detail-title">Implementation Dashboard</div>
+                                <div class="detail-focus">Solution / Project Focused</div>
+                            </div>
+                            <div class="detail-content">
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Solutions by Cycle</div>
+                                    <div class="cycle-tracker">
+                                        <div class="cycle-row">
+                                            <span class="cycle-badge">C1</span>
+                                            <span class="cycle-year">2016</span>
+                                            <span class="cycle-solutions">HLS, DCD, ADMG, NISAR DL</span>
+                                        </div>
+                                        <div class="cycle-row">
+                                            <span class="cycle-badge">C2</span>
+                                            <span class="cycle-year">2018</span>
+                                            <span class="cycle-solutions">OPERA, NISAR SM, IoA, ICESat-2...</span>
+                                        </div>
+                                        <div class="cycle-row">
+                                            <span class="cycle-badge">C3</span>
+                                            <span class="cycle-year">2020</span>
+                                            <span class="cycle-solutions">PBL, HLS-VI, Air Quality, TEMPO NRT...</span>
+                                        </div>
+                                        <div class="cycle-row">
+                                            <span class="cycle-badge">C4</span>
+                                            <span class="cycle-year">2022</span>
+                                            <span class="cycle-solutions">VLM, ARSET, MWOW, HLS-LL, GABAN...</span>
+                                        </div>
+                                        <div class="cycle-row">
+                                            <span class="cycle-badge">C5</span>
+                                            <span class="cycle-year">2024</span>
+                                            <span class="cycle-solutions">LST, FIRMS-2G, 10m HLS, ET...</span>
+                                        </div>
+                                        <div class="cycle-row future">
+                                            <span class="cycle-badge">C6</span>
+                                            <span class="cycle-year">2026</span>
+                                            <span class="cycle-solutions">Assessment Phase</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="detail-section">
+                                    <div class="detail-section-title">MO Milestones</div>
+                                    <div class="mo-milestones">
+                                        <div class="mo-milestone-item">
+                                            <span class="mo-badge">IPA</span>
+                                            <span class="mo-label">Interface Plan Agreement</span>
+                                        </div>
+                                        <div class="mo-milestone-item">
+                                            <span class="mo-badge">ICD</span>
+                                            <span class="mo-label">Interface Control Doc</span>
+                                        </div>
+                                        <div class="mo-milestone-item">
+                                            <span class="mo-badge">F2I</span>
+                                            <span class="mo-label">Prepare for F2I DG</span>
+                                        </div>
+                                        <div class="mo-milestone-item">
+                                            <span class="mo-badge">OPS</span>
+                                            <span class="mo-label">Product Operations</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Document Administration</div>
+                                    <div class="doc-tracker">
+                                        <div class="doc-item">
+                                            <span class="doc-name">Project Plans</span>
+                                            <span class="doc-status">Per solution</span>
+                                        </div>
+                                        <div class="doc-item">
+                                            <span class="doc-name">SEP Plan</span>
+                                            <span class="doc-status review">In Review</span>
+                                        </div>
+                                        <div class="doc-item">
+                                            <span class="doc-name">Comms Plan</span>
+                                            <span class="doc-status review">In Review</span>
+                                        </div>
+                                        <div class="doc-item">
+                                            <span class="doc-name">IM Plan</span>
+                                            <span class="doc-status progress">In Progress</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Per-Solution Tracking</div>
+                                    <div class="tracking-pattern">
+                                        <div class="pattern-item">
+                                            <span class="pattern-label">DAAC Assignment</span>
+                                            <span class="pattern-desc">Data center</span>
+                                        </div>
+                                        <div class="pattern-item">
+                                            <span class="pattern-label">Deep Dives</span>
+                                            <span class="pattern-desc">Scheduled reviews</span>
+                                        </div>
+                                        <div class="pattern-item">
+                                            <span class="pattern-label">Action Items</span>
+                                            <span class="pattern-desc">Owner + status</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEP Dashboard -->
+                        <div class="dashboard-detail-card sep">
+                            <div class="detail-header">
+                                <div class="detail-title">SEP Dashboard</div>
+                                <div class="detail-focus">People Focused</div>
+                            </div>
+                            <div class="detail-content">
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Stakeholder Touchpoint Pipeline</div>
+                                    <div class="touchpoint-tracker">
+                                        <div class="touchpoint-item">
+                                            <span class="touchpoint-num">T4</span>
+                                            <span class="touchpoint-label">Invitation to CoDesign</span>
+                                        </div>
+                                        <div class="touchpoint-item">
+                                            <span class="touchpoint-num">W1</span>
+                                            <span class="touchpoint-label">CoDesign 101</span>
+                                        </div>
+                                        <div class="touchpoint-item">
+                                            <span class="touchpoint-num">W2</span>
+                                            <span class="touchpoint-label">SEP CoDesign Strategy</span>
+                                        </div>
+                                        <div class="touchpoint-item">
+                                            <span class="touchpoint-num">T7</span>
+                                            <span class="touchpoint-label">Soft Launch & Training</span>
+                                        </div>
+                                        <div class="touchpoint-item">
+                                            <span class="touchpoint-num">T8</span>
+                                            <span class="touchpoint-label">Closeout Stories</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Views Required</div>
+                                    <div class="detail-items">
+                                        <span class="detail-item highlight">People View</span>
+                                        <span class="detail-item highlight">Solution View</span>
+                                    </div>
+                                    <p class="detail-question" style="margin-top: 8px; font-size: 0.7rem;">Stakeholders often span multiple solutions</p>
+                                </div>
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Key Metrics (with Targets)</div>
+                                    <div class="metrics-list">
+                                        <div class="metric-row">
+                                            <span class="metric-name">Engagement Rate</span>
+                                            <span class="metric-target">100% quarterly</span>
+                                        </div>
+                                        <div class="metric-row">
+                                            <span class="metric-name">Transition Success</span>
+                                            <span class="metric-target">100% beta Y2</span>
+                                        </div>
+                                        <div class="metric-row">
+                                            <span class="metric-name">Impact Docs</span>
+                                            <span class="metric-target">3+ per solution</span>
+                                        </div>
+                                        <div class="metric-row">
+                                            <span class="metric-name">Training Resources</span>
+                                            <span class="metric-target">1+ per solution</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Contact Tools</div>
+                                    <div class="detail-items">
+                                        <span class="detail-item">Email Records</span>
+                                        <span class="detail-item">Assessment Context</span>
+                                        <span class="detail-item">Interview Artifacts</span>
+                                    </div>
+                                </div>
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Solution Ownership Model</div>
+                                    <div class="ownership-tags">
+                                        <span class="ownership-tag sep-dir">SEP-Directed (8)</span>
+                                        <span class="ownership-tag proj-led">Project-Led (4)</span>
+                                        <span class="ownership-tag sport-dir">SPoRT-Directed (4)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Comms Dashboard -->
+                        <div class="dashboard-detail-card comms">
+                            <div class="detail-header">
+                                <div class="detail-title">Comms Dashboard</div>
+                                <div class="detail-focus">Story Focused</div>
+                            </div>
+                            <div class="detail-content">
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Story Pipeline Funnel</div>
+                                    <div class="pipeline-funnel">
+                                        <div class="funnel-stage">
+                                            <span class="funnel-count">27</span>
+                                            <span class="funnel-label">Ideas</span>
+                                        </div>
+                                        <div class="funnel-arrow">→</div>
+                                        <div class="funnel-stage">
+                                            <span class="funnel-count">5</span>
+                                            <span class="funnel-label">Drafts</span>
+                                        </div>
+                                        <div class="funnel-arrow">→</div>
+                                        <div class="funnel-stage">
+                                            <span class="funnel-count">3</span>
+                                            <span class="funnel-label">Reviewed</span>
+                                        </div>
+                                        <div class="funnel-arrow">→</div>
+                                        <div class="funnel-stage">
+                                            <span class="funnel-count">1</span>
+                                            <span class="funnel-label">Submitted</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Key Metrics</div>
+                                    <div class="detail-items">
+                                        <span class="detail-item">Solution Coverage Gaps</span>
+                                        <span class="detail-item">Admin Priority Alignment</span>
+                                        <span class="detail-item">External Mentions</span>
+                                        <span class="detail-item">Social Media Reach</span>
+                                    </div>
+                                </div>
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Content Tracking</div>
+                                    <div class="detail-items">
+                                        <span class="detail-item">Web Content</span>
+                                        <span class="detail-item">Featured Slides</span>
+                                        <span class="detail-item">Science Stories</span>
+                                        <span class="detail-item">Key Dates</span>
+                                    </div>
+                                </div>
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Outreach Channels</div>
+                                    <div class="detail-items">
+                                        <span class="detail-item">Social Media</span>
+                                        <span class="detail-item">Newsletters</span>
+                                        <span class="detail-item">Webinars</span>
+                                        <span class="detail-item">Conferences</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shared Resources -->
+                    <div class="shared-resources">
+                        <div class="shared-header">
+                            <span class="shared-icon">🔗</span>
+                            <span>Shared Resources</span>
+                            <span class="shared-badge">Used by all dashboards</span>
+                        </div>
+                        <div class="shared-grid-expanded">
+                            <div class="dashboard-card contacts">
+                                <div class="card-title">Contact Lists</div>
+                                <div class="card-items">
+                                    <span class="card-tag">Stakeholders</span>
+                                    <span class="card-tag">Admin</span>
+                                    <span class="card-tag">Outreach</span>
+                                </div>
+                            </div>
+                            <div class="dashboard-card reports">
+                                <div class="card-title">Reports</div>
+                                <div class="card-items">
+                                    <span class="card-tag">Milestones</span>
+                                    <span class="card-tag">General Status</span>
+                                </div>
+                            </div>
+                            <div class="dashboard-card schedule">
+                                <div class="card-title">Master Schedule</div>
+                                <div class="card-items">
+                                    <span class="card-tag">Deep Dives</span>
+                                    <span class="card-tag">Decision Gates</span>
+                                    <span class="card-tag">Events</span>
+                                </div>
+                            </div>
+                            <div class="dashboard-card actions">
+                                <div class="card-title">Action Tracker</div>
+                                <div class="card-items">
+                                    <span class="card-tag">Owner</span>
+                                    <span class="card-tag">Status</span>
+                                    <span class="card-tag">Source Agenda</span>
+                                </div>
+                            </div>
+                            <div class="dashboard-card templates">
+                                <div class="card-title">Templates & Guides</div>
+                                <div class="card-items">
+                                    <span class="card-tag">Style Guide</span>
+                                    <span class="card-tag">Desk Guide</span>
+                                    <span class="card-tag">Slide Templates</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="quick-update-output">
+                        <div class="quick-update-output-icon">↻</div>
+                        <div class="quick-update-output-text">Quick Update Form</div>
+                        <div class="same-component-badge">INPUT</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEGEND -->
+        <div class="connector-annotation">
+            <div class="connector-line"></div>
+            <div class="connector-label">Quick Update Form is embedded within the Dashboard — shown separately under "Input" to illustrate data flow</div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-dot orange"></div>
+                <span>Source of Truth</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot purple"></div>
+                <span>Storage Layer</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot blue"></div>
+                <span>Dashboard Outputs</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot green"></div>
+                <span>Implementation</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
