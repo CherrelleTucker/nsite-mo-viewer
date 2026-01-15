@@ -149,9 +149,9 @@
     margin-top: var(--space-xs);
   }
 
-  /* Solution dropdown - limit width and truncate */
+  /* Solution dropdown - constrain width */
   #qu-solution {
-    max-width: 100%;
+    max-width: 400px;
   }
 
   /* Larger text area for updates */
@@ -213,30 +213,30 @@
   var QuickUpdate = {
     solutions: [
       'Walk on',
-      'Accessible 3D Topographic Mapping Software',
+      '3D Topo Mapping',
       'ADMG (MSFC)',
       'Air Quality (GSFC)',
+      'ARSET',
       'DCD (MSFC)',
+      'FIRMS-2G',
+      'Freeboard/Ice Thickness (GSFC)',
       'GABAN (GSFC)',
-      'GEOS-5 Atmospheric Composition Reanalysis (GACR) (GSFC)',
-      'Global Cloud Composites from SatCORPS (GCC from SATCorps)',
+      'GACR (GSFC)',
+      'GCC (SatCORPS)',
       'HLS (MSFC)',
       'HLS-LL (MSFC)',
       'HLS-VI (MSFC)',
-      'High-Resolution Harmonized Land Surface Temperature (LST) Products within HLS',
-      'ICESat-2/ATLAS (Freeboard/IceThickness) (GSFC)',
+      'HLS-LST',
       'Internet of Animals (JPL)',
       'MWOW (JPL)',
       'NISAR Downlink (JPL)',
       'NISAR SM (JPL)',
       'OPERA (JPL)',
       'PBL (JPL)',
-      'Second Generation of the Fire Information for Resource Management System (FIRMS-2G)',
       'TEMPO Enhanced (SAO)',
       'TEMPO NRT (SAO)',
-      'Targeted Remote Sensing Training (ARSET)',
       'VLM (JPL)',
-      'Water Quality Product (GSFC)'
+      'Water Quality (GSFC)'
     ],
 
     init: function() {
