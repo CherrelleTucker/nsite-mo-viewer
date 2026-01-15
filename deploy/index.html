@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base target="_top">
+  <title>MO-Viewer | NSITE MO Dashboard</title>
+
+  <!-- Feather Icons -->
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <!-- Platform Styles (inline for Apps Script) -->
+  <?!= include('styles'); ?>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <h1 class="logo">
+        <span class="logo-icon" data-feather="grid"></span>
+        MO-Viewer
+      </h1>
+      <span class="subtitle">NSITE MO Dashboard</span>
+    </div>
+    <div class="header-right">
+      <span class="date-display" id="dateDisplay"></span>
+      <span class="user-email" id="userEmail"></span>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <?!= include('navigation'); ?>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+    <div class="content-wrapper" id="contentArea">
+      <!-- Page content loaded here -->
+      <div class="loading-state">
+        <span class="loading-spinner"></span>
+        <p>Loading...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <span>MO-Viewer v1.0.0</span>
+    <span class="separator">|</span>
+    <span>NSITE MO</span>
+    <span class="separator">|</span>
+    <span id="lastSync">Last sync: --</span>
+  </footer>
+
+  <!-- Platform JavaScript -->
+  <script>
+    // ========================================================================
+    // PLATFORM CONFIGURATION
+    // ========================================================================
+
+    var Platform = {
+      activePage: '<?= activePage ?>',
+      baseUrl: '',
+      config: null,
+      user: null
+    };
+
+    // ========================================================================
+    // INITIALIZATION
+    // ========================================================================
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize Feather Icons
+      feather.replace();
+
+      // Load platform config
+      google.script.run
+        .withSuccessHandler(function(config) {
+          Platform.config = config;
+          Platform.baseUrl = config.baseUrl;
+          updateNavActiveState();
+        })
+        .withFailureHandler(handleError)
+        .getPlatformConfig();
+
+      // Load user info
+      google.script.run
+        .withSuccessHandler(function(user) {
+          Platform.user = user;
+          document.getElementById('userEmail').textContent = user.email;
+        })
+        .withFailureHandler(handleError)
+        .getCurrentUser();
+
+      // Load date info
+      google.script.run
+        .withSuccessHandler(function(dateInfo) {
+          document.getElementById('dateDisplay').textContent =
+            dateInfo.dayOfWeek + ', ' + dateInfo.formatted;
+        })
+        .withFailureHandler(handleError)
+        .getDateInfo();
+
+      // Load active page content
+      loadPageContent(Platform.activePage);
+    });
+
+    // ========================================================================
+    // NAVIGATION
+    // ========================================================================
+
+    function navigateTo(page) {
+      // Update URL without reload (for bookmarking)
+      var newUrl = Platform.baseUrl + '?page=' + page;
+      history.pushState({ page: page }, '', newUrl);
+
+      // Update active state
+      Platform.activePage = page;
+      updateNavActiveState();
+
+      // Load content
+      loadPageContent(page);
+    }
+
+    function updateNavActiveState() {
+      document.querySelectorAll('.nav-tab').forEach(function(tab) {
+        tab.classList.remove('active');
+      });
+
+      var activeTab = document.querySelector('[data-page="' + Platform.activePage + '"]');
+      if (activeTab) {
+        activeTab.classList.add('active');
+      }
+    }
+
+    window.addEventListener('popstate', function(event) {
+      if (event.state && event.state.page) {
+        Platform.activePage = event.state.page;
+        updateNavActiveState();
+        loadPageContent(Platform.activePage);
+      }
+    });
+
+    // ========================================================================
+    // CONTENT LOADING
+    // ========================================================================
+
+    function loadPageContent(page) {
+      var contentArea = document.getElementById('contentArea');
+
+      contentArea.innerHTML = '<div class="loading-state">' +
+        '<span class="loading-spinner"></span>' +
+        '<p>Loading ' + page + '...</p></div>';
+
+      setTimeout(function() {
+        var pageContent = getPagePlaceholder(page);
+        contentArea.innerHTML = pageContent;
+        feather.replace();
+      }, 300);
+    }
+
+    function getPagePlaceholder(page) {
+      var titles = {
+        'implementation': 'Implementation-Viewer',
+        'sep': 'SEP-Viewer',
+        'comms': 'Comms-Viewer',
+        'quick-update': 'Quick Update Form',
+        'contacts': 'Contacts',
+        'reports': 'Reports',
+        'schedule': 'Schedule',
+        'actions': 'Action Tracker'
+      };
+
+      var descriptions = {
+        'implementation': 'Solution and project tracking from Internal Agenda (Monday meetings)',
+        'sep': 'Stakeholder engagement tracking from SEP Agenda (Tuesday meetings)',
+        'comms': 'Communications and story tracking from Comms Tracking Workbook',
+        'quick-update': 'Submit updates to meeting notes documents',
+        'contacts': 'Stakeholder, admin, and outreach contact lists',
+        'reports': 'Milestone reports and status exports',
+        'schedule': 'Deep dives, decision gates, and events calendar',
+        'actions': 'Unified action tracker across all sources'
+      };
+
+      var phases = {
+        'implementation': 2,
+        'quick-update': 3,
+        'sep': 4,
+        'comms': 5,
+        'contacts': 6,
+        'reports': 6,
+        'schedule': 6,
+        'actions': 6
+      };
+
+      return '<div class="page-placeholder">' +
+        '<h2>' + (titles[page] || page) + '</h2>' +
+        '<p class="page-description">' + (descriptions[page] || '') + '</p>' +
+        '<div class="placeholder-box">' +
+        '<span data-feather="tool"></span>' +
+        '<p>Component coming in Phase ' + (phases[page] || 0) + '</p>' +
+        '<p class="text-sm text-muted mt-md">Platform shell is working correctly!</p>' +
+        '</div></div>';
+    }
+
+    // ========================================================================
+    // ERROR HANDLING
+    // ========================================================================
+
+    function handleError(error) {
+      console.error('Platform error:', error);
+    }
+  </script>
+</body>
+</html>

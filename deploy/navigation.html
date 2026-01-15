@@ -1,0 +1,94 @@
+<!-- MO-Viewer Navigation Component -->
+<nav class="nav-bar">
+  <!-- Primary Viewer Tabs -->
+  <div class="nav-primary">
+    <button class="nav-tab <?= activePage === 'implementation' ? 'active' : '' ?>"
+            data-page="implementation"
+            onclick="navigateTo('implementation')">
+      <span data-feather="folder"></span>
+      <span class="nav-label">Implementation</span>
+    </button>
+
+    <button class="nav-tab <?= activePage === 'sep' ? 'active' : '' ?>"
+            data-page="sep"
+            onclick="navigateTo('sep')">
+      <span data-feather="users"></span>
+      <span class="nav-label">SEP</span>
+    </button>
+
+    <button class="nav-tab <?= activePage === 'comms' ? 'active' : '' ?>"
+            data-page="comms"
+            onclick="navigateTo('comms')">
+      <span data-feather="message-square"></span>
+      <span class="nav-label">Comms</span>
+    </button>
+  </div>
+
+  <!-- Divider -->
+  <div class="nav-divider"></div>
+
+  <!-- Secondary Tabs -->
+  <div class="nav-secondary">
+    <button class="nav-tab <?= activePage === 'quick-update' ? 'active' : '' ?>"
+            data-page="quick-update"
+            onclick="navigateTo('quick-update')">
+      <span data-feather="edit"></span>
+      <span class="nav-label">Quick Update</span>
+    </button>
+
+    <button class="nav-tab <?= activePage === 'contacts' ? 'active' : '' ?>"
+            data-page="contacts"
+            onclick="navigateTo('contacts')">
+      <span data-feather="book"></span>
+      <span class="nav-label">Contacts</span>
+    </button>
+
+    <button class="nav-tab <?= activePage === 'reports' ? 'active' : '' ?>"
+            data-page="reports"
+            onclick="navigateTo('reports')">
+      <span data-feather="file-text"></span>
+      <span class="nav-label">Reports</span>
+    </button>
+
+    <button class="nav-tab <?= activePage === 'schedule' ? 'active' : '' ?>"
+            data-page="schedule"
+            onclick="navigateTo('schedule')">
+      <span data-feather="calendar"></span>
+      <span class="nav-label">Schedule</span>
+    </button>
+
+    <button class="nav-tab <?= activePage === 'actions' ? 'active' : '' ?>"
+            data-page="actions"
+            onclick="navigateTo('actions')">
+      <span data-feather="check-square"></span>
+      <span class="nav-label">Actions</span>
+    </button>
+  </div>
+
+  <!-- Right side actions -->
+  <div class="nav-actions">
+    <button class="nav-icon-btn" onclick="syncData()" title="Sync Data">
+      <span data-feather="refresh-cw"></span>
+    </button>
+    <button class="nav-icon-btn" onclick="showSearch()" title="Search">
+      <span data-feather="search"></span>
+    </button>
+    <button class="nav-icon-btn" onclick="showHelp()" title="Help">
+      <span data-feather="help-circle"></span>
+    </button>
+  </div>
+</nav>
+
+<script>
+  function syncData() {
+    alert('Sync functionality coming in Phase 7');
+  }
+
+  function showSearch() {
+    alert('Search functionality coming soon');
+  }
+
+  function showHelp() {
+    alert('Help documentation coming in Phase 8');
+  }
+</script>
