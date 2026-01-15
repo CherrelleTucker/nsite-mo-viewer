@@ -288,7 +288,9 @@ function findSolutionInTable(body, solutionName) {
             var childText = child.asListItem().getText().trim();
             if (childText) {
               var normalizedText = normalizeSolutionName(childText);
-              if (normalizedText === searchName) {
+              // Partial match - search term found within document text
+              if (normalizedText.indexOf(searchName) !== -1 ||
+                  searchName.indexOf(normalizedText) !== -1) {
                 return { cell: cell, solutionChildIndex: i };
               }
             }
