@@ -63,7 +63,7 @@
 
     var Platform = {
       activePage: '<?= activePage ?>',
-      baseUrl: '',
+      baseUrl: '<?= ScriptApp.getService().getUrl() ?>',
       config: null,
       user: null
     };
