@@ -171,13 +171,33 @@
         '<span class="loading-spinner"></span>' +
         '<p>Loading ' + page + '...</p></div>';
 
-      // In a full implementation, this would load the page template
-      // For now, show placeholder
-      setTimeout(function() {
-        var pageContent = getPagePlaceholder(page);
-        contentArea.innerHTML = pageContent;
-        feather.replace();
-      }, 300);
+      // Load viewer content based on page
+      if (page === 'implementation') {
+        // Load Implementation-NSITE viewer
+        google.script.run
+          .withSuccessHandler(function(html) {
+            contentArea.innerHTML = html;
+            feather.replace();
+            // Initialize the Implementation module if it exists
+            if (typeof Implementation !== 'undefined' && Implementation.init) {
+              Implementation.init();
+            }
+          })
+          .withFailureHandler(function(error) {
+            contentArea.innerHTML = '<div class="empty-state">' +
+              '<span data-feather="alert-circle"></span>' +
+              '<p>Failed to load Implementation-NSITE: ' + error.message + '</p></div>';
+            feather.replace();
+          })
+          .getImplementationViewerHTML();
+      } else {
+        // Show placeholder for other pages (coming soon)
+        setTimeout(function() {
+          var pageContent = getPagePlaceholder(page);
+          contentArea.innerHTML = pageContent;
+          feather.replace();
+        }, 300);
+      }
     }
 
     /**
@@ -187,9 +207,9 @@
      */
     function getPagePlaceholder(page) {
       var titles = {
-        'implementation': 'Implementation-Viewer',
-        'sep': 'SEP-Viewer',
-        'comms': 'Comms-Viewer',
+        'implementation': 'Implementation-NSITE',
+        'sep': 'SEP-NSITE',
+        'comms': 'Comms-NSITE',
         'quick-update': 'Quick Update Form',
         'contacts': 'Contacts',
         'reports': 'Reports',
@@ -198,9 +218,9 @@
       };
 
       var descriptions = {
-        'implementation': 'Solution and project tracking from Internal Agenda (Monday meetings)',
-        'sep': 'Stakeholder engagement tracking from SEP Agenda (Tuesday meetings)',
-        'comms': 'Communications and story tracking from Comms Tracking Workbook',
+        'implementation': 'Solution and project tracking for NSITE MO Implementation team',
+        'sep': 'Stakeholder engagement tracking - SEP is in sight',
+        'comms': 'Communications and story tracking - Comms is in sight',
         'quick-update': 'Submit updates to meeting notes documents',
         'contacts': 'Stakeholder, admin, and outreach contact lists',
         'reports': 'Milestone reports and status exports',

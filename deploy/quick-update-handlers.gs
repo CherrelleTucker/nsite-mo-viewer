@@ -11,17 +11,64 @@
 var MEETING_TYPES = {
   'internal-planning': {
     name: 'Weekly Internal Planning',
-    documentIdKey: 'INTERNAL_PLANNING_DOCUMENT_ID',
+    configKey: 'INTERNAL_AGENDA_ID',
     structureType: 'tabbed-table',
     handler: 'handleInternalPlanningInsert'
   },
   'sep-strategy': {
     name: 'Weekly SEP Strategy Meeting',
-    documentIdKey: 'SEP_STRATEGY_DOCUMENT_ID',
+    configKey: 'SEP_AGENDA_ID',
     structureType: 'continuous-sections',
     handler: 'handleSEPStrategyInsert'
   }
 };
+
+// Maps dropdown labels to exact document headings
+var SOLUTION_HEADINGS = {
+  // C5 - 2024
+  '3D Topographic Mapping': 'Accessible 3D Topographic Mapping Software',
+  'LST Products': 'High-Resolution Harmonized Land Surface Temperature (LST) Products within HLS',
+  'FIRMS-2G': 'Second Generation of the Fire Information for Resource Management System (FIRMS-2G)',
+  'HLS 10-m': '10-m Harmonized Landsat and Sentinel-2 (HLS) Product',
+  'Evapotranspiration (ET)': 'High-Resolution Evapotranspiration (ET) Product within HLS',
+  'Pandora': 'Ongoing and Mobile Pandora Measurements in Smoky Regions',
+
+  // C4 - 2022
+  'VLM': 'VLM (JPL)',
+  'Remote Sensing Training': 'Targeted Remote Sensing Training (ARSET)',
+  'TEMPO Enhanced': 'TEMPO Enhanced (SAO)',
+  'MWOW': 'MWOW (JPL)',
+  'HLS-LL': 'HLS-LL (MSFC)',
+  'GABAN': 'GABAN (GSFC)',
+
+  // Cycle 3 - 2020
+  'TEMPO NRT': 'TEMPO NRT (SAO)',
+  'PBL': 'PBL (JPL)',
+  'HLS-VI': 'HLS-VI (MSFC)',
+  'Air Quality': 'Air Quality (GSFC)',
+
+  // Cycle 2 - 2018
+  'Water Quality': 'Water Quality Product (GSFC)',
+  'OPERA': 'OPERA (JPL)',
+  'NISAR SM': 'NISAR SM (JPL)',
+  'Internet of Animals': 'Internet of Animals (JPL)',
+  'ICESat-2 - Lake Ice/Freeboard': 'Low Latency ICESat-2/ATLAS Products (GSFC)',
+  'GCC': 'Global Cloud Composites from SatCORPS (GCC from SATCorps)',
+  'GACR': 'GEOS-5 Atmospheric Composition Reanalysis (GACR) (GSFC)',
+
+  // Cycle 1 - 2016
+  'NISAR Downlink': 'NISAR Downlink (JPL)',
+  'HLS': 'HLS (MSFC)',
+  'DCD': 'DCD (MSFC)',
+  'ADMG': 'ADMG (MSFC)'
+};
+
+/**
+ * Get the document heading for a dropdown label
+ */
+function getDocumentHeading(dropdownLabel) {
+  return SOLUTION_HEADINGS[dropdownLabel] || dropdownLabel;
+}
 
 // ============================================================================
 // MAIN SUBMISSION FUNCTION
@@ -45,6 +92,7 @@ function submitSolutionUpdate(meetingTypes, solutionName, types, updateText) {
                ' | Solution: ' + solutionName);
 
     var results = [];
+    var links = [];
     var errors = [];
 
     for (var i = 0; i < meetingTypesArray.length; i++) {
@@ -52,7 +100,10 @@ function submitSolutionUpdate(meetingTypes, solutionName, types, updateText) {
 
       try {
         var result = submitToSingleMeeting(meetingType, solutionName, types, updateText, authCheck.email);
-        results.push(result);
+        results.push(result.message);
+        if (result.link) {
+          links.push(result.link);
+        }
       } catch (error) {
         var config = MEETING_TYPES[meetingType];
         var meetingName = config ? config.name : meetingType;
@@ -63,11 +114,18 @@ function submitSolutionUpdate(meetingTypes, solutionName, types, updateText) {
 
     if (errors.length > 0 && results.length === 0) {
       throw new Error('All submissions failed:\n\n' + errors.join('\n\n'));
-    } else if (errors.length > 0) {
-      return results.join('\n\n') + '\n\nSome submissions failed:\n' + errors.join('\n');
-    } else {
-      return results.join('\n\n');
     }
+
+    var response = {
+      message: results.join(' | '),
+      links: links
+    };
+
+    if (errors.length > 0) {
+      response.message += '\n\nSome submissions failed: ' + errors.join('; ');
+    }
+
+    return response;
 
   } catch (error) {
     Logger.log('Error in submitSolutionUpdate: ' + error);
@@ -81,10 +139,10 @@ function submitToSingleMeeting(meetingType, solutionName, types, updateText, use
     throw new Error('Invalid meeting type: ' + meetingType);
   }
 
-  var docId = getProperty(config.documentIdKey);
+  var docId = getConfigValue(config.configKey);
   if (!docId) {
     throw new Error('Document ID not configured for: ' + config.name +
-                    '\n\nPlease configure ' + config.documentIdKey + ' in Script Properties.');
+                    '\n\nPlease set ' + config.configKey + ' in MO-DB_Config sheet.');
   }
 
   if (config.handler === 'handleInternalPlanningInsert') {
@@ -103,23 +161,27 @@ function submitToSingleMeeting(meetingType, solutionName, types, updateText, use
 function handleInternalPlanningInsert(docId, solutionName, types, updateText, userEmail) {
   try {
     var doc = DocumentApp.openById(docId);
+    var docUrl = 'https://docs.google.com/document/d/' + docId + '/edit';
     var nextMonday = getNextMondayDate();
     var tabName = formatDateForTab(nextMonday);
 
     var tab = findTabByName(doc, tabName);
     if (!tab) {
-      return 'Could not find tab "' + tabName + '" for next Monday.';
+      return {
+        message: 'Could not find tab "' + tabName + '" for next Monday.',
+        link: { name: 'Internal Planning', url: docUrl }
+      };
     }
 
     var body = tab.asDocumentTab().getBody();
 
     if (solutionName.toLowerCase() === 'walk on') {
-      return addToWalkOnRow(body, solutionName, types, updateText, tabName, false);
+      return addToWalkOnRow(body, solutionName, types, updateText, tabName, false, docUrl);
     }
 
     var solutionLocation = findSolutionInTable(body, solutionName);
     if (!solutionLocation) {
-      return addToWalkOnRow(body, solutionName, types, updateText, tabName, true);
+      return addToWalkOnRow(body, solutionName, types, updateText, tabName, true, docUrl);
     }
 
     var formattedUpdate = formatUpdateText(types, updateText);
@@ -150,7 +212,10 @@ function handleInternalPlanningInsert(docId, solutionName, types, updateText, us
     newListItem.setGlyphType(DocumentApp.GlyphType.HOLLOW_BULLET);
     newListItem.setBold(false);
 
-    return 'Update added to ' + solutionName + ' in the ' + tabName + ' tab!';
+    return {
+      message: 'Update added to ' + solutionName + ' in ' + tabName + '!',
+      link: { name: 'Internal Planning', url: docUrl }
+    };
 
   } catch (error) {
     Logger.log('Error in handleInternalPlanningInsert: ' + error);
@@ -165,6 +230,7 @@ function handleInternalPlanningInsert(docId, solutionName, types, updateText, us
 function handleSEPStrategyInsert(docId, solutionName, types, updateText, userEmail) {
   try {
     var doc = DocumentApp.openById(docId);
+    var docUrl = 'https://docs.google.com/document/d/' + docId + '/edit';
     var body = doc.getBody();
 
     var sectionHeading = findSectionByHeading(body, 'CoDesign Project Actions');
@@ -173,18 +239,21 @@ function handleSEPStrategyInsert(docId, solutionName, types, updateText, userEma
     }
 
     if (solutionName.toLowerCase() === 'walk on') {
-      return addToSEPWalkOn(body, solutionName, types, updateText);
+      return addToSEPWalkOn(body, solutionName, types, updateText, false, docUrl);
     }
 
     var solutionLocation = findSolutionInSEPSection(body, solutionName, sectionHeading.index);
     if (!solutionLocation) {
-      return addToSEPWalkOn(body, solutionName, types, updateText, true);
+      return addToSEPWalkOn(body, solutionName, types, updateText, true, docUrl);
     }
 
     var formattedUpdate = formatUpdateText(types, updateText);
     insertInSEPSolution(solutionLocation, formattedUpdate);
 
-    return 'Update added to ' + solutionName + ' in SEP Strategy Meeting!';
+    return {
+      message: 'Update added to ' + solutionName + ' in SEP Strategy!',
+      link: { name: 'SEP Strategy', url: docUrl }
+    };
 
   } catch (error) {
     Logger.log('Error in handleSEPStrategyInsert: ' + error);
@@ -242,7 +311,9 @@ function formatUpdateText(types, text) {
 function normalizeSolutionName(text) {
   var cleaned = text.replace(/^[\u25CF\u25CB\u2022]\s*/, '');
   cleaned = cleaned.replace(/[\u200B-\u200D\uFEFF]/g, '');
-  cleaned = cleaned.replace(/\s*\((JPL|GSFC|MSFC|SAO|ARSET)\)\s*$/i, '');
+  // Only remove SHORT parenthetical content (org codes, acronyms) - 2-6 chars
+  // Keeps longer ones like (Freeboard/IceThickness)
+  cleaned = cleaned.replace(/\s*\([^)]{1,6}\)\s*/g, ' ');
   cleaned = cleaned.trim().replace(/\s+/g, ' ');
   return cleaned.toLowerCase();
 }
@@ -268,7 +339,9 @@ function findWalkOnCell(body) {
 
 function findSolutionInTable(body, solutionName) {
   var tables = body.getTables();
-  var searchName = normalizeSolutionName(solutionName);
+  // Get the exact heading to search for
+  var searchHeading = getDocumentHeading(solutionName);
+  var searchLower = searchHeading.toLowerCase();
 
   for (var t = 0; t < tables.length; t++) {
     var table = tables[t];
@@ -287,10 +360,10 @@ function findSolutionInTable(body, solutionName) {
           if (child.getType() === DocumentApp.ElementType.LIST_ITEM) {
             var childText = child.asListItem().getText().trim();
             if (childText) {
-              var normalizedText = normalizeSolutionName(childText);
-              // Partial match - search term found within document text
-              if (normalizedText.indexOf(searchName) !== -1 ||
-                  searchName.indexOf(normalizedText) !== -1) {
+              // Clean up zero-width chars and compare
+              var cleanText = childText.replace(/[\u200B-\u200D\uFEFF]/g, '').toLowerCase();
+              if (cleanText.indexOf(searchLower) !== -1 ||
+                  searchLower.indexOf(cleanText) !== -1) {
                 return { cell: cell, solutionChildIndex: i };
               }
             }
@@ -302,10 +375,13 @@ function findSolutionInTable(body, solutionName) {
   return null;
 }
 
-function addToWalkOnRow(body, solutionName, types, updateText, tabName, isNotFound) {
+function addToWalkOnRow(body, solutionName, types, updateText, tabName, isNotFound, docUrl) {
   var walkOnCell = findWalkOnCell(body);
   if (!walkOnCell) {
-    return 'Could not find "Walk on" row in the ' + tabName + ' tab.';
+    return {
+      message: 'Could not find "Walk on" row in the ' + tabName + ' tab.',
+      link: { name: 'Internal Planning', url: docUrl }
+    };
   }
 
   var formattedUpdate = formatUpdateText(types, updateText);
@@ -336,11 +412,14 @@ function addToWalkOnRow(body, solutionName, types, updateText, tabName, isNotFou
     newListItem.setForegroundColor('#ff0000');
   }
 
-  var message = 'Update added to Walk on section in ' + tabName + ' tab!';
+  var message = 'Update added to Walk on in ' + tabName + '!';
   if (isNotFound) {
-    message += '\n\nNote: "' + solutionName + '" was not found in the meeting notes.';
+    message += ' (Note: "' + solutionName + '" not found)';
   }
-  return message;
+  return {
+    message: message,
+    link: { name: 'Internal Planning', url: docUrl }
+  };
 }
 
 function findSectionByHeading(body, headingText) {
@@ -359,7 +438,9 @@ function findSectionByHeading(body, headingText) {
 }
 
 function findSolutionInSEPSection(body, solutionName, sectionStartIndex) {
-  var normalized = normalizeSolutionName(solutionName);
+  // Get the exact heading to search for
+  var searchHeading = getDocumentHeading(solutionName);
+  var searchLower = searchHeading.toLowerCase();
   var numChildren = body.getNumChildren();
 
   var majorSections = [
@@ -381,11 +462,10 @@ function findSolutionInSEPSection(body, solutionName, sectionStartIndex) {
       if (!text) continue;
 
       var heading = para.getHeading();
-      var normalizedText = normalizeSolutionName(text);
+      var cleanText = text.replace(/[\u200B-\u200D\uFEFF]/g, '').toLowerCase();
 
-      if (normalizedText.indexOf(normalized) !== -1 ||
-          normalized.indexOf(normalizedText) !== -1 ||
-          text.toLowerCase().indexOf(solutionName.toLowerCase()) !== -1) {
+      if (cleanText.indexOf(searchLower) !== -1 ||
+          searchLower.indexOf(cleanText) !== -1) {
         return { element: para, index: i };
       }
 
@@ -405,11 +485,10 @@ function findSolutionInSEPSection(body, solutionName, sectionStartIndex) {
 
       if (!text) continue;
 
-      var normalizedText = normalizeSolutionName(text);
+      var cleanText = text.replace(/[\u200B-\u200D\uFEFF]/g, '').toLowerCase();
 
-      if (normalizedText.indexOf(normalized) !== -1 ||
-          normalized.indexOf(normalizedText) !== -1 ||
-          text.toLowerCase().indexOf(solutionName.toLowerCase()) !== -1) {
+      if (cleanText.indexOf(searchLower) !== -1 ||
+          searchLower.indexOf(cleanText) !== -1) {
         return { element: listItem, index: i };
       }
     }
@@ -430,7 +509,7 @@ function insertInSEPSolution(solutionLocation, formattedUpdate) {
   return true;
 }
 
-function addToSEPWalkOn(body, solutionName, types, updateText, isNotFound) {
+function addToSEPWalkOn(body, solutionName, types, updateText, isNotFound, docUrl) {
   var walkOnHeading = findSectionByHeading(body, 'Walk-ons');
 
   if (!walkOnHeading) {
@@ -456,39 +535,369 @@ function addToSEPWalkOn(body, solutionName, types, updateText, isNotFound) {
     newListItem.setForegroundColor('#ff0000');
   }
 
-  var message = 'Update added to Walk on section in SEP Strategy Meeting!';
+  var message = 'Update added to Walk on in SEP Strategy!';
   if (isNotFound) {
-    message += '\n\nNote: "' + solutionName + '" was not found in the SEP meeting notes.';
+    message += ' (Note: "' + solutionName + '" not found)';
   }
-  return message;
+  return {
+    message: message,
+    link: { name: 'SEP Strategy', url: docUrl }
+  };
 }
 
+/**
+ * Get solution names from database
+ * Falls back to hardcoded list if database not configured
+ */
 function getSolutionNames() {
+  try {
+    var solutionsSheetId = getConfigValue('SOLUTIONS_SHEET_ID');
+    if (solutionsSheetId) {
+      var ss = SpreadsheetApp.openById(solutionsSheetId);
+      var sheet = ss.getSheets()[0];
+      var data = sheet.getDataRange().getValues();
+
+      // Find solution_id column (should be first column)
+      var headers = data[0];
+      var idCol = headers.indexOf('solution_id');
+      var nameCol = headers.indexOf('name');
+
+      // Use name column if available, otherwise solution_id
+      var useCol = (nameCol !== -1) ? nameCol : (idCol !== -1 ? idCol : 0);
+
+      var names = ['Walk on']; // Always include Walk on first
+      for (var i = 1; i < data.length; i++) {
+        var name = data[i][useCol];
+        if (name && name.toString().trim()) {
+          names.push(name.toString().trim());
+        }
+      }
+
+      // Sort alphabetically (keeping Walk on which will sort to end, then we move it)
+      names.sort();
+      // Move "Walk on" to the beginning
+      var walkOnIndex = names.indexOf('Walk on');
+      if (walkOnIndex > 0) {
+        names.splice(walkOnIndex, 1);
+        names.unshift('Walk on');
+      }
+
+      return names;
+    }
+  } catch (error) {
+    Logger.log('Error loading solutions from database: ' + error);
+  }
+
+  // Fallback to hardcoded list if database not available
   return [
     'Walk on',
-    'Accessible 3D Topographic Mapping Software',
-    'ADMG (MSFC)',
-    'Air Quality (GSFC)',
-    'DCD (MSFC)',
-    'GABAN (GSFC)',
-    'GEOS-5 Atmospheric Composition Reanalysis (GACR) (GSFC)',
-    'Global Cloud Composites from SatCORPS (GCC from SATCorps)',
-    'HLS (MSFC)',
-    'HLS-LL (MSFC)',
-    'HLS-VI (MSFC)',
-    'High-Resolution Harmonized Land Surface Temperature (LST) Products within HLS',
-    'ICESat-2/ATLAS (Freeboard/IceThickness) (GSFC)',
-    'Internet of Animals (JPL)',
-    'MWOW (JPL)',
-    'NISAR Downlink (JPL)',
-    'NISAR SM (JPL)',
-    'OPERA (JPL)',
-    'PBL (JPL)',
-    'Second Generation of the Fire Information for Resource Management System (FIRMS-2G)',
-    'TEMPO Enhanced (SAO)',
-    'TEMPO NRT (SAO)',
-    'Targeted Remote Sensing Training (ARSET)',
-    'VLM (JPL)',
-    'Water Quality Product (GSFC)'
+    '3D Topographic Mapping',
+    'ADMG',
+    'Air Quality',
+    'Remote Sensing Training',
+    'DCD',
+    'Evapotranspiration (ET)',
+    'FIRMS-2G',
+    'ICESat-2 - Lake Ice/Freeboard',
+    'GABAN',
+    'GACR',
+    'GCC',
+    'HLS',
+    'HLS 10-m',
+    'HLS-LL',
+    'HLS-VI',
+    'Internet of Animals',
+    'LST Products',
+    'MWOW',
+    'NISAR Downlink',
+    'NISAR SM',
+    'OPERA',
+    'Pandora',
+    'PBL',
+    'TEMPO Enhanced',
+    'TEMPO NRT',
+    'VLM',
+    'Water Quality'
   ].sort();
+}
+
+// ============================================================================
+// TEST FUNCTIONS - Run from Apps Script Editor
+// ============================================================================
+
+/**
+ * Test all solutions on both agendas
+ * Run this from the Apps Script editor: Run > testAllSolutions
+ * Check the Execution Log for results
+ */
+function testAllSolutions() {
+  var solutions = getSolutionNames();
+  var results = {
+    internal: { found: [], notFound: [], errors: [] },
+    sep: { found: [], notFound: [], errors: [] }
+  };
+
+  Logger.log('========================================');
+  Logger.log('TESTING ALL SOLUTIONS');
+  Logger.log('========================================\n');
+
+  // Test Internal Planning
+  Logger.log('--- INTERNAL PLANNING ---');
+  var internalDocId = getConfigValue('INTERNAL_AGENDA_ID');
+  if (internalDocId) {
+    try {
+      var doc = DocumentApp.openById(internalDocId);
+      var nextMonday = getNextMondayDate();
+      var tabName = formatDateForTab(nextMonday);
+      var tab = findTabByName(doc, tabName);
+
+      if (tab) {
+        var body = tab.asDocumentTab().getBody();
+
+        for (var i = 0; i < solutions.length; i++) {
+          var solution = solutions[i];
+          if (solution.toLowerCase() === 'walk on') continue;
+
+          var location = findSolutionInTable(body, solution);
+          if (location) {
+            results.internal.found.push(solution);
+          } else {
+            results.internal.notFound.push(solution);
+          }
+        }
+      } else {
+        Logger.log('ERROR: Tab "' + tabName + '" not found');
+      }
+    } catch (e) {
+      Logger.log('ERROR accessing Internal Planning: ' + e.message);
+    }
+  } else {
+    Logger.log('ERROR: INTERNAL_AGENDA_ID not configured in MO-DB_Config');
+  }
+
+  Logger.log('Found (' + results.internal.found.length + '): ' + results.internal.found.join(', '));
+  Logger.log('NOT Found (' + results.internal.notFound.length + '): ' + results.internal.notFound.join(', '));
+
+  // Test SEP Strategy
+  Logger.log('\n--- SEP STRATEGY ---');
+  var sepDocId = getConfigValue('SEP_AGENDA_ID');
+  if (sepDocId) {
+    try {
+      var doc = DocumentApp.openById(sepDocId);
+      var body = doc.getBody();
+
+      var sectionHeading = findSectionByHeading(body, 'CoDesign Project Actions');
+      if (sectionHeading) {
+        for (var i = 0; i < solutions.length; i++) {
+          var solution = solutions[i];
+          if (solution.toLowerCase() === 'walk on') continue;
+
+          var location = findSolutionInSEPSection(body, solution, sectionHeading.index);
+          if (location) {
+            results.sep.found.push(solution);
+          } else {
+            results.sep.notFound.push(solution);
+          }
+        }
+      } else {
+        Logger.log('ERROR: CoDesign Project Actions section not found');
+      }
+    } catch (e) {
+      Logger.log('ERROR accessing SEP Strategy: ' + e.message);
+    }
+  } else {
+    Logger.log('ERROR: SEP_AGENDA_ID not configured in MO-DB_Config');
+  }
+
+  Logger.log('Found (' + results.sep.found.length + '): ' + results.sep.found.join(', '));
+  Logger.log('NOT Found (' + results.sep.notFound.length + '): ' + results.sep.notFound.join(', '));
+
+  // Summary
+  Logger.log('\n========================================');
+  Logger.log('SUMMARY');
+  Logger.log('========================================');
+  Logger.log('Internal Planning: ' + results.internal.found.length + ' found, ' + results.internal.notFound.length + ' not found');
+  Logger.log('SEP Strategy: ' + results.sep.found.length + ' found, ' + results.sep.notFound.length + ' not found');
+
+  if (results.internal.notFound.length > 0 || results.sep.notFound.length > 0) {
+    Logger.log('\n--- SOLUTIONS NEEDING ATTENTION ---');
+    var allNotFound = {};
+    results.internal.notFound.forEach(function(s) { allNotFound[s] = (allNotFound[s] || '') + ' [Internal]'; });
+    results.sep.notFound.forEach(function(s) { allNotFound[s] = (allNotFound[s] || '') + ' [SEP]'; });
+
+    Object.keys(allNotFound).sort().forEach(function(s) {
+      Logger.log('  ' + s + ':' + allNotFound[s]);
+    });
+  }
+
+  return results;
+}
+
+/**
+ * Test a single solution on both agendas
+ * Usage: testSingleSolution('GABAN')
+ */
+function testSingleSolution(solutionName) {
+  Logger.log('Testing: ' + solutionName);
+  Logger.log('Normalized: ' + normalizeSolutionName(solutionName));
+
+  // Test Internal
+  var internalDocId = getConfigValue('INTERNAL_AGENDA_ID');
+  if (internalDocId) {
+    var doc = DocumentApp.openById(internalDocId);
+    var nextMonday = getNextMondayDate();
+    var tabName = formatDateForTab(nextMonday);
+    var tab = findTabByName(doc, tabName);
+
+    if (tab) {
+      var body = tab.asDocumentTab().getBody();
+      var location = findSolutionInTable(body, solutionName);
+      Logger.log('Internal Planning (' + tabName + '): ' + (location ? 'FOUND' : 'NOT FOUND'));
+    }
+  }
+
+  // Test SEP
+  var sepDocId = getConfigValue('SEP_AGENDA_ID');
+  if (sepDocId) {
+    var doc = DocumentApp.openById(sepDocId);
+    var body = doc.getBody();
+    var sectionHeading = findSectionByHeading(body, 'CoDesign Project Actions');
+
+    if (sectionHeading) {
+      var location = findSolutionInSEPSection(body, solutionName, sectionHeading.index);
+      Logger.log('SEP Strategy: ' + (location ? 'FOUND' : 'NOT FOUND'));
+    }
+  }
+}
+
+/**
+ * List all solution names found in Internal Planning document
+ * Useful for debugging what text is actually in the document
+ */
+function listInternalSolutions() {
+  var internalDocId = getConfigValue('INTERNAL_AGENDA_ID');
+  if (!internalDocId) {
+    Logger.log('INTERNAL_AGENDA_ID not configured in MO-DB_Config');
+    return;
+  }
+
+  var doc = DocumentApp.openById(internalDocId);
+  var nextMonday = getNextMondayDate();
+  var tabName = formatDateForTab(nextMonday);
+  var tab = findTabByName(doc, tabName);
+
+  if (!tab) {
+    Logger.log('Tab "' + tabName + '" not found');
+    return;
+  }
+
+  var body = tab.asDocumentTab().getBody();
+  var tables = body.getTables();
+  var solutions = [];
+
+  Logger.log('Solutions found in Internal Planning (' + tabName + '):');
+  Logger.log('----------------------------------------');
+
+  for (var t = 0; t < tables.length; t++) {
+    var table = tables[t];
+    var numRows = table.getNumRows();
+
+    for (var r = 3; r < numRows; r++) {
+      var row = table.getRow(r);
+      if (row.getNumCells() >= 2) {
+        var cell = row.getCell(1);
+        var numChildren = cell.getNumChildren();
+
+        for (var i = 0; i < numChildren; i++) {
+          var child = cell.getChild(i);
+          if (child.getType() === DocumentApp.ElementType.LIST_ITEM) {
+            var listItem = child.asListItem();
+            if (listItem.getNestingLevel() === 0) {
+              var text = listItem.getText().trim();
+              if (text) {
+                Logger.log('  "' + text + '"');
+                Logger.log('    -> normalized: "' + normalizeSolutionName(text) + '"');
+                solutions.push(text);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  Logger.log('\nTotal: ' + solutions.length + ' solutions');
+  return solutions;
+}
+
+/**
+ * List all solution names found in SEP Strategy document
+ */
+function listSEPSolutions() {
+  var sepDocId = getConfigValue('SEP_AGENDA_ID');
+  if (!sepDocId) {
+    Logger.log('SEP_AGENDA_ID not configured in MO-DB_Config');
+    return;
+  }
+
+  var doc = DocumentApp.openById(sepDocId);
+  var body = doc.getBody();
+  var sectionHeading = findSectionByHeading(body, 'CoDesign Project Actions');
+
+  if (!sectionHeading) {
+    Logger.log('CoDesign Project Actions section not found');
+    return;
+  }
+
+  var solutions = [];
+  var numChildren = body.getNumChildren();
+
+  var majorSections = [
+    'SEP Comms and Promotion',
+    'SEP Document Administration',
+    'External Collaboration',
+    'Natasha priority tasks',
+    'Walk-ons',
+    'Walk on'
+  ];
+
+  Logger.log('Solutions found in SEP Strategy (CoDesign Project Actions):');
+  Logger.log('------------------------------------------------------------');
+
+  for (var i = sectionHeading.index + 1; i < numChildren; i++) {
+    var child = body.getChild(i);
+
+    if (child.getType() === DocumentApp.ElementType.PARAGRAPH) {
+      var para = child.asParagraph();
+      var text = para.getText().trim();
+      var heading = para.getHeading();
+
+      if (!text) continue;
+
+      // Stop at major sections
+      if (heading === DocumentApp.ParagraphHeading.HEADING1) break;
+
+      if (heading === DocumentApp.ParagraphHeading.HEADING2) {
+        var isMajor = false;
+        for (var j = 0; j < majorSections.length; j++) {
+          if (text.indexOf(majorSections[j]) !== -1) {
+            isMajor = true;
+            break;
+          }
+        }
+        if (isMajor) break;
+      }
+
+      // Log headings that might be solutions
+      if (heading === DocumentApp.ParagraphHeading.HEADING3 ||
+          heading === DocumentApp.ParagraphHeading.HEADING4) {
+        Logger.log('  "' + text + '"');
+        Logger.log('    -> normalized: "' + normalizeSolutionName(text) + '"');
+        solutions.push(text);
+      }
+    }
+  }
+
+  Logger.log('\nTotal: ' + solutions.length + ' solutions');
+  return solutions;
 }

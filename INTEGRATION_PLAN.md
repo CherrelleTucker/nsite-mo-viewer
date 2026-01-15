@@ -63,6 +63,35 @@ This plan outlines how to build **MO-Viewer** - a unified dashboard platform for
 
 ---
 
+## UX Pattern: "Coming Soon" Notices
+
+Each page in the platform should display a subtle "Coming soon" notice at the bottom indicating the next planned features for that component. This:
+- Sets user expectations for upcoming functionality
+- Provides transparency on the development roadmap
+- Encourages feedback on planned features
+
+### Pattern Implementation
+
+```html
+<!-- Coming soon notice at bottom of each page -->
+<div class="coming-soon-notice">
+  <span data-feather="info"></span>
+  <span><strong>Coming soon:</strong> [Feature 1], [Feature 2]</span>
+</div>
+```
+
+### Coming Soon Features by Component
+
+| Component | Current Features | Coming Soon |
+|-----------|------------------|-------------|
+| **Quick Update Form** | Single solution updates to Internal/SEP agendas | Multiple solution updates per submission, Comms updates |
+| **Implementation-Viewer** | (In development) | Solution cards, Cycle filters, Milestone tracking |
+| **SEP-Viewer** | (In development) | Touchpoint pipeline, People/Solution views |
+| **Comms-Viewer** | (In development) | Story pipeline funnel, Coverage gap highlighting |
+| **Shared Resources** | (Placeholder) | Contacts, Reports, Schedule, Action Tracker |
+
+---
+
 ## Phase 1: Platform Foundation
 
 ### Goal

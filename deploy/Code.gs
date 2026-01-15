@@ -15,21 +15,38 @@
 
 /**
  * Script Property Keys
+ * Only CONFIG_SHEET_ID is stored in Script Properties.
+ * All other IDs are read from the MO-DB_Config sheet.
  */
 var CONFIG = {
-  // Document IDs
-  INTERNAL_PLANNING_DOC_ID: 'INTERNAL_PLANNING_DOCUMENT_ID',
-  SEP_STRATEGY_DOC_ID: 'SEP_STRATEGY_DOCUMENT_ID',
-  COMMS_TRACKING_DOC_ID: 'COMMS_TRACKING_DOCUMENT_ID',
-  DATABASE_SHEET_ID: 'DATABASE_SHEET_ID',
+  // The only Script Property needed - points to MO-DB_Config sheet
+  CONFIG_SHEET_ID: 'CONFIG_SHEET_ID',
 
-  // API Keys
-  GITHUB_TOKEN: 'GITHUB_TOKEN',
-
-  // Admin
+  // Admin (still in Script Properties for security)
   ADMIN_EMAIL: 'ADMIN_EMAIL',
   WHITELIST: 'APPROVED_USERS_WHITELIST'
 };
+
+/**
+ * Config keys stored in MO-DB_Config sheet
+ */
+var CONFIG_KEYS = {
+  // Document IDs
+  INTERNAL_AGENDA_ID: 'INTERNAL_AGENDA_ID',
+  SEP_AGENDA_ID: 'SEP_AGENDA_ID',
+  COMMS_TRACKING_ID: 'COMMS_TRACKING_ID',
+
+  // Database Sheet IDs
+  SOLUTIONS_SHEET_ID: 'SOLUTIONS_SHEET_ID',
+  CONTACTS_SHEET_ID: 'CONTACTS_SHEET_ID',
+  CONTACT_SOLUTIONS_SHEET_ID: 'CONTACT_SOLUTIONS_SHEET_ID',
+  ACTIONS_SHEET_ID: 'ACTIONS_SHEET_ID',
+  MILESTONES_SHEET_ID: 'MILESTONES_SHEET_ID',
+  UPDATE_HISTORY_SHEET_ID: 'UPDATE_HISTORY_SHEET_ID'
+};
+
+// Cache for config values (refreshed per execution)
+var _configCache = null;
 
 /**
  * Valid page routes
@@ -155,20 +172,124 @@ function setProperty(key, value) {
   }
 }
 
+// ============================================================================
+// CONFIG SHEET HELPERS
+// ============================================================================
+
+/**
+ * Load all config values from MO-DB_Config sheet
+ * Caches results for the duration of the script execution
+ *
+ * @returns {Object} Key-value map of config settings
+ */
+function loadConfigFromSheet() {
+  if (_configCache !== null) {
+    return _configCache;
+  }
+
+  var configSheetId = getProperty(CONFIG.CONFIG_SHEET_ID);
+  if (!configSheetId) {
+    Logger.log('CONFIG_SHEET_ID not set in Script Properties');
+    return {};
+  }
+
+  try {
+    var ss = SpreadsheetApp.openById(configSheetId);
+    var sheet = ss.getSheets()[0]; // First sheet
+    var data = sheet.getDataRange().getValues();
+
+    _configCache = {};
+
+    // Skip header row, read key-value pairs
+    for (var i = 1; i < data.length; i++) {
+      var key = data[i][0];
+      var value = data[i][1];
+      if (key) {
+        _configCache[key] = value || '';
+      }
+    }
+
+    return _configCache;
+  } catch (error) {
+    Logger.log('Error loading config sheet: ' + error);
+    return {};
+  }
+}
+
+/**
+ * Get a config value from MO-DB_Config sheet
+ *
+ * @param {string} key - Config key name
+ * @returns {string} Config value or empty string
+ */
+function getConfigValue(key) {
+  var config = loadConfigFromSheet();
+  return config[key] || '';
+}
+
+/**
+ * Get a database sheet by table name
+ * Reads the sheet ID from MO-DB_Config
+ *
+ * @param {string} tableName - Table name (e.g., 'Solutions', 'Contacts')
+ * @returns {Sheet} The sheet object
+ */
+function getDatabaseSheet(tableName) {
+  var sheetIdKey = tableName.toUpperCase() + '_SHEET_ID';
+  var sheetId = getConfigValue(sheetIdKey);
+
+  if (!sheetId) {
+    throw new Error('Sheet ID not configured for: ' + tableName +
+                    '. Set ' + sheetIdKey + ' in MO-DB_Config.');
+  }
+
+  try {
+    var ss = SpreadsheetApp.openById(sheetId);
+    return ss.getSheets()[0]; // Each database file has one sheet
+  } catch (error) {
+    throw new Error('Cannot open sheet for ' + tableName + ': ' + error.message);
+  }
+}
+
+/**
+ * Get a document ID from config
+ * Wrapper for common document ID lookups
+ *
+ * @param {string} docType - Document type: 'internal', 'sep', or 'comms'
+ * @returns {string} Document ID or empty string
+ */
+function getDocumentId(docType) {
+  var keyMap = {
+    'internal': CONFIG_KEYS.INTERNAL_AGENDA_ID,
+    'sep': CONFIG_KEYS.SEP_AGENDA_ID,
+    'comms': CONFIG_KEYS.COMMS_TRACKING_ID
+  };
+
+  var key = keyMap[docType];
+  if (!key) {
+    Logger.log('Unknown document type: ' + docType);
+    return '';
+  }
+
+  return getConfigValue(key);
+}
+
 /**
  * Get platform configuration for client-side use
  */
 function getPlatformConfig() {
+  var config = loadConfigFromSheet();
+
   return {
     pages: PAGES,
     defaultPage: DEFAULT_PAGE,
     baseUrl: ScriptApp.getService().getUrl(),
     configured: {
-      internalPlanning: !!getProperty(CONFIG.INTERNAL_PLANNING_DOC_ID),
-      sepStrategy: !!getProperty(CONFIG.SEP_STRATEGY_DOC_ID),
-      commsTracking: !!getProperty(CONFIG.COMMS_TRACKING_DOC_ID),
-      database: !!getProperty(CONFIG.DATABASE_SHEET_ID),
-      github: !!getProperty(CONFIG.GITHUB_TOKEN)
+      configSheet: !!getProperty(CONFIG.CONFIG_SHEET_ID),
+      internalPlanning: !!config[CONFIG_KEYS.INTERNAL_AGENDA_ID],
+      sepStrategy: !!config[CONFIG_KEYS.SEP_AGENDA_ID],
+      commsTracking: !!config[CONFIG_KEYS.COMMS_TRACKING_ID],
+      solutionsDb: !!config[CONFIG_KEYS.SOLUTIONS_SHEET_ID]
     }
   };
 }

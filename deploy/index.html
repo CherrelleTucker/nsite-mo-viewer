@@ -34,7 +34,9 @@
   <!-- Main Content Area -->
   <main class="main-content">
     <div class="content-wrapper" id="contentArea">
-      <? if (activePage === 'quick-update') { ?>
+      <? if (activePage === 'implementation') { ?>
+        <?!= include('implementation'); ?>
+      <? } else if (activePage === 'quick-update') { ?>
         <?!= include('quick-update'); ?>
       <? } else { ?>
       <!-- Placeholder for other pages -->
@@ -114,7 +116,7 @@
 
     function navigateTo(page) {
       // For server-rendered pages, do a full navigation
-      var serverRenderedPages = ['quick-update'];
+      var serverRenderedPages = ['implementation', 'quick-update'];
 
       if (serverRenderedPages.indexOf(page) !== -1 ||
           serverRenderedPages.indexOf(Platform.activePage) !== -1) {
@@ -159,6 +161,15 @@
       var contentArea = document.getElementById('contentArea');
 
       // Pages with real content - just initialize
+      if (page === 'implementation') {
+        // Implementation is server-rendered, initialize the module
+        if (typeof Implementation !== 'undefined') {
+          Implementation.init();
+        }
+        feather.replace();
+        return;
+      }
+
       if (page === 'quick-update') {
         // Quick Update is server-rendered, just reinitialize if needed
         if (typeof QuickUpdate !== 'undefined') {
@@ -182,9 +193,9 @@
 
     function getPagePlaceholder(page) {
       var titles = {
-        'implementation': 'Implementation-Viewer',
-        'sep': 'SEP-Viewer',
-        'comms': 'Comms-Viewer',
+        'implementation': 'Implementation-NSITE',
+        'sep': 'SEP-NSITE',
+        'comms': 'Comms-NSITE',
         'quick-update': 'Quick Update Form',
         'contacts': 'Contacts',
         'reports': 'Reports',
@@ -193,9 +204,9 @@
       };
 
       var descriptions = {
-        'implementation': 'Solution and project tracking from Internal Agenda (Monday meetings)',
-        'sep': 'Stakeholder engagement tracking from SEP Agenda (Tuesday meetings)',
-        'comms': 'Communications and story tracking from Comms Tracking Workbook',
+        'implementation': 'Solution tracking for NSITE MO Implementation team',
+        'sep': 'Stakeholder engagement tracking - SEP is in sight',
+        'comms': 'Communications and story tracking - Comms is in sight',
         'quick-update': 'Submit updates to meeting notes documents',
         'contacts': 'Stakeholder, admin, and outreach contact lists',
         'reports': 'Milestone reports and status exports',

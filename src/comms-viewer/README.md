@@ -8,12 +8,17 @@ Track story pipeline, communications coverage, and outreach activities.
 ## Data Source
 **Comms Tracking** (Story Tracking Workbook) - Ongoing
 
-## Features
+## Planned Features
 - Story Pipeline Funnel (Ideas → Drafts → Reviewed → Submitted)
 - Solution Coverage Gaps identification
 - Content Tracking (Web, Slides, Science Stories, Key Dates)
 - Outreach Channels overview (Social Media, Newsletters, Webinars, Conferences)
 - Key Metrics (Coverage Gaps, Priority Alignment, External Mentions, Reach)
+
+## Coming Soon (after initial release)
+- **Story detail cards** - Full story content and revision history
+- **Content calendar** - Visual schedule of planned publications
+- **Coverage gap alerts** - Highlight solutions needing communications attention
 
 ## Files
 

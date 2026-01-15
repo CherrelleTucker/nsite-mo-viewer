@@ -12,13 +12,15 @@ MO-Viewer is a unified dashboard platform for the **NSITE MO** (NASA's Support t
 
 ### Platform Components
 
-| Component | Focus | Description |
-|-----------|-------|-------------|
-| **Implementation-Viewer** | Solutions/Projects | Track solution status, milestones, and DAAC assignments |
-| **SEP-Viewer** | People/Stakeholders | Manage stakeholder engagement pipeline and touchpoints |
-| **Comms-Viewer** | Stories/Communications | Track story pipeline and communications coverage |
-| **Quick Update Form** | Input | Submit updates to source documents from within the dashboard |
-| **Shared Resources** | Cross-cutting | Contacts, reports, schedules, action tracker, templates |
+The naming convention "NSITE" in viewer names represents "in sight" - making data visible and accessible.
+
+| Component | Focus | Status | Description |
+|-----------|-------|--------|-------------|
+| **Implementation-NSITE** | Solutions/Projects | **Complete** | Track solution status, milestones, and DAAC assignments |
+| **SEP-NSITE** | People/Stakeholders | Planned | Manage stakeholder engagement pipeline and touchpoints |
+| **Comms-NSITE** | Stories/Communications | Planned | Track story pipeline and communications coverage |
+| **Quick Update Form** | Input | **Complete** | Submit updates to source documents from within the dashboard |
+| **Shared Resources** | Cross-cutting | Planned | Contacts, reports, schedules, action tracker, templates |
 
 ---
 
@@ -104,12 +106,37 @@ nsite-mo-viewer/
 
 ---
 
+## Current Status
+
+**Last Updated:** 2026-01-15
+
+| Phase | Component | Status |
+|-------|-----------|--------|
+| Phase 1 | Platform Foundation | **Complete** |
+| Phase 2 | Implementation-NSITE | **Complete** |
+| Phase 3 | Quick Update Form | **Complete** |
+| Phase 4 | SEP-NSITE | Planned |
+| Phase 5 | Comms-NSITE | Planned |
+| Phase 6 | Shared Resources | Planned |
+
+### Data Sources
+
+| Database | Purpose | Status |
+|----------|---------|--------|
+| **MO-DB_Solutions** | Solution data (49 columns, ~37 solutions) | **Populated** |
+| **MO-DB_Contacts** | Stakeholder contacts | Planned |
+| **MO-DB_Milestones** | Milestone tracking | Planned |
+| **MO-DB_Config** | Configuration settings | **Active** |
+
+---
+
 ## Getting Started
 
 ### Prerequisites
 
 - Google account with access to NSITE MO Google Workspace
-- Access to source documents (Internal Agenda, SEP Agenda, Comms Tracking)
+- Access to MO-DB_Solutions Google Sheet
+- Access to MO-DB_Config Google Sheet
 
 ### Deployment
 
@@ -117,9 +144,10 @@ See [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md) for detailed deployment instructi
 
 **Quick Start:**
 1. Create a new Google Apps Script project
-2. Copy files from `src/platform/` to the project
-3. Configure Script Properties with document IDs
-4. Deploy as Web App
+2. Copy all files from `deploy/` folder to the project
+3. Set `CONFIG_SHEET_ID` in Script Properties to point to MO-DB_Config
+4. Ensure MO-DB_Config has `SOLUTIONS_SHEET_ID` pointing to MO-DB_Solutions
+5. Deploy as Web App
 
 ---
 

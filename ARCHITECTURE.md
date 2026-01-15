@@ -1,8 +1,8 @@
 # MO-Viewer Master Architecture
 
-**Version:** 1.0.0
-**Date:** 2026-01-14
-**Status:** Draft
+**Version:** 1.1.0
+**Date:** 2026-01-15
+**Status:** Active Development
 
 ---
 
@@ -17,17 +17,22 @@ MO-Viewer is a unified dashboard platform for the **NSITE MO** (NASA's Support t
 | Term | Scope | Description |
 |------|-------|-------------|
 | **MO-Viewer** | Platform | The complete dashboard platform containing all viewer components |
-| **Implementation-Viewer** | Component | Solution/Project focused dashboard view |
-| **SEP-Viewer** | Component | People/Stakeholder focused dashboard view |
-| **Comms-Viewer** | Component | Story/Communications focused dashboard view |
+| **Implementation-NSITE** | Component | Solution/Project focused dashboard view ("Implementation is in sight") |
+| **SEP-NSITE** | Component | People/Stakeholder focused dashboard view ("SEP is in sight") |
+| **Comms-NSITE** | Component | Story/Communications focused dashboard view ("Comms is in sight") |
 | **Quick Update Form** | Component | Embedded input form for submitting updates |
 | **Shared Resources** | Component | Cross-cutting data accessible from all viewers |
+
+### NSITE Naming Pattern
+
+The "-NSITE" suffix in viewer names is a wordplay: "NSITE" sounds like "in sight", meaning the data is visible and accessible. This creates a meaningful connection to the NSITE MO team name while emphasizing the dashboard's purpose of making information visible.
 
 ### Usage Examples
 
 - "MO-Viewer is deployed at [URL]" (referring to the platform)
-- "The Implementation-Viewer shows solutions by cycle" (referring to a component)
-- "Data flows from meeting notes into MO-Viewer" (platform context)
+- "Implementation-NSITE shows solutions by cycle" (referring to a component)
+- "SEP is in sight with SEP-NSITE" (using the wordplay)
+- "Data flows from MO-DB_Solutions into MO-Viewer" (platform context)
 
 ---
 
@@ -147,33 +152,40 @@ The database is a **cache layer**, not the authoritative source. This design ens
 
 ## Component Specifications
 
-### 1. Implementation-Viewer
+### 1. Implementation-NSITE - **COMPLETE**
 
-**Focus:** Solutions and Projects
+**Focus:** Solutions and Projects ("Implementation is in sight")
 
 **Primary Questions Answered:**
 - What is the status of Solution X?
 - Which solutions are in which lifecycle phase?
 - What are the upcoming milestones?
-- Who is assigned to which DAAC?
+- Who is the solution lead?
 
 **Data Displayed:**
 
-| Section | Content |
-|---------|---------|
-| Solutions by Cycle | C1-C6 (2016-2026), grouped by assessment cycle |
-| MO Milestones | IPA, ICD, F2I DG, OPS for each solution |
-| Document Administration | Project Plans, SEP Plan, Comms Plan, IM Plan status |
-| Per-Solution Tracking | DAAC Assignment, Deep Dives scheduled, Action Items |
+| Section | Content | Status |
+|---------|---------|--------|
+| Stats Dashboard | Total, Operational, Implementation, Formulation counts | **Implemented** |
+| Solutions by Cycle | C1-C6 (2016-2026), grouped by assessment cycle | **Implemented** |
+| Filters | Cycle, Phase, Group, Search | **Implemented** |
+| Solution Cards | Name, ID, phase, lead, status summary, quick links | **Implemented** |
+| MO Milestones | IPA, ICD, F2I DG, OPS for each solution | Planned |
+| Document Links | Drive folder, Earthdata page | **Implemented** |
 
-**Source Documents:**
-- Internal Agenda (Weekly Planning Notes)
+**Data Source:**
+- **MO-DB_Solutions** Google Sheet (49 columns organized in 13 groups)
+  - Identity: solution_id, name, full_title, solution_group
+  - Lifecycle: cycle, cycle_year, phase, funding_status
+  - Team: solution_lead, ra_representative, earth_action_advocate
+  - Content: purpose_mission, status_summary, solution_characteristics
+  - Links: drive_folder_url, snwg_solution_page_url
 
 ---
 
-### 2. SEP-Viewer
+### 2. SEP-NSITE - **NEXT PHASE**
 
-**Focus:** People and Stakeholder Engagement
+**Focus:** People and Stakeholder Engagement ("SEP is in sight")
 
 **Primary Questions Answered:**
 - Where is Stakeholder X in the engagement pipeline?
@@ -183,23 +195,23 @@ The database is a **cache layer**, not the authoritative source. This design ens
 
 **Data Displayed:**
 
-| Section | Content |
-|---------|---------|
-| Touchpoint Pipeline | T4 → W1 → W2 → T7 → T8 progression |
-| Views | People View (by stakeholder) and Solution View (by project) |
-| Key Metrics | Engagement Rate, Transition Success, Impact Docs, Training Resources |
-| Contact Tools | Email Records, Assessment Context, Interview Artifacts |
-| Ownership Model | SEP-Directed (8), Project-Led (4), SPoRT-Directed (4) |
+| Section | Content | Status |
+|---------|---------|--------|
+| Touchpoint Pipeline | T4 → W1 → W2 → T7 → T8 progression | Planned |
+| Views | People View (by stakeholder) and Solution View (by project) | Planned |
+| Key Metrics | Engagement Rate, Transition Success, Impact Docs, Training Resources | Planned |
+| Contact Tools | Email Records, Assessment Context, Interview Artifacts | Planned |
+| Ownership Model | SEP-Directed (8), Project-Led (4), SPoRT-Directed (4) | Planned |
 
-**Source Documents:**
-- SEP Agenda (Weekly Meeting Notes)
-- Stakeholder database (existing)
+**Data Source:**
+- **MO-DB_Contacts** Google Sheet (to be populated from stakeholder lists)
+- Stakeholder list files in Google Drive folder `12Bo-ZTLBU_DLiaiWQ75kBbIZkdSXlGh1`
 
 ---
 
-### 3. Comms-Viewer
+### 3. Comms-NSITE - **PLANNED**
 
-**Focus:** Stories and Communications
+**Focus:** Stories and Communications ("Comms is in sight")
 
 **Primary Questions Answered:**
 - What stories are in the pipeline?
@@ -209,15 +221,15 @@ The database is a **cache layer**, not the authoritative source. This design ens
 
 **Data Displayed:**
 
-| Section | Content |
-|---------|---------|
-| Story Pipeline Funnel | Ideas → Drafts → Reviewed → Submitted |
-| Key Metrics | Solution Coverage Gaps, Admin Priority Alignment, External Mentions, Social Media Reach |
-| Content Tracking | Web Content, Featured Slides, Science Stories, Key Dates |
-| Outreach Channels | Social Media, Newsletters, Webinars, Conferences |
+| Section | Content | Status |
+|---------|---------|--------|
+| Story Pipeline Funnel | Ideas → Drafts → Reviewed → Submitted | Planned |
+| Key Metrics | Solution Coverage Gaps, Admin Priority Alignment, External Mentions, Social Media Reach | Planned |
+| Content Tracking | Web Content, Featured Slides, Science Stories, Key Dates | Planned |
+| Outreach Channels | Social Media, Newsletters, Webinars, Conferences | Planned |
 
-**Source Documents:**
-- Comms Tracking (Story Tracking Workbook)
+**Data Source:**
+- Comms Tracking (Story Tracking Workbook) - to be integrated
 
 ---
 
@@ -438,34 +450,49 @@ mo-viewer/
 
 ## Migration Path
 
-### Phase 1: Foundation
-- [ ] Create mono-repo structure
-- [ ] Migrate MO-VIEWER_MASTER_ARCHITECTURE.md
-- [ ] Set up database schema in Google Sheets
+### Phase 1: Foundation - **COMPLETE**
+- [x] Create mono-repo structure
+- [x] Migrate MO-VIEWER_MASTER_ARCHITECTURE.md
+- [x] Set up database schema in Google Sheets
+- [x] Create MO-DB_Config for centralized configuration
 
-### Phase 2: Core Platform
-- [ ] Build platform shell (navigation, routing)
-- [ ] Implement Quick Update Form (migrate from NSITEViewer)
-- [ ] Deploy basic web app
+### Phase 2: Core Platform - **COMPLETE**
+- [x] Build platform shell (navigation, routing)
+- [x] Deploy basic web app
+- [x] Implement tab-based navigation with URL routing
 
-### Phase 3: Implementation-Viewer
-- [ ] Migrate SolutionFlow parser
-- [ ] Build Implementation-Viewer UI
-- [ ] Connect to database
+### Phase 3: Quick Update Form - **COMPLETE**
+- [x] Implement Quick Update Form (migrate from NSITEViewer)
+- [x] Server-side rendering for form
+- [x] Integration with source documents
 
-### Phase 4: SEP-Viewer
-- [ ] Migrate SEPViewer components
-- [ ] Build SEP-Viewer UI
-- [ ] Integrate stakeholder data
+### Phase 4: Implementation-NSITE - **COMPLETE** (2026-01-15)
+- [x] Bootstrap MO-DB_Solutions from GitHub issues and earthdata.nasa.gov
+- [x] Fetch solution content from earthdata.nasa.gov pages
+- [x] Reorganize CSV columns (49 columns in 13 logical groups)
+- [x] Build Implementation-NSITE UI with:
+  - Stats dashboard (total, operational, implementation, formulation counts)
+  - Filter by cycle, phase, group, search
+  - Solutions organized by cycle with collapsible sections
+  - Solution cards with status, lead, and quick links
+- [x] Create solutions-api.gs for data access
+- [x] Deploy and verify functionality
 
-### Phase 5: Comms-Viewer
+### Phase 5: SEP-NSITE - **NEXT**
+- [ ] Populate MO-DB_Contacts from stakeholder lists
+- [ ] Build SEP-NSITE UI (touchpoint pipeline view)
+- [ ] Integrate stakeholder engagement data
+
+### Phase 6: Comms-NSITE - PLANNED
 - [ ] Build Comms Tracking parser (new)
-- [ ] Build Comms-Viewer UI
+- [ ] Build Comms-NSITE UI (story pipeline view)
 - [ ] Integrate story pipeline data
 
-### Phase 6: Shared Resources
-- [ ] Build shared components
-- [ ] Integrate cross-cutting data
+### Phase 7: Shared Resources - PLANNED
+- [ ] Populate MO-DB_Milestones
+- [ ] Build contacts component
+- [ ] Build reports component
+- [ ] Build schedule component
 - [ ] Complete platform integration
 
 ---
@@ -551,7 +578,8 @@ mo-viewer/
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2026-01-14 | [Your Name] | Initial draft |
+| 1.0.0 | 2026-01-14 | NSITE MO | Initial draft |
+| 1.1.0 | 2026-01-15 | NSITE MO | Updated naming to NSITE pattern; marked Phases 1-4 complete; documented MO-DB_Solutions as primary data source |
 
 ---
 

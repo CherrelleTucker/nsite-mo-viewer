@@ -10,12 +10,17 @@ Allow users to submit updates without leaving the MO-Viewer dashboard.
 - SEP Agenda (for stakeholder updates)
 - Comms Tracking (for story updates)
 
-## Features
-- Select target document type
-- Select solution/stakeholder/story
+## Current Features
+- Select target meeting (Internal Planning, SEP Strategy, or both)
+- Select solution from dropdown
 - Choose update type (Action, Milestone, General)
 - Submit directly to source document
-- Confirmation with link to updated location
+- Confirmation with link to updated location in document
+- Double-submission prevention
+
+## Coming Soon
+- **Multiple solution updates per submission** - Submit updates for multiple solutions in one form
+- **Comms updates** - Submit updates to the Comms Tracking Workbook for story pipeline
 
 ## Files
 

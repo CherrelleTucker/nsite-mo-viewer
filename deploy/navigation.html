@@ -1,26 +1,29 @@
 <!-- MO-Viewer Navigation Component -->
 <nav class="nav-bar">
-  <!-- Primary Viewer Tabs -->
+  <!-- Primary Viewer Tabs (NSITE = "in sight") -->
   <div class="nav-primary">
     <button class="nav-tab <?= activePage === 'implementation' ? 'active' : '' ?>"
             data-page="implementation"
-            onclick="navigateTo('implementation')">
+            onclick="navigateTo('implementation')"
+            title="Implementation is in sight">
       <span data-feather="folder"></span>
-      <span class="nav-label">Implementation</span>
+      <span class="nav-label">Implementation-NSITE</span>
     </button>
 
     <button class="nav-tab <?= activePage === 'sep' ? 'active' : '' ?>"
             data-page="sep"
-            onclick="navigateTo('sep')">
+            onclick="navigateTo('sep')"
+            title="SEP is in sight">
       <span data-feather="users"></span>
-      <span class="nav-label">SEP</span>
+      <span class="nav-label">SEP-NSITE</span>
     </button>
 
     <button class="nav-tab <?= activePage === 'comms' ? 'active' : '' ?>"
             data-page="comms"
-            onclick="navigateTo('comms')">
+            onclick="navigateTo('comms')"
+            title="Comms is in sight">
       <span data-feather="message-square"></span>
-      <span class="nav-label">Comms</span>
+      <span class="nav-label">Comms-NSITE</span>
     </button>
   </div>
 

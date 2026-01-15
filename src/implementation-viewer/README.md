@@ -8,12 +8,17 @@ Track solution status, milestones, DAAC assignments, and implementation progress
 ## Data Source
 **Internal Agenda** (Weekly Planning Notes) - Monday meetings
 
-## Features
+## Planned Features
 - Solutions organized by Cycle (C1-C6)
 - MO Milestones tracking (IPA, ICD, F2I, OPS)
 - Document Administration status
 - Per-Solution tracking (DAAC, Deep Dives, Actions)
 - Search and filter by solution name, cycle, phase, provider
+
+## Coming Soon (after initial release)
+- **Solution detail cards** - Expanded view with full history
+- **Milestone calendar view** - Timeline visualization of upcoming milestones
+- **Export to QuickLook CSV** - Auto-generate milestone reports
 
 ## Files
 
