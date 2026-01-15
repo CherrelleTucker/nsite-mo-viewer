@@ -211,6 +211,7 @@
 
 <script>
   var QuickUpdate = {
+    initialized: false,
     solutions: [
       'Walk on',
       '3D Topo Mapping',
@@ -240,6 +241,8 @@
     ],
 
     init: function() {
+      if (this.initialized) return;
+      this.initialized = true;
       this.populateSolutions();
       this.bindEvents();
       feather.replace();
