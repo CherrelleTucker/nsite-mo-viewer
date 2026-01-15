@@ -1,0 +1,357 @@
+<!-- Quick Update Form Component for MO-Viewer -->
+<div class="quick-update-container">
+  <div class="quick-update-header">
+    <h2>Submit Solution Update</h2>
+    <p class="text-muted">Add updates to weekly meeting notes</p>
+  </div>
+
+  <div id="qu-success-message" class="qu-message qu-success"></div>
+  <div id="qu-error-message" class="qu-message qu-error"></div>
+
+  <div class="qu-security-notice">
+    <strong>Secure Access</strong>
+    All submissions are logged and added to the next meeting's agenda.
+  </div>
+
+  <div id="qu-form-container">
+    <form id="quick-update-form">
+      <!-- Meeting Selection -->
+      <div class="form-group">
+        <label>Submit to: <span class="required">*</span></label>
+        <div class="qu-checkbox-group">
+          <label class="qu-checkbox-item">
+            <input type="checkbox" id="qu-meeting-internal" value="internal-planning">
+            <span>Internal Planning (Mondays)</span>
+          </label>
+          <label class="qu-checkbox-item">
+            <input type="checkbox" id="qu-meeting-sep" value="sep-strategy">
+            <span>SEP Strategy (Tuesdays)</span>
+          </label>
+        </div>
+        <p class="helper-text">Select one or both meetings</p>
+      </div>
+
+      <!-- Solution Selection -->
+      <div class="form-group">
+        <label for="qu-solution">Solution / Project: <span class="required">*</span></label>
+        <select id="qu-solution" class="form-select" required>
+          <option value="">-- Select Solution --</option>
+        </select>
+        <p class="helper-text">Choose the solution you're updating</p>
+      </div>
+
+      <!-- Update Type -->
+      <div class="form-group">
+        <label>Update Type:</label>
+        <div class="qu-checkbox-group">
+          <label class="qu-checkbox-item">
+            <input type="checkbox" id="qu-type-milestone" value="milestone">
+            <span>Milestone</span>
+          </label>
+          <label class="qu-checkbox-item">
+            <input type="checkbox" id="qu-type-action" value="action">
+            <span>Action</span>
+          </label>
+          <label class="qu-checkbox-item">
+            <input type="checkbox" id="qu-type-general" value="general" checked>
+            <span>General</span>
+          </label>
+        </div>
+        <p class="helper-text">Select all that apply</p>
+      </div>
+
+      <!-- Update Text -->
+      <div class="form-group">
+        <label for="qu-update-text">Update: <span class="required">*</span></label>
+        <textarea id="qu-update-text" class="form-textarea"
+                  placeholder="Enter your status update here..." required></textarea>
+        <p class="helper-text">This will be added to the next meeting's notes</p>
+      </div>
+
+      <!-- Buttons -->
+      <div class="qu-button-group">
+        <button type="button" class="btn btn-secondary" onclick="QuickUpdate.resetForm()">Clear</button>
+        <button type="submit" class="btn btn-primary" id="qu-submit-btn">
+          <span data-feather="send"></span>
+          Submit Update
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div id="qu-loading" class="qu-loading">
+    <span class="loading-spinner"></span>
+    <p>Submitting your update...</p>
+  </div>
+</div>
+
+<style>
+  .quick-update-container {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .quick-update-header {
+    margin-bottom: var(--space-lg);
+  }
+
+  .quick-update-header h2 {
+    font-size: var(--font-size-xxl);
+    color: var(--color-primary);
+    margin-bottom: var(--space-xs);
+  }
+
+  .qu-security-notice {
+    background: rgba(46, 125, 50, 0.1);
+    border-left: 4px solid var(--color-success);
+    padding: var(--space-md);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-lg);
+    font-size: var(--font-size-sm);
+    color: var(--color-success);
+  }
+
+  .qu-security-notice strong {
+    display: block;
+    margin-bottom: var(--space-xs);
+  }
+
+  .qu-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    margin-top: var(--space-sm);
+  }
+
+  .qu-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+    font-weight: normal;
+    margin-bottom: 0;
+  }
+
+  .qu-checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+  }
+
+  .required {
+    color: var(--color-error);
+  }
+
+  .helper-text {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-top: var(--space-xs);
+  }
+
+  .qu-message {
+    padding: var(--space-md);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-lg);
+    display: none;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .qu-success {
+    background: rgba(46, 125, 50, 0.1);
+    border-left: 4px solid var(--color-success);
+    color: var(--color-success);
+  }
+
+  .qu-error {
+    background: rgba(211, 47, 47, 0.1);
+    border-left: 4px solid var(--color-error);
+    color: var(--color-error);
+  }
+
+  .qu-button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-md);
+    margin-top: var(--space-lg);
+  }
+
+  .qu-loading {
+    display: none;
+    text-align: center;
+    padding: var(--space-xxl);
+    color: var(--color-text-secondary);
+  }
+
+  @media (max-width: 600px) {
+    .qu-checkbox-group {
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .qu-button-group {
+      flex-direction: column-reverse;
+    }
+
+    .qu-button-group button {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  var QuickUpdate = {
+    // Solution list (loaded from server or hardcoded fallback)
+    solutions: [
+      'Walk on',
+      'Accessible 3D Topographic Mapping Software',
+      'ADMG (MSFC)',
+      'Air Quality (GSFC)',
+      'DCD (MSFC)',
+      'GABAN (GSFC)',
+      'GEOS-5 Atmospheric Composition Reanalysis (GACR) (GSFC)',
+      'Global Cloud Composites from SatCORPS (GCC from SATCorps)',
+      'HLS (MSFC)',
+      'HLS-LL (MSFC)',
+      'HLS-VI (MSFC)',
+      'High-Resolution Harmonized Land Surface Temperature (LST) Products within HLS',
+      'ICESat-2/ATLAS (Freeboard/IceThickness) (GSFC)',
+      'Internet of Animals (JPL)',
+      'MWOW (JPL)',
+      'NISAR Downlink (JPL)',
+      'NISAR SM (JPL)',
+      'OPERA (JPL)',
+      'PBL (JPL)',
+      'Second Generation of the Fire Information for Resource Management System (FIRMS-2G)',
+      'TEMPO Enhanced (SAO)',
+      'TEMPO NRT (SAO)',
+      'Targeted Remote Sensing Training (ARSET)',
+      'VLM (JPL)',
+      'Water Quality Product (GSFC)'
+    ],
+
+    init: function() {
+      this.populateSolutions();
+      this.bindEvents();
+      feather.replace();
+    },
+
+    populateSolutions: function() {
+      var select = document.getElementById('qu-solution');
+      select.innerHTML = '<option value="">-- Select Solution --</option>';
+
+      this.solutions.sort().forEach(function(solution) {
+        var option = document.createElement('option');
+        option.value = solution;
+        option.textContent = solution;
+        select.appendChild(option);
+      });
+    },
+
+    bindEvents: function() {
+      var form = document.getElementById('quick-update-form');
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        QuickUpdate.submit();
+      });
+    },
+
+    submit: function() {
+      var solution = document.getElementById('qu-solution').value;
+      var updateText = document.getElementById('qu-update-text').value.trim();
+
+      // Get selected meeting types
+      var meetingTypes = [];
+      if (document.getElementById('qu-meeting-internal').checked) {
+        meetingTypes.push('internal-planning');
+      }
+      if (document.getElementById('qu-meeting-sep').checked) {
+        meetingTypes.push('sep-strategy');
+      }
+
+      // Validation
+      if (meetingTypes.length === 0) {
+        this.showError('Please select at least one meeting type');
+        return;
+      }
+
+      if (!solution) {
+        this.showError('Please select a solution');
+        return;
+      }
+
+      if (!updateText) {
+        this.showError('Please enter an update');
+        return;
+      }
+
+      // Get selected update types
+      var types = [];
+      if (document.getElementById('qu-type-milestone').checked) types.push('milestone');
+      if (document.getElementById('qu-type-action').checked) types.push('action');
+      if (document.getElementById('qu-type-general').checked) types.push('general');
+
+      // Show loading
+      document.getElementById('qu-form-container').style.display = 'none';
+      document.getElementById('qu-loading').style.display = 'block';
+
+      // Submit to server
+      google.script.run
+        .withSuccessHandler(this.onSuccess.bind(this))
+        .withFailureHandler(this.onError.bind(this))
+        .submitSolutionUpdate(meetingTypes, solution, types, updateText);
+    },
+
+    onSuccess: function(message) {
+      document.getElementById('qu-loading').style.display = 'none';
+      document.getElementById('qu-form-container').style.display = 'block';
+
+      var successDiv = document.getElementById('qu-success-message');
+      successDiv.textContent = message;
+      successDiv.style.display = 'block';
+
+      // Reset form
+      this.resetForm();
+
+      // Hide success message after 5 seconds
+      setTimeout(function() {
+        successDiv.style.display = 'none';
+      }, 5000);
+    },
+
+    onError: function(error) {
+      document.getElementById('qu-loading').style.display = 'none';
+      document.getElementById('qu-form-container').style.display = 'block';
+      this.showError('Error: ' + error.message);
+    },
+
+    showError: function(message) {
+      var errorDiv = document.getElementById('qu-error-message');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+
+      setTimeout(function() {
+        errorDiv.style.display = 'none';
+      }, 5000);
+    },
+
+    resetForm: function() {
+      document.getElementById('quick-update-form').reset();
+      document.getElementById('qu-type-general').checked = true;
+      document.getElementById('qu-success-message').style.display = 'none';
+      document.getElementById('qu-error-message').style.display = 'none';
+    }
+  };
+
+  // Initialize when loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { QuickUpdate.init(); });
+  } else {
+    QuickUpdate.init();
+  }
+</script>

@@ -34,11 +34,15 @@
   <!-- Main Content Area -->
   <main class="main-content">
     <div class="content-wrapper" id="contentArea">
-      <!-- Page content loaded here -->
+      <? if (activePage === 'quick-update') { ?>
+        <?!= include('quick-update'); ?>
+      <? } else { ?>
+      <!-- Placeholder for other pages -->
       <div class="loading-state">
         <span class="loading-spinner"></span>
         <p>Loading...</p>
       </div>
+      <? } ?>
     </div>
   </main>
 
@@ -109,15 +113,22 @@
     // ========================================================================
 
     function navigateTo(page) {
-      // Update URL without reload (for bookmarking)
+      // For server-rendered pages, do a full navigation
+      var serverRenderedPages = ['quick-update'];
+
+      if (serverRenderedPages.indexOf(page) !== -1 ||
+          serverRenderedPages.indexOf(Platform.activePage) !== -1) {
+        // Full page reload for server-rendered content
+        window.location.href = Platform.baseUrl + '?page=' + page;
+        return;
+      }
+
+      // Client-side navigation for placeholder pages
       var newUrl = Platform.baseUrl + '?page=' + page;
       history.pushState({ page: page }, '', newUrl);
 
-      // Update active state
       Platform.activePage = page;
       updateNavActiveState();
-
-      // Load content
       loadPageContent(page);
     }
 
@@ -147,6 +158,17 @@
     function loadPageContent(page) {
       var contentArea = document.getElementById('contentArea');
 
+      // Pages with real content - just initialize
+      if (page === 'quick-update') {
+        // Quick Update is server-rendered, just reinitialize if needed
+        if (typeof QuickUpdate !== 'undefined') {
+          QuickUpdate.init();
+        }
+        feather.replace();
+        return;
+      }
+
+      // Other pages - show placeholder
       contentArea.innerHTML = '<div class="loading-state">' +
         '<span class="loading-spinner"></span>' +
         '<p>Loading ' + page + '...</p></div>';
