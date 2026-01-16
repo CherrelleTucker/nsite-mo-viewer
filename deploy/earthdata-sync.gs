@@ -48,6 +48,195 @@ var EARTHDATA_CONFIG = {
 };
 
 // ============================================================================
+// URL DISCOVERY
+// ============================================================================
+
+/**
+ * Fetch all solution URLs from the earthdata solutions index page
+ * and update the snwg_solution_page_url column for matching solutions
+ */
+function discoverAndUpdateUrls() {
+  Logger.log('Discovering solution URLs from earthdata index...');
+
+  var indexUrl = 'https://www.earthdata.nasa.gov/about/nasa-support-snwg/solutions';
+  var html = fetchWithRetry_(indexUrl);
+
+  if (!html) {
+    Logger.log('ERROR: Could not fetch solutions index page');
+    return { error: 'Could not fetch index page' };
+  }
+
+  // Extract all solution links from the page
+  var solutionLinks = extractSolutionLinks_(html);
+  Logger.log('Found ' + Object.keys(solutionLinks).length + ' solution links on index page');
+
+  // Get sheet data
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+
+  var cols = {
+    solution_id: headers.indexOf(EARTHDATA_CONFIG.columns.solution_id),
+    name: headers.indexOf(EARTHDATA_CONFIG.columns.name),
+    url: headers.indexOf(EARTHDATA_CONFIG.columns.url)
+  };
+
+  if (cols.url === -1) {
+    Logger.log('ERROR: snwg_solution_page_url column not found');
+    return { error: 'URL column not found' };
+  }
+
+  var results = { matched: 0, updated: 0, notFound: [] };
+
+  // Try to match each row to a discovered URL
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var name = row[cols.name] || '';
+    var solutionId = row[cols.solution_id] || '';
+    var currentUrl = row[cols.url] || '';
+
+    // Skip if already has a valid URL
+    if (currentUrl && currentUrl.indexOf('earthdata.nasa.gov') !== -1 &&
+        currentUrl !== 'https://www.earthdata.nasa.gov/about/nasa-support-snwg/solutions/') {
+      continue;
+    }
+
+    // Try to find a matching URL
+    var matchedUrl = findMatchingUrl_(name, solutionId, solutionLinks);
+
+    if (matchedUrl) {
+      sheet.getRange(i + 1, cols.url + 1).setValue(matchedUrl);
+      results.matched++;
+      results.updated++;
+      Logger.log('Matched: ' + name + ' -> ' + matchedUrl);
+    } else {
+      results.notFound.push(name || solutionId);
+    }
+  }
+
+  Logger.log('URL discovery complete: ' + results.matched + ' matched, ' + results.notFound.length + ' not found');
+
+  if (results.notFound.length > 0) {
+    Logger.log('Solutions without URLs: ' + results.notFound.join(', '));
+  }
+
+  return results;
+}
+
+/**
+ * Extract solution links from the index page HTML
+ * @private
+ */
+function extractSolutionLinks_(html) {
+  var links = {};
+
+  // Pattern to find solution links - they're in the format:
+  // <a href="/about/nasa-support-snwg/solutions/solution-name">Solution Title</a>
+  // Also check /esds/ paths for some solutions
+  var patterns = [
+    /<a[^>]+href="(\/about\/nasa-support-snwg\/solutions\/[^"]+)"[^>]*>([^<]+)<\/a>/gi,
+    /<a[^>]+href="(\/esds\/[^"]+)"[^>]*>([^<]+)<\/a>/gi,
+    /<a[^>]+href="(https:\/\/www\.earthdata\.nasa\.gov\/about\/nasa-support-snwg\/solutions\/[^"]+)"[^>]*>([^<]+)<\/a>/gi,
+    /<a[^>]+href="(https:\/\/www\.earthdata\.nasa\.gov\/esds\/[^"]+)"[^>]*>([^<]+)<\/a>/gi
+  ];
+
+  patterns.forEach(function(pattern) {
+    var match;
+    while ((match = pattern.exec(html)) !== null) {
+      var url = match[1];
+      var title = cleanText_(match[2]);
+
+      // Skip the main solutions page itself
+      if (url === '/about/nasa-support-snwg/solutions' ||
+          url === '/about/nasa-support-snwg/solutions/') {
+        continue;
+      }
+
+      // Make URL absolute if relative
+      if (url.indexOf('http') !== 0) {
+        url = 'https://www.earthdata.nasa.gov' + url;
+      }
+
+      // Store by normalized title for matching
+      var normalizedTitle = normalizeForMatching_(title);
+      if (normalizedTitle && normalizedTitle.length > 2) {
+        links[normalizedTitle] = { url: url, title: title };
+      }
+    }
+  });
+
+  return links;
+}
+
+/**
+ * Find a matching URL for a solution
+ * @private
+ */
+function findMatchingUrl_(name, solutionId, solutionLinks) {
+  // Try exact match on name
+  var normalizedName = normalizeForMatching_(name);
+  if (solutionLinks[normalizedName]) {
+    return solutionLinks[normalizedName].url;
+  }
+
+  // Try exact match on solution_id
+  var normalizedId = normalizeForMatching_(solutionId);
+  if (solutionLinks[normalizedId]) {
+    return solutionLinks[normalizedId].url;
+  }
+
+  // Try partial matches
+  var keys = Object.keys(solutionLinks);
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    var linkData = solutionLinks[key];
+
+    // Check if solution name contains the link title or vice versa
+    if (normalizedName && key &&
+        (normalizedName.indexOf(key) !== -1 || key.indexOf(normalizedName) !== -1)) {
+      return linkData.url;
+    }
+
+    // Check solution_id
+    if (normalizedId && key &&
+        (normalizedId.indexOf(key) !== -1 || key.indexOf(normalizedId) !== -1)) {
+      return linkData.url;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Normalize text for matching (lowercase, remove special chars)
+ * @private
+ */
+function normalizeForMatching_(text) {
+  if (!text) return '';
+  return text.toString().toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .trim();
+}
+
+/**
+ * Discover URLs and then sync all content
+ * Convenience function to do both steps
+ */
+function discoverUrlsAndSync() {
+  var urlResults = discoverAndUpdateUrls();
+  Logger.log('URL discovery results: ' + JSON.stringify(urlResults));
+
+  // Brief pause before syncing
+  Utilities.sleep(2000);
+
+  var syncResults = syncAllSolutionContent();
+  return {
+    urlDiscovery: urlResults,
+    sync: syncResults
+  };
+}
+
+// ============================================================================
 // MAIN SYNC FUNCTIONS
 // ============================================================================
 
@@ -534,6 +723,9 @@ function scheduledEarthdataSync() {
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('Earthdata Sync')
+    .addItem('Discover URLs from Index', 'discoverAndUpdateUrls')
+    .addItem('Discover URLs + Sync All', 'discoverUrlsAndSync')
+    .addSeparator()
     .addItem('Sync All Solutions', 'syncAllSolutionContent')
     .addItem('Sync Selected Row', 'syncSelectedRow')
     .addSeparator()
