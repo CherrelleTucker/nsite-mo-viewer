@@ -1018,48 +1018,46 @@ var Implementation = (function() {
   }
 
   function updateMilestones() {
-    // Get solution names for filtering
-    var selectedSolutionNames = state.filteredSolutions.map(function(sol) {
-      return (sol.name || sol.solution_id || '').toLowerCase();
+    // Count completed milestones from solution data (date in the past = completed)
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var counts = { ATP: 0, F2I: 0, ORR: 0, Closeout: 0 };
+
+    state.filteredSolutions.forEach(function(sol) {
+      if (isDateCompleted(sol.atp_date, today)) counts.ATP++;
+      if (isDateCompleted(sol.f2i_date, today)) counts.F2I++;
+      if (isDateCompleted(sol.orr_date, today)) counts.ORR++;
+      if (isDateCompleted(sol.closeout_date, today)) counts.Closeout++;
     });
 
-    // Load milestones from database
-    google.script.run
-      .withSuccessHandler(function(allMilestones) {
-        // Filter milestones to selected solutions and count completed by type
-        var counts = { ATP: 0, F2I: 0, ORR: 0, Closeout: 0 };
+    document.getElementById('countATP').textContent = counts.ATP;
+    document.getElementById('countF2I').textContent = counts.F2I;
+    document.getElementById('countORR').textContent = counts.ORR;
+    document.getElementById('countCloseout').textContent = counts.Closeout;
+  }
 
-        if (allMilestones && allMilestones.length > 0) {
-          allMilestones.forEach(function(m) {
-            // Check if milestone belongs to a selected solution
-            var mSolName = (m.solution_name || '').toLowerCase();
-            var isSelected = selectedSolutionNames.some(function(name) {
-              return mSolName.indexOf(name) !== -1 || name.indexOf(mSolName) !== -1;
-            });
+  function isDateCompleted(dateVal, today) {
+    if (!dateVal) return false;
+    var d = parseDate(dateVal);
+    return d && d < today;
+  }
 
-            if (isSelected && m.status === 'completed') {
-              var type = (m.type || '').toLowerCase();
-              if (type.indexOf('atp') !== -1) counts.ATP++;
-              else if (type.indexOf('f2i') !== -1) counts.F2I++;
-              else if (type.indexOf('orr') !== -1) counts.ORR++;
-              else if (type.indexOf('closeout') !== -1) counts.Closeout++;
-            }
-          });
-        }
+  function parseDate(dateVal) {
+    if (!dateVal) return null;
+    if (dateVal instanceof Date) return dateVal;
+    var str = String(dateVal).trim();
+    if (!str) return null;
+    var d = new Date(str);
+    return isNaN(d.getTime()) ? null : d;
+  }
 
-        document.getElementById('countATP').textContent = counts.ATP;
-        document.getElementById('countF2I').textContent = counts.F2I;
-        document.getElementById('countORR').textContent = counts.ORR;
-        document.getElementById('countCloseout').textContent = counts.Closeout;
-      })
-      .withFailureHandler(function(error) {
-        console.error('Failed to load milestones:', error);
-        document.getElementById('countATP').textContent = '--';
-        document.getElementById('countF2I').textContent = '--';
-        document.getElementById('countORR').textContent = '--';
-        document.getElementById('countCloseout').textContent = '--';
-      })
-      .getAllMilestones();
+  function getMilestoneStatus(dateVal) {
+    if (!dateVal) return 'not_started';
+    var d = parseDate(dateVal);
+    if (!d) return 'not_started';
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return d < today ? 'completed' : 'planned';
   }
 
   function updateTrackingStats() {
@@ -1245,41 +1243,68 @@ var Implementation = (function() {
     document.getElementById('modalBody').innerHTML = '<div style="text-align:center;padding:40px;"><span class="loading-spinner"></span><p>Loading details...</p></div>';
     document.getElementById('solutionModal').classList.add('active');
 
-    // Load both stakeholder and milestone data
-    var stakeholderData = null;
-    var milestoneData = null;
-    var loadCount = 0;
-
-    function checkComplete() {
-      loadCount++;
-      if (loadCount >= 2) {
-        renderDetailModal(sol, stakeholderData, milestoneData);
-      }
-    }
+    // Build milestone data from solution fields
+    var milestoneData = buildMilestoneData(sol);
 
     // Load stakeholder data
     google.script.run
       .withSuccessHandler(function(stakeholders) {
-        stakeholderData = stakeholders;
-        checkComplete();
+        renderDetailModal(sol, stakeholders, milestoneData);
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load stakeholders:', error);
-        checkComplete();
+        renderDetailModal(sol, null, milestoneData);
       })
       .getSolutionStakeholderSummary(sol.name || sol.full_title);
+  }
 
-    // Load milestone data
-    google.script.run
-      .withSuccessHandler(function(milestones) {
-        milestoneData = milestones;
-        checkComplete();
-      })
-      .withFailureHandler(function(error) {
-        console.error('Failed to load milestones:', error);
-        checkComplete();
-      })
-      .getSolutionMilestoneSummary(sol.name || sol.solution_id);
+  function buildMilestoneData(sol) {
+    var milestones = [];
+    var completed = 0, planned = 0;
+
+    // ATP
+    if (sol.atp_date) {
+      var status = getMilestoneStatus(sol.atp_date);
+      milestones.push({ type: 'ATP DG', date: formatDateDisplay(sol.atp_date), status: status });
+      if (status === 'completed') completed++; else if (status === 'planned') planned++;
+    }
+
+    // F2I
+    if (sol.f2i_date) {
+      var status = getMilestoneStatus(sol.f2i_date);
+      milestones.push({ type: 'F2I DG', date: formatDateDisplay(sol.f2i_date), status: status });
+      if (status === 'completed') completed++; else if (status === 'planned') planned++;
+    }
+
+    // ORR
+    if (sol.orr_date) {
+      var status = getMilestoneStatus(sol.orr_date);
+      milestones.push({ type: 'ORR', date: formatDateDisplay(sol.orr_date), status: status });
+      if (status === 'completed') completed++; else if (status === 'planned') planned++;
+    }
+
+    // Closeout
+    if (sol.closeout_date) {
+      var status = getMilestoneStatus(sol.closeout_date);
+      milestones.push({ type: 'Closeout DG', date: formatDateDisplay(sol.closeout_date), status: status });
+      if (status === 'completed') completed++; else if (status === 'planned') planned++;
+    }
+
+    // Find next milestone (first planned one)
+    var nextMilestone = milestones.find(function(m) { return m.status === 'planned'; });
+
+    return {
+      milestones: milestones,
+      completed: completed,
+      planned: planned,
+      next_milestone: nextMilestone ? { type: nextMilestone.type, target_date: nextMilestone.date } : null
+    };
+  }
+
+  function formatDateDisplay(dateVal) {
+    var d = parseDate(dateVal);
+    if (!d) return '';
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
   function renderDetailModal(sol, stakeholders, milestones) {
@@ -1376,14 +1401,14 @@ var Implementation = (function() {
         html += '<div class="milestone-item ' + statusClass + '">';
         html += '<span data-feather="' + icon + '" class="milestone-icon"></span>';
         html += '<span class="milestone-type">' + escapeHtml(m.type) + '</span>';
-        if (m.target_date) {
-          html += '<span class="milestone-date">' + m.target_date + '</span>';
+        if (m.date) {
+          html += '<span class="milestone-date">' + m.date + '</span>';
         }
         html += '</div>';
       });
       html += '</div>';
     } else {
-      html += '<div class="empty-milestones">No milestone data available for this solution.</div>';
+      html += '<div class="empty-milestones">No milestone dates set for this solution.</div>';
     }
     html += '</div>';
 

@@ -92,9 +92,8 @@ deploy/
 
 | Database | Location | Records | Status |
 |----------|----------|---------|--------|
-| MO-DB_Solutions | Google Sheet | 37 solutions | **Populated** |
+| MO-DB_Solutions | Google Sheet | 37 solutions (includes milestone dates) | **Populated** |
 | MO-DB_Contacts | Google Sheet | 4,221 records (423 unique) | **Populated** |
-| MO-DB_Milestones | Google Sheet | 53 milestones (30 solutions) | **Populated** |
 | MO-DB_Config | Google Sheet | Configuration | **Active** |
 | MO-DB_Stories | Google Sheet | -- | Planned |
 

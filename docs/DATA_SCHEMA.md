@@ -88,6 +88,10 @@ Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across li
 | `source_doc` | STRING | No | Source document type ('internal' | 'sep') |
 | `source_tab` | STRING | No | Source document tab name (e.g., "01_13") |
 | `show_in_default` | STRING | No | Show in default selection ('Y' = yes, blank = no). Controls which solutions appear selected by default in Implementation-NSITE. |
+| `atp_date` | DATE | No | Authority to Proceed Decision Gate date. Past = completed, future = planned. |
+| `f2i_date` | DATE | No | Formulation to Implementation Decision Gate date. Past = completed, future = planned. |
+| `orr_date` | DATE | No | Operational Readiness Review date. Past = completed, future = planned. |
+| `closeout_date` | DATE | No | Closeout Decision Gate date. Past = completed, future = planned. |
 | `last_updated` | DATE | Yes | Last update timestamp |
 | `created_at` | DATE | Yes | Record creation timestamp |
 
@@ -112,6 +116,10 @@ Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across li
   "source_doc": "internal",
   "source_tab": "01_13",
   "show_in_default": "Y",
+  "atp_date": "2024-03-15",
+  "f2i_date": "2024-09-01",
+  "orr_date": "2025-01-15",
+  "closeout_date": "",
   "last_updated": "2026-01-14",
   "created_at": "2024-01-15"
 }
