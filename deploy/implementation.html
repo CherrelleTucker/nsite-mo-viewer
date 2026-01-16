@@ -48,28 +48,28 @@
     <div class="panel milestones-panel">
       <div class="panel-header">
         <span data-feather="flag"></span>
-        <span>MO Milestones</span>
+        <span>Implementation Milestones</span>
       </div>
       <div class="milestones-tracker">
-        <div class="milestone-item" data-milestone="IPA">
-          <span class="milestone-badge">IPA</span>
-          <span class="milestone-label">Interface Plan Agreement</span>
-          <span class="milestone-count" id="countIPA">--</span>
-        </div>
-        <div class="milestone-item" data-milestone="ICD">
-          <span class="milestone-badge">ICD</span>
-          <span class="milestone-label">Interface Control Doc</span>
-          <span class="milestone-count" id="countICD">--</span>
+        <div class="milestone-item" data-milestone="ATP">
+          <span class="milestone-badge">ATP</span>
+          <span class="milestone-label">Authority to Proceed DG</span>
+          <span class="milestone-count" id="countATP">--</span>
         </div>
         <div class="milestone-item" data-milestone="F2I">
           <span class="milestone-badge">F2I</span>
-          <span class="milestone-label">Formulation to Implementation</span>
+          <span class="milestone-label">Formulation to Implementation DG</span>
           <span class="milestone-count" id="countF2I">--</span>
         </div>
-        <div class="milestone-item" data-milestone="OPS">
-          <span class="milestone-badge">OPS</span>
-          <span class="milestone-label">Product Operations</span>
-          <span class="milestone-count" id="countOPS">--</span>
+        <div class="milestone-item" data-milestone="ORR">
+          <span class="milestone-badge">ORR</span>
+          <span class="milestone-label">Operational Readiness Review</span>
+          <span class="milestone-count" id="countORR">--</span>
+        </div>
+        <div class="milestone-item" data-milestone="CLOSE">
+          <span class="milestone-badge">CLOSE</span>
+          <span class="milestone-label">Closeout DG</span>
+          <span class="milestone-count" id="countCloseout">--</span>
         </div>
       </div>
     </div>
@@ -80,23 +80,10 @@
         <span data-feather="file-text"></span>
         <span>Document Administration</span>
       </div>
-      <div class="docs-tracker">
-        <div class="doc-item">
-          <span class="doc-name">Project Plans</span>
-          <span class="doc-status status-active">Per Solution</span>
-        </div>
-        <div class="doc-item">
-          <span class="doc-name">SEP Plan</span>
-          <span class="doc-status status-review">In Review</span>
-        </div>
-        <div class="doc-item">
-          <span class="doc-name">Comms Plan</span>
-          <span class="doc-status status-review">In Review</span>
-        </div>
-        <div class="doc-item">
-          <span class="doc-name">IM Plan</span>
-          <span class="doc-status status-progress">In Progress</span>
-        </div>
+      <div class="docs-coming-soon">
+        <span data-feather="clock" class="coming-soon-icon"></span>
+        <span class="coming-soon-text">Coming Soon</span>
+        <span class="coming-soon-desc">Action items for documents requiring signature</span>
       </div>
     </div>
   </div>
@@ -333,34 +320,19 @@
   /* Document Administration Panel */
   .docs-panel { border-top: 3px solid var(--color-warning); }
 
-  .docs-tracker {
+  .docs-coming-soon {
     display: flex;
     flex-direction: column;
-    padding: var(--space-sm);
-    gap: var(--space-xs);
-  }
-
-  .doc-item {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: var(--space-xs) var(--space-sm);
-    background: var(--color-surface-alt);
-    border-radius: var(--radius-sm);
+    justify-content: center;
+    padding: var(--space-lg);
+    text-align: center;
+    color: var(--color-text-muted);
   }
 
-  .doc-name { font-size: var(--font-size-sm); color: var(--color-text); }
-
-  .doc-status {
-    font-size: var(--font-size-xs);
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: 500;
-  }
-
-  .doc-status.status-active { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-  .doc-status.status-review { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-  .doc-status.status-progress { background: rgba(249, 115, 22, 0.15); color: #f97316; }
+  .coming-soon-icon { width: 24px; height: 24px; margin-bottom: var(--space-xs); opacity: 0.5; }
+  .coming-soon-text { font-size: var(--font-size-sm); font-weight: 600; margin-bottom: var(--space-xs); }
+  .coming-soon-desc { font-size: var(--font-size-xs); opacity: 0.7; }
 
   /* Tracking Summary Row */
   .tracking-summary-row {
@@ -1046,30 +1018,48 @@ var Implementation = (function() {
   }
 
   function updateMilestones() {
-    // Calculate milestones based on filtered solutions (current view)
-    var counts = { IPA: 0, ICD: 0, F2I: 0, OPS: 0 };
-
-    state.filteredSolutions.forEach(function(sol) {
-      var phase = (sol.phase || '').toLowerCase();
-      // Count based on phase progression
-      if (phase.indexOf('operational') !== -1 || phase.indexOf('production') !== -1) {
-        counts.OPS++;
-        counts.F2I++;
-        counts.ICD++;
-        counts.IPA++;
-      } else if (phase.indexOf('implementation') !== -1) {
-        counts.F2I++;
-        counts.ICD++;
-        counts.IPA++;
-      } else if (phase.indexOf('formulation') !== -1) {
-        counts.IPA++;
-      }
+    // Get solution names for filtering
+    var selectedSolutionNames = state.filteredSolutions.map(function(sol) {
+      return (sol.name || sol.solution_id || '').toLowerCase();
     });
 
-    document.getElementById('countIPA').textContent = counts.IPA;
-    document.getElementById('countICD').textContent = counts.ICD;
-    document.getElementById('countF2I').textContent = counts.F2I;
-    document.getElementById('countOPS').textContent = counts.OPS;
+    // Load milestones from database
+    google.script.run
+      .withSuccessHandler(function(allMilestones) {
+        // Filter milestones to selected solutions and count completed by type
+        var counts = { ATP: 0, F2I: 0, ORR: 0, Closeout: 0 };
+
+        if (allMilestones && allMilestones.length > 0) {
+          allMilestones.forEach(function(m) {
+            // Check if milestone belongs to a selected solution
+            var mSolName = (m.solution_name || '').toLowerCase();
+            var isSelected = selectedSolutionNames.some(function(name) {
+              return mSolName.indexOf(name) !== -1 || name.indexOf(mSolName) !== -1;
+            });
+
+            if (isSelected && m.status === 'completed') {
+              var type = (m.type || '').toLowerCase();
+              if (type.indexOf('atp') !== -1) counts.ATP++;
+              else if (type.indexOf('f2i') !== -1) counts.F2I++;
+              else if (type.indexOf('orr') !== -1) counts.ORR++;
+              else if (type.indexOf('closeout') !== -1) counts.Closeout++;
+            }
+          });
+        }
+
+        document.getElementById('countATP').textContent = counts.ATP;
+        document.getElementById('countF2I').textContent = counts.F2I;
+        document.getElementById('countORR').textContent = counts.ORR;
+        document.getElementById('countCloseout').textContent = counts.Closeout;
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load milestones:', error);
+        document.getElementById('countATP').textContent = '--';
+        document.getElementById('countF2I').textContent = '--';
+        document.getElementById('countORR').textContent = '--';
+        document.getElementById('countCloseout').textContent = '--';
+      })
+      .getAllMilestones();
   }
 
   function updateTrackingStats() {
