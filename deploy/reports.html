@@ -767,7 +767,10 @@
 
 <!-- Reports JavaScript -->
 <script>
+  console.log('Reports module loading...');
+
   var Reports = (function() {
+    console.log('Reports IIFE executing...');
     var previewData = null;
 
     function getQuickLookOptions() {
@@ -1279,6 +1282,7 @@
     }
 
     // Public API
+    console.log('Reports module initialized successfully');
     return {
       previewQuickLook: previewQuickLook,
       downloadQuickLook: downloadQuickLook,
@@ -1293,4 +1297,11 @@
       closePreview: closePreview
     };
   })();
+
+  // Verify Reports loaded
+  if (typeof Reports !== 'undefined') {
+    console.log('Reports object available:', Object.keys(Reports));
+  } else {
+    console.error('ERROR: Reports object is undefined!');
+  }
 </script>
