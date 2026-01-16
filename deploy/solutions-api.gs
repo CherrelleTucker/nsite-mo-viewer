@@ -35,7 +35,15 @@ function getAllSolutions() {
 
     var solutions = rows.map(function(row) {
       var obj = {};
-      headers.forEach(function(header, i) { obj[header] = row[i]; });
+      headers.forEach(function(header, i) {
+        var value = row[i];
+        // Convert Date objects to ISO strings (fixes google.script.run null response)
+        if (value instanceof Date) {
+          obj[header] = value.toISOString();
+        } else {
+          obj[header] = value;
+        }
+      });
       return obj;
     }).filter(function(sol) {
       return sol.solution_id && String(sol.solution_id).trim();
@@ -57,9 +65,25 @@ function getAllSolutions() {
 
 /**
  * Alias for getAllSolutions - used by frontend
+ * Version 2: Added JSON sanitization to fix null response
  */
 function getSolutions() {
-  return getAllSolutions();
+  Logger.log('getSolutions() v2 called');
+  try {
+    var solutions = getAllSolutions();
+    Logger.log('Got ' + (solutions ? solutions.length : 0) + ' solutions');
+
+    // Force JSON round-trip to ensure serializability
+    var jsonStr = JSON.stringify(solutions);
+    var sanitized = JSON.parse(jsonStr);
+
+    Logger.log('Sanitized OK, returning ' + sanitized.length + ' solutions');
+    return sanitized;
+  } catch (e) {
+    Logger.log('getSolutions() ERROR: ' + e.message);
+    Logger.log('Stack: ' + e.stack);
+    return [];
+  }
 }
 
 /**
@@ -134,6 +158,29 @@ function getSolutionStats() {
   });
 
   return stats;
+}
+
+/**
+ * Debug function - call from browser console to test
+ */
+function debugGetSolutions() {
+  var result = {
+    timestamp: new Date().toISOString(),
+    configValue: null,
+    solutionsCount: null,
+    error: null
+  };
+
+  try {
+    result.configValue = getConfigValue('SOLUTIONS_SHEET_ID');
+    var solutions = getAllSolutions();
+    result.solutionsCount = solutions ? solutions.length : 0;
+    result.firstSolution = solutions && solutions[0] ? solutions[0].name : 'none';
+  } catch (e) {
+    result.error = e.message;
+  }
+
+  return result;
 }
 
 /**

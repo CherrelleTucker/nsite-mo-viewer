@@ -6,6 +6,9 @@
   <base target="_top">
   <title>MO-Viewer | NSITE MO Dashboard</title>
 
+  <!-- Favicon - Blue grid icon to distinguish from Apps Script -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230B3D91'/%3E%3Crect x='5' y='5' width='9' height='9' rx='2' fill='white'/%3E%3Crect x='18' y='5' width='9' height='9' rx='2' fill='white'/%3E%3Crect x='5' y='18' width='9' height='9' rx='2' fill='white'/%3E%3Crect x='18' y='18' width='9' height='9' rx='2' fill='%2300A3E0'/%3E%3C/svg%3E">
+
   <!-- Feather Icons -->
   <script src="https://unpkg.com/feather-icons"></script>
 
@@ -38,12 +41,19 @@
         <?!= include('implementation'); ?>
       <? } else if (activePage === 'quick-update') { ?>
         <?!= include('quick-update'); ?>
+      <? } else if (activePage === 'contacts') { ?>
+        <?!= include('contacts'); ?>
       <? } else { ?>
-      <!-- Placeholder for other pages -->
-      <div class="loading-state">
-        <span class="loading-spinner"></span>
-        <p>Loading...</p>
-      </div>
+        <!-- Placeholder for pages not yet built -->
+        <div class="page-placeholder">
+          <h2><?= pageConfig ? pageConfig.title : activePage ?>-NSITE</h2>
+          <p class="page-description">This viewer is coming soon.</p>
+          <div class="placeholder-box">
+            <span data-feather="tool"></span>
+            <p>Component under development</p>
+            <p class="text-sm text-muted mt-md">Use the navigation above to access available features.</p>
+          </div>
+        </div>
       <? } ?>
     </div>
   </main>
@@ -106,8 +116,8 @@
         .withFailureHandler(handleError)
         .getDateInfo();
 
-      // Load active page content
-      loadPageContent(Platform.activePage);
+      // Update navigation active state
+      updateNavActiveState();
     });
 
     // ========================================================================
@@ -115,23 +125,9 @@
     // ========================================================================
 
     function navigateTo(page) {
-      // For server-rendered pages, do a full navigation
-      var serverRenderedPages = ['implementation', 'quick-update'];
-
-      if (serverRenderedPages.indexOf(page) !== -1 ||
-          serverRenderedPages.indexOf(Platform.activePage) !== -1) {
-        // Full page reload for server-rendered content
-        window.location.href = Platform.baseUrl + '?page=' + page;
-        return;
-      }
-
-      // Client-side navigation for placeholder pages
-      var newUrl = Platform.baseUrl + '?page=' + page;
-      history.pushState({ page: page }, '', newUrl);
-
-      Platform.activePage = page;
-      updateNavActiveState();
-      loadPageContent(page);
+      // Always do full page navigation for reliability
+      var baseUrl = Platform.baseUrl || window.location.pathname;
+      window.location.href = baseUrl + '?page=' + page;
     }
 
     function updateNavActiveState() {
@@ -143,96 +139,6 @@
       if (activeTab) {
         activeTab.classList.add('active');
       }
-    }
-
-    window.addEventListener('popstate', function(event) {
-      if (event.state && event.state.page) {
-        Platform.activePage = event.state.page;
-        updateNavActiveState();
-        loadPageContent(Platform.activePage);
-      }
-    });
-
-    // ========================================================================
-    // CONTENT LOADING
-    // ========================================================================
-
-    function loadPageContent(page) {
-      var contentArea = document.getElementById('contentArea');
-
-      // Pages with real content - just initialize
-      if (page === 'implementation') {
-        // Implementation is server-rendered, initialize the module
-        if (typeof Implementation !== 'undefined') {
-          Implementation.init();
-        }
-        feather.replace();
-        return;
-      }
-
-      if (page === 'quick-update') {
-        // Quick Update is server-rendered, just reinitialize if needed
-        if (typeof QuickUpdate !== 'undefined') {
-          QuickUpdate.init();
-        }
-        feather.replace();
-        return;
-      }
-
-      // Other pages - show placeholder
-      contentArea.innerHTML = '<div class="loading-state">' +
-        '<span class="loading-spinner"></span>' +
-        '<p>Loading ' + page + '...</p></div>';
-
-      setTimeout(function() {
-        var pageContent = getPagePlaceholder(page);
-        contentArea.innerHTML = pageContent;
-        feather.replace();
-      }, 300);
-    }
-
-    function getPagePlaceholder(page) {
-      var titles = {
-        'implementation': 'Implementation-NSITE',
-        'sep': 'SEP-NSITE',
-        'comms': 'Comms-NSITE',
-        'quick-update': 'Quick Update Form',
-        'contacts': 'Contacts',
-        'reports': 'Reports',
-        'schedule': 'Schedule',
-        'actions': 'Action Tracker'
-      };
-
-      var descriptions = {
-        'implementation': 'Solution tracking for NSITE MO Implementation team',
-        'sep': 'Stakeholder engagement tracking - SEP is in sight',
-        'comms': 'Communications and story tracking - Comms is in sight',
-        'quick-update': 'Submit updates to meeting notes documents',
-        'contacts': 'Stakeholder, admin, and outreach contact lists',
-        'reports': 'Milestone reports and status exports',
-        'schedule': 'Deep dives, decision gates, and events calendar',
-        'actions': 'Unified action tracker across all sources'
-      };
-
-      var phases = {
-        'implementation': 2,
-        'quick-update': 3,
-        'sep': 4,
-        'comms': 5,
-        'contacts': 6,
-        'reports': 6,
-        'schedule': 6,
-        'actions': 6
-      };
-
-      return '<div class="page-placeholder">' +
-        '<h2>' + (titles[page] || page) + '</h2>' +
-        '<p class="page-description">' + (descriptions[page] || '') + '</p>' +
-        '<div class="placeholder-box">' +
-        '<span data-feather="tool"></span>' +
-        '<p>Component coming in Phase ' + (phases[page] || 0) + '</p>' +
-        '<p class="text-sm text-muted mt-md">Platform shell is working correctly!</p>' +
-        '</div></div>';
     }
 
     // ========================================================================

@@ -87,6 +87,7 @@ Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across li
 | `next_steps` | STRING | No | Next steps summary (free text) |
 | `source_doc` | STRING | No | Source document type ('internal' | 'sep') |
 | `source_tab` | STRING | No | Source document tab name (e.g., "01_13") |
+| `show_in_default` | STRING | No | Show in default selection ('Y' = yes, blank = no). Controls which solutions appear selected by default in Implementation-NSITE. |
 | `last_updated` | DATE | Yes | Last update timestamp |
 | `created_at` | DATE | Yes | Record creation timestamp |
 
@@ -110,6 +111,7 @@ Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across li
   "next_steps": "Schedule deep dive for Q2",
   "source_doc": "internal",
   "source_tab": "01_13",
+  "show_in_default": "Y",
   "last_updated": "2026-01-14",
   "created_at": "2024-01-15"
 }
@@ -117,9 +119,62 @@ Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across li
 
 ---
 
-### 2. STAKEHOLDERS
+### 2. CONTACTS (MO-DB_Contacts)
 
-Primary table for SEP-Viewer. Tracks stakeholder engagement across the touchpoint pipeline.
+**Status: POPULATED** - 4,221 records (423 unique contacts across 47 solutions)
+
+Primary contact database for the Contacts Directory. One row per contact-solution-role relationship (denormalized for query flexibility).
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `contact_id` | STRING | Yes | Primary key (auto-generated) |
+| `first_name` | STRING | No | First name (no middle initials or honorifics) |
+| `last_name` | STRING | No | Last name (no suffixes like Ph.D., Jr.) |
+| `email` | STRING | Yes | Email address (lowercase, normalized) |
+| `primary_email` | STRING | No | Primary email for people with multiple addresses |
+| `phone` | STRING | No | Phone number (xxx-xxx-xxxx format) |
+| `department` | STRING | No | Standardized department name |
+| `agency` | STRING | No | Agency/bureau |
+| `organization` | STRING | No | Organization name |
+| `solution` | STRING | No | Solution name (denormalized) |
+| `role` | STRING | No | Role in solution (Primary SME, Secondary SME, Survey Submitter, etc.) |
+| `survey_year` | INTEGER | No | Year of survey participation (2016-2024) |
+| `need_id` | STRING | No | Linked need identifier |
+| `notes` | STRING | No | Free-form notes |
+| `last_updated` | DATE | Yes | Last update timestamp |
+
+**Indexes:**
+- Primary: `contact_id`
+- Secondary: `email`, `solution`, `role`, `department`, `survey_year`
+
+**Data Source:** Extracted from 47 stakeholder Excel files in `DB-Solution Stakeholder Lists/`
+
+**Example:**
+```json
+{
+  "contact_id": "CON_001",
+  "first_name": "Lee",
+  "last_name": "Spaulding",
+  "email": "lee.spaulding@example.gov",
+  "primary_email": "lee.spaulding@example.gov",
+  "phone": "555-123-4567",
+  "department": "Department of the Interior",
+  "agency": "USGS",
+  "organization": "",
+  "solution": "HLS",
+  "role": "Primary SME",
+  "survey_year": 2022,
+  "need_id": "",
+  "notes": "",
+  "last_updated": "2026-01-15"
+}
+```
+
+---
+
+### 3. STAKEHOLDERS (Planned - SEP-NSITE)
+
+Future table for SEP-NSITE viewer. Will track stakeholder engagement across the touchpoint pipeline.
 
 | Column | Type | Required | Description |
 |--------|------|----------|-------------|
@@ -170,7 +225,7 @@ Primary table for SEP-Viewer. Tracks stakeholder engagement across the touchpoin
 
 ---
 
-### 3. STORIES
+### 4. STORIES
 
 Primary table for Comms-Viewer. Tracks communications pipeline from idea to publication.
 
@@ -223,7 +278,7 @@ Primary table for Comms-Viewer. Tracks communications pipeline from idea to publ
 
 ---
 
-### 4. MILESTONES
+### 5. MILESTONES
 
 Tracks date-based milestones for solutions. Linked to SOLUTIONS table.
 
@@ -260,7 +315,7 @@ Tracks date-based milestones for solutions. Linked to SOLUTIONS table.
 
 ---
 
-### 5. ACTIONS
+### 6. ACTIONS
 
 Tracks action items from all source documents.
 
@@ -303,7 +358,7 @@ Tracks action items from all source documents.
 
 ---
 
-### 6. UPDATE_HISTORY
+### 7. UPDATE_HISTORY
 
 Audit log of all updates to any entity.
 
@@ -340,7 +395,7 @@ Audit log of all updates to any entity.
 
 ---
 
-### 7. SOLUTION_STAKEHOLDERS (Junction Table)
+### 8. SOLUTION_STAKEHOLDERS (Junction Table - Planned)
 
 Many-to-many relationship between solutions and stakeholders.
 

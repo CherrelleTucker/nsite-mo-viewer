@@ -1,122 +1,102 @@
 # Next Development Steps
 
 **Last Updated:** 2026-01-15
-**Current Version:** 0.4.0
+**Current Version:** 0.6.0
 
 ---
 
 ## Completed This Session (2026-01-15)
 
-- [x] Implementation-NSITE viewer - fully functional
-- [x] MO-DB_Solutions database - populated with 37 solutions
-- [x] Solutions API for data access
-- [x] NSITE naming convention applied across platform
-- [x] Documentation updated (README, ARCHITECTURE, CHANGELOG)
+- [x] MO-DB_Milestones database - extracted from Quick Look Excel (53 milestones, 30 solutions)
+- [x] milestones-api.gs - data access layer with query functions
+- [x] Implementation-NSITE - milestones section added to solution detail modals
+- [x] Solution picker - multi-select dropdown with database-driven defaults
+- [x] Added `show_in_default` column to MO-DB_Solutions for managing default selection
+- [x] All stats panels now update based on selected/filtered solutions
+- [x] Removed Sync button from Implementation-NSITE header
+- [x] extract_milestones.py - Python script for milestone extraction
 
 ---
 
 ## Priority Tasks for Next Session
 
-### 1. Implementation-NSITE Enhancements
-
-**Solution Detail Modal** (Currently shows alert)
-- [ ] Create modal/slide-out panel for solution details
-- [ ] Display all solution fields in organized sections
-- [ ] Add edit capability (if needed)
-- [ ] Include team contacts, documentation links, stakeholder list
-
-**Link Contractual Documents**
-- [ ] Run `link-contractual-docs.gs` in Google Sheets to populate:
-  - `science_sow_url`
-  - `project_plan_url`
-  - `risk_register_url`
-  - `data_product_table_url`
-  - `drive_folder_url`
-- [ ] Verify document links in Implementation-NSITE cards
-
-**Stakeholder List Hyperlinks**
-- [ ] Run `create-stakeholder-hyperlinks.gs` to link stakeholder_list column
-- [ ] Verify links work in solution detail view
-
-### 2. SEP-NSITE (Phase 5) - Next Major Feature
-
-**Data Preparation**
-- [ ] Populate MO-DB_Contacts from stakeholder list Excel files
-  - Source folder: `12Bo-ZTLBU_DLiaiWQ75kBbIZkdSXlGh1`
-  - Parse stakeholder names, organizations, contact info
-  - Link stakeholders to solutions
-- [ ] Define contact schema (stakeholder_id, name, org, email, type, solutions[])
+### 1. SEP-NSITE Viewer (Phase 5)
 
 **UI Development**
-- [ ] Create `src/sep-viewer/sep.html`
-- [ ] Create `src/sep-viewer/sep-handlers.gs`
-- [ ] Build touchpoint pipeline view (T4 → W1 → W2 → T7 → T8)
+- [ ] Create `sep.html` - stakeholder engagement pipeline view
+- [ ] Build touchpoint pipeline visualization (T4 → W1 → W2 → T7 → T8)
 - [ ] Add people view and solution view toggle
+- [ ] Create stakeholder cards with engagement status
 
-### 3. MO-DB_Milestones
+**Data Integration**
+- [ ] Leverage contacts-api.gs for stakeholder data
+- [ ] Add touchpoint tracking to contacts schema
+- [ ] Build engagement funnel statistics
 
-- [ ] Define milestone schema (milestone_id, solution_id, type, dates, status)
-- [ ] Extract milestone data from existing sources
-- [ ] Create milestones display in Implementation-NSITE
+### 2. Comms-NSITE Viewer (Phase 6)
+
+**Data Preparation**
+- [ ] Define story schema (story_id, title, solution_id, status, channel, etc.)
+- [ ] Create MO-DB_Stories database
+- [ ] Build stories-api.gs
+
+**UI Development**
+- [ ] Create `comms.html` - communications pipeline view
+- [ ] Build story cards with status badges
+- [ ] Add kanban-style pipeline view
 
 ---
 
 ## Technical Debt / Improvements
 
 ### Implementation-NSITE
-- [ ] Replace alert() detail view with proper modal
 - [ ] Add loading states for async operations
 - [ ] Implement actual export functionality (CSV download)
 - [ ] Add error boundary/retry logic
+
+### Contacts Directory
+- [ ] Add inline editing capability
+- [ ] Add bulk email functionality
+- [ ] Add contact merge for duplicates
 
 ### Platform
 - [ ] Add global search functionality
 - [ ] Implement sync functionality (refresh from data sources)
 - [ ] Add help documentation/tour
-
-### Data
-- [ ] Automate data refresh from earthdata.nasa.gov
-- [ ] Set up scheduled sync trigger
-- [ ] Add data validation on import
+- [ ] Add Glossary shared resource
 
 ---
 
-## File References
+## Deploy Files Reference
 
-### Scripts to Run (Google Apps Script)
-1. `scripts/link-contractual-docs.gs` - Link docs in MO-DB_Solutions
-2. `scripts/create-stakeholder-hyperlinks.gs` - Link stakeholder files
-
-### Scripts to Run (Python)
-1. `scripts/reorganize-solutions-csv.py` - If CSV needs re-processing
-
-### Deploy Files to Update
-After any changes, update these in Google Apps Script:
-- `deploy/implementation.html`
-- `deploy/solutions-api.gs`
-- `deploy/index.html`
-- `deploy/navigation.html`
+Current deploy/ folder contents:
+```
+deploy/
+├── Code.gs                 # Main Apps Script entry point
+├── contacts.html           # Contacts Directory UI
+├── contacts-api.gs         # Contacts data API
+├── contacts-menu.gs        # Contacts sheet menu
+├── implementation.html     # Implementation-NSITE UI (with milestones)
+├── index.html              # Platform shell
+├── milestones-api.gs       # Milestones data API
+├── navigation.html         # Tab navigation
+├── quick-update.html       # Quick Update Form UI
+├── quick-update-handlers.gs # Quick Update backend
+├── solutions-api.gs        # Solutions data API
+└── styles.html             # Shared CSS
+```
 
 ---
 
 ## Data Sources Reference
 
-| Source | Location | Purpose |
-|--------|----------|---------|
-| MO-DB_Solutions | Google Sheet | Primary solutions database |
-| MO-DB_Config | Google Sheet | Configuration (sheet IDs) |
-| Stakeholder Lists | Drive folder `12Bo-ZTLBU_DLiaiWQ75kBbIZkdSXlGh1` | Contact data |
-| MO File Log | `mo-drive-file log.csv` | File inventory for linking |
-| Earthdata content | `database-files/earthdata-solutions-content.json` | Cached web content |
-
----
-
-## Architecture Decisions to Make
-
-1. **SEP-NSITE data model**: How to link contacts to solutions?
-2. **Milestones tracking**: Separate sheet or embedded in Solutions?
-3. **Action items**: Unified tracker or per-viewer?
-4. **Real-time sync**: Trigger-based or manual refresh?
+| Database | Location | Records | Status |
+|----------|----------|---------|--------|
+| MO-DB_Solutions | Google Sheet | 37 solutions | **Populated** |
+| MO-DB_Contacts | Google Sheet | 4,221 records (423 unique) | **Populated** |
+| MO-DB_Milestones | Google Sheet | 53 milestones (30 solutions) | **Populated** |
+| MO-DB_Config | Google Sheet | Configuration | **Active** |
+| MO-DB_Stories | Google Sheet | -- | Planned |
 
 ---
 
@@ -124,7 +104,7 @@ After any changes, update these in Google Apps Script:
 
 Before starting next session:
 - [ ] Review this document
-- [ ] Check MO-DB_Solutions for any manual updates
+- [ ] Check MO-DB_Solutions and MO-DB_Contacts for any manual updates
 - [ ] Verify deployment is still working
 - [ ] Identify top priority from list above
 

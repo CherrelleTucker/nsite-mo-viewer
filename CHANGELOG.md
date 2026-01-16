@@ -12,8 +12,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned
 - Phase 5: SEP-NSITE (stakeholder engagement tracking)
 - Phase 6: Comms-NSITE (communications/story tracking)
-- Phase 7: Shared Resources (contacts, milestones, reports)
+- Phase 7: Shared Resources (reports, action tracker)
 - Phase 8: Automation & Sync
+
+---
+
+## [0.6.0] - 2026-01-15
+
+### Added - Milestones & Solution Picker
+- **MO-DB_Milestones database** - extracted from Solution Status Quick Look Excel
+  - 53 milestones across 30 solutions
+  - Schema: milestone_id, solution_id, solution_name, cycle, type, category, phase, target_date, actual_date, status, notes, source, last_updated
+  - Implementation milestone types: HQ Kickoff, PS Kickoff, ATP DG, F2I DG, ORR, Operation Start, Operation End, Closeout DG
+- **milestones-api.gs** - data access layer with query functions
+  - getAllMilestones, getMilestonesBySolution, getSolutionMilestoneSummary
+  - getUpcomingMilestones, getOverdueMilestones, getMilestoneStats
+- **extract_milestones.py** - Python script for milestone extraction from Quick Look Excel
+- **Solution picker** - multi-select dropdown for filtering solutions
+  - Database-driven defaults via `show_in_default` column in MO-DB_Solutions
+  - Solutions grouped into "Default Selection" and "Other Solutions"
+  - Quick actions: Default, All, None
+  - Click outside to close
+
+### Changed
+- **Implementation-NSITE** - major enhancements
+  - Milestones section added to solution detail modals (timeline, next milestone, stats)
+  - Solution picker replaces simple filter dropdown
+  - All stats panels now update based on selected/filtered solutions (Portfolio Overview, MO Milestones, Tracking Summary)
+  - Removed Sync button from header
+- **MO-DB_Solutions schema** - added `show_in_default` column (Y = show in default selection)
+- **docs/DATA_SCHEMA.md** - documented show_in_default column
+
+---
+
+## [0.5.0] - 2026-01-15
+
+### Added - Contacts Directory (Phase 4)
+- **MO-DB_Contacts database** - populated from 47 stakeholder Excel files
+  - 4,221 contact-solution records, 423 unique contacts
+  - Schema: contact_id, first_name, last_name, email, primary_email, phone, department, agency, organization, solution, role, survey_year, need_id, notes, last_updated
+  - Data cleaning: email normalization, phone formatting (xxx-xxx-xxxx), name parsing, department standardization
+- **contacts-api.gs** - comprehensive shared resource with 20+ query functions
+  - Core queries: by solution, email, name, role, department, agency, survey year
+  - Relationship queries: getContactSolutions, getContactsAcrossSolutions, getRelatedContacts
+  - Statistics: getContactStats, getMostEngagedContacts, getStakeholderCountsBySolution
+  - Dashboard helpers: getSolutionStakeholderSummary, getMailingList
+- **contacts.html** - Contacts Directory tab UI
+  - Stats dashboard: total contacts, departments, solutions, multi-solution contacts
+  - Search and filters: department, solution, role, survey year
+  - Card view and table view with pagination
+  - Contact detail modal with solutions, roles, years, related contacts
+  - Export to CSV functionality
+- **contacts-menu.gs** - maintenance menu for MO-DB_Contacts sheet
+  - Custom menu: Add Contact, Update Contact, Add Note, Find Contact, Find by Solution
+  - Utilities: Validate Emails, Remove Duplicates, Sort by Solution
+
+### Changed
+- **Implementation-NSITE** - stakeholder integration in solution modals
+  - Stakeholder section shows total contacts, role breakdown, primary SMEs, agencies
+  - Async loading of stakeholder data per solution
+- **index.html** - added routing for contacts tab
+- **navigation.html** - contacts tab now active (was coming soon)
+
+### Removed
+- Debug files from deploy/: diagnose-null.gs, test-frontend.html, test-helpers.gs, troubleshoot-solutions.gs
+- Intermediate CSV files from stakeholder-mapping/
 
 ---
 

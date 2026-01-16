@@ -6,52 +6,171 @@
   <div class="page-header">
     <div class="page-title">
       <h1>Implementation-NSITE</h1>
-      <p class="page-subtitle">Solution tracking and status dashboard</p>
+      <p class="page-subtitle">Solution / Project Focused Dashboard</p>
     </div>
     <div class="page-actions">
       <button class="btn btn-secondary" onclick="Implementation.exportData()">
         <span data-feather="download"></span>
         Export
       </button>
-      <button class="btn btn-primary" onclick="Implementation.syncSolutions()">
-        <span data-feather="refresh-cw"></span>
-        Sync
-      </button>
     </div>
   </div>
 
-  <!-- Stats Summary -->
-  <div class="stats-grid" id="implementationStats">
-    <div class="stat-card">
-      <div class="stat-value" id="statTotalSolutions">--</div>
-      <div class="stat-label">Total Solutions</div>
+  <!-- Top Row: Stats + MO Milestones + Document Administration -->
+  <div class="dashboard-top-row">
+    <!-- Stats Summary -->
+    <div class="panel stats-panel">
+      <div class="panel-header">
+        <span data-feather="bar-chart-2"></span>
+        <span>Portfolio Overview</span>
+      </div>
+      <div class="stats-grid-compact" id="implementationStats">
+        <div class="stat-item">
+          <div class="stat-value" id="statTotalSolutions">--</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-item stat-green">
+          <div class="stat-value" id="statOperational">--</div>
+          <div class="stat-label">Operational</div>
+        </div>
+        <div class="stat-item stat-blue">
+          <div class="stat-value" id="statImplementation">--</div>
+          <div class="stat-label">Implementation</div>
+        </div>
+        <div class="stat-item stat-orange">
+          <div class="stat-value" id="statFormulation">--</div>
+          <div class="stat-label">Formulation</div>
+        </div>
+      </div>
     </div>
-    <div class="stat-card stat-green">
-      <div class="stat-value" id="statOperational">--</div>
-      <div class="stat-label">Production / Operational</div>
+
+    <!-- MO Milestones Panel -->
+    <div class="panel milestones-panel">
+      <div class="panel-header">
+        <span data-feather="flag"></span>
+        <span>MO Milestones</span>
+      </div>
+      <div class="milestones-tracker">
+        <div class="milestone-item" data-milestone="IPA">
+          <span class="milestone-badge">IPA</span>
+          <span class="milestone-label">Interface Plan Agreement</span>
+          <span class="milestone-count" id="countIPA">--</span>
+        </div>
+        <div class="milestone-item" data-milestone="ICD">
+          <span class="milestone-badge">ICD</span>
+          <span class="milestone-label">Interface Control Doc</span>
+          <span class="milestone-count" id="countICD">--</span>
+        </div>
+        <div class="milestone-item" data-milestone="F2I">
+          <span class="milestone-badge">F2I</span>
+          <span class="milestone-label">Formulation to Implementation</span>
+          <span class="milestone-count" id="countF2I">--</span>
+        </div>
+        <div class="milestone-item" data-milestone="OPS">
+          <span class="milestone-badge">OPS</span>
+          <span class="milestone-label">Product Operations</span>
+          <span class="milestone-count" id="countOPS">--</span>
+        </div>
+      </div>
     </div>
-    <div class="stat-card stat-blue">
-      <div class="stat-value" id="statImplementation">--</div>
-      <div class="stat-label">In Implementation</div>
+
+    <!-- Document Administration Panel -->
+    <div class="panel docs-panel">
+      <div class="panel-header">
+        <span data-feather="file-text"></span>
+        <span>Document Administration</span>
+      </div>
+      <div class="docs-tracker">
+        <div class="doc-item">
+          <span class="doc-name">Project Plans</span>
+          <span class="doc-status status-active">Per Solution</span>
+        </div>
+        <div class="doc-item">
+          <span class="doc-name">SEP Plan</span>
+          <span class="doc-status status-review">In Review</span>
+        </div>
+        <div class="doc-item">
+          <span class="doc-name">Comms Plan</span>
+          <span class="doc-status status-review">In Review</span>
+        </div>
+        <div class="doc-item">
+          <span class="doc-name">IM Plan</span>
+          <span class="doc-status status-progress">In Progress</span>
+        </div>
+      </div>
     </div>
-    <div class="stat-card stat-orange">
-      <div class="stat-value" id="statFormulation">--</div>
-      <div class="stat-label">Pre-Formulation / Formulation</div>
+  </div>
+
+  <!-- Per-Solution Tracking Summary -->
+  <div class="tracking-summary-row">
+    <div class="tracking-card">
+      <span data-feather="database" class="tracking-icon"></span>
+      <div class="tracking-info">
+        <span class="tracking-title">DAAC Assignments</span>
+        <span class="tracking-subtitle">Data center allocation</span>
+      </div>
+      <span class="tracking-value" id="statDAAC">--</span>
+    </div>
+    <div class="tracking-card">
+      <span data-feather="calendar" class="tracking-icon"></span>
+      <div class="tracking-info">
+        <span class="tracking-title">Deep Dives</span>
+        <span class="tracking-subtitle">Scheduled reviews</span>
+      </div>
+      <span class="tracking-value" id="statDeepDives">--</span>
+    </div>
+    <div class="tracking-card">
+      <span data-feather="check-square" class="tracking-icon"></span>
+      <div class="tracking-info">
+        <span class="tracking-title">Action Items</span>
+        <span class="tracking-subtitle">Open items</span>
+      </div>
+      <span class="tracking-value" id="statActions">--</span>
+    </div>
+    <div class="tracking-card">
+      <span data-feather="users" class="tracking-icon"></span>
+      <div class="tracking-info">
+        <span class="tracking-title">Stakeholder Lists</span>
+        <span class="tracking-subtitle">Linked contacts</span>
+      </div>
+      <span class="tracking-value" id="statStakeholders">--</span>
     </div>
   </div>
 
   <!-- Filters -->
   <div class="filter-bar">
+    <div class="filter-group solution-picker-group">
+      <label class="filter-label">Solutions:</label>
+      <button class="btn btn-secondary btn-sm solution-picker-btn" id="solutionPickerBtn" onclick="Implementation.toggleSolutionPicker()">
+        <span id="solutionPickerLabel">Loading...</span>
+        <span data-feather="chevron-down" class="picker-chevron"></span>
+      </button>
+      <div class="solution-picker-dropdown" id="solutionPickerDropdown">
+        <div class="picker-actions">
+          <button class="picker-action-btn" onclick="Implementation.selectActiveSolutions()">Default</button>
+          <button class="picker-action-btn" onclick="Implementation.selectAllSolutions()">All</button>
+          <button class="picker-action-btn" onclick="Implementation.clearSolutionSelection()">None</button>
+        </div>
+        <div class="picker-section">
+          <div class="picker-section-header">Default Selection</div>
+          <div class="picker-list" id="activePickerList"></div>
+        </div>
+        <div class="picker-section">
+          <div class="picker-section-header">Other Solutions</div>
+          <div class="picker-list" id="otherPickerList"></div>
+        </div>
+      </div>
+    </div>
     <div class="filter-group">
       <label class="filter-label">Cycle:</label>
       <select class="form-select filter-select" id="filterCycle" onchange="Implementation.applyFilters()">
         <option value="">All Cycles</option>
-        <option value="1">Cycle 1 (2016)</option>
-        <option value="2">Cycle 2 (2018)</option>
-        <option value="3">Cycle 3 (2020)</option>
-        <option value="4">Cycle 4 (2022)</option>
-        <option value="5">Cycle 5 (2024)</option>
-        <option value="6">Cycle 6 (2026)</option>
+        <option value="1">C1 (2016)</option>
+        <option value="2">C2 (2018)</option>
+        <option value="3">C3 (2020)</option>
+        <option value="4">C4 (2022)</option>
+        <option value="5">C5 (2024)</option>
+        <option value="6">C6 (2026)</option>
       </select>
     </div>
     <div class="filter-group">
@@ -69,6 +188,12 @@
       <label class="filter-label">Group:</label>
       <select class="form-select filter-select" id="filterGroup" onchange="Implementation.applyFilters()">
         <option value="">All Groups</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">DAAC:</label>
+      <select class="form-select filter-select" id="filterDAAC" onchange="Implementation.applyFilters()">
+        <option value="">All DAACs</option>
       </select>
     </div>
     <div class="filter-search">
@@ -91,126 +216,823 @@
   </div>
 </div>
 
+<!-- Solution Detail Modal -->
+<div class="modal-overlay" id="solutionModal" onclick="Implementation.closeModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalTitle">Solution Details</h2>
+      <button class="modal-close" onclick="Implementation.closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- Dynamic content -->
+    </div>
+  </div>
+</div>
+
 <!-- Implementation-NSITE Styles -->
 <style>
-  .implementation-viewer { max-width: 1400px; margin: 0 auto; }
+  .implementation-viewer { max-width: 1600px; margin: 0 auto; }
+
+  /* Page Header */
   .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg); }
   .page-title h1 { font-size: var(--font-size-xxl); color: var(--color-implementation); margin-bottom: var(--space-xs); }
   .page-subtitle { color: var(--color-text-secondary); font-size: var(--font-size-md); }
   .page-actions { display: flex; gap: var(--space-sm); }
-  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md); margin-bottom: var(--space-lg); }
-  .stat-card { background: var(--color-surface); padding: var(--space-md); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); text-align: center; border-left: 4px solid var(--color-border); }
-  .stat-card.stat-green { border-left-color: var(--color-success); }
-  .stat-card.stat-blue { border-left-color: var(--color-info); }
-  .stat-card.stat-orange { border-left-color: var(--color-warning); }
-  .stat-value { font-size: var(--font-size-xxl); font-weight: 700; color: var(--color-text); }
-  .stat-label { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-top: var(--space-xs); }
-  .filter-bar { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md); background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); margin-bottom: var(--space-lg); flex-wrap: wrap; }
+
+  /* Dashboard Top Row */
+  .dashboard-top-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .panel {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-alt);
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .panel-header svg { width: 16px; height: 16px; }
+
+  /* Stats Panel */
+  .stats-panel { border-top: 3px solid var(--color-implementation); }
+
+  .stats-grid-compact {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: var(--space-md);
+    gap: var(--space-sm);
+  }
+
+  .stat-item {
+    text-align: center;
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-alt);
+  }
+
+  .stat-item .stat-value { font-size: var(--font-size-xl); font-weight: 700; color: var(--color-text); }
+  .stat-item .stat-label { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+  .stat-item.stat-green .stat-value { color: var(--color-success); }
+  .stat-item.stat-blue .stat-value { color: var(--color-info); }
+  .stat-item.stat-orange .stat-value { color: var(--color-warning); }
+
+  /* Milestones Panel */
+  .milestones-panel { border-top: 3px solid #10b981; }
+
+  .milestones-tracker {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-sm);
+    gap: var(--space-xs);
+  }
+
+  .milestone-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    background: rgba(16, 185, 129, 0.08);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid #10b981;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .milestone-item:hover { background: rgba(16, 185, 129, 0.15); transform: translateX(2px); }
+
+  .milestone-badge {
+    font-family: monospace;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    min-width: 32px;
+    text-align: center;
+  }
+
+  .milestone-label { flex: 1; font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+  .milestone-count { font-size: var(--font-size-sm); font-weight: 600; color: #10b981; }
+
+  /* Document Administration Panel */
+  .docs-panel { border-top: 3px solid var(--color-warning); }
+
+  .docs-tracker {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-sm);
+    gap: var(--space-xs);
+  }
+
+  .doc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+  }
+
+  .doc-name { font-size: var(--font-size-sm); color: var(--color-text); }
+
+  .doc-status {
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  .doc-status.status-active { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+  .doc-status.status-review { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+  .doc-status.status-progress { background: rgba(249, 115, 22, 0.15); color: #f97316; }
+
+  /* Tracking Summary Row */
+  .tracking-summary-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+
+  .tracking-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+    cursor: pointer;
+  }
+
+  .tracking-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+
+  .tracking-icon { width: 24px; height: 24px; color: var(--color-text-muted); }
+  .tracking-info { flex: 1; }
+  .tracking-title { display: block; font-weight: 600; font-size: var(--font-size-sm); color: var(--color-text); }
+  .tracking-subtitle { display: block; font-size: var(--font-size-xs); color: var(--color-text-muted); }
+  .tracking-value { font-size: var(--font-size-lg); font-weight: 700; color: var(--color-primary); }
+
+  /* Filter Bar */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+  }
+
   .filter-group { display: flex; align-items: center; gap: var(--space-sm); }
   .filter-label { font-size: var(--font-size-sm); font-weight: 500; color: var(--color-text-secondary); }
-  .filter-select { min-width: 150px; padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-sm); }
+  .filter-select { min-width: 120px; padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-sm); }
   .filter-search { flex: 1; min-width: 200px; position: relative; }
   .filter-search .search-icon { position: absolute; left: var(--space-sm); top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--color-text-muted); }
   .filter-search .search-input { padding-left: 36px; width: 100%; }
+
+  /* Solution Picker */
+  .solution-picker-group { position: relative; }
+  .solution-picker-btn { display: flex; align-items: center; gap: var(--space-xs); min-width: 160px; justify-content: space-between; }
+  .solution-picker-btn .picker-chevron { width: 14px; height: 14px; transition: transform var(--transition-fast); }
+  .solution-picker-btn.active .picker-chevron { transform: rotate(180deg); }
+
+  .solution-picker-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 100;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    min-width: 280px;
+    max-height: 400px;
+    overflow-y: auto;
+    display: none;
+    margin-top: var(--space-xs);
+  }
+
+  .solution-picker-dropdown.active { display: block; }
+
+  .picker-actions {
+    display: flex;
+    gap: var(--space-xs);
+    padding: var(--space-sm);
+    border-bottom: 1px solid var(--color-border-light);
+    background: var(--color-surface-alt);
+    position: sticky;
+    top: 0;
+  }
+
+  .picker-action-btn {
+    flex: 1;
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-xs);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .picker-action-btn:hover { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+
+  .picker-section { padding: var(--space-xs) 0; }
+
+  .picker-section-header {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .picker-list { display: flex; flex-direction: column; }
+
+  .picker-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+  }
+
+  .picker-item:hover { background: var(--color-surface-alt); }
+
+  .picker-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+  }
+
+  .picker-item-label {
+    flex: 1;
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .picker-item-cycle {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    padding: 1px 6px;
+    background: var(--color-surface-alt);
+    border-radius: 10px;
+  }
+
+  /* Cycle Sections */
   .cycle-section { margin-bottom: var(--space-lg); }
-  .cycle-header { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) var(--space-md); background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); cursor: pointer; margin-bottom: var(--space-md); transition: background var(--transition-fast); }
+
+  .cycle-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    margin-bottom: var(--space-md);
+    transition: background var(--transition-fast);
+  }
+
   .cycle-header:hover { background: var(--color-surface-alt); }
   .cycle-header .chevron { width: 20px; height: 20px; transition: transform var(--transition-fast); }
   .cycle-header.collapsed .chevron { transform: rotate(-90deg); }
+  .cycle-badge { padding: 4px 10px; font-size: var(--font-size-sm); font-weight: 700; border-radius: var(--radius-sm); }
+  .badge-c1 { background: #fee2e2; color: #991b1b; }
+  .badge-c2 { background: #fef3c7; color: #92400e; }
+  .badge-c3 { background: #d1fae5; color: #065f46; }
+  .badge-c4 { background: #dbeafe; color: #1e40af; }
+  .badge-c5 { background: #e0e7ff; color: #3730a3; }
+  .badge-c6 { background: #f3e8ff; color: #6b21a8; border: 1px dashed #6b21a8; }
   .cycle-title { font-size: var(--font-size-lg); font-weight: 600; color: var(--color-text); }
   .cycle-count { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-left: auto; }
-  .cycle-solutions { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: var(--space-md); }
+  .cycle-solutions { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: var(--space-md); }
   .cycle-solutions.collapsed { display: none; }
-  .solution-card { background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: var(--space-md); display: flex; flex-direction: column; transition: box-shadow var(--transition-fast), transform var(--transition-fast); }
+
+  /* Solution Cards */
+  .solution-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+    border-left: 4px solid var(--color-border);
+  }
+
   .solution-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .solution-card.phase-operational { border-left-color: #10b981; }
+  .solution-card.phase-implementation { border-left-color: #3b82f6; }
+  .solution-card.phase-formulation { border-left-color: #f97316; }
+  .solution-card.phase-pre-formulation { border-left-color: #eab308; }
+
   .solution-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-sm); }
   .solution-name { font-weight: 600; font-size: var(--font-size-md); color: var(--color-text); cursor: pointer; }
   .solution-name:hover { color: var(--color-implementation); }
   .solution-id { font-size: var(--font-size-xs); color: var(--color-text-muted); font-family: monospace; }
+
   .solution-badges { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
   .phase-badge { padding: 2px 8px; font-size: var(--font-size-xs); font-weight: 500; border-radius: 12px; white-space: nowrap; }
-  .phase-pre-formulation { background: #FFF8E1; color: #F57F17; }
-  .phase-formulation { background: #FFF3E0; color: #E65100; }
-  .phase-implementation { background: #E3F2FD; color: #1565C0; }
-  .phase-operational { background: #E8F5E9; color: #2E7D32; }
-  .phase-completed { background: #ECEFF1; color: #546E7A; }
+  .phase-pre-formulation { background: #fef9c3; color: #a16207; }
+  .phase-formulation { background: #ffedd5; color: #c2410c; }
+  .phase-implementation { background: #dbeafe; color: #1d4ed8; }
+  .phase-operational { background: #dcfce7; color: #15803d; }
+  .phase-completed { background: #f1f5f9; color: #475569; }
+
   .solution-meta { display: flex; gap: var(--space-md); font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-sm); flex-wrap: wrap; }
   .solution-meta-item { display: flex; align-items: center; gap: var(--space-xs); }
   .solution-meta-item svg { width: 14px; height: 14px; }
+
   .solution-lead { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-sm); }
   .solution-lead strong { color: var(--color-text); }
-  .solution-status { font-size: var(--font-size-sm); color: var(--color-text-secondary); flex: 1; margin-bottom: var(--space-sm); line-height: 1.4; max-height: 3.6em; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .solution-actions { display: flex; gap: var(--space-sm); margin-top: auto; padding-top: var(--space-sm); border-top: 1px solid var(--color-border-light); }
-  .solution-action-btn { display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-xs); color: var(--color-text-secondary); background: var(--color-surface-alt); border-radius: var(--radius-sm); cursor: pointer; transition: all var(--transition-fast); text-decoration: none; }
+
+  .solution-tracking {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-sm);
+  }
+
+  .tracking-tag {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-alt);
+  }
+
+  .tracking-tag svg { width: 12px; height: 12px; }
+  .tracking-tag.tag-daac { background: rgba(139, 92, 246, 0.1); color: #7c3aed; }
+  .tracking-tag.tag-milestone { background: rgba(16, 185, 129, 0.1); color: #059669; }
+  .tracking-tag.tag-deepdive { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
+
+  .solution-status { font-size: var(--font-size-sm); color: var(--color-text-secondary); flex: 1; margin-bottom: var(--space-sm); line-height: 1.4; max-height: 3.6em; overflow: hidden; }
+
+  .solution-actions { display: flex; gap: var(--space-sm); margin-top: auto; padding-top: var(--space-sm); border-top: 1px solid var(--color-border-light); flex-wrap: wrap; }
+  .solution-action-btn { display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-xs); color: var(--color-text-secondary); background: var(--color-surface-alt); border-radius: var(--radius-sm); cursor: pointer; transition: all var(--transition-fast); text-decoration: none; border: none; }
   .solution-action-btn:hover { background: var(--color-primary); color: white; }
   .solution-action-btn svg { width: 14px; height: 14px; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--space-md);
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal-content {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--color-border-light);
+    background: var(--color-surface-alt);
+  }
+
+  .modal-title { font-size: var(--font-size-lg); font-weight: 600; color: var(--color-text); margin: 0; }
+  .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--color-text-muted); padding: 0; line-height: 1; }
+  .modal-close:hover { color: var(--color-text); }
+  .modal-body { padding: var(--space-lg); overflow-y: auto; }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-lg);
+  }
+
+  .detail-section { margin-bottom: var(--space-md); }
+  .detail-section:last-child { margin-bottom: 0; }
+  .detail-section-title { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-sm); border-bottom: 1px solid var(--color-border-light); padding-bottom: var(--space-xs); }
+  .detail-row { display: flex; justify-content: space-between; padding: var(--space-xs) 0; font-size: var(--font-size-sm); }
+  .detail-label { color: var(--color-text-secondary); }
+  .detail-value { color: var(--color-text); font-weight: 500; text-align: right; }
+  .detail-text { font-size: var(--font-size-sm); color: var(--color-text); line-height: 1.6; }
+
   .empty-state { text-align: center; padding: var(--space-xxl); color: var(--color-text-muted); }
   .empty-state svg { width: 48px; height: 48px; margin-bottom: var(--space-md); opacity: 0.5; }
-  @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  /* Stakeholder Styles */
+  .stakeholder-summary {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-md);
+  }
+
+  .stakeholder-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    min-width: 80px;
+  }
+
+  .stakeholder-stat .stat-number {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  .stakeholder-stat .stat-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    text-align: center;
+  }
+
+  .sme-list, .dept-list {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    margin-bottom: var(--space-sm);
+    line-height: 1.6;
+  }
+
+  .sme-link {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  .sme-link:hover {
+    text-decoration: underline;
+  }
+
+  .empty-stakeholders {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-style: italic;
+    padding: var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    text-align: center;
+  }
+
+  /* Milestone Styles */
+  .milestone-summary {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-md);
+  }
+
+  .milestone-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    min-width: 80px;
+  }
+
+  .milestone-stat .stat-number {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--color-success);
+  }
+
+  .milestone-stat .stat-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    text-align: center;
+  }
+
+  .milestone-stat.milestone-overdue .stat-number {
+    color: var(--color-error);
+  }
+
+  .next-milestone {
+    font-size: var(--font-size-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 3px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-md);
+  }
+
+  .milestone-date {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-xs);
+  }
+
+  .milestone-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .milestone-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+  }
+
+  .milestone-item .milestone-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .milestone-item .milestone-type {
+    flex: 1;
+  }
+
+  .milestone-item.milestone-completed {
+    color: var(--color-success);
+    background: rgba(16, 185, 129, 0.05);
+  }
+
+  .milestone-item.milestone-planned {
+    color: var(--color-primary);
+    background: rgba(59, 130, 246, 0.05);
+  }
+
+  .milestone-item.milestone-not_started {
+    color: var(--color-text-muted);
+    background: var(--color-surface-alt);
+  }
+
+  .empty-milestones {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-style: italic;
+    padding: var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    text-align: center;
+  }
+
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .dashboard-top-row { grid-template-columns: 1fr 1fr; }
+    .docs-panel { grid-column: span 2; }
+    .tracking-summary-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
   @media (max-width: 768px) {
     .page-header { flex-direction: column; gap: var(--space-md); }
     .page-actions { width: 100%; }
     .page-actions .btn { flex: 1; }
-    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .dashboard-top-row { grid-template-columns: 1fr; }
+    .docs-panel { grid-column: span 1; }
+    .stats-grid-compact { grid-template-columns: repeat(2, 1fr); }
+    .tracking-summary-row { grid-template-columns: 1fr; }
     .filter-bar { flex-direction: column; align-items: stretch; }
     .filter-group { justify-content: space-between; }
     .cycle-solutions { grid-template-columns: 1fr; }
+    .detail-grid { grid-template-columns: 1fr; }
   }
 </style>
 
 <!-- Implementation-NSITE JavaScript -->
 <script>
 var Implementation = (function() {
-  var state = { solutions: [], filteredSolutions: [], groups: [], collapsedCycles: {} };
+  var state = {
+    solutions: [],
+    filteredSolutions: [],
+    groups: [],
+    daacs: [],
+    collapsedCycles: {},
+    selectedSolutions: {} // Track which solutions are selected by solution_id
+  };
 
-  function init() { loadSolutions(); }
+  /**
+   * Check if solution should be shown in default selection.
+   * Uses the 'show_in_default' column from MO-DB_Solutions.
+   * Values: 'Y' or 'y' = show in default, anything else = don't show
+   */
+  function isActivelyManaged(sol) {
+    var value = (sol.show_in_default || '').toString().trim().toUpperCase();
+    return value === 'Y';
+  }
+
+  function init() {
+    console.log('Implementation.init() called');
+    loadSolutions();
+  }
 
   function loadSolutions() {
+    console.log('loadSolutions() starting...');
     google.script.run
       .withSuccessHandler(function(solutions) {
+        console.log('SUCCESS: Received solutions:', solutions ? solutions.length : 'null/undefined');
         state.solutions = solutions || [];
-        extractGroups();
+        extractFilters();
         updateStats();
+        updateMilestones();
+        updateTrackingStats();
         applyFilters();
       })
       .withFailureHandler(function(error) {
-        console.error('Failed to load solutions:', error);
+        console.error('FAILURE: Failed to load solutions:', error);
         showError('Failed to load solutions. Please try again.');
       })
       .getSolutions();
   }
 
-  function extractGroups() {
-    var groups = {};
+  function extractFilters() {
+    var groups = {}, daacs = {};
     state.solutions.forEach(function(sol) {
       if (sol.solution_group && sol.solution_group.trim()) {
         groups[sol.solution_group.trim()] = true;
       }
+      if (sol.daac_assignment && sol.daac_assignment.trim()) {
+        daacs[sol.daac_assignment.trim()] = true;
+      }
     });
     state.groups = Object.keys(groups).sort();
-    populateGroupFilter();
+    state.daacs = Object.keys(daacs).sort();
+    populateFilterDropdowns();
+    populateSolutionPicker();
+    // Select actively managed by default
+    selectActiveSolutions();
   }
 
-  function populateGroupFilter() {
-    var select = document.getElementById('filterGroup');
-    var currentValue = select.value;
-    select.innerHTML = '<option value="">All Groups</option>';
+  function populateFilterDropdowns() {
+    // Groups
+    var groupSelect = document.getElementById('filterGroup');
+    groupSelect.innerHTML = '<option value="">All Groups</option>';
     state.groups.forEach(function(group) {
       var option = document.createElement('option');
       option.value = group;
       option.textContent = group;
-      select.appendChild(option);
+      groupSelect.appendChild(option);
     });
-    if (currentValue && state.groups.indexOf(currentValue) !== -1) {
-      select.value = currentValue;
+
+    // DAACs
+    var daacSelect = document.getElementById('filterDAAC');
+    daacSelect.innerHTML = '<option value="">All DAACs</option>';
+    state.daacs.forEach(function(daac) {
+      var option = document.createElement('option');
+      option.value = daac;
+      option.textContent = daac;
+      daacSelect.appendChild(option);
+    });
+  }
+
+  function populateSolutionPicker() {
+    var activeList = document.getElementById('activePickerList');
+    var otherList = document.getElementById('otherPickerList');
+    activeList.innerHTML = '';
+    otherList.innerHTML = '';
+
+    // Sort solutions by name
+    var sortedSolutions = state.solutions.slice().sort(function(a, b) {
+      return (a.name || a.solution_id).localeCompare(b.name || b.solution_id);
+    });
+
+    sortedSolutions.forEach(function(sol) {
+      var isActive = isActivelyManaged(sol);
+      var html = '<label class="picker-item">';
+      html += '<input type="checkbox" id="picker_' + sol.solution_id + '" onchange="Implementation.onSolutionToggle(\'' + sol.solution_id + '\')">';
+      html += '<span class="picker-item-label">' + escapeHtml(sol.name || sol.solution_id) + '</span>';
+      html += '<span class="picker-item-cycle">C' + sol.cycle + '</span>';
+      html += '</label>';
+
+      if (isActive) {
+        activeList.innerHTML += html;
+      } else {
+        otherList.innerHTML += html;
+      }
+    });
+  }
+
+  function toggleSolutionPicker() {
+    var dropdown = document.getElementById('solutionPickerDropdown');
+    var btn = document.getElementById('solutionPickerBtn');
+    dropdown.classList.toggle('active');
+    btn.classList.toggle('active');
+  }
+
+  function closeSolutionPicker() {
+    document.getElementById('solutionPickerDropdown').classList.remove('active');
+    document.getElementById('solutionPickerBtn').classList.remove('active');
+  }
+
+  function onSolutionToggle(solutionId) {
+    var checkbox = document.getElementById('picker_' + solutionId);
+    state.selectedSolutions[solutionId] = checkbox.checked;
+    updatePickerLabel();
+    applyFilters();
+  }
+
+  function selectActiveSolutions() {
+    state.selectedSolutions = {};
+    state.solutions.forEach(function(sol) {
+      var checkbox = document.getElementById('picker_' + sol.solution_id);
+      if (checkbox) {
+        var isActive = isActivelyManaged(sol);
+        checkbox.checked = isActive;
+        state.selectedSolutions[sol.solution_id] = isActive;
+      }
+    });
+    updatePickerLabel();
+    applyFilters();
+  }
+
+  function selectAllSolutions() {
+    state.selectedSolutions = {};
+    state.solutions.forEach(function(sol) {
+      var checkbox = document.getElementById('picker_' + sol.solution_id);
+      if (checkbox) {
+        checkbox.checked = true;
+        state.selectedSolutions[sol.solution_id] = true;
+      }
+    });
+    updatePickerLabel();
+    applyFilters();
+  }
+
+  function clearSolutionSelection() {
+    state.selectedSolutions = {};
+    state.solutions.forEach(function(sol) {
+      var checkbox = document.getElementById('picker_' + sol.solution_id);
+      if (checkbox) {
+        checkbox.checked = false;
+      }
+    });
+    updatePickerLabel();
+    applyFilters();
+  }
+
+  function updatePickerLabel() {
+    var count = Object.keys(state.selectedSolutions).filter(function(k) {
+      return state.selectedSolutions[k];
+    }).length;
+    var total = state.solutions.length;
+    var label = document.getElementById('solutionPickerLabel');
+    if (count === 0) {
+      label.textContent = 'None selected';
+    } else if (count === total) {
+      label.textContent = 'All (' + total + ')';
+    } else {
+      label.textContent = count + ' of ' + total + ' selected';
     }
   }
 
   function updateStats() {
-    var total = state.solutions.length;
+    // Calculate stats based on filtered solutions (current view)
+    var total = state.filteredSolutions.length;
     var operational = 0, implementation = 0, formulation = 0;
 
-    state.solutions.forEach(function(sol) {
+    state.filteredSolutions.forEach(function(sol) {
       var phase = (sol.phase || '').toLowerCase();
       if (phase.indexOf('operational') !== -1 || phase.indexOf('production') !== -1) operational++;
       else if (phase.indexOf('implementation') !== -1) implementation++;
@@ -223,22 +1045,85 @@ var Implementation = (function() {
     document.getElementById('statFormulation').textContent = formulation;
   }
 
+  function updateMilestones() {
+    // Calculate milestones based on filtered solutions (current view)
+    var counts = { IPA: 0, ICD: 0, F2I: 0, OPS: 0 };
+
+    state.filteredSolutions.forEach(function(sol) {
+      var phase = (sol.phase || '').toLowerCase();
+      // Count based on phase progression
+      if (phase.indexOf('operational') !== -1 || phase.indexOf('production') !== -1) {
+        counts.OPS++;
+        counts.F2I++;
+        counts.ICD++;
+        counts.IPA++;
+      } else if (phase.indexOf('implementation') !== -1) {
+        counts.F2I++;
+        counts.ICD++;
+        counts.IPA++;
+      } else if (phase.indexOf('formulation') !== -1) {
+        counts.IPA++;
+      }
+    });
+
+    document.getElementById('countIPA').textContent = counts.IPA;
+    document.getElementById('countICD').textContent = counts.ICD;
+    document.getElementById('countF2I').textContent = counts.F2I;
+    document.getElementById('countOPS').textContent = counts.OPS;
+  }
+
+  function updateTrackingStats() {
+    // Calculate based on filtered solutions (current view)
+    var daacCount = 0;
+    var total = state.filteredSolutions.length;
+
+    state.filteredSolutions.forEach(function(sol) {
+      if (sol.daac_assignment && sol.daac_assignment.trim()) daacCount++;
+    });
+
+    document.getElementById('statDAAC').textContent = daacCount + '/' + total;
+    document.getElementById('statDeepDives').textContent = 'TBD';
+    document.getElementById('statActions').textContent = 'TBD';
+
+    // Load stakeholder stats from contacts database
+    google.script.run
+      .withSuccessHandler(function(stats) {
+        if (stats) {
+          document.getElementById('statStakeholders').textContent = stats.unique_contacts || 0;
+        } else {
+          document.getElementById('statStakeholders').textContent = '0';
+        }
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load contact stats:', error);
+        document.getElementById('statStakeholders').textContent = '--';
+      })
+      .getContactStats();
+  }
+
   function applyFilters() {
     var cycleFilter = document.getElementById('filterCycle').value;
     var phaseFilter = document.getElementById('filterPhase').value;
     var groupFilter = document.getElementById('filterGroup').value;
+    var daacFilter = document.getElementById('filterDAAC').value;
     var searchFilter = document.getElementById('filterSearch').value.toLowerCase().trim();
 
     state.filteredSolutions = state.solutions.filter(function(sol) {
+      // Solution picker filter - only show selected solutions
+      if (!state.selectedSolutions[sol.solution_id]) return false;
       if (cycleFilter && String(sol.cycle) !== cycleFilter) return false;
       if (phaseFilter && sol.phase !== phaseFilter) return false;
       if (groupFilter && sol.solution_group !== groupFilter) return false;
+      if (daacFilter && sol.daac_assignment !== daacFilter) return false;
       if (searchFilter) {
-        var searchable = [sol.solution_id, sol.name, sol.full_title, sol.solution_lead, sol.solution_group, sol.purpose_mission].join(' ').toLowerCase();
+        var searchable = [sol.solution_id, sol.name, sol.full_title, sol.solution_lead, sol.solution_group, sol.purpose_mission, sol.daac_assignment].join(' ').toLowerCase();
         if (searchable.indexOf(searchFilter) === -1) return false;
       }
       return true;
     });
+    updateStats(); // Update stats based on filtered view
+    updateMilestones(); // Update milestones based on filtered view
+    updateTrackingStats(); // Update tracking stats based on filtered view
     render();
   }
 
@@ -246,8 +1131,9 @@ var Implementation = (function() {
     document.getElementById('filterCycle').value = '';
     document.getElementById('filterPhase').value = '';
     document.getElementById('filterGroup').value = '';
+    document.getElementById('filterDAAC').value = '';
     document.getElementById('filterSearch').value = '';
-    applyFilters();
+    selectActiveSolutions(); // Reset to actively managed
   }
 
   function render() {
@@ -273,12 +1159,13 @@ var Implementation = (function() {
       var solutions = byCycle[cycle];
       var isCollapsed = state.collapsedCycles[cycle] || false;
       var cycleYear = getCycleYear(cycle);
+      var isFuture = parseInt(cycle) >= 6;
 
       html += '<div class="cycle-section" data-cycle="' + cycle + '">';
       html += '<div class="cycle-header' + (isCollapsed ? ' collapsed' : '') + '" onclick="Implementation.toggleCycle(\'' + cycle + '\')">';
       html += '<span data-feather="chevron-down" class="chevron"></span>';
-      html += '<span class="badge badge-c' + cycle + '">C' + cycle + '</span>';
-      html += '<span class="cycle-title">Cycle ' + cycle + (cycleYear ? ' (' + cycleYear + ')' : '') + '</span>';
+      html += '<span class="cycle-badge badge-c' + cycle + '">C' + cycle + '</span>';
+      html += '<span class="cycle-title">Cycle ' + cycle + (cycleYear ? ' (' + cycleYear + ')' : '') + (isFuture ? ' - Assessment' : '') + '</span>';
       html += '<span class="cycle-count">' + solutions.length + ' solution' + (solutions.length !== 1 ? 's' : '') + '</span>';
       html += '</div>';
       html += '<div class="cycle-solutions' + (isCollapsed ? ' collapsed' : '') + '">';
@@ -292,34 +1179,53 @@ var Implementation = (function() {
 
   function renderSolutionCard(sol) {
     var phaseClass = getPhaseClass(sol.phase);
-    var statusSummary = truncateText(sol.status_summary, 150);
+    var cardClass = 'solution-card ' + phaseClass;
+    var statusSummary = truncateText(sol.status_summary, 120);
 
-    var html = '<div class="solution-card">';
+    var html = '<div class="' + cardClass + '">';
+
+    // Header
     html += '<div class="solution-card-header"><div>';
-    html += '<div class="solution-name" onclick="Implementation.showDetail(\'' + sol.solution_id + '\')">' + escapeHtml(sol.name) + '</div>';
+    html += '<div class="solution-name" onclick="Implementation.showDetail(\'' + sol.solution_id + '\')">' + escapeHtml(sol.name || sol.solution_id) + '</div>';
     html += '<div class="solution-id">' + escapeHtml(sol.solution_id) + '</div>';
     html += '</div><div class="solution-badges">';
     html += '<span class="phase-badge ' + phaseClass + '">' + escapeHtml(sol.phase || 'Unknown') + '</span>';
     html += '</div></div>';
 
+    // Meta info
     html += '<div class="solution-meta">';
     if (sol.solution_group) html += '<span class="solution-meta-item"><span data-feather="folder"></span>' + escapeHtml(sol.solution_group) + '</span>';
-    if (sol.funded_by_ison === 'Y') html += '<span class="solution-meta-item"><span data-feather="dollar-sign"></span>ISON Funded</span>';
+    if (sol.funded_by_ison === 'Y') html += '<span class="solution-meta-item"><span data-feather="dollar-sign"></span>ISON</span>';
     html += '</div>';
 
+    // Lead
     if (sol.solution_lead) {
       html += '<div class="solution-lead"><strong>Lead:</strong> ' + escapeHtml(sol.solution_lead);
-      if (sol.solution_lead_affiliation) html += ' (' + escapeHtml(sol.solution_lead_affiliation) + ')';
+      if (sol.solution_lead_affiliation) html += ' <span style="opacity:0.7">(' + escapeHtml(truncateText(sol.solution_lead_affiliation, 30)) + ')</span>';
       html += '</div>';
     }
 
+    // Tracking tags
+    html += '<div class="solution-tracking">';
+    if (sol.daac_assignment) html += '<span class="tracking-tag tag-daac"><span data-feather="database"></span>' + escapeHtml(sol.daac_assignment) + '</span>';
+    if (sol.phase && sol.phase.toLowerCase().indexOf('operational') !== -1) {
+      html += '<span class="tracking-tag tag-milestone"><span data-feather="check-circle"></span>OPS</span>';
+    } else if (sol.phase && sol.phase.toLowerCase().indexOf('implementation') !== -1) {
+      html += '<span class="tracking-tag tag-milestone"><span data-feather="play-circle"></span>F2I</span>';
+    }
+    html += '</div>';
+
+    // Status
     if (statusSummary) html += '<div class="solution-status">' + escapeHtml(statusSummary) + '</div>';
 
+    // Actions
     html += '<div class="solution-actions">';
     if (sol.drive_folder_url) html += '<a href="' + escapeHtml(sol.drive_folder_url) + '" target="_blank" class="solution-action-btn"><span data-feather="folder"></span>Drive</a>';
     if (sol.snwg_solution_page_url) html += '<a href="' + escapeHtml(sol.snwg_solution_page_url) + '" target="_blank" class="solution-action-btn"><span data-feather="external-link"></span>Earthdata</a>';
+    if (sol.project_plan_url) html += '<a href="' + escapeHtml(sol.project_plan_url) + '" target="_blank" class="solution-action-btn"><span data-feather="file-text"></span>Plan</a>';
     html += '<button class="solution-action-btn" onclick="Implementation.showDetail(\'' + sol.solution_id + '\')"><span data-feather="info"></span>Details</button>';
     html += '</div></div>';
+
     return html;
   }
 
@@ -340,25 +1246,210 @@ var Implementation = (function() {
   }
 
   function showDetail(solutionId) {
-    var solution = state.solutions.find(function(s) { return s.solution_id === solutionId; });
-    if (!solution) return;
+    var sol = state.solutions.find(function(s) { return s.solution_id === solutionId; });
+    if (!sol) return;
 
-    var info = [
-      '=== ' + solution.name + ' ===', '',
-      'ID: ' + solution.solution_id,
-      'Cycle: ' + solution.cycle + ' (' + getCycleYear(solution.cycle) + ')',
-      'Phase: ' + solution.phase,
-      'Funding: ' + (solution.funded_by_ison === 'Y' ? 'ISON Funded' : 'Not ISON'), '',
-      'Solution Lead: ' + (solution.solution_lead || 'TBD'),
-      'Affiliation: ' + (solution.solution_lead_affiliation || '-'), '',
-      'RA Representative: ' + (solution.ra_representative || '-'), '',
-      '--- Purpose ---', solution.purpose_mission || 'No description available.', '',
-      '--- Status ---', solution.status_summary || 'No status update.'
-    ].join('\n');
-    alert(info);
+    document.getElementById('modalTitle').textContent = sol.name || sol.solution_id;
+
+    // Show loading state first
+    document.getElementById('modalBody').innerHTML = '<div style="text-align:center;padding:40px;"><span class="loading-spinner"></span><p>Loading details...</p></div>';
+    document.getElementById('solutionModal').classList.add('active');
+
+    // Load both stakeholder and milestone data
+    var stakeholderData = null;
+    var milestoneData = null;
+    var loadCount = 0;
+
+    function checkComplete() {
+      loadCount++;
+      if (loadCount >= 2) {
+        renderDetailModal(sol, stakeholderData, milestoneData);
+      }
+    }
+
+    // Load stakeholder data
+    google.script.run
+      .withSuccessHandler(function(stakeholders) {
+        stakeholderData = stakeholders;
+        checkComplete();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load stakeholders:', error);
+        checkComplete();
+      })
+      .getSolutionStakeholderSummary(sol.name || sol.full_title);
+
+    // Load milestone data
+    google.script.run
+      .withSuccessHandler(function(milestones) {
+        milestoneData = milestones;
+        checkComplete();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load milestones:', error);
+        checkComplete();
+      })
+      .getSolutionMilestoneSummary(sol.name || sol.solution_id);
   }
 
-  function syncSolutions() { alert('Sync: Refreshing from MO-DB_Solutions...'); loadSolutions(); }
+  function renderDetailModal(sol, stakeholders, milestones) {
+    var html = '<div class="detail-grid">';
+
+    // Left column - Identity & Status
+    html += '<div>';
+
+    html += '<div class="detail-section">';
+    html += '<div class="detail-section-title">Identity</div>';
+    html += '<div class="detail-row"><span class="detail-label">Solution ID</span><span class="detail-value">' + escapeHtml(sol.solution_id) + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Full Title</span><span class="detail-value">' + escapeHtml(sol.full_title || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Group</span><span class="detail-value">' + escapeHtml(sol.solution_group || '-') + '</span></div>';
+    html += '</div>';
+
+    html += '<div class="detail-section">';
+    html += '<div class="detail-section-title">Lifecycle</div>';
+    html += '<div class="detail-row"><span class="detail-label">Cycle</span><span class="detail-value">C' + sol.cycle + ' (' + getCycleYear(sol.cycle) + ')</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Phase</span><span class="detail-value">' + escapeHtml(sol.phase || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Funding</span><span class="detail-value">' + (sol.funded_by_ison === 'Y' ? 'ISON Funded' : sol.funding_status || '-') + '</span></div>';
+    html += '</div>';
+
+    html += '<div class="detail-section">';
+    html += '<div class="detail-section-title">Per-Solution Tracking</div>';
+    html += '<div class="detail-row"><span class="detail-label">DAAC Assignment</span><span class="detail-value">' + escapeHtml(sol.daac_assignment || 'TBD') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Stakeholder List</span><span class="detail-value">' + (sol.stakeholder_list ? 'Linked' : 'Not linked') + '</span></div>';
+    html += '</div>';
+
+    html += '</div>';
+
+    // Right column - Team & Content
+    html += '<div>';
+
+    html += '<div class="detail-section">';
+    html += '<div class="detail-section-title">Team</div>';
+    html += '<div class="detail-row"><span class="detail-label">Solution Lead</span><span class="detail-value">' + escapeHtml(sol.solution_lead || 'TBD') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Affiliation</span><span class="detail-value">' + escapeHtml(sol.solution_lead_affiliation || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">RA Representative</span><span class="detail-value">' + escapeHtml(sol.ra_representative || '-') + '</span></div>';
+    html += '</div>';
+
+    html += '<div class="detail-section">';
+    html += '<div class="detail-section-title">Purpose</div>';
+    html += '<div class="detail-text">' + escapeHtml(sol.purpose_mission || 'No description available.') + '</div>';
+    html += '</div>';
+
+    html += '<div class="detail-section">';
+    html += '<div class="detail-section-title">Status Summary</div>';
+    html += '<div class="detail-text">' + escapeHtml(sol.status_summary || 'No status update.') + '</div>';
+    html += '</div>';
+
+    html += '</div>';
+    html += '</div>';
+
+    // Documents section (full width)
+    html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
+    html += '<div class="detail-section-title">Documentation Links</div>';
+    html += '<div style="display: flex; flex-wrap: wrap; gap: var(--space-sm);">';
+    if (sol.drive_folder_url) html += '<a href="' + escapeHtml(sol.drive_folder_url) + '" target="_blank" class="solution-action-btn"><span data-feather="folder"></span>Drive Folder</a>';
+    if (sol.snwg_solution_page_url) html += '<a href="' + escapeHtml(sol.snwg_solution_page_url) + '" target="_blank" class="solution-action-btn"><span data-feather="globe"></span>Earthdata Page</a>';
+    if (sol.project_plan_url) html += '<a href="' + escapeHtml(sol.project_plan_url) + '" target="_blank" class="solution-action-btn"><span data-feather="file-text"></span>Project Plan</a>';
+    if (sol.science_sow_url) html += '<a href="' + escapeHtml(sol.science_sow_url) + '" target="_blank" class="solution-action-btn"><span data-feather="file"></span>Science SOW</a>';
+    if (sol.risk_register_url) html += '<a href="' + escapeHtml(sol.risk_register_url) + '" target="_blank" class="solution-action-btn"><span data-feather="alert-triangle"></span>Risk Register</a>';
+    if (sol.data_product_table_url) html += '<a href="' + escapeHtml(sol.data_product_table_url) + '" target="_blank" class="solution-action-btn"><span data-feather="table"></span>Data Products</a>';
+    html += '</div></div>';
+
+    // Milestones section
+    html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
+    html += '<div class="detail-section-title">Milestones</div>';
+
+    if (milestones && milestones.milestones && milestones.milestones.length > 0) {
+      html += '<div class="milestone-summary">';
+      html += '<div class="milestone-stat"><span class="stat-number">' + milestones.completed + '</span><span class="stat-label">Completed</span></div>';
+      html += '<div class="milestone-stat"><span class="stat-number">' + milestones.planned + '</span><span class="stat-label">Planned</span></div>';
+      if (milestones.overdue > 0) {
+        html += '<div class="milestone-stat milestone-overdue"><span class="stat-number">' + milestones.overdue + '</span><span class="stat-label">Overdue</span></div>';
+      }
+      html += '</div>';
+
+      // Next milestone
+      if (milestones.next_milestone) {
+        html += '<div class="next-milestone">';
+        html += '<strong>Next:</strong> ' + escapeHtml(milestones.next_milestone.type);
+        if (milestones.next_milestone.target_date) {
+          html += ' <span class="milestone-date">(' + milestones.next_milestone.target_date + ')</span>';
+        }
+        html += '</div>';
+      }
+
+      // Milestone timeline
+      html += '<div class="milestone-timeline">';
+      milestones.milestones.forEach(function(m) {
+        var statusClass = 'milestone-' + (m.status || 'not_started');
+        var icon = m.status === 'completed' ? 'check-circle' : (m.status === 'planned' ? 'clock' : 'circle');
+        html += '<div class="milestone-item ' + statusClass + '">';
+        html += '<span data-feather="' + icon + '" class="milestone-icon"></span>';
+        html += '<span class="milestone-type">' + escapeHtml(m.type) + '</span>';
+        if (m.target_date) {
+          html += '<span class="milestone-date">' + m.target_date + '</span>';
+        }
+        html += '</div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div class="empty-milestones">No milestone data available for this solution.</div>';
+    }
+    html += '</div>';
+
+    // Stakeholders section
+    html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
+    html += '<div class="detail-section-title">Stakeholders</div>';
+
+    if (stakeholders && stakeholders.total_contacts > 0) {
+      html += '<div class="stakeholder-summary">';
+      html += '<div class="stakeholder-stat"><span class="stat-number">' + stakeholders.total_contacts + '</span><span class="stat-label">Total Contacts</span></div>';
+
+      // Role breakdown
+      if (stakeholders.by_role) {
+        var roles = Object.keys(stakeholders.by_role);
+        roles.forEach(function(role) {
+          html += '<div class="stakeholder-stat"><span class="stat-number">' + stakeholders.by_role[role] + '</span><span class="stat-label">' + role + '</span></div>';
+        });
+      }
+      html += '</div>';
+
+      // Primary SMEs
+      if (stakeholders.primary_smes && stakeholders.primary_smes.length > 0) {
+        html += '<div class="sme-list">';
+        html += '<strong>Primary SMEs:</strong> ';
+        var smeNames = stakeholders.primary_smes.map(function(sme) {
+          return '<a href="mailto:' + escapeHtml(sme.email) + '" class="sme-link">' + escapeHtml(sme.name) + '</a>';
+        });
+        html += smeNames.join(', ');
+        html += '</div>';
+      }
+
+      // Departments
+      if (stakeholders.departments && stakeholders.departments.length > 0) {
+        html += '<div class="dept-list">';
+        html += '<strong>Agencies:</strong> ' + stakeholders.departments.slice(0, 5).map(escapeHtml).join(', ');
+        if (stakeholders.departments.length > 5) {
+          html += ' <span style="opacity:0.7">+' + (stakeholders.departments.length - 5) + ' more</span>';
+        }
+        html += '</div>';
+      }
+    } else {
+      html += '<div class="empty-stakeholders">No stakeholder data available for this solution.</div>';
+    }
+    html += '</div>';
+
+    document.getElementById('modalBody').innerHTML = html;
+    feather.replace();
+  }
+
+  function closeModal(event) {
+    if (!event || event.target === document.getElementById('solutionModal')) {
+      document.getElementById('solutionModal').classList.remove('active');
+    }
+  }
+
+  function syncSolutions() { loadSolutions(); }
   function exportData() { alert('Export functionality coming soon.'); }
 
   function getCycleYear(cycle) {
@@ -397,11 +1488,47 @@ var Implementation = (function() {
     feather.replace();
   }
 
+  // Close picker when clicking outside
+  document.addEventListener('click', function(e) {
+    var picker = document.getElementById('solutionPickerDropdown');
+    var btn = document.getElementById('solutionPickerBtn');
+    if (picker && btn && !picker.contains(e.target) && !btn.contains(e.target)) {
+      closeSolutionPicker();
+    }
+  });
+
   return {
-    init: init, loadSolutions: loadSolutions, applyFilters: applyFilters, clearFilters: clearFilters,
-    toggleCycle: toggleCycle, showDetail: showDetail, syncSolutions: syncSolutions, exportData: exportData
+    init: init,
+    loadSolutions: loadSolutions,
+    applyFilters: applyFilters,
+    clearFilters: clearFilters,
+    toggleCycle: toggleCycle,
+    showDetail: showDetail,
+    closeModal: closeModal,
+    syncSolutions: syncSolutions,
+    exportData: exportData,
+    toggleSolutionPicker: toggleSolutionPicker,
+    onSolutionToggle: onSolutionToggle,
+    selectActiveSolutions: selectActiveSolutions,
+    selectAllSolutions: selectAllSolutions,
+    clearSolutionSelection: clearSolutionSelection
   };
 })();
 
-if (typeof google !== 'undefined' && google.script) { Implementation.init(); }
+// Initialize
+if (typeof google !== 'undefined' && google.script) {
+  Implementation.init();
+} else {
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof google !== 'undefined' && google.script) {
+      Implementation.init();
+    } else {
+      setTimeout(function() {
+        if (typeof google !== 'undefined' && google.script) {
+          Implementation.init();
+        }
+      }, 500);
+    }
+  });
+}
 </script>

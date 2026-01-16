@@ -20,7 +20,8 @@ The naming convention "NSITE" in viewer names represents "in sight" - making dat
 | **SEP-NSITE** | People/Stakeholders | Planned | Manage stakeholder engagement pipeline and touchpoints |
 | **Comms-NSITE** | Stories/Communications | Planned | Track story pipeline and communications coverage |
 | **Quick Update Form** | Input | **Complete** | Submit updates to source documents from within the dashboard |
-| **Shared Resources** | Cross-cutting | Planned | Contacts, reports, schedules, action tracker, templates |
+| **Contacts Directory** | Stakeholders | **Complete** | Searchable stakeholder database with 423 contacts across 47 solutions |
+| **Shared Resources** | Cross-cutting | In Progress | Reports, schedules, action tracker, templates |
 
 ---
 
@@ -115,17 +116,18 @@ nsite-mo-viewer/
 | Phase 1 | Platform Foundation | **Complete** |
 | Phase 2 | Implementation-NSITE | **Complete** |
 | Phase 3 | Quick Update Form | **Complete** |
-| Phase 4 | SEP-NSITE | Planned |
-| Phase 5 | Comms-NSITE | Planned |
-| Phase 6 | Shared Resources | Planned |
+| Phase 4 | Contacts Directory | **Complete** |
+| Phase 5 | SEP-NSITE | Planned |
+| Phase 6 | Comms-NSITE | Planned |
+| Phase 7 | Shared Resources | Planned |
 
 ### Data Sources
 
 | Database | Purpose | Status |
 |----------|---------|--------|
 | **MO-DB_Solutions** | Solution data (49 columns, ~37 solutions) | **Populated** |
-| **MO-DB_Contacts** | Stakeholder contacts | Planned |
-| **MO-DB_Milestones** | Milestone tracking | Planned |
+| **MO-DB_Contacts** | Stakeholder contacts (423 unique, 47 solutions) | **Populated** |
+| **MO-DB_Milestones** | Milestone tracking (56 milestones, 32 solutions) | **Populated** |
 | **MO-DB_Config** | Configuration settings | **Active** |
 
 ---

@@ -104,6 +104,13 @@ var DEFAULT_PAGE = 'implementation';
 function doGet(e) {
   var page = e.parameter.page || DEFAULT_PAGE;
 
+  // Special routes (not in PAGES)
+  if (page === 'test') {
+    return HtmlService.createHtmlOutputFromFile('test-frontend')
+      .setTitle('Frontend Test')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+
   // Validate page exists
   if (!PAGES[page]) {
     page = DEFAULT_PAGE;

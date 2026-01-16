@@ -1,0 +1,54 @@
+milestone_id,solution_id,solution_name,cycle,type,category,phase,target_date,actual_date,status,notes,source,last_updated
+M0001,AIRBORNE_DATA_MANAGE,Airborne Data Management Group,1,Operation End,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0002,AIRBORNE_DATA_MANAGE,Airborne Data Management Group,1,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0003,DATA_CURATION_FOR_DI,Data Curation for Discovery,1,Closeout DG,implementation,Closeout,2025-01-29,,planned,Current phase: CLOSEOUT,Quick Look,2026-01-15
+M0004,HARMONIZED_LANDSAT_A,Harmonized Landsat and Sentinel-2,1,Operation End,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0005,HARMONIZED_LANDSAT_A,Harmonized Landsat and Sentinel-2,1,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0006,NISAR_DOWNLINK,NISAR Downlink,1,Operation Start,implementation,Production,2026,,planned,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0007,NISAR_DOWNLINK,NISAR Downlink,1,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0008,FREEBOARD__ICETHICKN,Freeboard / IceThickness,2,Operation End,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0009,FREEBOARD__ICETHICKN,Freeboard / IceThickness,2,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0010,GACR,GACR,2,Operation Start,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0011,GACR,GACR,2,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0012,GCC_FROM_SATCORPS,GCC from SATCorps,2,Operation Start,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0013,GCC_FROM_SATCORPS,GCC from SATCorps,2,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0014,WATER_QUALITY_PRODUC,Water Quality Product,2,Operation End,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0015,WATER_QUALITY_PRODUC,Water Quality Product,2,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0016,INTERNET_OF_ANIMALS,Internet of Animals,2,Operation End,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0017,INTERNET_OF_ANIMALS,Internet of Animals,2,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0018,NISAR_SM,NISAR SM,2,Operation Start,implementation,Production,2026,,planned,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0019,NISAR_SM,NISAR SM,2,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0020,OPERA_RELEASE_1___DS,OPERA Release 1 - DSWx - HLS and DIST-HLS,2,Operation End,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0021,OPERA_RELEASE_1___DS,OPERA Release 1 - DSWx - HLS and DIST-HLS,2,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0022,OPERA_RELEASE_2___RT,OPERA Release 2 - RTC-S1 and CSLC-S1,2,Operation End,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0023,OPERA_RELEASE_2___RT,OPERA Release 2 - RTC-S1 and CSLC-S1,2,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0024,OPERA_RELEASE_3___DI,OPERA Release 3 - DISP-S1,2,Operation End,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0025,OPERA_RELEASE_3___DI,OPERA Release 3 - DISP-S1,2,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0026,OPERA_RELEASE_3___DS,OPERA Release 3 - DSWx-S1,2,Operation End,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0027,OPERA_RELEASE_3___DS,OPERA Release 3 - DSWx-S1,2,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0028,OPERA_RELEASE_4___DS,OPERA Release 4 - DSWx-NI,2,ORR,implementation,Implementation,2026,,planned,Current phase: IMPLEMENTATION,Quick Look,2026-01-15
+M0029,OPERA_RELEASE_5___CS,OPERA Release 5 - CSLC-NI and DISP-NI,2,F2I DG,implementation,Formulation,2026,,planned,Current phase: FORMULATION,Quick Look,2026-01-15
+M0030,OPERA_RELEASE_6___DI,OPERA Release 6 - DIST-S1,2,ORR,implementation,Implementation,2026,,planned,Current phase: IMPLEMENTATION,Quick Look,2026-01-15
+M0031,AIR_QUALITY_FORECAST,Air Quality Forecasts - GMAO,3,ORR,implementation,Implementation,,,not_started,Current phase: IMPLEMENTATION,Quick Look,2026-01-15
+M0032,AIR_QUALITY_FORECAST,Air Quality Forecasts - GMAO,3,Closeout DG,implementation,Closeout,2028-09-30,,planned,Planned closeout date,Quick Look,2026-01-15
+M0033,AIR_QUALITY_FORECAST,Air Quality Forecasts - Pandora Sensors,3,Operation End,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0034,AIR_QUALITY_FORECAST,Air Quality Forecasts - Pandora Sensors,3,Closeout DG,implementation,Closeout,2028-06-01,,planned,Planned closeout date,Quick Look,2026-01-15
+M0035,AIR_QUALITY_FORECAST,Air Quality Forecasts - Pandora Sensors,3,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0036,AIR_QUALITY_FORECAST,Air Quality Forecasts - PM2.5,3,Operation Start,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0037,AIR_QUALITY_FORECAST,Air Quality Forecasts - PM2.5,3,Closeout DG,implementation,Closeout,2028-07-01,,planned,Planned closeout date,Quick Look,2026-01-15
+M0038,AIR_QUALITY_FORECAST,Air Quality Forecasts - PM2.5,3,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0039,SEA_SURFACE_SALINITY,Sea Surface Salinity,3,Operation End,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0040,SEA_SURFACE_SALINITY,Sea Surface Salinity,3,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0041,GLOBAL_HLS_DERIVED_V,Global HLS Derived Vegetation Indices Suite,3,Operation End,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0042,GLOBAL_HLS_DERIVED_V,Global HLS Derived Vegetation Indices Suite,3,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0043,PBL_GNSS_RO,PBL GNSS-RO,3,ORR,implementation,Implementation,,,not_started,Current phase: IMPLEMENTATION,Quick Look,2026-01-15
+M0044,TEMPO_NRT,TEMPO NRT,3,Operation End,implementation,Production,,,not_started,Current phase: PRODUCTION / OPERATIONAL,Quick Look,2026-01-15
+M0045,TEMPO_NRT,TEMPO NRT,3,Operation Start,implementation,Production,,,completed,Currently in operations,Quick Look,2026-01-15
+M0046,TEMPO_ENHANCED,TEMPO Enhanced,4,PS Kickoff,implementation,Pre-Formulation,2024,,planned,Current phase: PREFORMULATION,Quick Look,2026-01-15
+M0047,VERTICAL_LAND_MOTION,Vertical Land Motion,4,Closeout DG,implementation,Closeout,2030,,planned,Planned closeout date,Quick Look,2026-01-15
+M0048,ACCESSIBLE_3D_TOPOGR,Accessible 3D Topographic Mapping Software,5,HQ Kickoff,implementation,Pre-Formulation,,,not_started,Current phase: PREFORMULATION,Quick Look,2026-01-15
+M0049,HIGH_RESOLUTION_HARM,High-Resolution Harmonized Land Surface Temperature (LST) Products within HLS,5,HQ Kickoff,implementation,Pre-Formulation,,,not_started,Current phase: PREFORMULATION,Quick Look,2026-01-15
+M0050,SECOND_GENERATION_OF,Second Generation of the Fire Information for Resource Management System,5,HQ Kickoff,implementation,Pre-Formulation,,,not_started,Current phase: PREFORMULATION,Quick Look,2026-01-15
+M0051,10_M_HARMONIZED_LAND,10-m Harmonized Landsat and Sentinel-2 (HLS) Product,5,HQ Kickoff,implementation,Pre-Formulation,,,not_started,Current phase: PREFORMULATION,Quick Look,2026-01-15
+M0052,HIGH_RESOLUTION_EVAP,High-Resolution Evapotranspiration (ET) Product within HLS,5,HQ Kickoff,implementation,Pre-Formulation,,,not_started,Current phase: PREFORMULATION,Quick Look,2026-01-15
+M0053,ONGOING_AND_MOBILE_P,Ongoing and Mobile Pandora Measurements in Smoky Regions,5,HQ Kickoff,implementation,Pre-Formulation,,,not_started,Current phase: PREFORMULATION,Quick Look,2026-01-15

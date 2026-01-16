@@ -1,0 +1,1060 @@
+<!-- Contacts Viewer -->
+<!-- Stakeholder directory for NSITE MO -->
+
+<div class="contacts-viewer">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Contacts Directory</h1>
+      <p class="page-subtitle">Stakeholder relationships across all solutions</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-secondary" onclick="Contacts.exportList()">
+        <span data-feather="download"></span>
+        Export
+      </button>
+      <button class="btn btn-primary" onclick="Contacts.refresh()">
+        <span data-feather="refresh-cw"></span>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon"><span data-feather="users"></span></div>
+      <div class="stat-info">
+        <span class="stat-value" id="statTotalContacts">--</span>
+        <span class="stat-label">Total Contacts</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><span data-feather="briefcase"></span></div>
+      <div class="stat-info">
+        <span class="stat-value" id="statDepartments">--</span>
+        <span class="stat-label">Departments</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><span data-feather="folder"></span></div>
+      <div class="stat-info">
+        <span class="stat-value" id="statSolutions">--</span>
+        <span class="stat-label">Solutions</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><span data-feather="star"></span></div>
+      <div class="stat-info">
+        <span class="stat-value" id="statTopEngaged">--</span>
+        <span class="stat-label">Multi-Solution</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="search-section">
+    <div class="search-box">
+      <span data-feather="search" class="search-icon"></span>
+      <input type="text" id="searchInput" class="search-input"
+             placeholder="Search by name, email, or organization..."
+             oninput="Contacts.debounceSearch()">
+    </div>
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>Department:</label>
+        <select id="filterDepartment" class="filter-select" onchange="Contacts.applyFilters()">
+          <option value="">All Departments</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Solution:</label>
+        <select id="filterSolution" class="filter-select" onchange="Contacts.applyFilters()">
+          <option value="">All Solutions</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Role:</label>
+        <select id="filterRole" class="filter-select" onchange="Contacts.applyFilters()">
+          <option value="">All Roles</option>
+          <option value="Primary SME">Primary SME</option>
+          <option value="Secondary SME">Secondary SME</option>
+          <option value="Survey Submitter">Survey Submitter</option>
+          <option value="Stakeholder">Stakeholder</option>
+          <option value="Additional SME">Additional SME</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Year:</label>
+        <select id="filterYear" class="filter-select" onchange="Contacts.applyFilters()">
+          <option value="">All Years</option>
+          <option value="2024">2024</option>
+          <option value="2022">2022</option>
+          <option value="2020">2020</option>
+          <option value="2018">2018</option>
+          <option value="2016">2016</option>
+        </select>
+      </div>
+      <button class="btn btn-sm btn-secondary" onclick="Contacts.clearFilters()">Clear</button>
+    </div>
+  </div>
+
+  <!-- Results Info -->
+  <div class="results-info">
+    <span id="resultsCount">Loading...</span>
+    <div class="view-toggle">
+      <button class="view-btn active" data-view="cards" onclick="Contacts.setView('cards')">
+        <span data-feather="grid"></span>
+      </button>
+      <button class="view-btn" data-view="table" onclick="Contacts.setView('table')">
+        <span data-feather="list"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Contacts Container -->
+  <div class="contacts-container" id="contactsContainer">
+    <div class="loading-state">
+      <span class="loading-spinner"></span>
+      <p>Loading contacts...</p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<!-- Contact Detail Modal -->
+<div class="modal-overlay" id="contactModal" onclick="Contacts.closeModal(event)">
+  <div class="modal-content modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalContactName">Contact Details</h2>
+      <button class="modal-close" onclick="Contacts.closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- Dynamic content -->
+    </div>
+  </div>
+</div>
+
+<!-- Contacts Styles -->
+<style>
+  .contacts-viewer { max-width: 1400px; margin: 0 auto; }
+
+  /* Page Header */
+  .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg); }
+  .page-title h1 { font-size: var(--font-size-xxl); color: var(--color-primary); margin-bottom: var(--space-xs); }
+  .page-subtitle { color: var(--color-text-secondary); font-size: var(--font-size-md); }
+  .page-actions { display: flex; gap: var(--space-sm); }
+
+  /* Stats Row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+
+  .stat-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: var(--radius-md);
+    color: var(--color-primary);
+  }
+
+  .stat-icon svg { width: 24px; height: 24px; }
+  .stat-info { display: flex; flex-direction: column; }
+  .stat-value { font-size: var(--font-size-xl); font-weight: 700; color: var(--color-text); }
+  .stat-label { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+
+  /* Search Section */
+  .search-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .search-box {
+    position: relative;
+    margin-bottom: var(--space-md);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: var(--space-md);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: var(--color-text-muted);
+  }
+
+  .search-input {
+    width: 100%;
+    padding: var(--space-md) var(--space-md) var(--space-md) 48px;
+    font-size: var(--font-size-md);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition: border-color var(--transition-fast);
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+
+  .filter-row {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .filter-group label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+  }
+
+  .filter-select {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    min-width: 150px;
+  }
+
+  /* Results Info */
+  .results-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+    padding: 0 var(--space-xs);
+  }
+
+  #resultsCount {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .view-toggle {
+    display: flex;
+    gap: 2px;
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+  }
+
+  .view-btn {
+    padding: var(--space-xs) var(--space-sm);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    transition: all var(--transition-fast);
+  }
+
+  .view-btn:hover { color: var(--color-text); }
+  .view-btn.active { background: var(--color-surface); color: var(--color-primary); box-shadow: var(--shadow-sm); }
+  .view-btn svg { width: 16px; height: 16px; }
+
+  /* Contacts Container - Cards View */
+  .contacts-container.view-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-md);
+  }
+
+  .contact-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-md);
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    border-left: 4px solid var(--color-primary);
+  }
+
+  .contact-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .contact-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-sm);
+  }
+
+  .contact-name {
+    font-weight: 600;
+    font-size: var(--font-size-md);
+    color: var(--color-text);
+  }
+
+  .contact-solutions-count {
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--color-primary);
+    border-radius: 12px;
+    font-weight: 600;
+  }
+
+  .contact-email {
+    font-size: var(--font-size-sm);
+    color: var(--color-primary);
+    margin-bottom: var(--space-sm);
+    word-break: break-all;
+  }
+
+  .contact-org {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-sm);
+  }
+
+  .contact-roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+
+  .role-tag {
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .role-tag.role-primary { background: rgba(16, 185, 129, 0.1); color: #059669; }
+  .role-tag.role-secondary { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
+  .role-tag.role-submitter { background: rgba(249, 115, 22, 0.1); color: #ea580c; }
+
+  /* Contacts Container - Table View */
+  .contacts-container.view-table {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .contacts-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .contacts-table th,
+  .contacts-table td {
+    padding: var(--space-sm) var(--space-md);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .contacts-table th {
+    background: var(--color-surface-alt);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    position: sticky;
+    top: 0;
+  }
+
+  .contacts-table tr:hover {
+    background: var(--color-surface-alt);
+    cursor: pointer;
+  }
+
+  .contacts-table td {
+    font-size: var(--font-size-sm);
+  }
+
+  .table-email {
+    color: var(--color-primary);
+  }
+
+  /* Pagination */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-top: var(--space-lg);
+  }
+
+  .page-btn {
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    min-width: 36px;
+    transition: all var(--transition-fast);
+  }
+
+  .page-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+  .page-btn.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+  .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--space-md);
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal-content {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    max-width: 700px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-content.modal-lg { max-width: 900px; }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--color-border-light);
+    background: var(--color-surface-alt);
+  }
+
+  .modal-title { font-size: var(--font-size-lg); font-weight: 600; margin: 0; }
+  .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--color-text-muted); }
+  .modal-close:hover { color: var(--color-text); }
+  .modal-body { padding: var(--space-lg); overflow-y: auto; }
+
+  /* Modal Content Sections */
+  .contact-detail-header {
+    display: flex;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .contact-avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--color-primary), #60a5fa);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .contact-detail-info { flex: 1; }
+  .contact-detail-name { font-size: var(--font-size-xl); font-weight: 600; margin-bottom: var(--space-xs); }
+  .contact-detail-email { color: var(--color-primary); margin-bottom: var(--space-xs); }
+  .contact-detail-org { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+
+  .contact-actions {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+  }
+
+  .detail-section {
+    margin-bottom: var(--space-lg);
+  }
+
+  .detail-section:last-child { margin-bottom: 0; }
+
+  .detail-section-title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-sm);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .solutions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-sm);
+  }
+
+  .solution-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+  }
+
+  .solution-item-name { color: var(--color-text); flex: 1; }
+  .solution-item-roles { display: flex; gap: var(--space-xs); }
+
+  .related-contacts-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .related-contact {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+  }
+
+  .related-contact:hover { background: var(--color-border-light); }
+  .related-contact-name { font-weight: 500; }
+  .related-contact-shared { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+
+  /* Loading & Empty States */
+  .loading-state {
+    text-align: center;
+    padding: var(--space-xxl);
+    color: var(--color-text-muted);
+  }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--space-xxl);
+    color: var(--color-text-muted);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .filter-row { flex-direction: column; align-items: stretch; }
+    .filter-group { justify-content: space-between; }
+    .contact-detail-header { flex-direction: column; align-items: center; text-align: center; }
+  }
+</style>
+
+<!-- Contacts JavaScript -->
+<script>
+var Contacts = (function() {
+  var state = {
+    allContacts: [],
+    filteredContacts: [],
+    departments: [],
+    solutions: [],
+    currentPage: 1,
+    pageSize: 24,
+    view: 'cards',
+    searchTimeout: null
+  };
+
+  function init() {
+    console.log('Contacts.init()');
+    loadContacts();
+    loadStats();
+  }
+
+  function loadContacts() {
+    google.script.run
+      .withSuccessHandler(function(contacts) {
+        state.allContacts = contacts || [];
+        extractFilters();
+        applyFilters();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load contacts:', error);
+        showError('Failed to load contacts');
+      })
+      .getUniqueContacts();
+  }
+
+  function loadStats() {
+    google.script.run
+      .withSuccessHandler(function(stats) {
+        if (stats) {
+          document.getElementById('statTotalContacts').textContent = stats.unique_contacts || 0;
+          document.getElementById('statDepartments').textContent = stats.departments_count || 0;
+          document.getElementById('statSolutions').textContent = stats.solutions_count || 0;
+
+          // Count multi-solution contacts
+          var multiCount = state.allContacts.filter(function(c) {
+            return c.solutions_count > 1;
+          }).length;
+          document.getElementById('statTopEngaged').textContent = multiCount || '--';
+        }
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load stats:', error);
+      })
+      .getContactStats();
+  }
+
+  function extractFilters() {
+    var depts = {}, sols = {};
+
+    state.allContacts.forEach(function(c) {
+      if (c.department) depts[c.department] = true;
+      if (c.solutions) {
+        c.solutions.forEach(function(s) { sols[s] = true; });
+      }
+    });
+
+    state.departments = Object.keys(depts).sort();
+    state.solutions = Object.keys(sols).sort();
+
+    populateFilterDropdowns();
+  }
+
+  function populateFilterDropdowns() {
+    var deptSelect = document.getElementById('filterDepartment');
+    deptSelect.innerHTML = '<option value="">All Departments</option>';
+    state.departments.forEach(function(d) {
+      var opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d;
+      deptSelect.appendChild(opt);
+    });
+
+    var solSelect = document.getElementById('filterSolution');
+    solSelect.innerHTML = '<option value="">All Solutions</option>';
+    state.solutions.forEach(function(s) {
+      var opt = document.createElement('option');
+      opt.value = s;
+      opt.textContent = s.length > 50 ? s.substring(0, 50) + '...' : s;
+      solSelect.appendChild(opt);
+    });
+  }
+
+  function debounceSearch() {
+    clearTimeout(state.searchTimeout);
+    state.searchTimeout = setTimeout(function() {
+      applyFilters();
+    }, 300);
+  }
+
+  function applyFilters() {
+    var search = document.getElementById('searchInput').value.toLowerCase().trim();
+    var dept = document.getElementById('filterDepartment').value;
+    var sol = document.getElementById('filterSolution').value;
+    var role = document.getElementById('filterRole').value;
+    var year = document.getElementById('filterYear').value;
+
+    state.filteredContacts = state.allContacts.filter(function(c) {
+      // Search filter
+      if (search) {
+        var searchable = [
+          c.first_name, c.last_name, c.email, c.department, c.agency, c.organization
+        ].join(' ').toLowerCase();
+        if (searchable.indexOf(search) === -1) return false;
+      }
+
+      // Department filter
+      if (dept && c.department !== dept) return false;
+
+      // Solution filter
+      if (sol && (!c.solutions || c.solutions.indexOf(sol) === -1)) return false;
+
+      // Role filter
+      if (role && (!c.roles || c.roles.indexOf(role) === -1)) return false;
+
+      // Year filter
+      if (year && (!c.years || c.years.indexOf(parseInt(year)) === -1)) return false;
+
+      return true;
+    });
+
+    // Sort by solutions count (most engaged first), then by name
+    state.filteredContacts.sort(function(a, b) {
+      if (b.solutions_count !== a.solutions_count) {
+        return b.solutions_count - a.solutions_count;
+      }
+      return (a.last_name || '').localeCompare(b.last_name || '');
+    });
+
+    state.currentPage = 1;
+    render();
+  }
+
+  function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('filterDepartment').value = '';
+    document.getElementById('filterSolution').value = '';
+    document.getElementById('filterRole').value = '';
+    document.getElementById('filterYear').value = '';
+    applyFilters();
+  }
+
+  function setView(view) {
+    state.view = view;
+    document.querySelectorAll('.view-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    render();
+  }
+
+  function render() {
+    var container = document.getElementById('contactsContainer');
+    var total = state.filteredContacts.length;
+    var start = (state.currentPage - 1) * state.pageSize;
+    var end = Math.min(start + state.pageSize, total);
+    var pageContacts = state.filteredContacts.slice(start, end);
+
+    document.getElementById('resultsCount').textContent =
+      'Showing ' + (total > 0 ? start + 1 : 0) + '-' + end + ' of ' + total + ' contacts';
+
+    if (total === 0) {
+      container.innerHTML = '<div class="empty-state"><span data-feather="users"></span><p>No contacts match your filters</p></div>';
+      container.className = 'contacts-container';
+      feather.replace();
+      renderPagination();
+      return;
+    }
+
+    if (state.view === 'cards') {
+      container.className = 'contacts-container view-cards';
+      container.innerHTML = pageContacts.map(renderContactCard).join('');
+    } else {
+      container.className = 'contacts-container view-table';
+      container.innerHTML = renderContactTable(pageContacts);
+    }
+
+    feather.replace();
+    renderPagination();
+  }
+
+  function renderContactCard(contact) {
+    var initials = ((contact.first_name || '')[0] || '') + ((contact.last_name || '')[0] || '');
+    var roles = (contact.roles || []).slice(0, 3);
+
+    var html = '<div class="contact-card" onclick="Contacts.showDetail(\'' + escapeAttr(contact.email) + '\')">';
+    html += '<div class="contact-card-header">';
+    html += '<span class="contact-name">' + escapeHtml(contact.first_name || '') + ' ' + escapeHtml(contact.last_name || '') + '</span>';
+    html += '<span class="contact-solutions-count">' + (contact.solutions_count || 0) + ' solutions</span>';
+    html += '</div>';
+    html += '<div class="contact-email">' + escapeHtml(contact.email || '') + '</div>';
+
+    if (contact.department || contact.agency) {
+      html += '<div class="contact-org">' + escapeHtml(contact.department || contact.agency || '') + '</div>';
+    }
+
+    if (roles.length > 0) {
+      html += '<div class="contact-roles">';
+      roles.forEach(function(role) {
+        var roleClass = 'role-tag';
+        if (role.indexOf('Primary') !== -1) roleClass += ' role-primary';
+        else if (role.indexOf('Secondary') !== -1) roleClass += ' role-secondary';
+        else if (role.indexOf('Submitter') !== -1) roleClass += ' role-submitter';
+        html += '<span class="' + roleClass + '">' + escapeHtml(role) + '</span>';
+      });
+      html += '</div>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  function renderContactTable(contacts) {
+    var html = '<table class="contacts-table">';
+    html += '<thead><tr>';
+    html += '<th>Name</th>';
+    html += '<th>Email</th>';
+    html += '<th>Department</th>';
+    html += '<th>Solutions</th>';
+    html += '<th>Roles</th>';
+    html += '</tr></thead>';
+    html += '<tbody>';
+
+    contacts.forEach(function(c) {
+      html += '<tr onclick="Contacts.showDetail(\'' + escapeAttr(c.email) + '\')">';
+      html += '<td>' + escapeHtml((c.first_name || '') + ' ' + (c.last_name || '')) + '</td>';
+      html += '<td class="table-email">' + escapeHtml(c.email || '') + '</td>';
+      html += '<td>' + escapeHtml(c.department || '-') + '</td>';
+      html += '<td>' + (c.solutions_count || 0) + '</td>';
+      html += '<td>' + (c.roles || []).slice(0, 2).join(', ') + '</td>';
+      html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    return html;
+  }
+
+  function renderPagination() {
+    var total = state.filteredContacts.length;
+    var totalPages = Math.ceil(total / state.pageSize);
+    var container = document.getElementById('pagination');
+
+    if (totalPages <= 1) {
+      container.innerHTML = '';
+      return;
+    }
+
+    var html = '';
+    html += '<button class="page-btn" onclick="Contacts.goToPage(1)" ' + (state.currentPage === 1 ? 'disabled' : '') + '>&laquo;</button>';
+    html += '<button class="page-btn" onclick="Contacts.goToPage(' + (state.currentPage - 1) + ')" ' + (state.currentPage === 1 ? 'disabled' : '') + '>&lsaquo;</button>';
+
+    var startPage = Math.max(1, state.currentPage - 2);
+    var endPage = Math.min(totalPages, startPage + 4);
+    startPage = Math.max(1, endPage - 4);
+
+    for (var i = startPage; i <= endPage; i++) {
+      html += '<button class="page-btn' + (i === state.currentPage ? ' active' : '') + '" onclick="Contacts.goToPage(' + i + ')">' + i + '</button>';
+    }
+
+    html += '<button class="page-btn" onclick="Contacts.goToPage(' + (state.currentPage + 1) + ')" ' + (state.currentPage === totalPages ? 'disabled' : '') + '>&rsaquo;</button>';
+    html += '<button class="page-btn" onclick="Contacts.goToPage(' + totalPages + ')" ' + (state.currentPage === totalPages ? 'disabled' : '') + '>&raquo;</button>';
+
+    container.innerHTML = html;
+  }
+
+  function goToPage(page) {
+    var totalPages = Math.ceil(state.filteredContacts.length / state.pageSize);
+    if (page < 1 || page > totalPages) return;
+    state.currentPage = page;
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showDetail(email) {
+    var contact = state.allContacts.find(function(c) { return c.email === email; });
+    if (!contact) return;
+
+    document.getElementById('modalContactName').textContent =
+      (contact.first_name || '') + ' ' + (contact.last_name || '');
+
+    var initials = ((contact.first_name || '')[0] || '') + ((contact.last_name || '')[0] || '');
+
+    var html = '<div class="contact-detail-header">';
+    html += '<div class="contact-avatar">' + initials.toUpperCase() + '</div>';
+    html += '<div class="contact-detail-info">';
+    html += '<div class="contact-detail-name">' + escapeHtml((contact.first_name || '') + ' ' + (contact.last_name || '')) + '</div>';
+    html += '<div class="contact-detail-email"><a href="mailto:' + escapeHtml(contact.email) + '">' + escapeHtml(contact.email) + '</a></div>';
+
+    if (contact.department || contact.agency) {
+      html += '<div class="contact-detail-org">' + escapeHtml(contact.department || '') + (contact.agency ? ' / ' + escapeHtml(contact.agency) : '') + '</div>';
+    }
+
+    if (contact.phone) {
+      html += '<div class="contact-detail-org"><span data-feather="phone" style="width:14px;height:14px;margin-right:4px;"></span>' + escapeHtml(contact.phone) + '</div>';
+    }
+
+    html += '<div class="contact-actions">';
+    html += '<a href="mailto:' + escapeHtml(contact.email) + '" class="btn btn-primary btn-sm"><span data-feather="mail"></span> Email</a>';
+    html += '</div>';
+    html += '</div></div>';
+
+    // Solutions section
+    html += '<div class="detail-section">';
+    html += '<div class="detail-section-title">Solutions (' + (contact.solutions_count || 0) + ')</div>';
+
+    if (contact.solutions && contact.solutions.length > 0) {
+      html += '<div class="solutions-grid">';
+      contact.solutions.forEach(function(sol) {
+        html += '<div class="solution-item">';
+        html += '<span class="solution-item-name">' + escapeHtml(sol.length > 45 ? sol.substring(0, 45) + '...' : sol) + '</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<p style="color:var(--color-text-muted)">No solutions linked</p>';
+    }
+    html += '</div>';
+
+    // Roles section
+    if (contact.roles && contact.roles.length > 0) {
+      html += '<div class="detail-section">';
+      html += '<div class="detail-section-title">Roles</div>';
+      html += '<div class="contact-roles" style="gap: var(--space-sm);">';
+      contact.roles.forEach(function(role) {
+        var roleClass = 'role-tag';
+        if (role.indexOf('Primary') !== -1) roleClass += ' role-primary';
+        else if (role.indexOf('Secondary') !== -1) roleClass += ' role-secondary';
+        else if (role.indexOf('Submitter') !== -1) roleClass += ' role-submitter';
+        html += '<span class="' + roleClass + '" style="font-size: var(--font-size-sm); padding: 4px 12px;">' + escapeHtml(role) + '</span>';
+      });
+      html += '</div></div>';
+    }
+
+    // Survey Years
+    if (contact.years && contact.years.length > 0) {
+      html += '<div class="detail-section">';
+      html += '<div class="detail-section-title">Survey Participation</div>';
+      html += '<p>Participated in surveys: <strong>' + contact.years.join(', ') + '</strong></p>';
+      html += '</div>';
+    }
+
+    // Load related contacts
+    html += '<div class="detail-section" id="relatedContactsSection">';
+    html += '<div class="detail-section-title">Related Contacts</div>';
+    html += '<div class="loading-state"><span class="loading-spinner"></span></div>';
+    html += '</div>';
+
+    document.getElementById('modalBody').innerHTML = html;
+    document.getElementById('contactModal').classList.add('active');
+    feather.replace();
+
+    // Load related contacts async
+    google.script.run
+      .withSuccessHandler(function(related) {
+        renderRelatedContacts(related);
+      })
+      .withFailureHandler(function(error) {
+        document.getElementById('relatedContactsSection').innerHTML =
+          '<div class="detail-section-title">Related Contacts</div><p style="color:var(--color-text-muted)">Could not load related contacts</p>';
+      })
+      .getRelatedContacts(email);
+  }
+
+  function renderRelatedContacts(related) {
+    var section = document.getElementById('relatedContactsSection');
+    if (!related || related.length === 0) {
+      section.innerHTML = '<div class="detail-section-title">Related Contacts</div><p style="color:var(--color-text-muted)">No related contacts found</p>';
+      return;
+    }
+
+    var html = '<div class="detail-section-title">Related Contacts (' + related.length + ' colleagues)</div>';
+    html += '<div class="related-contacts-list">';
+
+    related.slice(0, 10).forEach(function(r) {
+      html += '<div class="related-contact" onclick="Contacts.showDetail(\'' + escapeAttr(r.email) + '\')">';
+      html += '<span class="related-contact-name">' + escapeHtml((r.first_name || '') + ' ' + (r.last_name || '')) + '</span>';
+      html += '<span class="related-contact-shared">' + r.shared_count + ' shared solutions</span>';
+      html += '</div>';
+    });
+
+    if (related.length > 10) {
+      html += '<p style="text-align:center;color:var(--color-text-muted);margin-top:var(--space-sm);">+' + (related.length - 10) + ' more colleagues</p>';
+    }
+
+    html += '</div>';
+    section.innerHTML = html;
+  }
+
+  function closeModal(event) {
+    if (!event || event.target === document.getElementById('contactModal')) {
+      document.getElementById('contactModal').classList.remove('active');
+    }
+  }
+
+  function refresh() {
+    loadContacts();
+    loadStats();
+  }
+
+  function exportList() {
+    // Export current filtered list
+    if (state.filteredContacts.length === 0) {
+      alert('No contacts to export');
+      return;
+    }
+
+    var csv = 'First Name,Last Name,Email,Department,Agency,Solutions Count\n';
+    state.filteredContacts.forEach(function(c) {
+      csv += '"' + (c.first_name || '') + '","' + (c.last_name || '') + '","' + (c.email || '') + '","' + (c.department || '') + '","' + (c.agency || '') + '",' + (c.solutions_count || 0) + '\n';
+    });
+
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'contacts_export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function escapeAttr(text) {
+    return (text || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  }
+
+  function showError(message) {
+    document.getElementById('contactsContainer').innerHTML =
+      '<div class="empty-state"><span data-feather="alert-circle"></span><p>' + message + '</p></div>';
+    feather.replace();
+  }
+
+  return {
+    init: init,
+    debounceSearch: debounceSearch,
+    applyFilters: applyFilters,
+    clearFilters: clearFilters,
+    setView: setView,
+    goToPage: goToPage,
+    showDetail: showDetail,
+    closeModal: closeModal,
+    refresh: refresh,
+    exportList: exportList
+  };
+})();
+
+// Initialize
+if (typeof google !== 'undefined' && google.script) {
+  Contacts.init();
+} else {
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() { Contacts.init(); }, 500);
+  });
+}
+</script>

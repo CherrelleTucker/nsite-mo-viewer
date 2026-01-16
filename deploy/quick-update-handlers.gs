@@ -833,6 +833,60 @@ function listInternalSolutions() {
 /**
  * List all solution names found in SEP Strategy document
  */
+/**
+ * Debug function - Check Quick Update configuration
+ * Run this to verify document IDs are correct
+ */
+function debugQuickUpdateConfig() {
+  Logger.log('=== QUICK UPDATE CONFIG DEBUG ===\n');
+
+  var internalId = getConfigValue('INTERNAL_AGENDA_ID');
+  var sepId = getConfigValue('SEP_AGENDA_ID');
+
+  Logger.log('INTERNAL_AGENDA_ID: ' + (internalId || 'NOT SET'));
+  Logger.log('SEP_AGENDA_ID: ' + (sepId || 'NOT SET'));
+  Logger.log('');
+
+  // Check Internal Planning
+  if (internalId) {
+    try {
+      var doc = DocumentApp.openById(internalId);
+      Logger.log('Internal Planning document: ' + doc.getName());
+      Logger.log('  URL: https://docs.google.com/document/d/' + internalId);
+
+      // Check for tabs
+      var tabs = doc.getTabs();
+      Logger.log('  Tabs found: ' + tabs.length);
+      if (tabs.length > 0) {
+        Logger.log('  First tab: ' + tabs[0].getTitle());
+        Logger.log('  Last tab: ' + tabs[tabs.length - 1].getTitle());
+      }
+    } catch (e) {
+      Logger.log('ERROR opening Internal Planning: ' + e.message);
+    }
+  }
+
+  Logger.log('');
+
+  // Check SEP Strategy
+  if (sepId) {
+    try {
+      var doc = DocumentApp.openById(sepId);
+      Logger.log('SEP Strategy document: ' + doc.getName());
+      Logger.log('  URL: https://docs.google.com/document/d/' + sepId);
+
+      // Check for CoDesign section
+      var body = doc.getBody();
+      var section = findSectionByHeading(body, 'CoDesign Project Actions');
+      Logger.log('  CoDesign Project Actions section: ' + (section ? 'FOUND' : 'NOT FOUND'));
+    } catch (e) {
+      Logger.log('ERROR opening SEP Strategy: ' + e.message);
+    }
+  }
+
+  Logger.log('\n=== END DEBUG ===');
+}
+
 function listSEPSolutions() {
   var sepDocId = getConfigValue('SEP_AGENDA_ID');
   if (!sepDocId) {
