@@ -1,18 +1,21 @@
 /**
- * Earthdata Solution Content Sync
- * ================================
+ * Earthdata Solution Content Sync (Container-Bound Version)
+ * ==========================================================
  * Scrapes earthdata.nasa.gov solution pages to keep MO-DB_Solutions
  * in sync with the official source of truth.
+ *
+ * This script is designed to run as a container-bound script attached
+ * to the MO-DB_Solutions Google Sheet.
  *
  * Features:
  * - Fetches solution pages from earthdata.nasa.gov
  * - Extracts: purpose_mission, thematic_areas, platform, resolution, etc.
- * - Updates MO-DB_Solutions columns
+ * - Updates sheet columns directly
  * - Tracks changes and logs sync history
  *
  * Main Functions:
  * - syncAllSolutionContent() - Sync all solutions with earthdata URLs
- * - syncSolutionContent(solutionId) - Sync a single solution
+ * - syncSingleRow(rowNumber) - Sync a single row by row number
  * - scheduledEarthdataSync() - Handler for time-based triggers
  *
  * @fileoverview Earthdata solution content synchronization
@@ -23,17 +26,11 @@
 // ============================================================================
 
 var EARTHDATA_CONFIG = {
-  // Base URL for solution pages
-  baseUrl: 'https://www.earthdata.nasa.gov',
-
-  // URL patterns for solution pages
-  solutionPaths: {
-    snwg: '/about/nasa-support-snwg/solutions/',
-    esds: '/esds/'
-  },
-
-  // Column names in MO-DB_Solutions to update
+  // Column names to look for in the sheet
   columns: {
+    solution_id: 'solution_id',
+    name: 'name',
+    url: 'snwg_solution_page_url',
     purpose_mission: 'purpose_mission',
     thematic_areas: 'thematic_areas',
     platform: 'platform',
@@ -41,14 +38,13 @@ var EARTHDATA_CONFIG = {
     horizontal_resolution: 'horizontal_resolution',
     geographic_domain: 'geographic_domain',
     societal_impact: 'societal_impact',
-    earthdata_url: 'snwg_solution_page_url',
-    last_earthdata_sync: 'last_earthdata_sync'
+    last_sync: 'last_earthdata_sync'
   },
 
   // Request settings
-  fetchTimeout: 30000,
   retryAttempts: 2,
-  retryDelay: 2000
+  retryDelay: 2000,
+  rateLimitMs: 1000
 };
 
 // ============================================================================
@@ -62,9 +58,21 @@ var EARTHDATA_CONFIG = {
 function syncAllSolutionContent() {
   Logger.log('Starting earthdata content sync...');
 
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+
+  // Find column indices
+  var cols = getColumnIndices_(headers);
+
+  if (cols.url === -1) {
+    Logger.log('ERROR: ' + EARTHDATA_CONFIG.columns.url + ' column not found');
+    return { error: 'URL column not found' };
+  }
+
   var results = {
     timestamp: new Date().toISOString(),
-    total: 0,
+    total: data.length - 1,
     synced: 0,
     skipped: 0,
     failed: 0,
@@ -72,80 +80,101 @@ function syncAllSolutionContent() {
     errors: []
   };
 
-  try {
-    var solutions = getAllSolutions();
-    results.total = solutions.length;
+  // Process each row (skip header)
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var url = row[cols.url];
+    var name = row[cols.name] || row[cols.solution_id] || 'Row ' + (i + 1);
 
-    for (var i = 0; i < solutions.length; i++) {
-      var sol = solutions[i];
-      var url = sol.snwg_solution_page_url || sol.earthdata_url;
+    if (!url || String(url).indexOf('earthdata.nasa.gov') === -1) {
+      results.skipped++;
+      continue;
+    }
 
-      if (!url || url.indexOf('earthdata.nasa.gov') === -1) {
-        results.skipped++;
-        continue;
-      }
-
-      try {
-        var content = fetchSolutionContent(url);
-        if (content && Object.keys(content).length > 0) {
-          updateSolutionContent(sol.solution_id, content);
+    try {
+      var content = fetchSolutionContent(url);
+      if (content && Object.keys(content).length > 0) {
+        var updated = updateRowContent_(sheet, i + 1, cols, content);
+        if (updated) {
           results.synced++;
-          results.updated.push(sol.name || sol.solution_id);
+          results.updated.push(name);
+          Logger.log('Synced: ' + name);
         } else {
           results.skipped++;
         }
-      } catch (e) {
-        results.failed++;
-        results.errors.push({
-          solution: sol.name || sol.solution_id,
-          error: e.message
-        });
-        Logger.log('Error syncing ' + sol.name + ': ' + e.message);
+      } else {
+        results.skipped++;
       }
-
-      // Rate limiting - pause between requests
-      if (i < solutions.length - 1) {
-        Utilities.sleep(1000);
-      }
+    } catch (e) {
+      results.failed++;
+      results.errors.push({ solution: name, error: e.message });
+      Logger.log('Error syncing ' + name + ': ' + e.message);
     }
 
-    Logger.log('Sync complete: ' + results.synced + ' synced, ' +
-               results.skipped + ' skipped, ' + results.failed + ' failed');
-
-    // Store sync results
-    storeSyncResults(results);
-
-    return results;
-  } catch (e) {
-    Logger.log('Sync failed: ' + e.message);
-    results.errors.push({ solution: 'ALL', error: e.message });
-    return results;
+    // Rate limiting - pause between requests
+    if (i < data.length - 1) {
+      Utilities.sleep(EARTHDATA_CONFIG.rateLimitMs);
+    }
   }
+
+  Logger.log('Sync complete: ' + results.synced + ' synced, ' +
+             results.skipped + ' skipped, ' + results.failed + ' failed');
+
+  return results;
 }
 
 /**
- * Sync content for a single solution by ID
- * @param {string} solutionId - The solution ID to sync
+ * Sync a single row by row number (1-based, including header)
+ * @param {number} rowNumber - The row number to sync (2 = first data row)
  * @returns {Object} Sync result
  */
-function syncSolutionContent(solutionId) {
-  var sol = getSolution(solutionId);
-  if (!sol) {
-    throw new Error('Solution not found: ' + solutionId);
+function syncSingleRow(rowNumber) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+  var cols = getColumnIndices_(headers);
+
+  if (rowNumber < 2 || rowNumber > data.length) {
+    throw new Error('Invalid row number: ' + rowNumber);
   }
 
-  var url = sol.snwg_solution_page_url || sol.earthdata_url;
-  if (!url) {
-    throw new Error('No earthdata URL for solution: ' + solutionId);
+  var row = data[rowNumber - 1];
+  var url = row[cols.url];
+  var name = row[cols.name] || row[cols.solution_id] || 'Row ' + rowNumber;
+
+  if (!url || String(url).indexOf('earthdata.nasa.gov') === -1) {
+    return { success: false, message: 'No earthdata URL for: ' + name };
   }
 
   var content = fetchSolutionContent(url);
   if (content && Object.keys(content).length > 0) {
-    updateSolutionContent(solutionId, content);
-    return { success: true, content: content };
+    updateRowContent_(sheet, rowNumber, cols, content);
+    return { success: true, solution: name, content: content };
   }
 
-  return { success: false, message: 'No content extracted' };
+  return { success: false, message: 'No content extracted for: ' + name };
+}
+
+/**
+ * Sync the currently selected row
+ */
+function syncSelectedRow() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var selection = sheet.getActiveRange();
+  var rowNumber = selection.getRow();
+
+  if (rowNumber < 2) {
+    SpreadsheetApp.getUi().alert('Please select a data row (not the header)');
+    return;
+  }
+
+  var result = syncSingleRow(rowNumber);
+
+  if (result.success) {
+    SpreadsheetApp.getUi().alert('Synced: ' + result.solution);
+  } else {
+    SpreadsheetApp.getUi().alert(result.message);
+  }
 }
 
 // ============================================================================
@@ -233,10 +262,7 @@ function parseEarthdataPage_(html) {
  * @private
  */
 function extractPurposeMission_(html) {
-  // Try to find the first major paragraph after the title
-  // This is typically the purpose/mission statement
-
-  // Pattern 1: Look for text between <p> tags near the start
+  // Pattern 1: Look for text between <p> tags near the start of article
   var match = html.match(/<article[^>]*>[\s\S]*?<p[^>]*>([^<]{100,500})<\/p>/i);
   if (match && match[1]) {
     return cleanText_(match[1]);
@@ -293,24 +319,24 @@ function extractCharacteristicsTable_(html) {
 
   var tableHtml = tableMatch[1];
 
-  // Parse table rows
-  var headerRow = tableHtml.match(/<t[hr][^>]*>([\s\S]*?)<\/t[hr]>/gi);
+  // Parse table rows - look for header row
+  var headerRow = tableHtml.match(/<tr[^>]*>([\s\S]*?)<\/tr>/i);
   if (!headerRow) return characteristics;
 
-  // Extract headers
+  // Extract headers from th elements
   var headers = [];
-  var headerMatch = headerRow[0].match(/<th[^>]*>([^<]*)<\/th>/gi);
-  if (headerMatch) {
-    headerMatch.forEach(function(th) {
+  var headerCells = headerRow[1].match(/<th[^>]*>([\s\S]*?)<\/th>/gi);
+  if (headerCells) {
+    headerCells.forEach(function(th) {
       var text = th.replace(/<[^>]+>/g, '').trim();
       headers.push(normalizeColumnName_(text));
     });
   }
 
-  // Extract values from data rows
-  var dataRows = tableHtml.match(/<tr[^>]*>[\s\S]*?<td[^>]*>[\s\S]*?<\/tr>/gi);
-  if (dataRows && dataRows.length > 0) {
-    var cells = dataRows[0].match(/<td[^>]*>([\s\S]*?)<\/td>/gi);
+  // Find data rows (rows with td elements)
+  var dataRowMatch = tableHtml.match(/<tr[^>]*>[\s\S]*?<td[\s\S]*?<\/tr>/i);
+  if (dataRowMatch) {
+    var cells = dataRowMatch[0].match(/<td[^>]*>([\s\S]*?)<\/td>/gi);
     if (cells) {
       cells.forEach(function(td, i) {
         var value = td.replace(/<[^>]+>/g, '').trim();
@@ -355,81 +381,70 @@ function extractCharacteristicsFromText_(html) {
 }
 
 // ============================================================================
-// DATABASE UPDATE
+// SHEET UPDATE
 // ============================================================================
 
 /**
- * Update solution content in MO-DB_Solutions
- * @param {string} solutionId - The solution ID
- * @param {Object} content - The content to update
+ * Get column indices from headers
+ * @private
  */
-function updateSolutionContent(solutionId, content) {
-  try {
-    var sheetId = getConfigValue('SOLUTIONS_SHEET_ID');
-    if (!sheetId) {
-      throw new Error('SOLUTIONS_SHEET_ID not configured');
-    }
+function getColumnIndices_(headers) {
+  var cfg = EARTHDATA_CONFIG.columns;
+  return {
+    solution_id: headers.indexOf(cfg.solution_id),
+    name: headers.indexOf(cfg.name),
+    url: headers.indexOf(cfg.url),
+    purpose_mission: headers.indexOf(cfg.purpose_mission),
+    thematic_areas: headers.indexOf(cfg.thematic_areas),
+    platform: headers.indexOf(cfg.platform),
+    temporal_frequency: headers.indexOf(cfg.temporal_frequency),
+    horizontal_resolution: headers.indexOf(cfg.horizontal_resolution),
+    geographic_domain: headers.indexOf(cfg.geographic_domain),
+    societal_impact: headers.indexOf(cfg.societal_impact),
+    last_sync: headers.indexOf(cfg.last_sync)
+  };
+}
 
-    var ss = SpreadsheetApp.openById(sheetId);
-    var sheet = ss.getSheets()[0];
-    var data = sheet.getDataRange().getValues();
-    var headers = data[0];
+/**
+ * Update a row with synced content
+ * @private
+ */
+function updateRowContent_(sheet, rowNum, cols, content) {
+  var updated = false;
 
-    // Find solution row
-    var idColIndex = headers.indexOf('solution_id');
-    if (idColIndex === -1) idColIndex = headers.indexOf('solutionId');
-    if (idColIndex === -1) {
-      throw new Error('solution_id column not found');
-    }
-
-    var rowIndex = -1;
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][idColIndex] === solutionId) {
-        rowIndex = i + 1; // 1-based for sheet
-        break;
-      }
-    }
-
-    if (rowIndex === -1) {
-      throw new Error('Solution not found: ' + solutionId);
-    }
-
-    // Update content columns
-    var columnsToUpdate = EARTHDATA_CONFIG.columns;
-    var updates = {};
-
-    Object.keys(content).forEach(function(key) {
-      var colName = columnsToUpdate[key] || key;
-      var colIndex = headers.indexOf(colName);
-
-      if (colIndex === -1) {
-        // Column doesn't exist - could add it, but for now log warning
-        Logger.log('Column not found in sheet: ' + colName);
-        return;
-      }
-
-      var value = content[key];
-      if (value && value !== data[rowIndex - 1][colIndex]) {
-        sheet.getRange(rowIndex, colIndex + 1).setValue(value);
-        updates[colName] = value;
-      }
-    });
-
-    // Update sync timestamp
-    var syncColIndex = headers.indexOf('last_earthdata_sync');
-    if (syncColIndex !== -1) {
-      sheet.getRange(rowIndex, syncColIndex + 1).setValue(new Date());
-    }
-
-    if (Object.keys(updates).length > 0) {
-      Logger.log('Updated ' + solutionId + ': ' + Object.keys(updates).join(', '));
-    }
-
-    return updates;
-  } catch (e) {
-    Logger.log('Error updating solution content: ' + e.message);
-    throw e;
+  if (cols.purpose_mission !== -1 && content.purpose_mission) {
+    sheet.getRange(rowNum, cols.purpose_mission + 1).setValue(content.purpose_mission);
+    updated = true;
   }
+  if (cols.thematic_areas !== -1 && content.thematic_areas) {
+    sheet.getRange(rowNum, cols.thematic_areas + 1).setValue(content.thematic_areas);
+    updated = true;
+  }
+  if (cols.platform !== -1 && content.platform) {
+    sheet.getRange(rowNum, cols.platform + 1).setValue(content.platform);
+    updated = true;
+  }
+  if (cols.temporal_frequency !== -1 && content.temporal_frequency) {
+    sheet.getRange(rowNum, cols.temporal_frequency + 1).setValue(content.temporal_frequency);
+    updated = true;
+  }
+  if (cols.horizontal_resolution !== -1 && content.horizontal_resolution) {
+    sheet.getRange(rowNum, cols.horizontal_resolution + 1).setValue(content.horizontal_resolution);
+    updated = true;
+  }
+  if (cols.geographic_domain !== -1 && content.geographic_domain) {
+    sheet.getRange(rowNum, cols.geographic_domain + 1).setValue(content.geographic_domain);
+    updated = true;
+  }
+  if (cols.societal_impact !== -1 && content.societal_impact) {
+    sheet.getRange(rowNum, cols.societal_impact + 1).setValue(content.societal_impact);
+    updated = true;
+  }
+  if (cols.last_sync !== -1 && updated) {
+    sheet.getRange(rowNum, cols.last_sync + 1).setValue(new Date());
+  }
+
+  return updated;
 }
 
 // ============================================================================
@@ -465,37 +480,6 @@ function normalizeColumnName_(text) {
     .replace(/^_|_$/g, '');
 }
 
-/**
- * Store sync results in config/log
- * @private
- */
-function storeSyncResults(results) {
-  try {
-    var props = PropertiesService.getScriptProperties();
-    props.setProperty('LAST_EARTHDATA_SYNC', JSON.stringify({
-      timestamp: results.timestamp,
-      synced: results.synced,
-      failed: results.failed
-    }));
-  } catch (e) {
-    Logger.log('Could not store sync results: ' + e.message);
-  }
-}
-
-/**
- * Get last sync info
- */
-function getLastEarthdataSyncInfo() {
-  try {
-    var props = PropertiesService.getScriptProperties();
-    var lastSync = props.getProperty('LAST_EARTHDATA_SYNC');
-    if (lastSync) {
-      return JSON.parse(lastSync);
-    }
-  } catch (e) {}
-  return null;
-}
-
 // ============================================================================
 // SCHEDULED SYNC HANDLER
 // ============================================================================
@@ -509,7 +493,7 @@ function scheduledEarthdataSync() {
   var results = syncAllSolutionContent();
 
   // Send email summary if there were updates or errors
-  if (results.updated.length > 0 || results.errors.length > 0) {
+  if (results.updated && (results.updated.length > 0 || results.errors.length > 0)) {
     try {
       var email = Session.getActiveUser().getEmail();
       if (email) {
@@ -541,6 +525,23 @@ function scheduledEarthdataSync() {
 }
 
 // ============================================================================
+// MENU
+// ============================================================================
+
+/**
+ * Add custom menu when spreadsheet opens
+ */
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('Earthdata Sync')
+    .addItem('Sync All Solutions', 'syncAllSolutionContent')
+    .addItem('Sync Selected Row', 'syncSelectedRow')
+    .addSeparator()
+    .addItem('Test Single Fetch', 'testFetchSolution')
+    .addToUi();
+}
+
+// ============================================================================
 // TESTING / DEBUG
 // ============================================================================
 
@@ -551,21 +552,17 @@ function testFetchSolution() {
   var testUrl = 'https://www.earthdata.nasa.gov/esds/harmonized-landsat-sentinel-2';
   var content = fetchSolutionContent(testUrl);
   Logger.log('Content: ' + JSON.stringify(content, null, 2));
+
+  var ui = SpreadsheetApp.getUi();
+  if (content && Object.keys(content).length > 0) {
+    ui.alert('Test Fetch Results',
+             'Purpose: ' + (content.purpose_mission || 'Not found').substring(0, 100) + '...\n\n' +
+             'Thematic Areas: ' + (content.thematic_areas || 'Not found') + '\n\n' +
+             'Platform: ' + (content.platform || 'Not found'),
+             ui.ButtonSet.OK);
+  } else {
+    ui.alert('Test Fetch', 'No content extracted from test URL', ui.ButtonSet.OK);
+  }
+
   return content;
-}
-
-/**
- * Check sync status
- */
-function checkEarthdataSyncStatus() {
-  var lastSync = getLastEarthdataSyncInfo();
-  var triggers = ScriptApp.getProjectTriggers().filter(function(t) {
-    return t.getHandlerFunction() === 'scheduledEarthdataSync';
-  });
-
-  return {
-    lastSync: lastSync,
-    triggerActive: triggers.length > 0,
-    triggerCount: triggers.length
-  };
 }
