@@ -1680,11 +1680,13 @@ var Implementation = (function() {
     feather.replace();
   }
 
-  // Close picker when clicking outside
+  // Close picker when clicking outside (only if picker exists and is open)
   document.addEventListener('click', function(e) {
     var picker = document.getElementById('solutionPickerDropdown');
     var btn = document.getElementById('solutionPickerBtn');
-    if (picker && btn && !picker.contains(e.target) && !btn.contains(e.target)) {
+    // Only process if picker exists, is open, and click is outside
+    if (picker && picker.classList.contains('active') && btn &&
+        !picker.contains(e.target) && !btn.contains(e.target)) {
       closeSolutionPicker();
     }
   });
