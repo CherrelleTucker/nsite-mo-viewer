@@ -1,0 +1,820 @@
+<!-- Schedule View -->
+<!-- Timeline and Gantt view of milestones across solutions -->
+
+<!-- Google Charts -->
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+<div class="schedule-viewer">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Schedule</h1>
+      <p class="page-subtitle">Milestone Timeline</p>
+    </div>
+    <div class="page-actions">
+      <!-- View Toggle -->
+      <div class="view-toggle">
+        <button class="toggle-btn active" id="btnTimeline" onclick="Schedule.setView('timeline')">
+          <span data-feather="list"></span>
+          Timeline
+        </button>
+        <button class="toggle-btn" id="btnGantt" onclick="Schedule.setView('gantt')">
+          <span data-feather="bar-chart-2"></span>
+          Gantt
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Summary -->
+  <div class="schedule-stats">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: rgba(249, 115, 22, 0.1); color: #f97316;">
+        <span data-feather="clock"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value" id="statUpcoming">--</span>
+        <span class="stat-label">Upcoming (90 days)</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+        <span data-feather="alert-circle"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value" id="statOverdue">--</span>
+        <span class="stat-label">Overdue</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+        <span data-feather="check-circle"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value" id="statCompleted">--</span>
+        <span class="stat-label">Completed (YTD)</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+        <span data-feather="calendar"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value" id="statTotal">--</span>
+        <span class="stat-label">Total Scheduled</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <div class="filter-group" id="filterViewGroup">
+      <label class="filter-label">View:</label>
+      <select class="form-select filter-select" id="filterView" onchange="Schedule.applyFilters()">
+        <option value="upcoming">Upcoming</option>
+        <option value="all">All Milestones</option>
+        <option value="overdue">Overdue</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Type:</label>
+      <select class="form-select filter-select" id="filterType" onchange="Schedule.applyFilters()">
+        <option value="">All Types</option>
+        <option value="atp">ATP DG</option>
+        <option value="f2i">F2I DG</option>
+        <option value="orr">ORR</option>
+        <option value="closeout">Closeout DG</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Cycle:</label>
+      <select class="form-select filter-select" id="filterCycle" onchange="Schedule.applyFilters()">
+        <option value="">All Cycles</option>
+        <option value="1">C1</option>
+        <option value="2">C2</option>
+        <option value="3">C3</option>
+        <option value="4">C4</option>
+        <option value="5">C5</option>
+      </select>
+    </div>
+    <div class="filter-search">
+      <span data-feather="search" class="search-icon"></span>
+      <input type="text" class="form-input search-input" id="filterSearch"
+             placeholder="Search solutions..."
+             oninput="Schedule.applyFilters()">
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="Schedule.clearFilters()">
+      Clear
+    </button>
+    <button class="btn btn-secondary btn-sm" onclick="Schedule.exportData()">
+      <span data-feather="download"></span>
+      Export
+    </button>
+  </div>
+
+  <!-- Timeline View -->
+  <div class="schedule-timeline" id="scheduleTimeline">
+    <div class="loading-state">
+      <span class="loading-spinner"></span>
+      <p>Loading schedule...</p>
+    </div>
+  </div>
+
+  <!-- Gantt View -->
+  <div class="schedule-gantt" id="scheduleGantt" style="display: none;">
+    <div class="gantt-container" id="ganttChart">
+      <div class="loading-state">
+        <span class="loading-spinner"></span>
+        <p>Loading Gantt chart...</p>
+      </div>
+    </div>
+    <div class="gantt-legend">
+      <span class="legend-item"><span class="legend-color" style="background: #eab308;"></span> Formulation (ATP → F2I)</span>
+      <span class="legend-item"><span class="legend-color" style="background: #f97316;"></span> Implementation (F2I → ORR)</span>
+      <span class="legend-item"><span class="legend-color" style="background: #3b82f6;"></span> Operations (ORR → Closeout)</span>
+    </div>
+  </div>
+</div>
+
+<!-- Schedule Styles -->
+<style>
+  .schedule-viewer { max-width: 1400px; margin: 0 auto; }
+
+  /* View Toggle */
+  .view-toggle {
+    display: flex;
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-md);
+    padding: 4px;
+  }
+
+  .toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-md);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .toggle-btn:hover { color: var(--color-text); }
+
+  .toggle-btn.active {
+    background: var(--color-surface);
+    color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .toggle-btn svg { width: 16px; height: 16px; }
+
+  /* Stats */
+  .schedule-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+
+  .stat-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stat-icon svg { width: 24px; height: 24px; }
+
+  .stat-info { display: flex; flex-direction: column; }
+  .stat-value { font-size: var(--font-size-xl); font-weight: 700; color: var(--color-text); }
+  .stat-label { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+
+  /* Filter Bar */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+  }
+
+  .filter-group { display: flex; align-items: center; gap: var(--space-sm); }
+  .filter-label { font-size: var(--font-size-sm); font-weight: 500; color: var(--color-text-secondary); }
+  .filter-select { min-width: 120px; padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-sm); }
+  .filter-search { flex: 1; min-width: 200px; position: relative; }
+  .filter-search .search-icon { position: absolute; left: var(--space-sm); top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--color-text-muted); }
+  .filter-search .search-input { padding-left: 36px; width: 100%; }
+
+  /* Timeline */
+  .schedule-timeline {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .timeline-month {
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .timeline-month:last-child { border-bottom: none; }
+
+  .timeline-month-header {
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-alt);
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .timeline-month-header:hover { background: var(--color-border-light); }
+
+  .timeline-month-count {
+    font-size: var(--font-size-xs);
+    background: var(--color-primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .timeline-items { padding: var(--space-sm); }
+
+  .timeline-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-xs);
+    transition: background var(--transition-fast);
+  }
+
+  .timeline-item:last-child { margin-bottom: 0; }
+  .timeline-item:hover { background: var(--color-surface-alt); }
+
+  .timeline-date {
+    min-width: 80px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+  }
+
+  .timeline-type {
+    min-width: 80px;
+    padding: 4px 10px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    text-align: center;
+  }
+
+  .type-atp { background: rgba(234, 179, 8, 0.15); color: #ca8a04; }
+  .type-f2i { background: rgba(249, 115, 22, 0.15); color: #ea580c; }
+  .type-orr { background: rgba(59, 130, 246, 0.15); color: #2563eb; }
+  .type-closeout { background: rgba(16, 185, 129, 0.15); color: #059669; }
+
+  .timeline-solution {
+    flex: 1;
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+  }
+
+  .timeline-solution-name { font-weight: 500; }
+  .timeline-solution-cycle { color: var(--color-text-muted); font-size: var(--font-size-xs); margin-left: var(--space-xs); }
+
+  .timeline-status {
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .status-upcoming { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+  .status-overdue { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+  .status-completed { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+  .status-today { background: rgba(249, 115, 22, 0.15); color: #ea580c; font-weight: 600; }
+
+  /* Gantt */
+  .schedule-gantt {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .gantt-container {
+    min-height: 400px;
+    padding: var(--space-md);
+  }
+
+  .gantt-legend {
+    display: flex;
+    gap: var(--space-lg);
+    padding: var(--space-md);
+    border-top: 1px solid var(--color-border-light);
+    background: var(--color-surface-alt);
+    justify-content: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: var(--radius-xs);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--space-xxl);
+    color: var(--color-text-muted);
+  }
+
+  .empty-state svg { width: 48px; height: 48px; margin-bottom: var(--space-md); opacity: 0.5; }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .schedule-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    .schedule-stats { grid-template-columns: 1fr; }
+    .filter-bar { flex-direction: column; align-items: stretch; }
+    .filter-group { justify-content: space-between; }
+    .timeline-item { flex-wrap: wrap; }
+    .timeline-date { min-width: 100%; margin-bottom: var(--space-xs); }
+  }
+</style>
+
+<!-- Schedule JavaScript -->
+<script>
+var Schedule = (function() {
+  var state = {
+    solutions: [],
+    milestones: [],
+    filteredMilestones: [],
+    filteredSolutions: [],
+    currentView: 'timeline',
+    chartsLoaded: false
+  };
+
+  // Phase colors for Gantt
+  var PHASE_COLORS = {
+    formulation: '#eab308',    // Yellow - ATP to F2I
+    implementation: '#f97316', // Orange - F2I to ORR
+    operations: '#3b82f6'      // Blue - ORR to Closeout
+  };
+
+  function init() {
+    console.log('Schedule.init() called');
+    loadGoogleCharts();
+    loadSolutions();
+  }
+
+  function loadGoogleCharts() {
+    if (typeof google !== 'undefined' && google.charts) {
+      google.charts.load('current', { packages: ['gantt'] });
+      google.charts.setOnLoadCallback(function() {
+        state.chartsLoaded = true;
+        console.log('Google Charts loaded');
+        if (state.currentView === 'gantt' && state.solutions.length > 0) {
+          renderGantt();
+        }
+      });
+    }
+  }
+
+  function loadSolutions() {
+    google.script.run
+      .withSuccessHandler(function(solutions) {
+        state.solutions = solutions || [];
+        buildMilestoneList();
+        updateStats();
+        applyFilters();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load solutions:', error);
+        showError('Failed to load schedule data.');
+      })
+      .getSolutions();
+  }
+
+  function buildMilestoneList() {
+    state.milestones = [];
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    state.solutions.forEach(function(sol) {
+      if (sol.atp_date) {
+        state.milestones.push(createMilestone(sol, 'atp', 'ATP DG', sol.atp_date, today));
+      }
+      if (sol.f2i_date) {
+        state.milestones.push(createMilestone(sol, 'f2i', 'F2I DG', sol.f2i_date, today));
+      }
+      if (sol.orr_date) {
+        state.milestones.push(createMilestone(sol, 'orr', 'ORR', sol.orr_date, today));
+      }
+      if (sol.closeout_date) {
+        state.milestones.push(createMilestone(sol, 'closeout', 'Closeout DG', sol.closeout_date, today));
+      }
+    });
+
+    state.milestones.sort(function(a, b) {
+      return a.dateObj - b.dateObj;
+    });
+  }
+
+  function createMilestone(sol, type, label, dateVal, today) {
+    var dateObj = parseDate(dateVal);
+    var status = 'upcoming';
+
+    if (dateObj) {
+      if (dateObj < today) {
+        status = 'completed';
+      } else if (dateObj.getTime() === today.getTime()) {
+        status = 'today';
+      }
+    }
+
+    return {
+      solution_id: sol.solution_id,
+      solution_name: sol.name || sol.solution_id,
+      cycle: sol.cycle,
+      type: type,
+      label: label,
+      date: dateVal,
+      dateObj: dateObj,
+      dateFormatted: formatDate(dateObj),
+      monthKey: dateObj ? dateObj.getFullYear() + '-' + String(dateObj.getMonth() + 1).padStart(2, '0') : 'Unknown',
+      monthLabel: dateObj ? formatMonthYear(dateObj) : 'Unknown',
+      status: status
+    };
+  }
+
+  function parseDate(val) {
+    if (!val) return null;
+    if (val instanceof Date) return val;
+    var d = new Date(val);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function formatDate(d) {
+    if (!d) return '--';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function formatMonthYear(d) {
+    if (!d) return 'Unknown';
+    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+
+  function updateStats() {
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var ninetyDaysOut = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
+    var yearStart = new Date(today.getFullYear(), 0, 1);
+
+    var upcoming = 0, overdue = 0, completed = 0, total = 0;
+
+    state.milestones.forEach(function(m) {
+      if (!m.dateObj) return;
+      total++;
+
+      if (m.dateObj < today) {
+        completed++;
+      } else if (m.dateObj <= ninetyDaysOut) {
+        upcoming++;
+      }
+    });
+
+    document.getElementById('statUpcoming').textContent = upcoming;
+    document.getElementById('statOverdue').textContent = overdue;
+    document.getElementById('statCompleted').textContent = completed;
+    document.getElementById('statTotal').textContent = total;
+  }
+
+  function setView(view) {
+    state.currentView = view;
+
+    // Update toggle buttons
+    document.getElementById('btnTimeline').classList.toggle('active', view === 'timeline');
+    document.getElementById('btnGantt').classList.toggle('active', view === 'gantt');
+
+    // Update filter visibility (Type filter doesn't apply to Gantt)
+    var filterViewGroup = document.getElementById('filterViewGroup');
+    var filterType = document.getElementById('filterType').parentElement;
+    if (view === 'gantt') {
+      filterViewGroup.style.display = 'none';
+      filterType.style.display = 'none';
+    } else {
+      filterViewGroup.style.display = 'flex';
+      filterType.style.display = 'flex';
+    }
+
+    // Show/hide views
+    document.getElementById('scheduleTimeline').style.display = view === 'timeline' ? 'block' : 'none';
+    document.getElementById('scheduleGantt').style.display = view === 'gantt' ? 'block' : 'none';
+
+    // Re-init feather icons for toggle buttons
+    feather.replace();
+
+    // Render appropriate view
+    if (view === 'gantt') {
+      renderGantt();
+    } else {
+      render();
+    }
+  }
+
+  function applyFilters() {
+    var viewFilter = document.getElementById('filterView').value;
+    var typeFilter = document.getElementById('filterType').value;
+    var cycleFilter = document.getElementById('filterCycle').value;
+    var searchFilter = document.getElementById('filterSearch').value.toLowerCase().trim();
+
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Filter milestones (for timeline view)
+    state.filteredMilestones = state.milestones.filter(function(m) {
+      if (viewFilter === 'upcoming' && (!m.dateObj || m.dateObj < today)) return false;
+      if (viewFilter === 'overdue' && m.status !== 'overdue') return false;
+      if (viewFilter === 'completed' && m.status !== 'completed') return false;
+      if (typeFilter && m.type !== typeFilter) return false;
+      if (cycleFilter && String(m.cycle) !== cycleFilter) return false;
+      if (searchFilter && m.solution_name.toLowerCase().indexOf(searchFilter) === -1) return false;
+      return true;
+    });
+
+    // Filter solutions (for gantt view)
+    state.filteredSolutions = state.solutions.filter(function(sol) {
+      if (cycleFilter && String(sol.cycle) !== cycleFilter) return false;
+      var name = (sol.name || sol.solution_id || '').toLowerCase();
+      if (searchFilter && name.indexOf(searchFilter) === -1) return false;
+      // Must have at least two dates to show on gantt
+      var dates = [sol.atp_date, sol.f2i_date, sol.orr_date, sol.closeout_date].filter(function(d) { return !!d; });
+      return dates.length >= 2;
+    });
+
+    if (state.currentView === 'timeline') {
+      render();
+    } else {
+      renderGantt();
+    }
+  }
+
+  function clearFilters() {
+    document.getElementById('filterView').value = 'upcoming';
+    document.getElementById('filterType').value = '';
+    document.getElementById('filterCycle').value = '';
+    document.getElementById('filterSearch').value = '';
+    applyFilters();
+  }
+
+  function render() {
+    var container = document.getElementById('scheduleTimeline');
+
+    if (state.filteredMilestones.length === 0) {
+      container.innerHTML = '<div class="empty-state"><span data-feather="calendar"></span><p>No milestones match your filters</p></div>';
+      feather.replace();
+      return;
+    }
+
+    var byMonth = {};
+    state.filteredMilestones.forEach(function(m) {
+      if (!byMonth[m.monthKey]) {
+        byMonth[m.monthKey] = { label: m.monthLabel, items: [] };
+      }
+      byMonth[m.monthKey].items.push(m);
+    });
+
+    var monthKeys = Object.keys(byMonth).sort();
+
+    var html = '';
+    monthKeys.forEach(function(key) {
+      var month = byMonth[key];
+      html += '<div class="timeline-month">';
+      html += '<div class="timeline-month-header">';
+      html += '<span>' + escapeHtml(month.label) + '</span>';
+      html += '<span class="timeline-month-count">' + month.items.length + '</span>';
+      html += '</div>';
+      html += '<div class="timeline-items">';
+
+      month.items.forEach(function(m) {
+        html += '<div class="timeline-item">';
+        html += '<span class="timeline-date">' + m.dateFormatted + '</span>';
+        html += '<span class="timeline-type type-' + m.type + '">' + m.label + '</span>';
+        html += '<span class="timeline-solution">';
+        html += '<span class="timeline-solution-name">' + escapeHtml(m.solution_name) + '</span>';
+        html += '<span class="timeline-solution-cycle">C' + m.cycle + '</span>';
+        html += '</span>';
+        html += '<span class="timeline-status status-' + m.status + '">' + capitalizeFirst(m.status) + '</span>';
+        html += '</div>';
+      });
+
+      html += '</div></div>';
+    });
+
+    container.innerHTML = html;
+    feather.replace();
+  }
+
+  function renderGantt() {
+    var container = document.getElementById('ganttChart');
+
+    if (!state.chartsLoaded) {
+      container.innerHTML = '<div class="loading-state"><span class="loading-spinner"></span><p>Loading chart library...</p></div>';
+      return;
+    }
+
+    if (state.filteredSolutions.length === 0) {
+      container.innerHTML = '<div class="empty-state"><span data-feather="bar-chart-2"></span><p>No solutions with multiple milestones match your filters</p></div>';
+      feather.replace();
+      return;
+    }
+
+    // Build Gantt data
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Task ID');
+    data.addColumn('string', 'Task Name');
+    data.addColumn('string', 'Resource');
+    data.addColumn('date', 'Start Date');
+    data.addColumn('date', 'End Date');
+    data.addColumn('number', 'Duration');
+    data.addColumn('number', 'Percent Complete');
+    data.addColumn('string', 'Dependencies');
+
+    var rows = [];
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    state.filteredSolutions.forEach(function(sol) {
+      var atp = parseDate(sol.atp_date);
+      var f2i = parseDate(sol.f2i_date);
+      var orr = parseDate(sol.orr_date);
+      var closeout = parseDate(sol.closeout_date);
+      var name = sol.name || sol.solution_id;
+      var cycle = 'C' + sol.cycle;
+
+      // Formulation phase: ATP → F2I
+      if (atp && f2i) {
+        var pct = calculateProgress(atp, f2i, today);
+        rows.push([
+          sol.solution_id + '_form',
+          name + ' - Formulation',
+          cycle,
+          atp,
+          f2i,
+          null,
+          pct,
+          null
+        ]);
+      }
+
+      // Implementation phase: F2I → ORR
+      if (f2i && orr) {
+        var pct = calculateProgress(f2i, orr, today);
+        var dep = (atp && f2i) ? sol.solution_id + '_form' : null;
+        rows.push([
+          sol.solution_id + '_impl',
+          name + ' - Implementation',
+          cycle,
+          f2i,
+          orr,
+          null,
+          pct,
+          dep
+        ]);
+      }
+
+      // Operations phase: ORR → Closeout
+      if (orr && closeout) {
+        var pct = calculateProgress(orr, closeout, today);
+        var dep = (f2i && orr) ? sol.solution_id + '_impl' : null;
+        rows.push([
+          sol.solution_id + '_ops',
+          name + ' - Operations',
+          cycle,
+          orr,
+          closeout,
+          null,
+          pct,
+          dep
+        ]);
+      }
+    });
+
+    if (rows.length === 0) {
+      container.innerHTML = '<div class="empty-state"><span data-feather="bar-chart-2"></span><p>No phase data available for selected solutions</p></div>';
+      feather.replace();
+      return;
+    }
+
+    data.addRows(rows);
+
+    var options = {
+      height: Math.max(400, rows.length * 42 + 50),
+      gantt: {
+        trackHeight: 36,
+        barHeight: 24,
+        labelStyle: {
+          fontName: 'Inter, system-ui, sans-serif',
+          fontSize: 12,
+          color: '#374151'
+        },
+        palette: [
+          { color: PHASE_COLORS.formulation, dark: '#ca8a04', light: '#fef3c7' },
+          { color: PHASE_COLORS.implementation, dark: '#ea580c', light: '#ffedd5' },
+          { color: PHASE_COLORS.operations, dark: '#2563eb', light: '#dbeafe' }
+        ],
+        criticalPathEnabled: false,
+        innerGridHorizLine: { stroke: '#e5e7eb', strokeWidth: 1 },
+        innerGridTrack: { fill: '#f9fafb' },
+        innerGridDarkTrack: { fill: '#f3f4f6' }
+      }
+    };
+
+    var chart = new google.visualization.Gantt(container);
+    chart.draw(data, options);
+  }
+
+  function calculateProgress(startDate, endDate, today) {
+    if (today >= endDate) return 100;
+    if (today <= startDate) return 0;
+    var total = endDate - startDate;
+    var elapsed = today - startDate;
+    return Math.round((elapsed / total) * 100);
+  }
+
+  function capitalizeFirst(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function showError(message) {
+    var container = document.getElementById('scheduleTimeline');
+    container.innerHTML = '<div class="empty-state"><span data-feather="alert-circle"></span><p>' + message + '</p></div>';
+    feather.replace();
+  }
+
+  function exportData() {
+    alert('Export functionality coming soon.');
+  }
+
+  return {
+    init: init,
+    setView: setView,
+    applyFilters: applyFilters,
+    clearFilters: clearFilters,
+    exportData: exportData
+  };
+})();
+
+// Initialize
+if (typeof google !== 'undefined' && google.script) {
+  Schedule.init();
+} else {
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof google !== 'undefined' && google.script) {
+      Schedule.init();
+    }
+  });
+}
+</script>

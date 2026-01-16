@@ -1,11 +1,23 @@
 # Next Development Steps
 
-**Last Updated:** 2026-01-15
-**Current Version:** 0.6.0
+**Last Updated:** 2026-01-16
+**Current Version:** 0.7.0
 
 ---
 
-## Completed This Session (2026-01-15)
+## Completed This Session (2026-01-16)
+
+- [x] Consolidated milestones into MO-DB_Solutions (atp_date, f2i_date, orr_date, closeout_date)
+- [x] Updated Implementation Milestones panel to show ATP DG, F2I DG, ORR, Closeout
+- [x] Added document tracking columns (project_plan, science_sow, ipa, icd, tta, atp_memo, f2i_memo, orr_memo, closeout_memo)
+- [x] Added Document Administration panel with status counts
+- [x] Added Document Status section to solution detail modal
+- [x] Created `schedule.html` - milestone timeline view with filters and stats
+- [x] Wired Schedule tab into app routing
+- [x] Added Google Charts Gantt view with phase visualization (Formulation/Implementation/Operations)
+- [x] View toggle (Timeline/Gantt) in Schedule header
+
+## Completed Previous Session (2026-01-15)
 
 - [x] MO-DB_Milestones database - extracted from Quick Look Excel (53 milestones, 30 solutions)
 - [x] milestones-api.gs - data access layer with query functions
@@ -49,6 +61,9 @@
 
 ## Technical Debt / Improvements
 
+### Known Bugs
+- [ ] **Blank page on repeated tab clicks** - Page goes blank after clicking tabs ~3 times. Needs investigation.
+
 ### Implementation-NSITE
 - [ ] Add loading states for async operations
 - [ ] Implement actual export functionality (CSV download)
@@ -76,12 +91,13 @@ deploy/
 ├── contacts.html           # Contacts Directory UI
 ├── contacts-api.gs         # Contacts data API
 ├── contacts-menu.gs        # Contacts sheet menu
-├── implementation.html     # Implementation-NSITE UI (with milestones)
+├── implementation.html     # Implementation-NSITE UI (with milestones & docs)
 ├── index.html              # Platform shell
 ├── milestones-api.gs       # Milestones data API
 ├── navigation.html         # Tab navigation
 ├── quick-update.html       # Quick Update Form UI
 ├── quick-update-handlers.gs # Quick Update backend
+├── schedule.html           # Schedule timeline view
 ├── solutions-api.gs        # Solutions data API
 └── styles.html             # Shared CSS
 ```
@@ -92,7 +108,7 @@ deploy/
 
 | Database | Location | Records | Status |
 |----------|----------|---------|--------|
-| MO-DB_Solutions | Google Sheet | 37 solutions (includes milestone dates) | **Populated** |
+| MO-DB_Solutions | Google Sheet | 37 solutions (includes milestone dates, document status) | **Populated** |
 | MO-DB_Contacts | Google Sheet | 4,221 records (423 unique) | **Populated** |
 | MO-DB_Config | Google Sheet | Configuration | **Active** |
 | MO-DB_Stories | Google Sheet | -- | Planned |

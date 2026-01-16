@@ -17,6 +17,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.7.0] - 2026-01-16
+
+### Added - Schedule Tab & Document Tracking
+- **Schedule tab** (`schedule.html`) - milestone timeline and Gantt chart views
+  - **Timeline view**: Milestones grouped by month, filterable by view/type/cycle/search
+  - **Gantt view**: Google Charts Gantt showing project phases
+    - Formulation (ATP → F2I), Implementation (F2I → ORR), Operations (ORR → Closeout)
+    - Progress bars based on current date
+    - Phase dependencies visualized
+  - Stats dashboard: Upcoming (90 days), Overdue, Completed (YTD), Total
+  - View toggle in header, filters adapt per view
+- **Document tracking** in MO-DB_Solutions
+  - 9 document columns: project_plan, science_sow, ipa, icd, tta, atp_memo, f2i_memo, orr_memo, closeout_memo
+  - Status logic: empty = not started, "in_work" = in progress, date = complete
+- **Document Administration panel** in Implementation-NSITE
+  - Shows document completion counts across filtered solutions
+- **Document Status section** in solution detail modal
+  - Grid showing all 9 documents with status badges
+
+### Changed
+- **Milestones consolidated** into MO-DB_Solutions (removed separate MO-DB_Milestones)
+  - 4 date columns: atp_date, f2i_date, orr_date, closeout_date
+  - Status derived from date: past = completed, future = planned, empty = not started
+- **Implementation Milestones panel** updated to show ATP DG, F2I DG, ORR, Closeout
+- **index.html** - added routing for schedule tab
+
+### Known Issues
+- Blank page on repeated tab clicks (~3 times) - needs investigation
+
+---
+
 ## [0.6.0] - 2026-01-15
 
 ### Added - Milestones & Solution Picker
