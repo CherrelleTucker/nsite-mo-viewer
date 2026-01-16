@@ -1084,19 +1084,20 @@
 
       // Alignment table
       html += '<table class="preview-table">';
-      html += '<thead><tr><th>Solution</th><th>Cycle</th><th>Phase</th><th>Stakeholders</th><th>Primary SMEs</th><th>Score</th></tr></thead>';
+      html += '<thead><tr><th>Solution</th><th>Cycle</th><th>Stakeholders</th><th>Primary SMEs</th><th>Score</th><th>Score Breakdown</th></tr></thead>';
       html += '<tbody>';
 
       data.alignments.forEach(function(a) {
         var scoreClass = a.alignmentScore >= 70 ? 'high' : (a.alignmentScore >= 40 ? 'medium' : 'low');
         var primaryCount = a.stakeholders.byRole['Primary SME'] || 0;
+        var breakdownText = a.scoreSummary || '';
         html += '<tr>';
-        html += '<td><strong>' + escapeHtml(a.solution) + '</strong></td>';
+        html += '<td><strong>' + escapeHtml(a.solution) + '</strong><br><small style="color: var(--color-text-muted);">' + escapeHtml(a.phase) + '</small></td>';
         html += '<td>' + escapeHtml(a.cycle) + '</td>';
-        html += '<td>' + escapeHtml(a.phase) + '</td>';
         html += '<td>' + a.stakeholders.total + '</td>';
         html += '<td>' + primaryCount + '</td>';
         html += '<td><span class="alignment-score ' + scoreClass + '">' + a.alignmentScore + '%</span></td>';
+        html += '<td><small style="color: var(--color-text-muted);">' + escapeHtml(breakdownText) + '</small></td>';
         html += '</tr>';
       });
 

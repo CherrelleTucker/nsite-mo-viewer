@@ -73,6 +73,9 @@ function generateNeedAlignmentReport(options) {
       // Get earthdata content if available
       var content = solutionContent[solName] || solutionContent[sol.full_name] || {};
 
+      // Calculate alignment score once
+      var alignmentResult = calculateAlignmentScore_(content, solutionContacts);
+
       return {
         solution: solName,
         fullName: sol.full_name || '',
@@ -93,8 +96,10 @@ function generateNeedAlignmentReport(options) {
           bySurveyYear: bySurveyYear
         },
 
-        // Alignment score (simplified)
-        alignmentScore: calculateAlignmentScore_(content, solutionContacts)
+        // Alignment score with breakdown
+        alignmentScore: alignmentResult.score,
+        scoreBreakdown: alignmentResult.breakdown,
+        scoreSummary: alignmentResult.summary
       };
     });
 
@@ -120,39 +125,109 @@ function generateNeedAlignmentReport(options) {
 }
 
 /**
- * Calculate simple alignment score based on stakeholder engagement
+ * Calculate alignment score with detailed breakdown
+ * Returns object with score and breakdown for transparency
  */
 function calculateAlignmentScore_(content, contacts) {
-  var score = 0;
-  var maxScore = 100;
+  var breakdown = {
+    stakeholders: { points: 0, max: 40, details: [] },
+    primarySMEs: { points: 0, max: 25, details: [] },
+    multiYear: { points: 0, max: 20, details: [] },
+    content: { points: 0, max: 15, details: [] }
+  };
 
-  // Points for having stakeholders
-  if (contacts.length > 0) score += 20;
-  if (contacts.length >= 5) score += 10;
-  if (contacts.length >= 20) score += 10;
+  // Points for having stakeholders (max 40)
+  if (contacts.length > 0) {
+    breakdown.stakeholders.points += 20;
+    breakdown.stakeholders.details.push(contacts.length + ' stakeholders (+20)');
+  }
+  if (contacts.length >= 5) {
+    breakdown.stakeholders.points += 10;
+    breakdown.stakeholders.details.push('5+ stakeholders (+10)');
+  }
+  if (contacts.length >= 20) {
+    breakdown.stakeholders.points += 10;
+    breakdown.stakeholders.details.push('20+ stakeholders (+10)');
+  }
 
-  // Points for having Primary SMEs
+  // Points for having Primary SMEs (max 25)
   var primarySMEs = contacts.filter(function(c) {
     return c.role === 'Primary SME';
   });
-  if (primarySMEs.length > 0) score += 15;
-  if (primarySMEs.length >= 3) score += 10;
+  if (primarySMEs.length > 0) {
+    breakdown.primarySMEs.points += 15;
+    breakdown.primarySMEs.details.push(primarySMEs.length + ' Primary SME(s) (+15)');
+  }
+  if (primarySMEs.length >= 3) {
+    breakdown.primarySMEs.points += 10;
+    breakdown.primarySMEs.details.push('3+ Primary SMEs (+10)');
+  }
 
-  // Points for multi-year engagement
+  // Points for multi-year engagement (max 20)
   var years = {};
   contacts.forEach(function(c) {
     if (c.survey_year) years[c.survey_year] = true;
   });
   var yearCount = Object.keys(years).length;
-  if (yearCount >= 2) score += 10;
-  if (yearCount >= 3) score += 10;
+  var yearList = Object.keys(years).sort().join(', ');
+  if (yearCount >= 2) {
+    breakdown.multiYear.points += 10;
+    breakdown.multiYear.details.push('2+ survey years (+10)');
+  }
+  if (yearCount >= 3) {
+    breakdown.multiYear.points += 10;
+    breakdown.multiYear.details.push('3+ survey years (+10)');
+  }
+  if (yearCount > 0) {
+    breakdown.multiYear.details.push('Years: ' + yearList);
+  }
 
-  // Points for having solution content
-  if (content.purpose_mission) score += 5;
-  if (content.solution_characteristics) score += 5;
-  if (content.societal_impact) score += 5;
+  // Points for having solution content (max 15)
+  if (content.purpose_mission) {
+    breakdown.content.points += 5;
+    breakdown.content.details.push('Has purpose/mission (+5)');
+  }
+  if (content.solution_characteristics && Object.keys(content.solution_characteristics).length > 0) {
+    breakdown.content.points += 5;
+    breakdown.content.details.push('Has characteristics (+5)');
+  }
+  if (content.societal_impact) {
+    breakdown.content.points += 5;
+    breakdown.content.details.push('Has societal impact (+5)');
+  }
 
-  return Math.min(score, maxScore);
+  var totalScore = breakdown.stakeholders.points +
+                   breakdown.primarySMEs.points +
+                   breakdown.multiYear.points +
+                   breakdown.content.points;
+
+  return {
+    score: Math.min(totalScore, 100),
+    breakdown: breakdown,
+    summary: buildScoreSummary_(breakdown)
+  };
+}
+
+/**
+ * Build a human-readable score summary
+ */
+function buildScoreSummary_(breakdown) {
+  var parts = [];
+
+  if (breakdown.stakeholders.points > 0) {
+    parts.push('Stakeholders: ' + breakdown.stakeholders.points + '/' + breakdown.stakeholders.max);
+  }
+  if (breakdown.primarySMEs.points > 0) {
+    parts.push('SMEs: ' + breakdown.primarySMEs.points + '/' + breakdown.primarySMEs.max);
+  }
+  if (breakdown.multiYear.points > 0) {
+    parts.push('Multi-year: ' + breakdown.multiYear.points + '/' + breakdown.multiYear.max);
+  }
+  if (breakdown.content.points > 0) {
+    parts.push('Content: ' + breakdown.content.points + '/' + breakdown.content.max);
+  }
+
+  return parts.join(' | ');
 }
 
 /**
