@@ -92,6 +92,15 @@ Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across li
 | `f2i_date` | DATE | No | Formulation to Implementation Decision Gate date. Past = completed, future = planned. |
 | `orr_date` | DATE | No | Operational Readiness Review date. Past = completed, future = planned. |
 | `closeout_date` | DATE | No | Closeout Decision Gate date. Past = completed, future = planned. |
+| `project_plan` | STRING/DATE | No | Project Plan status. Empty = not started, "in_work" = in progress, date = completed. |
+| `science_sow` | STRING/DATE | No | Science SOW status. Empty = not started, "in_work" = in progress, date = completed. |
+| `ipa` | STRING/DATE | No | Interproject Agreement status. Empty = not started, "in_work" = in progress, date = completed. |
+| `icd` | STRING/DATE | No | Interface Control Document status. Empty = not started, "in_work" = in progress, date = completed. |
+| `tta` | STRING/DATE | No | Technical Task Agreement status. Empty = not started, "in_work" = in progress, date = completed. |
+| `atp_memo` | STRING/DATE | No | ATP Decision Gate Memo status. |
+| `f2i_memo` | STRING/DATE | No | F2I Decision Gate Memo status. |
+| `orr_memo` | STRING/DATE | No | ORR Decision Gate Memo status. |
+| `closeout_memo` | STRING/DATE | No | Closeout Decision Gate Memo status. |
 | `last_updated` | DATE | Yes | Last update timestamp |
 | `created_at` | DATE | Yes | Record creation timestamp |
 

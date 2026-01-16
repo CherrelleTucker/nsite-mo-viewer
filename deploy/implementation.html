@@ -80,10 +80,27 @@
         <span data-feather="file-text"></span>
         <span>Document Administration</span>
       </div>
-      <div class="docs-coming-soon">
-        <span data-feather="clock" class="coming-soon-icon"></span>
-        <span class="coming-soon-text">Coming Soon</span>
-        <span class="coming-soon-desc">Action items for documents requiring signature</span>
+      <div class="docs-tracker" id="docsTracker">
+        <div class="doc-item">
+          <span class="doc-name">Project Plan</span>
+          <span class="doc-status" id="docProjectPlan">--</span>
+        </div>
+        <div class="doc-item">
+          <span class="doc-name">Science SOW</span>
+          <span class="doc-status" id="docScienceSow">--</span>
+        </div>
+        <div class="doc-item">
+          <span class="doc-name">IPA</span>
+          <span class="doc-status" id="docIpa">--</span>
+        </div>
+        <div class="doc-item">
+          <span class="doc-name">ICD</span>
+          <span class="doc-status" id="docIcd">--</span>
+        </div>
+        <div class="doc-item">
+          <span class="doc-name">TTA</span>
+          <span class="doc-status" id="docTta">--</span>
+        </div>
       </div>
     </div>
   </div>
@@ -320,19 +337,68 @@
   /* Document Administration Panel */
   .docs-panel { border-top: 3px solid var(--color-warning); }
 
-  .docs-coming-soon {
+  .docs-tracker {
     display: flex;
     flex-direction: column;
+    padding: var(--space-sm);
+    gap: var(--space-xs);
+  }
+
+  .doc-item {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    padding: var(--space-lg);
-    text-align: center;
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+  }
+
+  .doc-name { font-size: var(--font-size-sm); color: var(--color-text); }
+
+  .doc-status {
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+    background: var(--color-surface);
     color: var(--color-text-muted);
   }
 
-  .coming-soon-icon { width: 24px; height: 24px; margin-bottom: var(--space-xs); opacity: 0.5; }
-  .coming-soon-text { font-size: var(--font-size-sm); font-weight: 600; margin-bottom: var(--space-xs); }
-  .coming-soon-desc { font-size: var(--font-size-xs); opacity: 0.7; }
+  .doc-status.status-complete { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+  .doc-status.status-in-work { background: rgba(249, 115, 22, 0.15); color: #f97316; }
+  .doc-status.status-not-started { background: var(--color-surface); color: var(--color-text-muted); }
+
+  /* Document Status Grid (modal) */
+  .doc-status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-sm);
+  }
+
+  .doc-status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+  }
+
+  .doc-status-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+  }
+
+  .doc-badge {
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  .doc-badge-complete { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+  .doc-badge-in-work { background: rgba(249, 115, 22, 0.15); color: #f97316; }
+  .doc-badge-not-started { background: var(--color-surface); color: var(--color-text-muted); }
 
   /* Tracking Summary Row */
   .tracking-summary-row {
@@ -1060,6 +1126,101 @@ var Implementation = (function() {
     return d < today ? 'completed' : 'planned';
   }
 
+  function getDocStatus(val) {
+    if (!val) return 'not_started';
+    var str = String(val).trim().toLowerCase();
+    if (!str || str === 'nan') return 'not_started';
+    // Check if it's a date (completed)
+    var d = parseDate(val);
+    if (d) return 'complete';
+    // Check for in_work variations
+    if (str.indexOf('in_work') !== -1 || str.indexOf('in work') !== -1 || str.indexOf('in-work') !== -1) {
+      return 'in_work';
+    }
+    // Any other text = in progress
+    if (str.length > 0) return 'in_work';
+    return 'not_started';
+  }
+
+  function updateDocuments() {
+    // Count document statuses across filtered solutions
+    var docs = {
+      project_plan: { complete: 0, in_work: 0, not_started: 0 },
+      science_sow: { complete: 0, in_work: 0, not_started: 0 },
+      ipa: { complete: 0, in_work: 0, not_started: 0 },
+      icd: { complete: 0, in_work: 0, not_started: 0 },
+      tta: { complete: 0, in_work: 0, not_started: 0 }
+    };
+
+    state.filteredSolutions.forEach(function(sol) {
+      var ppStatus = getDocStatus(sol.project_plan);
+      var sowStatus = getDocStatus(sol.science_sow);
+      var ipaStatus = getDocStatus(sol.ipa);
+      var icdStatus = getDocStatus(sol.icd);
+      var ttaStatus = getDocStatus(sol.tta);
+
+      docs.project_plan[ppStatus]++;
+      docs.science_sow[sowStatus]++;
+      docs.ipa[ipaStatus]++;
+      docs.icd[icdStatus]++;
+      docs.tta[ttaStatus]++;
+    });
+
+    // Update UI - show counts as "X / Y / Z" (complete / in_work / not_started)
+    updateDocElement('docProjectPlan', docs.project_plan);
+    updateDocElement('docScienceSow', docs.science_sow);
+    updateDocElement('docIpa', docs.ipa);
+    updateDocElement('docIcd', docs.icd);
+    updateDocElement('docTta', docs.tta);
+  }
+
+  function updateDocElement(elementId, counts) {
+    var el = document.getElementById(elementId);
+    if (!el) return;
+
+    var total = counts.complete + counts.in_work + counts.not_started;
+    if (total === 0) {
+      el.textContent = '--';
+      el.className = 'doc-status';
+      return;
+    }
+
+    // Show as "complete / in_work"
+    el.textContent = counts.complete + ' / ' + counts.in_work;
+
+    // Color based on majority status
+    if (counts.in_work > 0) {
+      el.className = 'doc-status status-in-work';
+    } else if (counts.complete > 0) {
+      el.className = 'doc-status status-complete';
+    } else {
+      el.className = 'doc-status status-not-started';
+    }
+  }
+
+  function renderDocStatusRow(label, value) {
+    var status = getDocStatus(value);
+    var statusText = '--';
+    var statusClass = '';
+
+    if (status === 'complete') {
+      var d = parseDate(value);
+      statusText = d ? formatDateDisplay(value) : 'Complete';
+      statusClass = 'doc-badge-complete';
+    } else if (status === 'in_work') {
+      statusText = 'In Progress';
+      statusClass = 'doc-badge-in-work';
+    } else {
+      statusText = '--';
+      statusClass = 'doc-badge-not-started';
+    }
+
+    return '<div class="doc-status-row">' +
+      '<span class="doc-status-label">' + escapeHtml(label) + '</span>' +
+      '<span class="doc-badge ' + statusClass + '">' + statusText + '</span>' +
+      '</div>';
+  }
+
   function updateTrackingStats() {
     // Calculate based on filtered solutions (current view)
     var daacCount = 0;
@@ -1112,6 +1273,7 @@ var Implementation = (function() {
     updateStats(); // Update stats based on filtered view
     updateMilestones(); // Update milestones based on filtered view
     updateTrackingStats(); // Update tracking stats based on filtered view
+    updateDocuments(); // Update document administration panel
     render();
   }
 
@@ -1368,6 +1530,21 @@ var Implementation = (function() {
     if (sol.science_sow_url) html += '<a href="' + escapeHtml(sol.science_sow_url) + '" target="_blank" class="solution-action-btn"><span data-feather="file"></span>Science SOW</a>';
     if (sol.risk_register_url) html += '<a href="' + escapeHtml(sol.risk_register_url) + '" target="_blank" class="solution-action-btn"><span data-feather="alert-triangle"></span>Risk Register</a>';
     if (sol.data_product_table_url) html += '<a href="' + escapeHtml(sol.data_product_table_url) + '" target="_blank" class="solution-action-btn"><span data-feather="table"></span>Data Products</a>';
+    html += '</div></div>';
+
+    // Document Status section
+    html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
+    html += '<div class="detail-section-title">Document Status</div>';
+    html += '<div class="doc-status-grid">';
+    html += renderDocStatusRow('Project Plan', sol.project_plan);
+    html += renderDocStatusRow('Science SOW', sol.science_sow);
+    html += renderDocStatusRow('IPA', sol.ipa);
+    html += renderDocStatusRow('ICD', sol.icd);
+    html += renderDocStatusRow('TTA', sol.tta);
+    html += renderDocStatusRow('ATP Memo', sol.atp_memo);
+    html += renderDocStatusRow('F2I Memo', sol.f2i_memo);
+    html += renderDocStatusRow('ORR Memo', sol.orr_memo);
+    html += renderDocStatusRow('Closeout Memo', sol.closeout_memo);
     html += '</div></div>';
 
     // Milestones section
