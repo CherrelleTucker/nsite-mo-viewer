@@ -135,13 +135,12 @@
 
     function navigateTo(page) {
       // Always do full page navigation for reliability
-      // Use the server-rendered baseUrl, falling back to current origin + pathname
       var baseUrl = Platform.baseUrl;
-      if (!baseUrl || baseUrl === 'null' || baseUrl === 'undefined') {
-        // Fallback: reconstruct from current URL (remove query params)
-        baseUrl = window.location.origin + window.location.pathname;
+      if (!baseUrl) {
+        // Fallback: use current URL without query params
+        baseUrl = window.location.href.split('?')[0];
       }
-      window.location.href = baseUrl + '?page=' + page;
+      window.top.location.href = baseUrl + '?page=' + page;
     }
 
     function updateNavActiveState() {
