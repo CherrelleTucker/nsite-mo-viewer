@@ -45,6 +45,8 @@
         <?!= include('contacts'); ?>
       <? } else if (activePage === 'schedule') { ?>
         <?!= include('schedule'); ?>
+      <? } else if (activePage === 'reports') { ?>
+        <?!= include('reports'); ?>
       <? } else { ?>
         <!-- Placeholder for pages not yet built -->
         <div class="page-placeholder">
@@ -126,9 +128,42 @@
     // NAVIGATION
     // ========================================================================
 
+    var isNavigating = false;
+
     function navigateTo(page) {
-      // Always do full page navigation for reliability
-      var baseUrl = Platform.baseUrl || window.location.pathname;
+      // Prevent double-clicks and multiple navigations
+      if (isNavigating) {
+        console.log('Navigation already in progress');
+        return;
+      }
+
+      // Don't navigate to current page
+      if (page === Platform.activePage) {
+        console.log('Already on page:', page);
+        return;
+      }
+
+      isNavigating = true;
+
+      // Show loading state on clicked tab
+      var clickedTab = document.querySelector('[data-page="' + page + '"]');
+      if (clickedTab) {
+        clickedTab.classList.add('loading');
+      }
+
+      // Disable all nav tabs during navigation
+      document.querySelectorAll('.nav-tab').forEach(function(tab) {
+        tab.disabled = true;
+      });
+
+      // Get base URL - prefer the server-rendered value, fall back to current URL
+      var baseUrl = Platform.baseUrl;
+      if (!baseUrl || baseUrl === 'undefined' || baseUrl === '') {
+        // Extract base URL from current location (remove any existing query params)
+        baseUrl = window.location.href.split('?')[0];
+      }
+
+      console.log('Navigating to:', page, 'baseUrl:', baseUrl);
       window.location.href = baseUrl + '?page=' + page;
     }
 

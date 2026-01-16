@@ -1,11 +1,26 @@
 # Next Development Steps
 
 **Last Updated:** 2026-01-16
-**Current Version:** 0.7.0
+**Current Version:** 0.8.0
 
 ---
 
-## Completed This Session (2026-01-16)
+## Completed This Session (2026-01-16) - Reports
+
+- [x] Created `reports.html` - Reports tab UI with card-based interface
+- [x] Created `quicklook-generator.gs` - QuickLook CSV report generator
+  - Milestone status report for leadership
+  - Export to Google Drive with email notification option
+  - Scheduled export function for triggers
+- [x] Created `quadchart-data.gs` - Quad Chart data generator
+  - Four quadrants: Updates, Milestones, Actions, Decisions
+  - Configurable lookback/lookahead periods
+  - Text export for copy/paste into slides
+- [x] Added routing for Reports tab in index.html
+- [x] Preview functionality for all reports
+- [x] Detailed milestone report with statistics
+
+## Completed Earlier This Session (2026-01-16) - Schedule
 
 - [x] Consolidated milestones into MO-DB_Solutions (atp_date, f2i_date, orr_date, closeout_date)
 - [x] Updated Implementation Milestones panel to show ATP DG, F2I DG, ORR, Closeout
@@ -95,8 +110,11 @@ deploy/
 ├── index.html              # Platform shell
 ├── milestones-api.gs       # Milestones data API
 ├── navigation.html         # Tab navigation
+├── quadchart-data.gs       # Quad Chart report generator
 ├── quick-update.html       # Quick Update Form UI
 ├── quick-update-handlers.gs # Quick Update backend
+├── quicklook-generator.gs  # QuickLook CSV report generator
+├── reports.html            # Reports tab UI
 ├── schedule.html           # Schedule timeline view
 ├── solutions-api.gs        # Solutions data API
 └── styles.html             # Shared CSS

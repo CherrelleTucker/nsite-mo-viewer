@@ -12,8 +12,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned
 - Phase 5: SEP-NSITE (stakeholder engagement tracking)
 - Phase 6: Comms-NSITE (communications/story tracking)
-- Phase 7: Shared Resources (reports, action tracker)
-- Phase 8: Automation & Sync
+- Phase 8: Automation & Sync (scheduled exports, email notifications)
+
+---
+
+## [0.8.0] - 2026-01-16
+
+### Added - Reports Tab (Phase 7 - Shared Resources)
+- **Reports tab** (`reports.html`) - report generation and export UI
+  - Card-based interface for each report type
+  - Preview reports before downloading
+  - Filter options (cycle, default solutions only)
+- **QuickLook CSV Generator** (`quicklook-generator.gs`)
+  - Milestone status report for leadership
+  - Columns: Solution, Cycle, Phase, ATP DG, F2I DG, ORR, Closeout, Memos
+  - Export to Google Drive with optional email notification
+  - `generateQuickLookData()` - get report data as JSON
+  - `generateQuickLookCSV()` - get CSV string
+  - `exportQuickLookToGoogleDrive()` - save to Drive
+  - `exportQuickLookWithEmail()` - save and send notification
+  - `scheduledQuickLookExport()` - for time-based triggers
+- **Quad Chart Data Generator** (`quadchart-data.gs`)
+  - Weekly status summary for meeting slides
+  - Four quadrants: Updates, Milestones, Actions, Decisions
+  - `generateQuadChartData()` - complete quad chart JSON
+  - `generateQuadChartText()` - plain text for copy/paste
+  - `getMilestoneSummaryForSlides()` - milestone-focused view
+  - Configurable lookback/lookahead periods
+- **Detailed Milestone Report**
+  - Full milestone analysis with statistics
+  - Breakdowns by phase, cycle, document status
+
+### Changed
+- **index.html** - added routing for reports tab
+- **reports/README.md** files now reference implemented generators
 
 ---
 

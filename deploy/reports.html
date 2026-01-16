@@ -1,0 +1,847 @@
+<!-- Reports View -->
+<!-- QuickLook CSV and Quad Chart report generation -->
+
+<div class="reports-viewer">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Reports</h1>
+      <p class="page-subtitle">Generate and export reports</p>
+    </div>
+  </div>
+
+  <!-- Report Cards -->
+  <div class="report-cards">
+    <!-- QuickLook CSV Card -->
+    <div class="report-card">
+      <div class="report-card-header">
+        <div class="report-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+          <span data-feather="file-text"></span>
+        </div>
+        <div class="report-title-area">
+          <h3>QuickLook CSV</h3>
+          <p class="report-description">Milestone status report for leadership</p>
+        </div>
+      </div>
+      <div class="report-card-body">
+        <div class="report-info">
+          <p><strong>Columns:</strong> Solution, Cycle, Phase, ATP DG, F2I DG, ORR, Closeout, Memos</p>
+          <p><strong>Audience:</strong> Leadership, Program Managers</p>
+        </div>
+        <div class="report-options">
+          <label class="checkbox-label">
+            <input type="checkbox" id="quicklookDefaultOnly" checked>
+            Default solutions only
+          </label>
+          <div class="filter-inline">
+            <label>Cycle:</label>
+            <select id="quicklookCycle" class="form-select form-select-sm">
+              <option value="">All Cycles</option>
+              <option value="1">C1</option>
+              <option value="2">C2</option>
+              <option value="3">C3</option>
+              <option value="4">C4</option>
+              <option value="5">C5</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="report-card-actions">
+        <button class="btn btn-secondary" onclick="Reports.previewQuickLook()">
+          <span data-feather="eye"></span>
+          Preview
+        </button>
+        <button class="btn btn-primary" onclick="Reports.downloadQuickLook()">
+          <span data-feather="download"></span>
+          Download CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- Quad Chart Card -->
+    <div class="report-card">
+      <div class="report-card-header">
+        <div class="report-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+          <span data-feather="grid"></span>
+        </div>
+        <div class="report-title-area">
+          <h3>Quad Chart</h3>
+          <p class="report-description">Weekly status summary for slides</p>
+        </div>
+      </div>
+      <div class="report-card-body">
+        <div class="report-info">
+          <p><strong>Quadrants:</strong> Updates, Milestones, Actions, Decisions</p>
+          <p><strong>Audience:</strong> Weekly team meetings</p>
+        </div>
+        <div class="report-options">
+          <div class="filter-inline">
+            <label>Look Back:</label>
+            <select id="quadDaysBack" class="form-select form-select-sm">
+              <option value="7">7 days</option>
+              <option value="14">14 days</option>
+              <option value="30">30 days</option>
+            </select>
+          </div>
+          <div class="filter-inline">
+            <label>Look Ahead:</label>
+            <select id="quadDaysAhead" class="form-select form-select-sm">
+              <option value="14">14 days</option>
+              <option value="30" selected>30 days</option>
+              <option value="60">60 days</option>
+              <option value="90">90 days</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="report-card-actions">
+        <button class="btn btn-secondary" onclick="Reports.previewQuadChart()">
+          <span data-feather="eye"></span>
+          Preview
+        </button>
+        <button class="btn btn-primary" onclick="Reports.copyQuadChartText()">
+          <span data-feather="copy"></span>
+          Copy for Slides
+        </button>
+      </div>
+    </div>
+
+    <!-- Detailed Report Card -->
+    <div class="report-card">
+      <div class="report-card-header">
+        <div class="report-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+          <span data-feather="bar-chart-2"></span>
+        </div>
+        <div class="report-title-area">
+          <h3>Detailed Milestone Report</h3>
+          <p class="report-description">Full milestone analysis with statistics</p>
+        </div>
+      </div>
+      <div class="report-card-body">
+        <div class="report-info">
+          <p><strong>Includes:</strong> All milestones, document status, phase breakdowns</p>
+          <p><strong>Statistics:</strong> By cycle, by phase, completion rates</p>
+        </div>
+      </div>
+      <div class="report-card-actions">
+        <button class="btn btn-secondary" onclick="Reports.previewDetailedReport()">
+          <span data-feather="eye"></span>
+          Preview
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preview Panel -->
+  <div class="preview-panel" id="previewPanel" style="display: none;">
+    <div class="preview-header">
+      <h3 id="previewTitle">Report Preview</h3>
+      <div class="preview-actions">
+        <button class="btn btn-sm btn-secondary" onclick="Reports.copyPreview()">
+          <span data-feather="copy"></span>
+          Copy
+        </button>
+        <button class="btn btn-sm btn-icon" onclick="Reports.closePreview()">
+          <span data-feather="x"></span>
+        </button>
+      </div>
+    </div>
+    <div class="preview-content" id="previewContent">
+      <!-- Dynamic content -->
+    </div>
+    <div class="preview-footer">
+      <span class="preview-meta" id="previewMeta"></span>
+    </div>
+  </div>
+
+  <!-- Coming Soon Notice -->
+  <div class="coming-soon-notice">
+    <span data-feather="info"></span>
+    <span><strong>Coming soon:</strong> Scheduled report generation, email notifications, custom report builder</span>
+  </div>
+</div>
+
+<!-- Reports Styles -->
+<style>
+  .reports-viewer {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Page Header */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-lg);
+  }
+
+  .page-title h1 {
+    font-size: var(--font-size-xxl);
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: var(--space-xs);
+  }
+
+  .page-subtitle {
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+  }
+
+  /* Report Cards Grid */
+  .report-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+  }
+
+  /* Report Card */
+  .report-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .report-card-header {
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .report-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .report-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .report-title-area h3 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+  }
+
+  .report-description {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .report-card-body {
+    padding: var(--space-md) var(--space-lg);
+    flex: 1;
+  }
+
+  .report-info {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-md);
+  }
+
+  .report-info p {
+    margin-bottom: var(--space-xs);
+  }
+
+  .report-info strong {
+    color: var(--color-text);
+  }
+
+  .report-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    align-items: center;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+  }
+
+  .filter-inline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-sm);
+  }
+
+  .filter-inline label {
+    color: var(--color-text-secondary);
+  }
+
+  .form-select-sm {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+  }
+
+  .report-card-actions {
+    display: flex;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-lg);
+    background: var(--color-surface-alt);
+    border-top: 1px solid var(--color-border-light);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: none;
+  }
+
+  .btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .btn-primary {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: var(--color-primary-light);
+  }
+
+  .btn-secondary {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+  }
+
+  .btn-secondary:hover {
+    background: var(--color-surface-alt);
+  }
+
+  .btn-sm {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-xs);
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--color-text-secondary);
+    border-radius: var(--radius-sm);
+  }
+
+  .btn-icon:hover {
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+  }
+
+  /* Preview Panel */
+  .preview-panel {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--space-xl);
+    overflow: hidden;
+  }
+
+  .preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--color-border-light);
+    background: var(--color-surface-alt);
+  }
+
+  .preview-header h3 {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+  }
+
+  .preview-actions {
+    display: flex;
+    gap: var(--space-sm);
+  }
+
+  .preview-content {
+    padding: var(--space-lg);
+    max-height: 500px;
+    overflow-y: auto;
+  }
+
+  .preview-footer {
+    padding: var(--space-sm) var(--space-lg);
+    border-top: 1px solid var(--color-border-light);
+    background: var(--color-surface-alt);
+  }
+
+  .preview-meta {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  /* Preview Table */
+  .preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+
+  .preview-table th,
+  .preview-table td {
+    padding: var(--space-sm) var(--space-md);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .preview-table th {
+    background: var(--color-surface-alt);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    position: sticky;
+    top: 0;
+  }
+
+  .preview-table tr:hover td {
+    background: var(--color-surface-alt);
+  }
+
+  /* Quad Chart Preview */
+  .quad-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+  }
+
+  .quad-section {
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+  }
+
+  .quad-section h4 {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: var(--space-sm);
+    padding-bottom: var(--space-xs);
+    border-bottom: 2px solid var(--color-primary);
+  }
+
+  .quad-section ul {
+    list-style: none;
+    font-size: var(--font-size-sm);
+  }
+
+  .quad-section li {
+    padding: var(--space-xs) 0;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .quad-solution {
+    font-weight: 500;
+  }
+
+  .quad-detail {
+    color: var(--color-text-secondary);
+  }
+
+  .quad-badge {
+    font-size: var(--font-size-xs);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    background: var(--color-primary);
+    color: white;
+  }
+
+  .quad-badge.urgent {
+    background: #ef4444;
+  }
+
+  .quad-badge.soon {
+    background: #f97316;
+  }
+
+  /* Stats Preview */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+
+  .stat-item {
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    text-align: center;
+  }
+
+  .stat-item .stat-value {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--color-primary);
+    display: block;
+  }
+
+  .stat-item .stat-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+  }
+
+  /* Coming Soon Notice */
+  .coming-soon-notice {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .coming-soon-notice svg {
+    width: 16px;
+    height: 16px;
+    color: var(--color-info);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .report-cards {
+      grid-template-columns: 1fr;
+    }
+
+    .quad-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .report-options {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>
+
+<!-- Reports JavaScript -->
+<script>
+  var Reports = (function() {
+    var previewData = null;
+
+    function getQuickLookOptions() {
+      return {
+        defaultOnly: document.getElementById('quicklookDefaultOnly').checked,
+        cycle: document.getElementById('quicklookCycle').value || null
+      };
+    }
+
+    function getQuadChartOptions() {
+      return {
+        daysBack: parseInt(document.getElementById('quadDaysBack').value) || 7,
+        daysAhead: parseInt(document.getElementById('quadDaysAhead').value) || 30
+      };
+    }
+
+    function showPreview(title, content, meta) {
+      document.getElementById('previewTitle').textContent = title;
+      document.getElementById('previewContent').innerHTML = content;
+      document.getElementById('previewMeta').textContent = meta || '';
+      document.getElementById('previewPanel').style.display = 'block';
+      document.getElementById('previewPanel').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function previewQuickLook() {
+      var options = getQuickLookOptions();
+
+      showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating report...</p></div>', '');
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          previewData = data;
+          var html = renderQuickLookTable(data);
+          var meta = 'Generated: ' + new Date(data.generated).toLocaleString() + ' | ' + data.count + ' solutions';
+          showPreview('QuickLook CSV Preview', html, meta);
+        })
+        .withFailureHandler(function(err) {
+          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + err.message + '</p>', '');
+        })
+        .getQuickLookReport(options);
+    }
+
+    function renderQuickLookTable(data) {
+      var html = '<table class="preview-table">';
+      html += '<thead><tr>';
+      data.headers.forEach(function(h) {
+        html += '<th>' + escapeHtml(h) + '</th>';
+      });
+      html += '</tr></thead><tbody>';
+
+      data.rows.forEach(function(row) {
+        html += '<tr>';
+        row.forEach(function(cell) {
+          html += '<td>' + escapeHtml(cell) + '</td>';
+        });
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+      return html;
+    }
+
+    function downloadQuickLook() {
+      var options = getQuickLookOptions();
+
+      // Show loading feedback
+      var btn = event.target.closest('button');
+      var originalText = btn.innerHTML;
+      btn.innerHTML = '<span class="loading-spinner" style="width:16px;height:16px;margin-right:4px;"></span>Exporting...';
+      btn.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+          window.open(result.url, '_blank');
+          showNotification('CSV exported: ' + result.fileName, 'success');
+        })
+        .withFailureHandler(function(err) {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+          showNotification('Export failed: ' + err.message, 'error');
+        })
+        .downloadQuickLookCSV(options);
+    }
+
+    function previewQuadChart() {
+      var options = getQuadChartOptions();
+
+      showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating quad chart...</p></div>', '');
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          previewData = data;
+          var html = renderQuadChart(data);
+          var meta = 'Generated: ' + new Date(data.generated).toLocaleString();
+          showPreview('Quad Chart Preview', html, meta);
+        })
+        .withFailureHandler(function(err) {
+          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate quad chart: ' + err.message + '</p>', '');
+        })
+        .getQuadChartReport(options);
+    }
+
+    function renderQuadChart(data) {
+      var q = data.quadrants;
+
+      var html = '<div class="quad-grid">';
+
+      // Quadrant 1: Updates
+      html += '<div class="quad-section">';
+      html += '<h4>' + q.updates.title + ' (' + q.updates.count + ')</h4>';
+      html += '<ul>';
+      q.updates.items.slice(0, 6).forEach(function(item) {
+        html += '<li><span class="quad-solution">' + escapeHtml(item.solution) + '</span>';
+        html += '<span class="quad-detail">' + escapeHtml(item.cycle + ' ' + item.phase) + '</span></li>';
+      });
+      if (q.updates.count === 0) html += '<li class="quad-detail">No updates this period</li>';
+      html += '</ul></div>';
+
+      // Quadrant 2: Milestones
+      html += '<div class="quad-section">';
+      html += '<h4>' + q.milestones.title + ' (' + q.milestones.count + ')</h4>';
+      html += '<ul>';
+      q.milestones.items.slice(0, 6).forEach(function(item) {
+        var badgeClass = item.urgency === 'urgent' ? 'urgent' : (item.urgency === 'soon' ? 'soon' : '');
+        html += '<li><span class="quad-solution">' + escapeHtml(item.solution) + ': ' + escapeHtml(item.milestone) + '</span>';
+        html += '<span class="quad-badge ' + badgeClass + '">' + escapeHtml(item.date) + '</span></li>';
+      });
+      if (q.milestones.count === 0) html += '<li class="quad-detail">No upcoming milestones</li>';
+      html += '</ul></div>';
+
+      // Quadrant 3: Actions
+      html += '<div class="quad-section">';
+      html += '<h4>' + q.actions.title + ' (' + q.actions.count + ')</h4>';
+      html += '<ul>';
+      q.actions.items.slice(0, 6).forEach(function(item) {
+        html += '<li><span class="quad-solution">' + escapeHtml(item.solution) + '</span>';
+        html += '<span class="quad-detail">' + escapeHtml(truncate(item.action, 40)) + '</span></li>';
+      });
+      if (q.actions.count === 0) html += '<li class="quad-detail">No open actions</li>';
+      if (q.actions.note) html += '<li class="quad-detail" style="font-style:italic;">' + escapeHtml(q.actions.note) + '</li>';
+      html += '</ul></div>';
+
+      // Quadrant 4: Decisions
+      html += '<div class="quad-section">';
+      html += '<h4>' + q.decisions.title + ' (' + q.decisions.count + ')</h4>';
+      html += '<ul>';
+      q.decisions.items.slice(0, 6).forEach(function(item) {
+        var decisions = item.decisions.map(function(d) { return d.type; }).join(', ');
+        html += '<li><span class="quad-solution">' + escapeHtml(item.solution) + '</span>';
+        html += '<span class="quad-detail">' + escapeHtml(truncate(decisions, 40)) + '</span></li>';
+      });
+      if (q.decisions.count === 0) html += '<li class="quad-detail">No pending decisions</li>';
+      html += '</ul></div>';
+
+      html += '</div>';
+
+      return html;
+    }
+
+    function copyQuadChartText() {
+      var options = getQuadChartOptions();
+
+      google.script.run
+        .withSuccessHandler(function(text) {
+          copyToClipboard(text);
+          showNotification('Quad chart text copied to clipboard', 'success');
+        })
+        .withFailureHandler(function(err) {
+          showNotification('Failed to generate text: ' + err.message, 'error');
+        })
+        .generateQuadChartText(options);
+    }
+
+    function previewDetailedReport() {
+      var options = getQuickLookOptions();
+
+      showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating detailed report...</p></div>', '');
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          previewData = data;
+          var html = renderDetailedReport(data);
+          var meta = 'Generated: ' + new Date(data.generated).toLocaleString() + ' | ' + data.count + ' solutions';
+          showPreview('Detailed Milestone Report', html, meta);
+        })
+        .withFailureHandler(function(err) {
+          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + err.message + '</p>', '');
+        })
+        .generateDetailedMilestoneReport(options);
+    }
+
+    function renderDetailedReport(data) {
+      var s = data.stats;
+
+      // Stats grid
+      var html = '<div class="stats-grid">';
+      html += '<div class="stat-item"><span class="stat-value">' + s.total + '</span><span class="stat-label">Total Solutions</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + s.milestonesCompleted + '</span><span class="stat-label">Milestones Completed</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + s.milestonesUpcoming90 + '</span><span class="stat-label">Upcoming (90 days)</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + s.documentsComplete + '</span><span class="stat-label">Docs Complete</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + s.documentsInWork + '</span><span class="stat-label">Docs In Work</span></div>';
+      html += '</div>';
+
+      // Phase breakdown
+      html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">By Phase</h4>';
+      html += '<div class="stats-grid">';
+      Object.keys(s.byPhase).forEach(function(phase) {
+        html += '<div class="stat-item"><span class="stat-value">' + s.byPhase[phase] + '</span><span class="stat-label">' + escapeHtml(phase) + '</span></div>';
+      });
+      html += '</div>';
+
+      // Cycle breakdown
+      html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">By Cycle</h4>';
+      html += '<div class="stats-grid">';
+      Object.keys(s.byCycle).sort().forEach(function(cycle) {
+        html += '<div class="stat-item"><span class="stat-value">' + s.byCycle[cycle] + '</span><span class="stat-label">' + escapeHtml(cycle) + '</span></div>';
+      });
+      html += '</div>';
+
+      // Data table
+      html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">Solutions</h4>';
+      html += renderQuickLookTable(data);
+
+      return html;
+    }
+
+    function copyPreview() {
+      if (!previewData) return;
+
+      // Convert table to tab-separated text for pasting
+      var lines = [];
+      if (previewData.headers) {
+        lines.push(previewData.headers.join('\t'));
+        previewData.rows.forEach(function(row) {
+          lines.push(row.join('\t'));
+        });
+      }
+      copyToClipboard(lines.join('\n'));
+      showNotification('Data copied to clipboard', 'success');
+    }
+
+    function closePreview() {
+      document.getElementById('previewPanel').style.display = 'none';
+      previewData = null;
+    }
+
+    // Utility functions
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, function(c) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+      });
+    }
+
+    function truncate(str, len) {
+      if (!str) return '';
+      return str.length > len ? str.substring(0, len) + '...' : str;
+    }
+
+    function copyToClipboard(text) {
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+
+    function showNotification(message, type) {
+      // Simple alert for now - could be enhanced with toast notifications
+      if (type === 'error') {
+        alert('Error: ' + message);
+      } else {
+        console.log(message);
+        // Could show a toast notification here
+      }
+    }
+
+    // Public API
+    return {
+      previewQuickLook: previewQuickLook,
+      downloadQuickLook: downloadQuickLook,
+      previewQuadChart: previewQuadChart,
+      copyQuadChartText: copyQuadChartText,
+      previewDetailedReport: previewDetailedReport,
+      copyPreview: copyPreview,
+      closePreview: closePreview
+    };
+  })();
+</script>

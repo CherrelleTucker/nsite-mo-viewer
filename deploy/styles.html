@@ -319,6 +319,23 @@ button {
 .text-sm { font-size: var(--font-size-sm); }
 .mt-md { margin-top: var(--space-md); }
 
+/* Navigation Loading State */
+.nav-tab.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.nav-tab.loading::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-left: var(--space-xs);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .subtitle { display: none; }
