@@ -16,6 +16,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.0] - 2026-01-16
+
+### Added - Advanced Stakeholder Reports
+- **stakeholder-solution-alignment.gs** - Four advanced report generators
+  - **Need Alignment (Implementation)**: Compare solution characteristics with stakeholder engagement
+    - Shows purpose, thematic areas, alignment score
+    - Stakeholders by role, department, survey year
+  - **Stakeholder Coverage (SEP)**: Department/agency engagement across solutions
+    - Coverage by department with contact counts
+    - Identifies solutions without stakeholder engagement (gaps)
+  - **Engagement Funnel (SEP)**: Track stakeholder progression through pipeline
+    - Survey Submitter → Secondary SME → Primary SME
+    - Conversion rates, multi-role stakeholders
+    - Solutions needing Primary SME engagement
+  - **Department Reach (Comms)**: Solution coverage across federal departments
+    - Broadest reach solutions, department engagement matrix
+- **reports.html** - Added Advanced Stakeholder Reports section
+  - Color-coded badges (Implementation/SEP/Comms)
+  - Funnel visualization, alignment scores
+  - Preview all four report types
+
+### Changed
+- Updated reports.html with section headers and new styling
+- Added funnel, alignment score, and badge CSS styles
+
+---
+
 ## [0.8.0] - 2026-01-16
 
 ### Added - Reports Tab (Phase 7 - Shared Resources)

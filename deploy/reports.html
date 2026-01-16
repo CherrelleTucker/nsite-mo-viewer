@@ -132,6 +132,118 @@
     </div>
   </div>
 
+  <!-- Advanced Stakeholder Reports Section -->
+  <div class="section-header">
+    <h2>Advanced Stakeholder Reports</h2>
+    <p class="section-subtitle">Compare stakeholder needs with solution characteristics</p>
+  </div>
+
+  <div class="report-cards">
+    <!-- Need Alignment (Implementation) -->
+    <div class="report-card">
+      <div class="report-card-header">
+        <div class="report-icon" style="background: rgba(46, 125, 50, 0.1); color: #2E7D32;">
+          <span data-feather="git-merge"></span>
+        </div>
+        <div class="report-title-area">
+          <h3>Need Alignment</h3>
+          <p class="report-description">Solution characteristics vs stakeholder engagement</p>
+        </div>
+        <span class="report-badge implementation">Implementation</span>
+      </div>
+      <div class="report-card-body">
+        <div class="report-info">
+          <p><strong>Shows:</strong> Purpose, characteristics, thematic areas, alignment score</p>
+          <p><strong>Data:</strong> Earthdata content + stakeholder engagement metrics</p>
+        </div>
+      </div>
+      <div class="report-card-actions">
+        <button class="btn btn-secondary" onclick="Reports.previewNeedAlignment()">
+          <span data-feather="eye"></span>
+          Preview
+        </button>
+      </div>
+    </div>
+
+    <!-- Stakeholder Coverage (SEP) -->
+    <div class="report-card">
+      <div class="report-card-header">
+        <div class="report-icon" style="background: rgba(21, 101, 192, 0.1); color: #1565C0;">
+          <span data-feather="map"></span>
+        </div>
+        <div class="report-title-area">
+          <h3>Stakeholder Coverage</h3>
+          <p class="report-description">Department and agency engagement across solutions</p>
+        </div>
+        <span class="report-badge sep">SEP</span>
+      </div>
+      <div class="report-card-body">
+        <div class="report-info">
+          <p><strong>Shows:</strong> Which departments engage with which solutions</p>
+          <p><strong>Identifies:</strong> Coverage gaps and engagement patterns</p>
+        </div>
+      </div>
+      <div class="report-card-actions">
+        <button class="btn btn-secondary" onclick="Reports.previewStakeholderCoverage()">
+          <span data-feather="eye"></span>
+          Preview
+        </button>
+      </div>
+    </div>
+
+    <!-- Engagement Funnel (SEP) -->
+    <div class="report-card">
+      <div class="report-card-header">
+        <div class="report-icon" style="background: rgba(21, 101, 192, 0.1); color: #1565C0;">
+          <span data-feather="filter"></span>
+        </div>
+        <div class="report-title-area">
+          <h3>Engagement Funnel</h3>
+          <p class="report-description">Track stakeholder progression through pipeline</p>
+        </div>
+        <span class="report-badge sep">SEP</span>
+      </div>
+      <div class="report-card-body">
+        <div class="report-info">
+          <p><strong>Tracks:</strong> Survey Submitter → Secondary SME → Primary SME</p>
+          <p><strong>Shows:</strong> Conversion rates, opportunities, top engaged</p>
+        </div>
+      </div>
+      <div class="report-card-actions">
+        <button class="btn btn-secondary" onclick="Reports.previewEngagementFunnel()">
+          <span data-feather="eye"></span>
+          Preview
+        </button>
+      </div>
+    </div>
+
+    <!-- Department Reach (Comms) -->
+    <div class="report-card">
+      <div class="report-card-header">
+        <div class="report-icon" style="background: rgba(123, 31, 162, 0.1); color: #7B1FA2;">
+          <span data-feather="share-2"></span>
+        </div>
+        <div class="report-title-area">
+          <h3>Department Reach</h3>
+          <p class="report-description">Solution coverage across federal departments</p>
+        </div>
+        <span class="report-badge comms">Comms</span>
+      </div>
+      <div class="report-card-body">
+        <div class="report-info">
+          <p><strong>Shows:</strong> Which solutions reach which departments</p>
+          <p><strong>Useful for:</strong> Communications planning and outreach</p>
+        </div>
+      </div>
+      <div class="report-card-actions">
+        <button class="btn btn-secondary" onclick="Reports.previewDepartmentReach()">
+          <span data-feather="eye"></span>
+          Preview
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Preview Panel -->
   <div class="preview-panel" id="previewPanel" style="display: none;">
     <div class="preview-header">
@@ -533,6 +645,109 @@
     color: var(--color-info);
   }
 
+  /* Section Header */
+  .section-header {
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-md);
+    border-bottom: 2px solid var(--color-border-light);
+  }
+
+  .section-header h2 {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: var(--space-xs);
+  }
+
+  .section-subtitle {
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+  }
+
+  /* Report Badges */
+  .report-badge {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: auto;
+  }
+
+  .report-badge.implementation {
+    background: rgba(46, 125, 50, 0.1);
+    color: #2E7D32;
+  }
+
+  .report-badge.sep {
+    background: rgba(21, 101, 192, 0.1);
+    color: #1565C0;
+  }
+
+  .report-badge.comms {
+    background: rgba(123, 31, 162, 0.1);
+    color: #7B1FA2;
+  }
+
+  /* Alignment Score */
+  .alignment-score {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+  }
+
+  .alignment-score.high {
+    background: rgba(46, 125, 50, 0.1);
+    color: #2E7D32;
+  }
+
+  .alignment-score.medium {
+    background: rgba(237, 108, 2, 0.1);
+    color: #ED6C02;
+  }
+
+  .alignment-score.low {
+    background: rgba(211, 47, 47, 0.1);
+    color: #D32F2F;
+  }
+
+  /* Funnel visualization */
+  .funnel-stage {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-xs);
+  }
+
+  .funnel-bar {
+    height: 24px;
+    background: var(--color-primary);
+    border-radius: var(--radius-sm);
+    transition: width 0.3s ease;
+  }
+
+  .funnel-label {
+    min-width: 140px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+  }
+
+  .funnel-count {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    min-width: 80px;
+    text-align: right;
+  }
+
   /* Responsive */
   @media (max-width: 768px) {
     .report-cards {
@@ -833,6 +1048,236 @@
       }
     }
 
+    // ========================================================================
+    // ADVANCED STAKEHOLDER REPORTS
+    // ========================================================================
+
+    function previewNeedAlignment() {
+      showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating need alignment report...</p></div>', '');
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          previewData = data;
+          var html = renderNeedAlignmentReport(data);
+          var meta = 'Generated: ' + new Date(data.generated).toLocaleString() + ' | ' + data.count + ' solutions';
+          showPreview('Need Alignment Report', html, meta);
+        })
+        .withFailureHandler(function(err) {
+          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + err.message + '</p>', '');
+        })
+        .getNeedAlignmentReport({});
+    }
+
+    function renderNeedAlignmentReport(data) {
+      var html = '';
+
+      // Summary stats
+      html += '<div class="stats-grid">';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.totalSolutions + '</span><span class="stat-label">Total Solutions</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.totalStakeholders + '</span><span class="stat-label">Stakeholders</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.solutionsWithEngagement + '</span><span class="stat-label">With Engagement</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.averageAlignmentScore + '%</span><span class="stat-label">Avg Score</span></div>';
+      html += '</div>';
+
+      // Alignment table
+      html += '<table class="preview-table">';
+      html += '<thead><tr><th>Solution</th><th>Cycle</th><th>Phase</th><th>Stakeholders</th><th>Primary SMEs</th><th>Score</th></tr></thead>';
+      html += '<tbody>';
+
+      data.alignments.forEach(function(a) {
+        var scoreClass = a.alignmentScore >= 70 ? 'high' : (a.alignmentScore >= 40 ? 'medium' : 'low');
+        var primaryCount = a.stakeholders.byRole['Primary SME'] || 0;
+        html += '<tr>';
+        html += '<td><strong>' + escapeHtml(a.solution) + '</strong></td>';
+        html += '<td>' + escapeHtml(a.cycle) + '</td>';
+        html += '<td>' + escapeHtml(a.phase) + '</td>';
+        html += '<td>' + a.stakeholders.total + '</td>';
+        html += '<td>' + primaryCount + '</td>';
+        html += '<td><span class="alignment-score ' + scoreClass + '">' + a.alignmentScore + '%</span></td>';
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+      return html;
+    }
+
+    function previewStakeholderCoverage() {
+      showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating stakeholder coverage report...</p></div>', '');
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          previewData = data;
+          var html = renderStakeholderCoverageReport(data);
+          var meta = 'Generated: ' + new Date(data.generated).toLocaleString();
+          showPreview('Stakeholder Coverage Report', html, meta);
+        })
+        .withFailureHandler(function(err) {
+          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + err.message + '</p>', '');
+        })
+        .getStakeholderCoverageReport({});
+    }
+
+    function renderStakeholderCoverageReport(data) {
+      var html = '';
+
+      // Summary stats
+      html += '<div class="stats-grid">';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.totalDepartments + '</span><span class="stat-label">Departments</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.totalAgencies + '</span><span class="stat-label">Agencies</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.totalSolutions + '</span><span class="stat-label">Solutions</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.solutionsWithGaps + '</span><span class="stat-label">Coverage Gaps</span></div>';
+      html += '</div>';
+
+      // Department table
+      html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">Engagement by Department</h4>';
+      html += '<table class="preview-table">';
+      html += '<thead><tr><th>Department</th><th>Contacts</th><th>Solutions</th><th>Survey Years</th></tr></thead>';
+      html += '<tbody>';
+
+      data.byDepartment.slice(0, 10).forEach(function(d) {
+        html += '<tr>';
+        html += '<td><strong>' + escapeHtml(d.department) + '</strong></td>';
+        html += '<td>' + d.contactCount + '</td>';
+        html += '<td>' + d.solutionCount + '</td>';
+        html += '<td>' + d.surveyYears.join(', ') + '</td>';
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+
+      // Coverage gaps
+      if (data.coverageGaps.length > 0) {
+        html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm); color: var(--color-warning);">Solutions Without Stakeholders</h4>';
+        html += '<ul style="font-size: var(--font-size-sm);">';
+        data.coverageGaps.slice(0, 10).forEach(function(g) {
+          html += '<li>' + escapeHtml(g.solution) + ' (C' + g.cycle + ', ' + escapeHtml(g.phase) + ')</li>';
+        });
+        html += '</ul>';
+      }
+
+      return html;
+    }
+
+    function previewEngagementFunnel() {
+      showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating engagement funnel...</p></div>', '');
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          previewData = data;
+          var html = renderEngagementFunnelReport(data);
+          var meta = 'Generated: ' + new Date(data.generated).toLocaleString();
+          showPreview('Engagement Funnel Report', html, meta);
+        })
+        .withFailureHandler(function(err) {
+          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + err.message + '</p>', '');
+        })
+        .getEngagementFunnelReport({});
+    }
+
+    function renderEngagementFunnelReport(data) {
+      var html = '';
+
+      // Funnel visualization
+      html += '<div style="margin-bottom: var(--space-lg);">';
+      data.funnel.stages.forEach(function(stage) {
+        html += '<div class="funnel-stage">';
+        html += '<span class="funnel-label">' + escapeHtml(stage.stage) + '</span>';
+        html += '<div style="flex: 1;"><div class="funnel-bar" style="width: ' + stage.percent + '%;"></div></div>';
+        html += '<span class="funnel-count">' + stage.count + ' (' + stage.percent + '%)</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+
+      // Breakdown
+      html += '<div class="stats-grid">';
+      html += '<div class="stat-item"><span class="stat-value">' + data.funnel.details.surveyOnly + '</span><span class="stat-label">Survey Only</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + data.funnel.details.secondarySME + '</span><span class="stat-label">Secondary SME</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + data.funnel.details.primarySME + '</span><span class="stat-label">Primary SME</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + data.funnel.details.multiRole + '</span><span class="stat-label">Multi-Role</span></div>';
+      html += '</div>';
+
+      // Conversion opportunities
+      if (data.conversionOpportunities.length > 0) {
+        html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">Solutions Needing Primary SMEs</h4>';
+        html += '<table class="preview-table">';
+        html += '<thead><tr><th>Solution</th><th>Cycle</th><th>Phase</th><th>Survey Submitters</th></tr></thead>';
+        html += '<tbody>';
+        data.conversionOpportunities.slice(0, 8).forEach(function(s) {
+          html += '<tr><td>' + escapeHtml(s.solution) + '</td>';
+          html += '<td>C' + s.cycle + '</td>';
+          html += '<td>' + escapeHtml(s.phase) + '</td>';
+          html += '<td>' + s.submitterCount + '</td></tr>';
+        });
+        html += '</tbody></table>';
+      }
+
+      return html;
+    }
+
+    function previewDepartmentReach() {
+      showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating department reach report...</p></div>', '');
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          previewData = data;
+          var html = renderDepartmentReachReport(data);
+          var meta = 'Generated: ' + new Date(data.generated).toLocaleString();
+          showPreview('Department Reach Report', html, meta);
+        })
+        .withFailureHandler(function(err) {
+          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + err.message + '</p>', '');
+        })
+        .getDepartmentReachReport({});
+    }
+
+    function renderDepartmentReachReport(data) {
+      var html = '';
+
+      // Summary stats
+      html += '<div class="stats-grid">';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.totalSolutions + '</span><span class="stat-label">Solutions</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.solutionsWithReach + '</span><span class="stat-label">With Reach</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.totalDepartments + '</span><span class="stat-label">Departments</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.averageDeptPerSolution + '</span><span class="stat-label">Avg Depts/Sol</span></div>';
+      html += '</div>';
+
+      // Broadest reach
+      html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">Solutions with Broadest Reach</h4>';
+      html += '<table class="preview-table">';
+      html += '<thead><tr><th>Solution</th><th>Cycle</th><th>Departments</th><th>Agencies</th><th>Contacts</th></tr></thead>';
+      html += '<tbody>';
+
+      data.broadestReach.forEach(function(s) {
+        html += '<tr>';
+        html += '<td><strong>' + escapeHtml(s.solution) + '</strong></td>';
+        html += '<td>' + escapeHtml(s.cycle) + '</td>';
+        html += '<td>' + s.departmentCount + '</td>';
+        html += '<td>' + s.agencyCount + '</td>';
+        html += '<td>' + s.totalContacts + '</td>';
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+
+      // By department
+      html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">Department Engagement</h4>';
+      html += '<table class="preview-table">';
+      html += '<thead><tr><th>Department</th><th>Solutions</th><th>Contacts</th></tr></thead>';
+      html += '<tbody>';
+
+      data.byDepartment.slice(0, 10).forEach(function(d) {
+        html += '<tr>';
+        html += '<td><strong>' + escapeHtml(d.department) + '</strong></td>';
+        html += '<td>' + d.solutionCount + '</td>';
+        html += '<td>' + d.contactCount + '</td>';
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+
+      return html;
+    }
+
     // Public API
     return {
       previewQuickLook: previewQuickLook,
@@ -840,6 +1285,10 @@
       previewQuadChart: previewQuadChart,
       copyQuadChartText: copyQuadChartText,
       previewDetailedReport: previewDetailedReport,
+      previewNeedAlignment: previewNeedAlignment,
+      previewStakeholderCoverage: previewStakeholderCoverage,
+      previewEngagementFunnel: previewEngagementFunnel,
+      previewDepartmentReach: previewDepartmentReach,
       copyPreview: copyPreview,
       closePreview: closePreview
     };
