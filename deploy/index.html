@@ -91,20 +91,11 @@
       // Load platform config
       google.script.run
         .withSuccessHandler(function(config) {
-          if (config) {
-            Platform.config = config;
-            // Only update baseUrl if we got a valid one
-            if (config.baseUrl) {
-              Platform.baseUrl = config.baseUrl;
-            }
-          }
+          Platform.config = config;
+          Platform.baseUrl = config.baseUrl;
           updateNavActiveState();
         })
-        .withFailureHandler(function(error) {
-          console.error('Failed to load platform config:', error);
-          // Don't let this break navigation
-          updateNavActiveState();
-        })
+        .withFailureHandler(handleError)
         .getPlatformConfig();
 
       // Load user info
@@ -135,12 +126,8 @@
 
     function navigateTo(page) {
       // Always do full page navigation for reliability
-      var baseUrl = Platform.baseUrl;
-      if (!baseUrl) {
-        // Fallback: use current URL without query params
-        baseUrl = window.location.href.split('?')[0];
-      }
-      window.top.location.href = baseUrl + '?page=' + page;
+      var baseUrl = Platform.baseUrl || window.location.pathname;
+      window.location.href = baseUrl + '?page=' + page;
     }
 
     function updateNavActiveState() {
