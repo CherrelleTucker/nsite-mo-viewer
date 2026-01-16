@@ -1,11 +1,27 @@
 # Next Development Steps
 
 **Last Updated:** 2026-01-16
-**Current Version:** 0.9.0
+**Current Version:** 0.9.1
 
 ---
 
-## Completed This Session (2026-01-16) - Advanced Stakeholder Reports
+## Completed This Session (2026-01-16) - Earthdata Sync & Advanced Reports Fix
+
+- [x] Created `earthdata-sync.gs` - automated earthdata.nasa.gov content scraper
+  - Fetches solution pages and extracts characteristics
+  - Updates MO-DB_Solutions with: purpose_mission, thematic_areas, platform, resolution, etc.
+  - `syncAllSolutionContent()` - sync all solutions
+  - `syncSolutionContent(id)` - sync single solution
+  - `scheduledEarthdataSync()` - handler for time-based triggers
+- [x] Updated `stakeholder-solution-alignment.gs` - improved content loading
+  - Falls back to MO-DB_Solutions columns if script properties not set
+  - Added `loadSolutionContent()` for manual JSON loading
+  - Added `checkSolutionContent()` to verify data availability
+- [x] Created `scripts/extract_earthdata_content.py` - one-time extraction utility
+  - Generates CSV for manual database merge if needed
+  - Creates simplified JSON for script properties
+
+## Completed Earlier This Session (2026-01-16) - Advanced Stakeholder Reports
 
 - [x] Created `stakeholder-solution-alignment.gs` - four advanced report generators
   - Need Alignment (Implementation): solution characteristics vs stakeholder engagement
@@ -118,6 +134,7 @@ deploy/
 ├── contacts.html           # Contacts Directory UI
 ├── contacts-api.gs         # Contacts data API
 ├── contacts-menu.gs        # Contacts sheet menu
+├── earthdata-sync.gs       # Earthdata.nasa.gov content scraper/sync
 ├── implementation.html     # Implementation-NSITE UI (with milestones & docs)
 ├── index.html              # Platform shell
 ├── milestones-api.gs       # Milestones data API

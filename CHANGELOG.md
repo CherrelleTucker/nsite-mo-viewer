@@ -16,6 +16,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.1] - 2026-01-16
+
+### Added - Earthdata Content Sync
+- **earthdata-sync.gs** - Automated scraper for earthdata.nasa.gov solution pages
+  - `syncAllSolutionContent()` - Sync all solutions that have earthdata URLs
+  - `syncSolutionContent(solutionId)` - Sync a single solution
+  - `scheduledEarthdataSync()` - Handler for time-based triggers (set up in GAS)
+  - Extracts: purpose_mission, thematic_areas, platform, temporal_frequency, horizontal_resolution, geographic_domain, societal_impact
+  - Updates MO-DB_Solutions columns directly
+  - Email notifications on sync completion
+- **scripts/extract_earthdata_content.py** - Utility script for one-time extraction
+  - Generates CSV for manual database merge
+  - Creates simplified JSON for script properties
+
+### Changed
+- **stakeholder-solution-alignment.gs** - Improved content loading
+  - `getSolutionContent_()` now falls back to MO-DB_Solutions columns
+  - Added `loadSolutionContent(json)` for manual JSON loading
+  - Added `clearSolutionContent()` to clear cached data
+  - Added `checkSolutionContent()` to verify data availability
+  - Reports now work even without script properties set
+
+### Fixed
+- Advanced stakeholder reports now display data by reading from database columns
+
+---
+
 ## [0.9.0] - 2026-01-16
 
 ### Added - Advanced Stakeholder Reports

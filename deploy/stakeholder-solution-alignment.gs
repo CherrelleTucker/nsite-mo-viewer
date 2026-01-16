@@ -608,19 +608,127 @@ function generateDepartmentReachReport(options) {
 
 /**
  * Get solution content from earthdata (cached in config or properties)
+ * Falls back to building content from MO-DB_Solutions if not cached
  */
 function getSolutionContent_() {
-  // Try to get from script properties first
+  // Try to get from script properties first (for full earthdata content)
   try {
     var props = PropertiesService.getScriptProperties();
     var cached = props.getProperty('SOLUTION_CONTENT');
     if (cached) {
       return JSON.parse(cached);
     }
+  } catch (e) {
+    Logger.log('Error reading solution content from properties: ' + e.message);
+  }
+
+  // Fallback: Build content map from MO-DB_Solutions database
+  // This uses fields already in the database (purpose_mission, thematic_areas, etc.)
+  try {
+    var solutions = getAllSolutions();
+    var contentMap = {};
+
+    solutions.forEach(function(sol) {
+      var key = sol.name || sol.solution_id;
+      contentMap[key] = {
+        name: sol.full_title || sol.name || '',
+        purpose_mission: sol.purpose_mission || sol.status_summary || '',
+        societal_impact: sol.societal_impact || '',
+        solution_characteristics: {
+          platform: sol.platform || '',
+          temporal_frequency: sol.temporal_frequency || '',
+          horizontal_resolution: sol.horizontal_resolution || '',
+          geographic_domain: sol.geographic_domain || '',
+          thematic_areas: sol.thematic_areas || ''
+        }
+      };
+
+      // Also map by full_title if different
+      if (sol.full_title && sol.full_title !== key) {
+        contentMap[sol.full_title] = contentMap[key];
+      }
+    });
+
+    return contentMap;
+  } catch (e) {
+    Logger.log('Error building solution content from database: ' + e.message);
+  }
+
+  // Return empty object if all else fails
+  return {};
+}
+
+/**
+ * Load earthdata solution content into script properties
+ * Call this function once after pasting the JSON content
+ *
+ * Usage from Apps Script editor:
+ *   1. Copy the content from earthdata-content-simplified.json
+ *   2. Call loadSolutionContent(pastedContent)
+ *
+ * @param {string} jsonContent - The JSON string to load
+ */
+function loadSolutionContent(jsonContent) {
+  try {
+    // Validate JSON
+    var content = JSON.parse(jsonContent);
+    var count = Object.keys(content).length;
+
+    // Store in script properties
+    var props = PropertiesService.getScriptProperties();
+    props.setProperty('SOLUTION_CONTENT', jsonContent);
+
+    Logger.log('Successfully loaded ' + count + ' solutions into script properties');
+    return { success: true, count: count };
+  } catch (e) {
+    Logger.log('Error loading solution content: ' + e.message);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Clear cached solution content from script properties
+ */
+function clearSolutionContent() {
+  try {
+    var props = PropertiesService.getScriptProperties();
+    props.deleteProperty('SOLUTION_CONTENT');
+    Logger.log('Solution content cache cleared');
+    return { success: true };
+  } catch (e) {
+    Logger.log('Error clearing solution content: ' + e.message);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Check if solution content is loaded
+ */
+function checkSolutionContent() {
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var cached = props.getProperty('SOLUTION_CONTENT');
+    if (cached) {
+      var content = JSON.parse(cached);
+      var count = Object.keys(content).length;
+      return { loaded: true, count: count, source: 'script_properties' };
+    }
   } catch (e) {}
 
-  // Return empty object if not available
-  return {};
+  // Check fallback
+  try {
+    var solutions = getAllSolutions();
+    var hasContent = solutions.some(function(sol) {
+      return sol.purpose_mission || sol.thematic_areas;
+    });
+    return {
+      loaded: hasContent,
+      count: solutions.length,
+      source: 'database_fallback'
+    };
+  } catch (e) {}
+
+  return { loaded: false, count: 0, source: 'none' };
 }
 
 /**
