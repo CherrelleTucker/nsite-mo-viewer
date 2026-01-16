@@ -39,6 +39,8 @@
     <div class="content-wrapper" id="contentArea">
       <? if (activePage === 'implementation') { ?>
         <?!= include('implementation'); ?>
+      <? } else if (activePage === 'sep') { ?>
+        <?!= include('sep'); ?>
       <? } else if (activePage === 'quick-update') { ?>
         <?!= include('quick-update'); ?>
       <? } else if (activePage === 'contacts') { ?>

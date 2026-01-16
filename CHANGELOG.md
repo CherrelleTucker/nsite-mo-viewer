@@ -10,9 +10,120 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Phase 5: SEP-NSITE (stakeholder engagement tracking)
 - Phase 6: Comms-NSITE (communications/story tracking)
 - Phase 8: Automation & Sync (scheduled exports, email notifications)
+
+---
+
+## [1.0.0] - 2026-01-16
+
+### Added - SEP-NSITE (Phase 5 - Stakeholder Engagement Pipeline)
+
+**SEP-NSITE Viewer** (`sep.html`) - Complete stakeholder engagement tracking:
+- **Pipeline View**: Kanban board with 7 touchpoint columns (T4, W1, W2, T5, T6, T7, T8)
+- **Agencies View**: Hierarchical organization browser with detail panel
+- **Stats Dashboard**: Contacts, Agencies, Need Follow-up, This Week counts
+- **Engagement Log**: Recent engagement activity panel
+- **Log Engagement Modal**: Form to record new stakeholder interactions
+
+**MO-DB_Agencies Database** - Organization hierarchy (43 agencies):
+- Federal departments (DOI, USDA, DOC, DOE, EPA, DHS, NSF, HHS, DOS)
+- Sub-agencies and bureaus with parent relationships
+- Enriched with web research: mission statements, data interests, websites
+- 20 columns: agency_id, name, full_name, type, parent_agency_id, abbreviation, leadership, POC, mission_statement, mission_areas, geographic_scope, data_interests, relationship_status, website_url, timestamps
+
+**MO-DB_Engagements Database** - Engagement logging:
+- 17 columns for tracking all stakeholder interactions
+- Activity types: Email, Phone, Meeting, Webinar, Conference, Site Visit, Training
+- Links to contacts, agencies, and solutions
+
+**MO-DB_Contacts Enhanced** - 9 new columns:
+- touchpoint_status, lifecycle_phase, engagement_level
+- agency_id (FK to agencies), title, region
+- last_contact_date, next_scheduled_contact, relationship_notes
+
+**API Layer**:
+- `agencies-api.gs` - CRUD, hierarchy queries, search, statistics
+- `engagements-api.gs` - CRUD, relationship queries, time-based queries
+- `contacts-api.gs` - Enhanced with SEP functions (touchpoint queries, pipeline overview)
+
+**Agency Data Enrichment**:
+- Mission statements for 36 agencies from official sources
+- Earth observation data interests per agency
+- Clickable website hyperlinks
+- Relationship status tracking
+
+### Changed
+- `Code.gs` - Added AGENCIES_SHEET_ID and ENGAGEMENTS_SHEET_ID config keys
+- `index.html` - Added SEP routing
+- Navigation - SEP tab now active
+
+---
+
+## [0.9.3] - 2026-01-16
+
+### Added - MO-DB_Needs & True Alignment Analysis
+
+**MO-DB_Needs Database** - Granular stakeholder survey responses:
+- 2,049 records extracted from 47 solution stakeholder Excel files
+- Survey data from 2018, 2020, 2022, 2024 cycles
+- 40+ columns capturing full survey responses per stakeholder
+- Fields include: resolution needs, frequency needs, coverage needs, degree need met
+
+**Need Alignment Report Rewrite** - Now compares actual needs vs solution characteristics:
+- **Before**: Counted stakeholders/SMEs (engagement quantity)
+- **After**: Compares what stakeholders need vs what solutions provide
+
+**New Scoring System (0-100%):**
+| Category | Points | Criteria |
+|----------|--------|----------|
+| Degree Need Met | 40 | Avg stakeholder-reported satisfaction (survey field 3a-4) |
+| Resolution Match | 20 | Solution horizontal_resolution meets/exceeds needs |
+| Frequency Match | 20 | Solution temporal_resolution meets/exceeds needs |
+| Coverage Match | 20 | Solution geographic_coverage meets/exceeds needs |
+
+**Gap Identification** - Report now shows:
+- Needs count per solution (from MO-DB_Needs)
+- Average "% Met" from stakeholder responses
+- Specific gaps where solution doesn't meet requirements
+
+**Scripts Added:**
+- `scripts/extract_needs_data.py` - Python extraction from stakeholder Excel files
+- `docs/MO-DB_Needs_Schema.md` - Schema documentation
+
+### Changed
+- `stakeholder-solution-alignment.gs` - Rewrote `calculateNeedAlignment_()` for actual comparison
+- `stakeholder-solution-alignment.gs` - Added `getAllNeeds()` function to read MO-DB_Needs
+- `reports.html` - Updated methodology documentation for Need Alignment
+- `reports.html` - Updated report description and data sources
+
+---
+
+## [0.9.2] - 2026-01-16
+
+### Added - Report Transparency & Accuracy
+
+**Methodology Documentation** - Each report card now includes collapsible "How is this calculated?" sections:
+- **QuickLook CSV**: Explains data source columns and filtering logic
+- **Quad Chart**: Explains quadrant data sources and date logic
+- **Detailed Milestone**: Explains milestone and document status logic
+- **Need Alignment**: Full scoring table (40 pts stakeholders, 25 pts SMEs, 20 pts multi-year, 15 pts content)
+- **Stakeholder Coverage**: Explains contact/solution matching and coverage gap calculation
+- **Engagement Funnel**: Explains stakeholder classification and funnel percentages
+- **Department Reach**: Explains department/agency counting and broadest reach sorting
+
+**Data Provenance Banners** - Report previews now show source data info:
+- Displays which databases were queried (MO-DB_Solutions, MO-DB_Contacts)
+- Shows record counts for each data source
+- Clickable links to source sheets (when configured)
+
+**Score Breakdown** - Need Alignment report improvements:
+- Added "Score Breakdown" column showing points earned in each category
+- Detailed scoring summary (e.g., "Stakeholders: 30/40 | SMEs: 25/25 | Multi-year: 20/20 | Content: 10/15")
+
+### Changed
+- `reports.html` - Added methodology CSS styling, provenance banner styling
+- `stakeholder-solution-alignment.gs` - Score calculation now returns detailed breakdown
 
 ---
 
@@ -280,7 +391,7 @@ This repository consolidates code from multiple legacy repositories:
 |-------------|------------------|-------|
 | `nsite-viewer` | **Complete** | Quick Update Form → `src/quick-update/` |
 | `nsite-mo-implementation` | **Complete** | Solution data → MO-DB_Solutions; UI → Implementation-NSITE |
-| `nsite-SEPViewer` | Pending | SEP Viewer → `src/sep-viewer/` |
+| `nsite-SEPViewer` | **Complete** | SEP Viewer → SEP-NSITE with database-only approach |
 | `snwg-automation/SolutionFlow` | Partial | Parsers pending → `parsers/`, `storage/` |
 
 ---
