@@ -159,14 +159,22 @@ Primary contact database for the Contacts Directory. One row per contact-solutio
 | `need_id` | STRING | No | Linked need identifier |
 | `notes` | STRING | No | Free-form notes |
 | `last_updated` | DATE | Yes | Last update timestamp |
+| | | | |
+| **Internal Team Columns** | | | |
+| `is_internal` | STRING | No | 'Y' = MO team member, blank = external stakeholder |
+| `internal_title` | STRING | No | Internal role title (e.g., "Solution Lead", "RA Representative") |
+| `internal_team` | STRING | No | Team assignment (e.g., "Implementation", "SEP", "Comms") |
+| `supervisor` | STRING | No | Supervisor name (for org chart) |
+| `start_date` | DATE | No | When joined the MO team |
+| `active` | STRING | No | 'Y' = current team member, 'N' = former |
 
 **Indexes:**
 - Primary: `contact_id`
-- Secondary: `email`, `solution`, `role`, `department`, `survey_year`
+- Secondary: `email`, `solution`, `role`, `department`, `survey_year`, `is_internal`
 
 **Data Source:** Extracted from 47 stakeholder Excel files in `DB-Solution Stakeholder Lists/`
 
-**Example:**
+**Example (External Stakeholder):**
 ```json
 {
   "contact_id": "CON_001",
@@ -183,7 +191,40 @@ Primary contact database for the Contacts Directory. One row per contact-solutio
   "survey_year": 2022,
   "need_id": "",
   "notes": "",
-  "last_updated": "2026-01-15"
+  "last_updated": "2026-01-15",
+  "is_internal": "",
+  "internal_title": "",
+  "internal_team": "",
+  "supervisor": "",
+  "start_date": "",
+  "active": ""
+}
+```
+
+**Example (Internal Team Member):**
+```json
+{
+  "contact_id": "CON_500",
+  "first_name": "Jane",
+  "last_name": "Smith",
+  "email": "jane.smith@nasa.gov",
+  "primary_email": "jane.smith@nasa.gov",
+  "phone": "555-987-6543",
+  "department": "NASA",
+  "agency": "GSFC",
+  "organization": "NSITE MO",
+  "solution": "OPERA",
+  "role": "Solution Lead",
+  "survey_year": "",
+  "need_id": "",
+  "notes": "Manages OPERA solution lifecycle",
+  "last_updated": "2026-01-17",
+  "is_internal": "Y",
+  "internal_title": "Solution Lead",
+  "internal_team": "Implementation",
+  "supervisor": "John Manager",
+  "start_date": "2024-06-01",
+  "active": "Y"
 }
 ```
 

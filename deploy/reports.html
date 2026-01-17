@@ -1,64 +1,18 @@
 <!-- Reports View -->
-<!-- QuickLook CSV and Quad Chart report generation -->
+<!-- Analytical reports and data visualizations -->
 
 <div class="reports-viewer">
   <!-- Page Header -->
   <div class="page-header">
     <div class="page-title">
       <h1>Reports</h1>
-      <p class="page-subtitle">Generate and export reports</p>
+      <p class="page-subtitle">Analytical reports and data visualizations</p>
     </div>
   </div>
 
   <!-- Report Cards -->
   <div class="report-cards">
-    <!-- QuickLook CSV Card -->
-    <div class="report-card">
-      <div class="report-card-header">
-        <div class="report-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
-          <span data-feather="file-text"></span>
-        </div>
-        <div class="report-title-area">
-          <h3>QuickLook CSV</h3>
-          <p class="report-description">Milestone status report for leadership</p>
-        </div>
-      </div>
-      <div class="report-card-body">
-        <div class="report-info">
-          <p><strong>Columns:</strong> Solution, Cycle, Phase, ATP DG, F2I DG, ORR, Closeout, Memos</p>
-          <p><strong>Audience:</strong> Leadership, Program Managers</p>
-        </div>
-        <div class="report-options">
-          <label class="checkbox-label">
-            <input type="checkbox" id="quicklookDefaultOnly" checked>
-            Default solutions only
-          </label>
-          <div class="filter-inline">
-            <label>Cycle:</label>
-            <select id="quicklookCycle" class="form-select form-select-sm">
-              <option value="">All Cycles</option>
-              <option value="1">C1</option>
-              <option value="2">C2</option>
-              <option value="3">C3</option>
-              <option value="4">C4</option>
-              <option value="5">C5</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="report-card-actions">
-        <button class="btn btn-secondary" onclick="Reports.previewQuickLook()">
-          <span data-feather="eye"></span>
-          Preview
-        </button>
-        <button class="btn btn-primary" onclick="Reports.downloadQuickLook()">
-          <span data-feather="download"></span>
-          Download CSV
-        </button>
-      </div>
-    </div>
-
-    <!-- Quad Chart Card -->
+    <!-- Quad Chart -->
     <div class="report-card">
       <div class="report-card-header">
         <div class="report-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
@@ -72,74 +26,133 @@
       <div class="report-card-body">
         <div class="report-info">
           <p><strong>Quadrants:</strong> Updates, Milestones, Actions, Decisions</p>
-          <p><strong>Audience:</strong> Weekly team meetings</p>
         </div>
         <div class="report-options">
           <div class="filter-inline">
-            <label>Look Back:</label>
+            <label>Back:</label>
             <select id="quadDaysBack" class="form-select form-select-sm">
-              <option value="7">7 days</option>
-              <option value="14">14 days</option>
-              <option value="30">30 days</option>
+              <option value="7">7d</option>
+              <option value="14">14d</option>
+              <option value="30">30d</option>
             </select>
           </div>
           <div class="filter-inline">
-            <label>Look Ahead:</label>
+            <label>Ahead:</label>
             <select id="quadDaysAhead" class="form-select form-select-sm">
-              <option value="14">14 days</option>
-              <option value="30" selected>30 days</option>
-              <option value="60">60 days</option>
-              <option value="90">90 days</option>
+              <option value="14">14d</option>
+              <option value="30" selected>30d</option>
+              <option value="60">60d</option>
+              <option value="90">90d</option>
             </select>
           </div>
         </div>
+        <details class="methodology-details">
+          <summary><span data-feather="info" class="icon-sm"></span> How is this calculated?</summary>
+          <div class="methodology-content">
+            <p><strong>Data Sources:</strong> MO-DB_Solutions, MO-DB_Updates, MO-DB_Actions</p>
+            <table class="methodology-table">
+              <tr><th>Quadrant</th><th>Source</th><th>Logic</th></tr>
+              <tr><td>Updates</td><td>MO-DB_Updates</td><td>Items with meeting_date within "Back" days</td></tr>
+              <tr><td>Milestones</td><td>MO-DB_Solutions</td><td>ATP/F2I/ORR/Closeout dates within "Ahead" days</td></tr>
+              <tr><td>Actions</td><td>MO-DB_Actions</td><td>Open items (status ≠ Complete)</td></tr>
+              <tr><td>Decisions</td><td>MO-DB_Solutions</td><td>Pending memo approvals</td></tr>
+            </table>
+          </div>
+        </details>
       </div>
       <div class="report-card-actions">
-        <button class="btn btn-secondary" onclick="Reports.previewQuadChart()">
-          <span data-feather="eye"></span>
-          Preview
-        </button>
-        <button class="btn btn-primary" onclick="Reports.copyQuadChartText()">
-          <span data-feather="copy"></span>
-          Copy for Slides
-        </button>
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewQuadChart()"><span data-feather="eye"></span> Preview</button>
       </div>
     </div>
 
-    <!-- Detailed Report Card -->
+    <!-- Detailed Milestone Report -->
     <div class="report-card">
       <div class="report-card-header">
         <div class="report-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
           <span data-feather="bar-chart-2"></span>
         </div>
         <div class="report-title-area">
-          <h3>Detailed Milestone Report</h3>
+          <h3>Detailed Milestones</h3>
           <p class="report-description">Full milestone analysis with statistics</p>
         </div>
       </div>
       <div class="report-card-body">
         <div class="report-info">
           <p><strong>Includes:</strong> All milestones, document status, phase breakdowns</p>
-          <p><strong>Statistics:</strong> By cycle, by phase, completion rates</p>
         </div>
+        <details class="methodology-details">
+          <summary><span data-feather="info" class="icon-sm"></span> How is this calculated?</summary>
+          <div class="methodology-content">
+            <p><strong>Data Source:</strong> MO-DB_Solutions (37 solutions, 49 columns)</p>
+            <table class="methodology-table">
+              <tr><th>Metric</th><th>Logic</th></tr>
+              <tr><td>Milestone Status</td><td>Date in past = Completed, Date in future = Upcoming, Empty = Not Started</td></tr>
+              <tr><td>Document Status</td><td>Empty = Not Started, "in_work" = In Progress, Date = Complete</td></tr>
+              <tr><td>Phase</td><td>Derived from milestone completion: Pre-ATP → Formulation → Implementation → Operations</td></tr>
+            </table>
+            <p><strong>Milestones tracked:</strong> ATP DG, F2I DG, ORR, Closeout</p>
+            <p><strong>Documents tracked:</strong> Project Plan, Science SOW, IPA, ICD, TTA, ATP Memo, F2I Memo, ORR Memo, Closeout Memo</p>
+          </div>
+        </details>
       </div>
       <div class="report-card-actions">
-        <button class="btn btn-secondary" onclick="Reports.previewDetailedReport()">
-          <span data-feather="eye"></span>
-          Preview
-        </button>
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewDetailedReport()"><span data-feather="eye"></span> Preview</button>
       </div>
     </div>
-  </div>
 
-  <!-- Advanced Stakeholder Reports Section -->
-  <div class="section-header">
-    <h2>Advanced Stakeholder Reports</h2>
-    <p class="section-subtitle">Compare stakeholder needs with solution characteristics</p>
-  </div>
+    <!-- Historical Updates -->
+    <div class="report-card">
+      <div class="report-card-header">
+        <div class="report-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+          <span data-feather="clock"></span>
+        </div>
+        <div class="report-title-area">
+          <h3>Historical Updates</h3>
+          <p class="report-description">Full update history for solutions</p>
+        </div>
+      </div>
+      <div class="report-card-body">
+        <div class="report-info">
+          <p><strong>Shows:</strong> Updates from Internal and SEP meeting notes</p>
+        </div>
+        <div class="report-options">
+          <div class="filter-inline">
+            <label>Solution:</label>
+            <select id="updatesReportSolution" class="form-select form-select-sm">
+              <option value="">All</option>
+            </select>
+          </div>
+          <div class="filter-inline">
+            <label>Range:</label>
+            <select id="updatesReportRange" class="form-select form-select-sm">
+              <option value="all">All</option>
+              <option value="365">1yr</option>
+              <option value="180">6mo</option>
+              <option value="90">3mo</option>
+            </select>
+          </div>
+        </div>
+        <details class="methodology-details">
+          <summary><span data-feather="info" class="icon-sm"></span> How is this calculated?</summary>
+          <div class="methodology-content">
+            <p><strong>Data Source:</strong> MO-DB_Updates</p>
+            <table class="methodology-table">
+              <tr><th>Field</th><th>Source</th></tr>
+              <tr><td>solution</td><td>Extracted from agenda section headers</td></tr>
+              <tr><td>update_text</td><td>Lines marked with 🆕 emoji</td></tr>
+              <tr><td>meeting_date</td><td>Agenda document date</td></tr>
+              <tr><td>source_document</td><td>Internal Planning or SEP Strategy agenda</td></tr>
+            </table>
+            <p><strong>Sync Process:</strong> sync-updates-to-db.gs parses agenda docs, deduplicates by solution + text</p>
+          </div>
+        </details>
+      </div>
+      <div class="report-card-actions">
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewHistoricalUpdates()"><span data-feather="eye"></span> Preview</button>
+      </div>
+    </div>
 
-  <div class="report-cards">
-    <!-- Need Alignment (Implementation) -->
+    <!-- Need Alignment -->
     <div class="report-card">
       <div class="report-card-header">
         <div class="report-icon" style="background: rgba(46, 125, 50, 0.1); color: #2E7D32;">
@@ -147,25 +160,35 @@
         </div>
         <div class="report-title-area">
           <h3>Need Alignment</h3>
-          <p class="report-description">Solution characteristics vs stakeholder engagement</p>
+          <p class="report-description">Solution specs vs stakeholder needs</p>
         </div>
-        <span class="report-badge implementation">Implementation</span>
       </div>
       <div class="report-card-body">
         <div class="report-info">
-          <p><strong>Shows:</strong> Purpose, characteristics, thematic areas, alignment score</p>
-          <p><strong>Data:</strong> Earthdata content + stakeholder engagement metrics</p>
+          <p><strong>Shows:</strong> Gap analysis - what stakeholders need vs what solutions deliver</p>
         </div>
+        <details class="methodology-details">
+          <summary><span data-feather="info" class="icon-sm"></span> How is this calculated?</summary>
+          <div class="methodology-content">
+            <p><strong>Data Sources:</strong> MO-DB_Needs (2,049 survey responses), MO-DB_Solutions</p>
+            <table class="methodology-table">
+              <tr><th>Category</th><th>Points</th><th>Calculation</th></tr>
+              <tr><td>Degree Need Met</td><td>40</td><td>Average stakeholder-reported satisfaction (survey field 3a-4)</td></tr>
+              <tr><td>Resolution Match</td><td>20</td><td>Solution horizontal_resolution meets/exceeds stated needs</td></tr>
+              <tr><td>Frequency Match</td><td>20</td><td>Solution temporal_resolution meets/exceeds stated needs</td></tr>
+              <tr><td>Coverage Match</td><td>20</td><td>Solution geographic_coverage meets/exceeds stated needs</td></tr>
+            </table>
+            <p><strong>Total Score:</strong> 0-100% alignment</p>
+            <p><strong>Gap Identification:</strong> Shows specific mismatches where solution doesn't meet requirements</p>
+          </div>
+        </details>
       </div>
       <div class="report-card-actions">
-        <button class="btn btn-secondary" onclick="Reports.previewNeedAlignment()">
-          <span data-feather="eye"></span>
-          Preview
-        </button>
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewNeedAlignment()"><span data-feather="eye"></span> Preview</button>
       </div>
     </div>
 
-    <!-- Stakeholder Coverage (SEP) -->
+    <!-- Stakeholder Coverage -->
     <div class="report-card">
       <div class="report-card-header">
         <div class="report-icon" style="background: rgba(21, 101, 192, 0.1); color: #1565C0;">
@@ -173,25 +196,33 @@
         </div>
         <div class="report-title-area">
           <h3>Stakeholder Coverage</h3>
-          <p class="report-description">Department and agency engagement across solutions</p>
+          <p class="report-description">Dept engagement across solutions</p>
         </div>
-        <span class="report-badge sep">SEP</span>
       </div>
       <div class="report-card-body">
         <div class="report-info">
           <p><strong>Shows:</strong> Which departments engage with which solutions</p>
-          <p><strong>Identifies:</strong> Coverage gaps and engagement patterns</p>
         </div>
+        <details class="methodology-details">
+          <summary><span data-feather="info" class="icon-sm"></span> How is this calculated?</summary>
+          <div class="methodology-content">
+            <p><strong>Data Sources:</strong> MO-DB_Contacts (423 contacts), MO-DB_Solutions</p>
+            <table class="methodology-table">
+              <tr><th>Metric</th><th>Calculation</th></tr>
+              <tr><td>Contact Count</td><td>Contacts linked to each solution via solution column</td></tr>
+              <tr><td>Departments</td><td>Unique department values for solution's contacts</td></tr>
+              <tr><td>Coverage Gap</td><td>Solutions with 0 contacts = gap, &lt;3 = low coverage</td></tr>
+            </table>
+            <p><strong>Gap Identification:</strong> Highlights solutions without stakeholder engagement</p>
+          </div>
+        </details>
       </div>
       <div class="report-card-actions">
-        <button class="btn btn-secondary" onclick="Reports.previewStakeholderCoverage()">
-          <span data-feather="eye"></span>
-          Preview
-        </button>
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewStakeholderCoverage()"><span data-feather="eye"></span> Preview</button>
       </div>
     </div>
 
-    <!-- Engagement Funnel (SEP) -->
+    <!-- Engagement Funnel -->
     <div class="report-card">
       <div class="report-card-header">
         <div class="report-icon" style="background: rgba(21, 101, 192, 0.1); color: #1565C0;">
@@ -199,25 +230,35 @@
         </div>
         <div class="report-title-area">
           <h3>Engagement Funnel</h3>
-          <p class="report-description">Track stakeholder progression through pipeline</p>
+          <p class="report-description">Track stakeholder progression</p>
         </div>
-        <span class="report-badge sep">SEP</span>
       </div>
       <div class="report-card-body">
         <div class="report-info">
           <p><strong>Tracks:</strong> Survey Submitter → Secondary SME → Primary SME</p>
-          <p><strong>Shows:</strong> Conversion rates, opportunities, top engaged</p>
         </div>
+        <details class="methodology-details">
+          <summary><span data-feather="info" class="icon-sm"></span> How is this calculated?</summary>
+          <div class="methodology-content">
+            <p><strong>Data Source:</strong> MO-DB_Contacts (role field)</p>
+            <table class="methodology-table">
+              <tr><th>Funnel Stage</th><th>Role Match</th><th>Description</th></tr>
+              <tr><td>Survey Submitter</td><td>"survey" or "submitter"</td><td>Completed stakeholder needs survey</td></tr>
+              <tr><td>Secondary SME</td><td>"secondary" or "sme"</td><td>Provides technical input</td></tr>
+              <tr><td>Primary SME</td><td>"primary"</td><td>Decision-maker for solution adoption</td></tr>
+            </table>
+            <p><strong>Conversion Rate:</strong> % advancing from one stage to next</p>
+            <p><strong>Multi-role:</strong> Contacts appearing in multiple stages</p>
+            <p><strong>Opportunities:</strong> Solutions needing Primary SME engagement</p>
+          </div>
+        </details>
       </div>
       <div class="report-card-actions">
-        <button class="btn btn-secondary" onclick="Reports.previewEngagementFunnel()">
-          <span data-feather="eye"></span>
-          Preview
-        </button>
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewEngagementFunnel()"><span data-feather="eye"></span> Preview</button>
       </div>
     </div>
 
-    <!-- Department Reach (Comms) -->
+    <!-- Department Reach -->
     <div class="report-card">
       <div class="report-card-header">
         <div class="report-icon" style="background: rgba(123, 31, 162, 0.1); color: #7B1FA2;">
@@ -225,21 +266,30 @@
         </div>
         <div class="report-title-area">
           <h3>Department Reach</h3>
-          <p class="report-description">Solution coverage across federal departments</p>
+          <p class="report-description">Solution coverage across depts</p>
         </div>
-        <span class="report-badge comms">Comms</span>
       </div>
       <div class="report-card-body">
         <div class="report-info">
           <p><strong>Shows:</strong> Which solutions reach which departments</p>
-          <p><strong>Useful for:</strong> Communications planning and outreach</p>
         </div>
+        <details class="methodology-details">
+          <summary><span data-feather="info" class="icon-sm"></span> How is this calculated?</summary>
+          <div class="methodology-content">
+            <p><strong>Data Sources:</strong> MO-DB_Contacts (department field), MO-DB_Agencies (hierarchy)</p>
+            <table class="methodology-table">
+              <tr><th>Metric</th><th>Calculation</th></tr>
+              <tr><td>Departments</td><td>Unique department values from contacts</td></tr>
+              <tr><td>Solutions per Dept</td><td>Count of solutions with contacts in that department</td></tr>
+              <tr><td>Contacts per Dept</td><td>Total contact records for department</td></tr>
+              <tr><td>Broadest Reach</td><td>Solutions sorted by number of unique departments engaged</td></tr>
+            </table>
+            <p><strong>Agency Hierarchy:</strong> Sub-agencies roll up to parent departments</p>
+          </div>
+        </details>
       </div>
       <div class="report-card-actions">
-        <button class="btn btn-secondary" onclick="Reports.previewDepartmentReach()">
-          <span data-feather="eye"></span>
-          Preview
-        </button>
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewDepartmentReach()"><span data-feather="eye"></span> Preview</button>
       </div>
     </div>
   </div>
@@ -249,10 +299,6 @@
     <div class="preview-header">
       <h3 id="previewTitle">Report Preview</h3>
       <div class="preview-actions">
-        <button class="btn btn-sm btn-secondary" onclick="Reports.copyPreview()">
-          <span data-feather="copy"></span>
-          Copy
-        </button>
         <button class="btn btn-sm btn-icon" onclick="Reports.closePreview()">
           <span data-feather="x"></span>
         </button>
@@ -300,18 +346,28 @@
     color: var(--color-text-secondary);
   }
 
-  /* Report Cards Grid */
+  /* Report Cards Grid - 4 across */
   .report-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-    gap: var(--space-lg);
-    margin-bottom: var(--space-xl);
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+
+  @media (max-width: 1400px) {
+    .report-cards { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 1000px) {
+    .report-cards { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .report-cards { grid-template-columns: 1fr; }
   }
 
   /* Report Card */
   .report-card {
     background: var(--color-surface);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
     overflow: hidden;
     display: flex;
@@ -320,15 +376,15 @@
 
   .report-card-header {
     display: flex;
-    gap: var(--space-md);
-    padding: var(--space-lg);
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
     border-bottom: 1px solid var(--color-border-light);
   }
 
   .report-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-md);
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -336,34 +392,40 @@
   }
 
   .report-icon svg {
-    width: 24px;
-    height: 24px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .report-title-area {
+    flex: 1;
+    min-width: 0;
   }
 
   .report-title-area h3 {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-sm);
     font-weight: 600;
-    margin-bottom: var(--space-xs);
+    margin-bottom: 2px;
   }
 
   .report-description {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
     color: var(--color-text-secondary);
   }
 
   .report-card-body {
-    padding: var(--space-md) var(--space-lg);
+    padding: var(--space-sm) var(--space-md);
     flex: 1;
   }
 
   .report-info {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
     color: var(--color-text-secondary);
-    margin-bottom: var(--space-md);
+    margin-bottom: var(--space-xs);
   }
 
   .report-info p {
-    margin-bottom: var(--space-xs);
+    margin: 0;
+    line-height: 1.4;
   }
 
   .report-info strong {
@@ -373,23 +435,24 @@
   .report-options {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-md);
+    gap: var(--space-sm);
     align-items: center;
+    margin-bottom: var(--space-sm);
   }
 
   .checkbox-label {
     display: flex;
     align-items: center;
-    gap: var(--space-xs);
-    font-size: var(--font-size-sm);
+    gap: 4px;
+    font-size: var(--font-size-xs);
     cursor: pointer;
   }
 
   .filter-inline {
     display: flex;
     align-items: center;
-    gap: var(--space-xs);
-    font-size: var(--font-size-sm);
+    gap: 4px;
+    font-size: var(--font-size-xs);
   }
 
   .filter-inline label {
@@ -397,8 +460,8 @@
   }
 
   .form-select-sm {
-    padding: var(--space-xs) var(--space-sm);
-    font-size: var(--font-size-sm);
+    padding: 2px 6px;
+    font-size: var(--font-size-xs);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     background: var(--color-surface);
@@ -406,10 +469,22 @@
 
   .report-card-actions {
     display: flex;
-    gap: var(--space-sm);
-    padding: var(--space-md) var(--space-lg);
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-md);
     background: var(--color-surface-alt);
     border-top: 1px solid var(--color-border-light);
+  }
+
+  /* Report Badge - smaller */
+  .report-badge {
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-left: auto;
+    flex-shrink: 0;
   }
 
   /* Buttons */
@@ -541,6 +616,50 @@
 
   .preview-table tr:hover td {
     background: var(--color-surface-alt);
+  }
+
+  /* Historical Updates Preview */
+  .updates-report {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  .solution-updates-section {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+  }
+
+  .solution-updates-section h3.solution-name {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    color: var(--color-primary);
+    margin: 0 0 var(--space-xs) 0;
+    display: inline;
+  }
+
+  .solution-updates-section .update-count {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-left: var(--space-sm);
+  }
+
+  .solution-updates-section .preview-table {
+    margin-top: var(--space-md);
+  }
+
+  .update-text-cell {
+    max-width: 500px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .preview-empty {
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--color-text-secondary);
+    font-style: italic;
   }
 
   /* Quad Chart Preview */
@@ -748,6 +867,149 @@
     text-align: right;
   }
 
+  /* Methodology Details */
+  .methodology-details {
+    margin-top: var(--space-sm);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+  }
+
+  .methodology-details summary {
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+  }
+
+  .methodology-details summary:hover {
+    color: var(--color-text);
+    background: var(--color-surface);
+  }
+
+  .methodology-details[open] summary {
+    border-bottom: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  }
+
+  .methodology-details summary .icon-sm {
+    width: 14px;
+    height: 14px;
+  }
+
+  .methodology-content {
+    padding: var(--space-md);
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+
+  .methodology-content p {
+    margin-bottom: var(--space-sm);
+  }
+
+  .methodology-content ul {
+    margin: var(--space-xs) 0 var(--space-sm) var(--space-lg);
+    padding: 0;
+  }
+
+  .methodology-content li {
+    margin-bottom: var(--space-xs);
+  }
+
+  .methodology-content code {
+    background: var(--color-surface-alt);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: var(--font-size-xs);
+    color: var(--color-primary);
+  }
+
+  .methodology-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--space-sm) 0;
+    font-size: var(--font-size-xs);
+  }
+
+  .methodology-table th,
+  .methodology-table td {
+    padding: var(--space-xs) var(--space-sm);
+    text-align: left;
+    border: 1px solid var(--color-border-light);
+  }
+
+  .methodology-table th {
+    background: var(--color-surface-alt);
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .methodology-table tr:nth-child(even) td {
+    background: var(--color-surface-alt);
+  }
+
+  /* Data Provenance Banner */
+  .data-provenance {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.08), rgba(59, 130, 246, 0.02));
+    border-left: 3px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-md);
+    font-size: var(--font-size-xs);
+  }
+
+  .provenance-label {
+    color: var(--color-text-secondary);
+    font-weight: 500;
+  }
+
+  .provenance-source {
+    color: var(--color-text-muted);
+    padding: 2px 8px;
+    background: var(--color-surface);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border-light);
+  }
+
+  .provenance-source strong {
+    color: var(--color-primary);
+  }
+
+  .provenance-link {
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .provenance-link:hover {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+  }
+
+  .provenance-link:hover strong {
+    color: white;
+  }
+
+  .verify-icon {
+    font-size: 10px;
+    opacity: 0.6;
+  }
+
+  .provenance-link:hover .verify-icon {
+    opacity: 1;
+  }
+
   /* Responsive */
   @media (max-width: 768px) {
     .report-cards {
@@ -772,13 +1034,7 @@
   var Reports = (function() {
     console.log('Reports IIFE executing...');
     var previewData = null;
-
-    function getQuickLookOptions() {
-      return {
-        defaultOnly: document.getElementById('quicklookDefaultOnly').checked,
-        cycle: document.getElementById('quicklookCycle').value || null
-      };
-    }
+    var gapAnalysisData = null; // Store gap analysis alignments for dropdown
 
     function getQuadChartOptions() {
       return {
@@ -795,69 +1051,22 @@
       document.getElementById('previewPanel').scrollIntoView({ behavior: 'smooth' });
     }
 
-    function previewQuickLook() {
-      var options = getQuickLookOptions();
-
-      showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating report...</p></div>', '');
-
-      google.script.run
-        .withSuccessHandler(function(data) {
-          previewData = data;
-          var html = renderQuickLookTable(data);
-          var meta = 'Generated: ' + new Date(data.generated).toLocaleString() + ' | ' + data.count + ' solutions';
-          showPreview('QuickLook CSV Preview', html, meta);
-        })
-        .withFailureHandler(function(err) {
-          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + err.message + '</p>', '');
-        })
-        .getQuickLookReport(options);
-    }
-
-    function renderQuickLookTable(data) {
-      var html = '<table class="preview-table">';
-      html += '<thead><tr>';
-      data.headers.forEach(function(h) {
-        html += '<th>' + escapeHtml(h) + '</th>';
-      });
-      html += '</tr></thead><tbody>';
-
-      data.rows.forEach(function(row) {
-        html += '<tr>';
-        row.forEach(function(cell) {
-          html += '<td>' + escapeHtml(cell) + '</td>';
-        });
-        html += '</tr>';
-      });
-
-      html += '</tbody></table>';
-      return html;
-    }
-
-    function downloadQuickLook() {
-      var options = getQuickLookOptions();
-
-      // Show loading feedback
-      var btn = event.target.closest('button');
-      var originalText = btn.innerHTML;
-      btn.innerHTML = '<span class="loading-spinner" style="width:16px;height:16px;margin-right:4px;"></span>Exporting...';
-      btn.disabled = true;
-
-      google.script.run
-        .withSuccessHandler(function(result) {
-          btn.innerHTML = originalText;
-          btn.disabled = false;
-          window.open(result.url, '_blank');
-          showNotification('CSV exported: ' + result.fileName, 'success');
-        })
-        .withFailureHandler(function(err) {
-          btn.innerHTML = originalText;
-          btn.disabled = false;
-          showNotification('Export failed: ' + err.message, 'error');
-        })
-        .downloadQuickLookCSV(options);
+    function toggleOptions(btn) {
+      var item = btn.closest('.report-item');
+      var details = item.querySelector('.report-details');
+      var icon = btn.querySelector('[data-feather]');
+      if (details.style.display === 'none') {
+        details.style.display = 'block';
+        icon.setAttribute('data-feather', 'chevron-up');
+      } else {
+        details.style.display = 'none';
+        icon.setAttribute('data-feather', 'chevron-down');
+      }
+      feather.replace();
     }
 
     function previewQuadChart() {
+      currentReportType = 'quadChart';
       var options = getQuadChartOptions();
 
       showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating quad chart...</p></div>', '');
@@ -877,8 +1086,15 @@
 
     function renderQuadChart(data) {
       var q = data.quadrants;
+      var html = '';
 
-      var html = '<div class="quad-grid">';
+      // Data provenance banner
+      var totalItems = q.updates.count + q.milestones.count;
+      html += renderDataProvenance({
+        'MO-DB_Solutions': totalItems + ' items in view'
+      });
+
+      html += '<div class="quad-grid">';
 
       // Quadrant 1: Updates
       html += '<div class="quad-section">';
@@ -947,7 +1163,7 @@
     }
 
     function previewDetailedReport() {
-      var options = getQuickLookOptions();
+      currentReportType = 'detailedReport';
 
       showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating detailed report...</p></div>', '');
 
@@ -961,14 +1177,20 @@
         .withFailureHandler(function(err) {
           showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + err.message + '</p>', '');
         })
-        .generateDetailedMilestoneReport(options);
+        .generateDetailedMilestoneReport({});
     }
 
     function renderDetailedReport(data) {
       var s = data.stats;
+      var html = '';
+
+      // Data provenance banner
+      html += renderDataProvenance({
+        'MO-DB_Solutions': s.total
+      });
 
       // Stats grid
-      var html = '<div class="stats-grid">';
+      html += '<div class="stats-grid">';
       html += '<div class="stat-item"><span class="stat-value">' + s.total + '</span><span class="stat-label">Total Solutions</span></div>';
       html += '<div class="stat-item"><span class="stat-value">' + s.milestonesCompleted + '</span><span class="stat-label">Milestones Completed</span></div>';
       html += '<div class="stat-item"><span class="stat-value">' + s.milestonesUpcoming90 + '</span><span class="stat-label">Upcoming (90 days)</span></div>';
@@ -994,25 +1216,27 @@
 
       // Data table
       html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">Solutions</h4>';
-      html += renderQuickLookTable(data);
+      if (data.headers && data.rows) {
+        html += '<table class="preview-table"><thead><tr>';
+        data.headers.forEach(function(h) {
+          html += '<th>' + escapeHtml(h) + '</th>';
+        });
+        html += '</tr></thead><tbody>';
+        data.rows.forEach(function(row) {
+          html += '<tr>';
+          row.forEach(function(cell) {
+            html += '<td>' + escapeHtml(cell) + '</td>';
+          });
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+      }
 
       return html;
     }
 
-    function copyPreview() {
-      if (!previewData) return;
-
-      // Convert table to tab-separated text for pasting
-      var lines = [];
-      if (previewData.headers) {
-        lines.push(previewData.headers.join('\t'));
-        previewData.rows.forEach(function(row) {
-          lines.push(row.join('\t'));
-        });
-      }
-      copyToClipboard(lines.join('\n'));
-      showNotification('Data copied to clipboard', 'success');
-    }
+    // Track current report type
+    var currentReportType = null;
 
     function closePreview() {
       document.getElementById('previewPanel').style.display = 'none';
@@ -1051,18 +1275,66 @@
       }
     }
 
+    /**
+     * Render data provenance banner showing source databases and record counts
+     * @param {Object} sources - Object with source names and counts
+     * @returns {string} HTML string
+     */
+    function renderDataProvenance(sources) {
+      var html = '<div class="data-provenance">';
+      html += '<span class="provenance-label">Data Sources:</span>';
+      Object.keys(sources).forEach(function(source) {
+        var sourceLink = getSourceSheetLink(source);
+        if (sourceLink) {
+          html += '<a href="' + sourceLink + '" target="_blank" class="provenance-source provenance-link">';
+          html += escapeHtml(source) + ': <strong>' + sources[source] + '</strong> records';
+          html += ' <span class="verify-icon">↗</span></a>';
+        } else {
+          html += '<span class="provenance-source">' + escapeHtml(source) + ': <strong>' + sources[source] + '</strong> records</span>';
+        }
+      });
+      html += '</div>';
+      return html;
+    }
+
+    /**
+     * Get the Google Sheet link for a source database
+     * These can be updated with actual sheet IDs
+     */
+    function getSourceSheetLink(sourceName) {
+      // Map source names to their Google Sheet URLs
+      // These should be updated with actual sheet IDs from MO-DB_Config
+      var sourceLinks = {
+        'MO-DB_Solutions': null,  // Will be populated from config
+        'MO-DB_Contacts': null    // Will be populated from config
+      };
+
+      // Try to get from cached config if available
+      if (window.MO_CONFIG && window.MO_CONFIG.sheets) {
+        if (sourceName === 'MO-DB_Solutions' && window.MO_CONFIG.sheets.solutions) {
+          return 'https://docs.google.com/spreadsheets/d/' + window.MO_CONFIG.sheets.solutions;
+        }
+        if (sourceName === 'MO-DB_Contacts' && window.MO_CONFIG.sheets.contacts) {
+          return 'https://docs.google.com/spreadsheets/d/' + window.MO_CONFIG.sheets.contacts;
+        }
+      }
+
+      return sourceLinks[sourceName] || null;
+    }
+
     // ========================================================================
     // ADVANCED STAKEHOLDER REPORTS
     // ========================================================================
 
     function previewNeedAlignment() {
+      currentReportType = 'needAlignment';
       showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating need alignment report...</p></div>', '');
 
       google.script.run
         .withSuccessHandler(function(data) {
           previewData = data;
           var html = renderNeedAlignmentReport(data);
-          var meta = 'Generated: ' + new Date(data.generated).toLocaleString() + ' | ' + data.count + ' solutions';
+          var meta = 'Generated: ' + new Date(data.generated).toLocaleString() + ' | ' + data.count + ' solutions | ' + data.totalNeeds + ' needs';
           showPreview('Need Alignment Report', html, meta);
         })
         .withFailureHandler(function(err) {
@@ -1074,38 +1346,247 @@
     function renderNeedAlignmentReport(data) {
       var html = '';
 
-      // Summary stats
-      html += '<div class="stats-grid">';
-      html += '<div class="stat-item"><span class="stat-value">' + data.summary.totalSolutions + '</span><span class="stat-label">Total Solutions</span></div>';
-      html += '<div class="stat-item"><span class="stat-value">' + data.summary.totalStakeholders + '</span><span class="stat-label">Stakeholders</span></div>';
-      html += '<div class="stat-item"><span class="stat-value">' + data.summary.solutionsWithEngagement + '</span><span class="stat-label">With Engagement</span></div>';
-      html += '<div class="stat-item"><span class="stat-value">' + data.summary.averageAlignmentScore + '%</span><span class="stat-label">Avg Score</span></div>';
-      html += '</div>';
-
-      // Alignment table
-      html += '<table class="preview-table">';
-      html += '<thead><tr><th>Solution</th><th>Cycle</th><th>Stakeholders</th><th>Primary SMEs</th><th>Score</th><th>Score Breakdown</th></tr></thead>';
-      html += '<tbody>';
-
-      data.alignments.forEach(function(a) {
-        var scoreClass = a.alignmentScore >= 70 ? 'high' : (a.alignmentScore >= 40 ? 'medium' : 'low');
-        var primaryCount = a.stakeholders.byRole['Primary SME'] || 0;
-        var breakdownText = a.scoreSummary || '';
-        html += '<tr>';
-        html += '<td><strong>' + escapeHtml(a.solution) + '</strong><br><small style="color: var(--color-text-muted);">' + escapeHtml(a.phase) + '</small></td>';
-        html += '<td>' + escapeHtml(a.cycle) + '</td>';
-        html += '<td>' + a.stakeholders.total + '</td>';
-        html += '<td>' + primaryCount + '</td>';
-        html += '<td><span class="alignment-score ' + scoreClass + '">' + a.alignmentScore + '%</span></td>';
-        html += '<td><small style="color: var(--color-text-muted);">' + escapeHtml(breakdownText) + '</small></td>';
-        html += '</tr>';
+      // Data provenance banner
+      html += renderDataProvenance({
+        'MO-DB_Solutions': data.summary.totalSolutions,
+        'MO-DB_Needs': data.summary.totalNeeds + ' survey responses'
       });
 
-      html += '</tbody></table>';
+      // Summary stats
+      html += '<div class="stats-grid">';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.totalSolutions + '</span><span class="stat-label">Solutions</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.totalNeeds + '</span><span class="stat-label">Survey Responses</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.totalSubmitters + '</span><span class="stat-label">Unique Submitters</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + data.summary.averageAlignmentScore + '%</span><span class="stat-label">Avg Alignment</span></div>';
+      if (data.summary.lowSatisfactionCount > 0) {
+        html += '<div class="stat-item"><span class="stat-value" style="color: var(--color-warning);">' + data.summary.lowSatisfactionCount + '</span><span class="stat-label">Low Satisfaction</span></div>';
+      }
+      html += '</div>';
+
+      // Alignment table with expandable rows
+      html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">Solutions by Alignment Score</h4>';
+      html += '<p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin-bottom: var(--space-sm);">Click a solution to view detailed gap analysis.</p>';
+
+      // Store alignments data at module level for expansion
+      gapAnalysisData = data.alignments;
+
+      data.alignments.forEach(function(a, idx) {
+        var scoreClass = a.alignmentScore >= 70 ? 'high' : (a.alignmentScore >= 40 ? 'medium' : 'low');
+        var hasNeeds = a.stakeholderNeeds.total > 0;
+        // Show avg % met or reason why it's unavailable
+        var avgMet;
+        if (a.stakeholderNeeds.avgDegreeNeedMet !== null) {
+          avgMet = a.stakeholderNeeds.avgDegreeNeedMet + '%';
+        } else if (a.stakeholderNeeds.avgDegreeNeedMetReason) {
+          avgMet = '<span title="' + escapeHtml(a.stakeholderNeeds.avgDegreeNeedMetReason) + '" style="cursor: help; color: var(--color-text-muted);">N/A*</span>';
+        } else if (a.stakeholderNeeds.total === 0) {
+          avgMet = '<span style="color: var(--color-text-muted);">No data</span>';
+        } else {
+          avgMet = '-';
+        }
+        var gapText = (a.gaps && a.gaps.length > 0) ? a.gaps.join('; ') : 'None identified';
+        var statusColor = hasNeeds ? (a.alignmentScore >= 70 ? 'var(--color-success)' : (a.alignmentScore >= 40 ? 'var(--color-warning)' : 'var(--color-error)')) : 'var(--color-text-muted)';
+
+        html += '<details class="alignment-row" style="margin-bottom: var(--space-xs); border: 1px solid var(--color-border-light); border-radius: var(--radius-sm);">';
+        html += '<summary style="padding: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: var(--space-md);">';
+        html += '<span style="flex: 2;"><strong>' + escapeHtml(a.solution) + '</strong> <small style="color: var(--color-text-muted);">(' + escapeHtml(a.cycle) + ', ' + escapeHtml(a.phase) + ')</small></span>';
+        html += '<span style="flex: 1; text-align: center;">' + a.stakeholderNeeds.total + ' needs</span>';
+        html += '<span style="flex: 1; text-align: center;">' + avgMet + '</span>';
+        html += '<span style="flex: 1; text-align: center;"><span class="alignment-score ' + scoreClass + '">' + a.alignmentScore + '%</span></span>';
+        html += '</summary>';
+
+        // Expanded content - gap analysis
+        html += '<div style="padding: var(--space-md); border-top: 1px solid var(--color-border-light); font-size: var(--font-size-sm); background: var(--color-surface-alt);">';
+
+        if (!hasNeeds) {
+          html += '<p style="color: var(--color-text-muted); font-style: italic;">No matching survey responses found for this solution.</p>';
+        } else {
+          // Survey years breakdown
+          html += '<div style="margin-bottom: var(--space-md); padding: var(--space-sm); background: var(--color-surface); border-radius: var(--radius-sm);">';
+          html += '<strong>Survey Years:</strong> ';
+          var years = Object.keys(a.stakeholderNeeds.bySurveyYear || {}).sort();
+          html += years.map(function(y) { return y + ' (' + a.stakeholderNeeds.bySurveyYear[y] + ')'; }).join(', ') || 'Unknown';
+          html += ' | <strong>Unique Submitters:</strong> ' + a.stakeholderNeeds.uniqueSubmitters;
+          if (a.stakeholderNeeds.avgDegreeNeedMet !== null) {
+            html += ' | <strong>Avg Satisfaction:</strong> ' + a.stakeholderNeeds.avgDegreeNeedMet + '%';
+          }
+          html += '</div>';
+
+          // Gap analysis table
+          html += '<table style="width: 100%; border-collapse: collapse; font-size: var(--font-size-sm);">';
+          html += '<thead><tr style="background: var(--color-surface);">';
+          html += '<th style="text-align: left; padding: var(--space-xs); border-bottom: 1px solid var(--color-border);">Characteristic</th>';
+          html += '<th style="text-align: left; padding: var(--space-xs); border-bottom: 1px solid var(--color-border);">Solution Provides</th>';
+          html += '<th style="text-align: left; padding: var(--space-xs); border-bottom: 1px solid var(--color-border);">Stakeholders Requested</th>';
+          html += '<th style="text-align: center; padding: var(--space-xs); border-bottom: 1px solid var(--color-border);">Gap?</th>';
+          html += '</tr></thead><tbody>';
+
+          var charMap = [
+            { key: 'horizontal_resolution', label: 'Horizontal Resolution', solKey: 'horizontal_resolution' },
+            { key: 'vertical_resolution', label: 'Vertical Resolution', solKey: null },
+            { key: 'temporal_frequency', label: 'Temporal Frequency', solKey: 'temporal_frequency' },
+            { key: 'data_latency', label: 'Data Latency', solKey: null },
+            { key: 'geographic_coverage', label: 'Geographic Coverage', solKey: 'geographic_domain' }
+          ];
+
+          var chars = a.stakeholderNeeds.characteristics || {};
+          charMap.forEach(function(c) {
+            var charData = chars[c.key] || [];
+            var solValue = c.solKey ? (a.solutionProvides[c.solKey] || '') : '';
+            var hasStakeholderData = charData.length > 0;
+            var hasSolutionData = solValue !== '';
+            var isGap = hasStakeholderData && !hasSolutionData;
+
+            html += '<tr style="border-bottom: 1px solid var(--color-border-light);">';
+            html += '<td style="padding: var(--space-xs); font-weight: 500;">' + c.label + '</td>';
+            html += '<td style="padding: var(--space-xs);">' + (hasSolutionData ? escapeHtml(solValue) : '<span style="color: var(--color-text-muted);">Not specified</span>') + '</td>';
+            html += '<td style="padding: var(--space-xs);">';
+            if (hasStakeholderData) {
+              var valueCounts = {};
+              charData.forEach(function(v) {
+                var key = String(v || 'Not specified');
+                valueCounts[key] = (valueCounts[key] || 0) + 1;
+              });
+              var sorted = Object.keys(valueCounts).sort(function(x, y) { return valueCounts[y] - valueCounts[x]; });
+              var top3 = sorted.slice(0, 3).map(function(k) { return escapeHtml(k) + ' (' + valueCounts[k] + ')'; });
+              html += top3.join(', ');
+              if (sorted.length > 3) html += ' <span style="color: var(--color-text-muted);">+' + (sorted.length - 3) + ' more</span>';
+            } else {
+              html += '<span style="color: var(--color-text-muted);">No data</span>';
+            }
+            html += '</td>';
+            html += '<td style="padding: var(--space-xs); text-align: center;">';
+            if (isGap) {
+              html += '<span style="color: var(--color-warning);">⚠️</span>';
+            } else if (hasStakeholderData && hasSolutionData) {
+              html += '<span style="color: var(--color-success);">✓</span>';
+            } else {
+              html += '<span style="color: var(--color-text-muted);">-</span>';
+            }
+            html += '</td>';
+            html += '</tr>';
+          });
+
+          html += '</tbody></table>';
+
+          // Identified gaps summary
+          if (a.gaps && a.gaps.length > 0) {
+            html += '<div style="margin-top: var(--space-sm); padding: var(--space-sm); background: rgba(239, 68, 68, 0.1); border-radius: var(--radius-sm);">';
+            html += '<strong style="color: var(--color-error);">Gaps:</strong> ' + escapeHtml(a.gaps.join('; '));
+            html += '</div>';
+          }
+        }
+
+        html += '</div></details>';
+      });
+
       return html;
     }
 
+    /**
+     * Show gap analysis for selected solution
+     */
+    function showGapAnalysis(index) {
+      var container = document.getElementById('gapAnalysisContent');
+      if (!index || index === '') {
+        container.innerHTML = '<p style="color: var(--color-text-muted); font-style: italic;">Select a solution above to view detailed gap analysis comparing stakeholder requests (2016-2024) vs what the solution provides.</p>';
+        return;
+      }
+
+      var a = gapAnalysisData[parseInt(index)];
+      if (!a) return;
+
+      var html = '';
+      var hasNeeds = a.stakeholderNeeds.total > 0;
+
+      html += '<div style="padding: var(--space-md); border: 1px solid var(--color-border-light); border-radius: var(--radius-sm); background: var(--color-surface);">';
+      html += '<h5 style="margin: 0 0 var(--space-sm) 0;">' + escapeHtml(a.solution) + ' <small style="color: var(--color-text-muted);">(' + a.cycle + ', ' + escapeHtml(a.phase) + ')</small></h5>';
+
+      if (!hasNeeds) {
+        html += '<p style="color: var(--color-text-muted); font-style: italic;">No matching survey responses found for this solution. Check if solution_id matches stakeholder survey data.</p>';
+      } else {
+        // Survey years breakdown
+        html += '<div style="margin-bottom: var(--space-md); padding: var(--space-sm); background: var(--color-bg-subtle); border-radius: var(--radius-sm);">';
+        html += '<strong>Survey Years:</strong> ';
+        var years = Object.keys(a.stakeholderNeeds.bySurveyYear || {}).sort();
+        html += years.map(function(y) { return y + ' (' + a.stakeholderNeeds.bySurveyYear[y] + ')'; }).join(', ') || 'Unknown';
+        html += ' | <strong>Unique Submitters:</strong> ' + a.stakeholderNeeds.uniqueSubmitters;
+        if (a.stakeholderNeeds.avgDegreeNeedMet !== null) {
+          html += ' | <strong>Avg Satisfaction:</strong> ' + a.stakeholderNeeds.avgDegreeNeedMet + '%';
+        }
+        html += '</div>';
+
+        // Gap analysis table
+        html += '<table style="width: 100%; border-collapse: collapse; font-size: var(--font-size-sm);">';
+        html += '<thead><tr style="background: var(--color-bg-subtle);">';
+        html += '<th style="text-align: left; padding: var(--space-xs); border-bottom: 1px solid var(--color-border);">Characteristic</th>';
+        html += '<th style="text-align: left; padding: var(--space-xs); border-bottom: 1px solid var(--color-border);">Solution Provides</th>';
+        html += '<th style="text-align: left; padding: var(--space-xs); border-bottom: 1px solid var(--color-border);">Stakeholders Requested</th>';
+        html += '<th style="text-align: center; padding: var(--space-xs); border-bottom: 1px solid var(--color-border);">Gap?</th>';
+        html += '</tr></thead><tbody>';
+
+        // Define characteristics to compare
+        var charMap = [
+          { key: 'horizontal_resolution', label: 'Horizontal Resolution', solKey: 'horizontal_resolution' },
+          { key: 'vertical_resolution', label: 'Vertical Resolution', solKey: null },
+          { key: 'temporal_frequency', label: 'Temporal Frequency', solKey: 'temporal_frequency' },
+          { key: 'data_latency', label: 'Data Latency', solKey: null },
+          { key: 'geographic_coverage', label: 'Geographic Coverage', solKey: 'geographic_domain' },
+          { key: 'spectral_bands', label: 'Spectral Bands', solKey: null },
+          { key: 'measurement_uncertainty', label: 'Measurement Uncertainty', solKey: null },
+          { key: 'required_processing_level', label: 'Processing Level', solKey: null },
+          { key: 'preferred_format', label: 'Preferred Format', solKey: null },
+          { key: 'preferred_access', label: 'Preferred Access', solKey: null }
+        ];
+
+        var chars = a.stakeholderNeeds.characteristics || {};
+        charMap.forEach(function(c) {
+          var charData = chars[c.key] || [];
+          var solValue = c.solKey ? (a.solutionProvides[c.solKey] || '') : '';
+          var hasStakeholderData = charData.length > 0;
+          var hasSolutionData = solValue !== '';
+          var isGap = hasStakeholderData && !hasSolutionData;
+
+          html += '<tr style="border-bottom: 1px solid var(--color-border-light);">';
+          html += '<td style="padding: var(--space-xs); font-weight: 500;">' + c.label + '</td>';
+          html += '<td style="padding: var(--space-xs);">' + (hasSolutionData ? escapeHtml(solValue) : '<span style="color: var(--color-text-muted);">Not specified</span>') + '</td>';
+          html += '<td style="padding: var(--space-xs);">';
+          if (hasStakeholderData) {
+            // Aggregate and display top values
+            var valueCounts = {};
+            charData.forEach(function(v) {
+              var key = String(v || 'Not specified');
+              valueCounts[key] = (valueCounts[key] || 0) + 1;
+            });
+            var sorted = Object.keys(valueCounts).sort(function(x, y) { return valueCounts[y] - valueCounts[x]; });
+            var top3 = sorted.slice(0, 3).map(function(k) { return escapeHtml(k) + ' (' + valueCounts[k] + ')'; });
+            html += top3.join(', ');
+            if (sorted.length > 3) html += ' <span style="color: var(--color-text-muted);">+' + (sorted.length - 3) + ' more</span>';
+          } else {
+            html += '<span style="color: var(--color-text-muted);">No data</span>';
+          }
+          html += '</td>';
+          html += '<td style="padding: var(--space-xs); text-align: center;">';
+          if (isGap) {
+            html += '<span style="color: var(--color-warning);" title="Stakeholders have requirements but solution spec is missing">⚠️</span>';
+          } else if (hasStakeholderData && hasSolutionData) {
+            html += '<span style="color: var(--color-success);">✓</span>';
+          } else {
+            html += '<span style="color: var(--color-text-muted);">-</span>';
+          }
+          html += '</td>';
+          html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+      }
+
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
     function previewStakeholderCoverage() {
+      currentReportType = 'stakeholderCoverage';
       showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating stakeholder coverage report...</p></div>', '');
 
       google.script.run
@@ -1123,6 +1604,12 @@
 
     function renderStakeholderCoverageReport(data) {
       var html = '';
+
+      // Data provenance banner
+      html += renderDataProvenance({
+        'MO-DB_Solutions': data.summary.totalSolutions,
+        'MO-DB_Contacts': data.byDepartment.reduce(function(sum, d) { return sum + d.contactCount; }, 0) + ' unique'
+      });
 
       // Summary stats
       html += '<div class="stats-grid">';
@@ -1163,6 +1650,7 @@
     }
 
     function previewEngagementFunnel() {
+      currentReportType = 'engagementFunnel';
       showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating engagement funnel...</p></div>', '');
 
       google.script.run
@@ -1180,6 +1668,13 @@
 
     function renderEngagementFunnelReport(data) {
       var html = '';
+
+      // Data provenance banner - calculate unique stakeholders
+      var totalUnique = data.funnel.details.surveyOnly + data.funnel.details.secondarySME +
+                       data.funnel.details.primarySME + data.funnel.details.multiRole;
+      html += renderDataProvenance({
+        'MO-DB_Contacts': totalUnique + ' unique stakeholders'
+      });
 
       // Funnel visualization
       html += '<div style="margin-bottom: var(--space-lg);">';
@@ -1219,6 +1714,7 @@
     }
 
     function previewDepartmentReach() {
+      currentReportType = 'departmentReach';
       showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating department reach report...</p></div>', '');
 
       google.script.run
@@ -1236,6 +1732,13 @@
 
     function renderDepartmentReachReport(data) {
       var html = '';
+
+      // Data provenance banner
+      var totalContacts = data.broadestReach.reduce(function(sum, s) { return sum + s.totalContacts; }, 0);
+      html += renderDataProvenance({
+        'MO-DB_Solutions': data.summary.totalSolutions,
+        'MO-DB_Contacts': totalContacts + ' contact-solution records'
+      });
 
       // Summary stats
       html += '<div class="stats-grid">';
@@ -1282,11 +1785,123 @@
       return html;
     }
 
+    // ========================================================================
+    // HISTORICAL UPDATES REPORT
+    // ========================================================================
+
+    function previewHistoricalUpdates() {
+      currentReportType = 'historicalUpdates';
+      var solution = document.getElementById('updatesReportSolution').value;
+      var range = document.getElementById('updatesReportRange').value;
+
+      showPreview('Historical Updates Report', '<div class="loading-state"><span class="loading-spinner"></span><p>Loading updates...</p></div>', '');
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          if (data && data.solutions) {
+            previewData = data;
+            var html = renderHistoricalUpdatesPreview(data, solution, range);
+            var meta = data.stats.total + ' total updates across ' + data.stats.solutionCount + ' solutions';
+            showPreview('Historical Updates Report', html, meta);
+          } else {
+            showPreview('Historical Updates Report', '<div class="preview-empty">No updates found. Make sure MO-DB_Updates is configured and populated.</div>', '');
+          }
+        })
+        .withFailureHandler(function(error) {
+          showPreview('Error', '<p style="color: var(--color-error);">Failed to load updates: ' + error + '</p>', '');
+        })
+        .getAllHistoricalUpdatesForReport();
+    }
+
+    function renderHistoricalUpdatesPreview(data, filterSolution, filterRange) {
+      var html = '<div class="updates-report">';
+
+      // Filter by solution if specified
+      var solutions = data.solutions;
+      if (filterSolution) {
+        solutions = solutions.filter(function(s) {
+          return s.name === filterSolution;
+        });
+      }
+
+      // Filter by date range
+      var daysBack = filterRange === 'all' ? null : parseInt(filterRange, 10);
+      var cutoffDate = null;
+      if (daysBack) {
+        cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+      }
+
+      solutions.forEach(function(sol) {
+        var updates = sol.updates;
+
+        // Filter by date if range specified
+        if (cutoffDate) {
+          updates = updates.filter(function(u) {
+            if (!u.meeting_date) return true;
+            return new Date(u.meeting_date) >= cutoffDate;
+          });
+        }
+
+        if (updates.length === 0) return;
+
+        html += '<div class="solution-updates-section">';
+        html += '<h3 class="solution-name">' + escapeHtml(sol.name) + '</h3>';
+        html += '<span class="update-count">' + updates.length + ' updates</span>';
+
+        html += '<table class="preview-table">';
+        html += '<thead><tr><th>Date</th><th>Update</th><th>Source</th></tr></thead>';
+        html += '<tbody>';
+
+        updates.forEach(function(update) {
+          html += '<tr>';
+          html += '<td>' + escapeHtml(update.meeting_date || '') + '</td>';
+          html += '<td class="update-text-cell">' + escapeHtml(update.update_text || '').replace(/\n/g, '<br>') + '</td>';
+          html += '<td>' + escapeHtml(update.source_document || '');
+          if (update.source_tab) {
+            html += ' (' + escapeHtml(update.source_tab) + ')';
+          }
+          html += '</td>';
+          html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        html += '</div>';
+      });
+
+      html += '</div>';
+
+      return html;
+    }
+
+    // Load solutions into the updates report dropdown
+    function loadUpdatesReportSolutions() {
+      google.script.run
+        .withSuccessHandler(function(solutions) {
+          var select = document.getElementById('updatesReportSolution');
+          if (select && solutions) {
+            solutions.forEach(function(sol) {
+              var option = document.createElement('option');
+              option.value = sol.name || sol.solution_id;
+              option.textContent = sol.name || sol.solution_id;
+              select.appendChild(option);
+            });
+          }
+        })
+        .withFailureHandler(function() {})
+        .getAllSolutions();
+    }
+
+    // Initialize on load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadUpdatesReportSolutions);
+    } else {
+      loadUpdatesReportSolutions();
+    }
+
     // Public API
     console.log('Reports module initialized successfully');
     return {
-      previewQuickLook: previewQuickLook,
-      downloadQuickLook: downloadQuickLook,
       previewQuadChart: previewQuadChart,
       copyQuadChartText: copyQuadChartText,
       previewDetailedReport: previewDetailedReport,
@@ -1294,8 +1909,10 @@
       previewStakeholderCoverage: previewStakeholderCoverage,
       previewEngagementFunnel: previewEngagementFunnel,
       previewDepartmentReach: previewDepartmentReach,
-      copyPreview: copyPreview,
-      closePreview: closePreview
+      previewHistoricalUpdates: previewHistoricalUpdates,
+      closePreview: closePreview,
+      toggleOptions: toggleOptions,
+      showGapAnalysis: showGapAnalysis
     };
   })();
 

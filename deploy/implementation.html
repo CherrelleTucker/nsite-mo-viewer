@@ -759,6 +759,175 @@
     text-align: center;
   }
 
+  /* Updates Styles */
+  .updates-summary {
+    display: flex;
+    gap: var(--space-md);
+    align-items: center;
+    margin-bottom: var(--space-md);
+    font-size: var(--font-size-sm);
+  }
+
+  .updates-count {
+    color: var(--color-text-secondary);
+  }
+
+  .updates-recent-badge {
+    background: var(--color-primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+  }
+
+  .updates-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .updates-extended.collapsed {
+    display: none;
+  }
+
+  .update-item {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--color-primary);
+    font-size: var(--font-size-sm);
+  }
+
+  .update-date {
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    font-size: var(--font-size-xs);
+  }
+
+  .update-content {
+    color: var(--color-text-primary);
+    line-height: 1.5;
+  }
+
+  .update-source {
+    grid-column: 1 / -1;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-top: var(--space-xs);
+    padding-top: var(--space-xs);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .updates-see-more-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    background: none;
+    border: 1px dashed var(--color-border);
+    color: var(--color-primary);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    width: 100%;
+    justify-content: center;
+    margin: var(--space-md) 0;
+    transition: all 0.2s;
+  }
+
+  .updates-see-more-btn:hover {
+    background: var(--color-surface-alt);
+    border-color: var(--color-primary);
+  }
+
+  .updates-see-more-btn .see-more-icon {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s;
+  }
+
+  .updates-empty-recent {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-style: italic;
+    padding: var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    text-align: center;
+  }
+
+  .empty-updates {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-style: italic;
+    padding: var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    text-align: center;
+  }
+
+  .updates-historical-note {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+  }
+
+  .updates-historical-note svg {
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+  }
+
+  .updates-historical-note a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  .updates-historical-note a:hover {
+    text-decoration: underline;
+  }
+
+  /* Status Summary Collapsible Styles */
+  .status-summary-wrapper {
+    position: relative;
+  }
+
+  .status-full.collapsed {
+    display: none;
+  }
+
+  .status-see-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    padding: var(--space-xs) 0;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    margin-top: var(--space-xs);
+  }
+
+  .status-see-more-btn:hover {
+    text-decoration: underline;
+  }
+
+  .status-see-more-btn .see-more-icon {
+    width: 14px;
+    height: 14px;
+  }
+
   /* Milestone Styles */
   .milestone-summary {
     display: flex;
@@ -1408,16 +1577,41 @@ var Implementation = (function() {
     // Build milestone data from solution fields
     var milestoneData = buildMilestoneData(sol);
 
+    // Track loading state for parallel requests
+    var loadState = { stakeholders: null, updates: null, loaded: 0 };
+
+    function checkAndRender() {
+      loadState.loaded++;
+      if (loadState.loaded === 2) {
+        renderDetailModal(sol, loadState.stakeholders, milestoneData, loadState.updates);
+      }
+    }
+
     // Load stakeholder data
     google.script.run
       .withSuccessHandler(function(stakeholders) {
-        renderDetailModal(sol, stakeholders, milestoneData);
+        loadState.stakeholders = stakeholders;
+        checkAndRender();
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load stakeholders:', error);
-        renderDetailModal(sol, null, milestoneData);
+        loadState.stakeholders = null;
+        checkAndRender();
       })
       .getSolutionStakeholderSummary(sol.name || sol.full_title);
+
+    // Load updates data
+    google.script.run
+      .withSuccessHandler(function(updates) {
+        loadState.updates = updates;
+        checkAndRender();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load updates:', error);
+        loadState.updates = null;
+        checkAndRender();
+      })
+      .getUpdatesForSolutionCard(sol.name || sol.full_title);
   }
 
   function buildMilestoneData(sol) {
@@ -1469,7 +1663,7 @@ var Implementation = (function() {
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
-  function renderDetailModal(sol, stakeholders, milestones) {
+  function renderDetailModal(sol, stakeholders, milestones, updates) {
     var html = '<div class="detail-grid">';
 
     // Left column - Identity & Status
@@ -1514,7 +1708,26 @@ var Implementation = (function() {
 
     html += '<div class="detail-section">';
     html += '<div class="detail-section-title">Status Summary</div>';
-    html += '<div class="detail-text">' + escapeHtml(sol.status_summary || 'No status update.') + '</div>';
+    var statusText = sol.status_summary || 'No status update.';
+    var statusCharLimit = 300;
+    if (statusText.length > statusCharLimit) {
+      var truncatedStatus = statusText.substring(0, statusCharLimit).trim();
+      // Don't cut mid-word
+      var lastSpace = truncatedStatus.lastIndexOf(' ');
+      if (lastSpace > statusCharLimit - 50) {
+        truncatedStatus = truncatedStatus.substring(0, lastSpace);
+      }
+      html += '<div class="status-summary-wrapper">';
+      html += '<div class="detail-text status-truncated" id="statusTruncated">' + escapeHtml(truncatedStatus) + '...</div>';
+      html += '<div class="detail-text status-full collapsed" id="statusFull">' + escapeHtml(statusText) + '</div>';
+      html += '<button class="status-see-more-btn" onclick="Implementation.toggleStatusSummary()">';
+      html += '<span data-feather="chevron-down" class="see-more-icon"></span>';
+      html += 'See more';
+      html += '</button>';
+      html += '</div>';
+    } else {
+      html += '<div class="detail-text">' + escapeHtml(statusText) + '</div>';
+    }
     html += '</div>';
 
     html += '</div>';
@@ -1631,8 +1844,122 @@ var Implementation = (function() {
     }
     html += '</div>';
 
+    // Updates section
+    html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
+    html += '<div class="detail-section-title">Recent Updates</div>';
+
+    if (updates && (updates.recent.length > 0 || updates.extended.length > 0)) {
+      // Show total count
+      html += '<div class="updates-summary">';
+      html += '<span class="updates-count">' + updates.totalCount + ' total updates</span>';
+      if (updates.recent.length > 0) {
+        html += '<span class="updates-recent-badge">' + updates.recent.length + ' in last 30 days</span>';
+      }
+      html += '</div>';
+
+      // Recent updates (shown by default)
+      if (updates.recent.length > 0) {
+        html += '<div class="updates-list" id="recentUpdates">';
+        updates.recent.forEach(function(update) {
+          html += renderUpdateItem(update);
+        });
+        html += '</div>';
+      } else {
+        html += '<div class="updates-empty-recent">No updates in the last 30 days.</div>';
+      }
+
+      // Extended updates (hidden by default, shown on "see more")
+      if (updates.hasMore) {
+        html += '<div class="updates-extended-section">';
+        html += '<button class="updates-see-more-btn" onclick="Implementation.toggleExtendedUpdates()">';
+        html += '<span data-feather="chevron-down" class="see-more-icon"></span>';
+        html += 'See more (' + updates.extended.length + ' updates from past 6 months)';
+        html += '</button>';
+        html += '<div class="updates-list updates-extended collapsed" id="extendedUpdates">';
+        updates.extended.forEach(function(update) {
+          html += renderUpdateItem(update);
+        });
+        html += '</div>';
+        html += '</div>';
+      }
+
+      // Historical note
+      if (updates.hasHistorical) {
+        html += '<div class="updates-historical-note">';
+        html += '<span data-feather="archive"></span>';
+        html += 'Full historical updates available in the <a href="' + Platform.baseUrl + '?page=reports">Historical Updates Report</a>.';
+        html += '</div>';
+      }
+    } else {
+      html += '<div class="empty-updates">No updates recorded for this solution.</div>';
+    }
+    html += '</div>';
+
     document.getElementById('modalBody').innerHTML = html;
     feather.replace();
+  }
+
+  function renderUpdateItem(update) {
+    var html = '<div class="update-item">';
+    html += '<div class="update-date">';
+    if (update.meeting_date) {
+      var d = new Date(update.meeting_date);
+      html += d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    html += '</div>';
+    html += '<div class="update-content">';
+    // Handle multiline updates (from children)
+    var text = escapeHtml(update.update_text || '');
+    text = text.replace(/\n/g, '<br>');
+    html += text;
+    html += '</div>';
+    if (update.source_document) {
+      html += '<div class="update-source">' + escapeHtml(update.source_document);
+      if (update.source_tab) {
+        html += ' (' + escapeHtml(update.source_tab) + ')';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function toggleExtendedUpdates() {
+    var extended = document.getElementById('extendedUpdates');
+    var btn = document.querySelector('.updates-see-more-btn');
+    if (extended && btn) {
+      extended.classList.toggle('collapsed');
+      var isCollapsed = extended.classList.contains('collapsed');
+      var icon = btn.querySelector('.see-more-icon');
+      if (icon) {
+        icon.style.transform = isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)';
+      }
+      btn.innerHTML = isCollapsed
+        ? '<span data-feather="chevron-down" class="see-more-icon"></span>See more (' + extended.children.length + ' updates from past 6 months)'
+        : '<span data-feather="chevron-up" class="see-more-icon"></span>Show less';
+      feather.replace();
+    }
+  }
+
+  function toggleStatusSummary() {
+    var truncated = document.getElementById('statusTruncated');
+    var full = document.getElementById('statusFull');
+    var btn = document.querySelector('.status-see-more-btn');
+    if (truncated && full && btn) {
+      var isExpanded = !full.classList.contains('collapsed');
+      if (isExpanded) {
+        // Collapse
+        full.classList.add('collapsed');
+        truncated.style.display = 'block';
+        btn.innerHTML = '<span data-feather="chevron-down" class="see-more-icon"></span>See more';
+      } else {
+        // Expand
+        full.classList.remove('collapsed');
+        truncated.style.display = 'none';
+        btn.innerHTML = '<span data-feather="chevron-up" class="see-more-icon"></span>Show less';
+      }
+      feather.replace();
+    }
   }
 
   function closeModal(event) {
@@ -1705,7 +2032,9 @@ var Implementation = (function() {
     onSolutionToggle: onSolutionToggle,
     selectActiveSolutions: selectActiveSolutions,
     selectAllSolutions: selectAllSolutions,
-    clearSolutionSelection: clearSolutionSelection
+    clearSolutionSelection: clearSolutionSelection,
+    toggleExtendedUpdates: toggleExtendedUpdates,
+    toggleStatusSummary: toggleStatusSummary
   };
 })();
 

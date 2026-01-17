@@ -9,6 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **sync-updates-to-db.gs**: Container-bound script for MO-DB_Updates that parses 🆕 updates from agenda documents
+  - Supports Internal Planning (table format) and SEP Strategy (paragraph format)
+  - Also supports OPERA Monthly and PBL Monthly agendas
+  - Reads config from MO-DB_Config (INTERNAL_AGENDA_ID, SEP_AGENDA_ID, etc.)
+  - Deduplicates by solution + update text
+  - Custom menu for manual sync triggers
+- **updates-api.gs**: Data access layer for MO-DB_Updates
+  - `getAllUpdates()`, `getUpdatesBySolution()`, `getRecentUpdatesBySolution()`
+  - `getUpdatesForSolutionCard()` - structured data for solution cards (recent/extended/historical)
+  - `getUpdatesGroupedBySolution()`, `getUpdatesStats()`
+  - Cache with 1-minute duration
+- **MO-DB_Contacts schema**: Added 6 internal team columns
+  - `is_internal` (Y/N), `internal_title`, `internal_team`, `supervisor`, `start_date`, `active`
+  - Enables tracking internal MO team members without separate database
+
+### Changed
+- **reports.html**: Reports page UX improvements
+  - Removed QuickLook CSV report (MO Viewer replaces its function)
+  - Removed Export functionality (temporary - for review)
+  - Restored comprehensive "How is this calculated?" methodology sections for all 7 reports
+  - **Need Alignment report**: Expandable solution rows - click any solution to see its gap analysis inline
+  - Compact card layout with 4 cards across (responsive: 4→3→2→1)
+  - Removed Impl/SEP/Comms badges from cards (reduced visual noise)
+
 ### Planned
 - Comms-NSITE (communications/story tracking)
 - Automation & Sync (scheduled exports, email notifications)

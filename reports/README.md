@@ -71,10 +71,24 @@ Add to MO-DB_Config for scheduled exports:
 ## UI
 
 The Reports tab (`reports.html`) provides:
-- Card-based interface for each report
-- Preview before download
-- Filter options (cycle, default solutions)
-- Copy-to-clipboard for slides
+- Card-based interface (4 cards across, responsive layout)
+- Preview-first workflow: users must preview before exporting
+- Export options: "Save to Google Drive" or "Download to Device" (from preview panel)
+- Filter options (cycle, default solutions, date ranges)
+- Copy-to-clipboard for Quad Chart slides
+- Methodology documentation per report ("How is this calculated?")
+
+### Report Types
+| Report | Purpose | Key Data |
+|--------|---------|----------|
+| QuickLook CSV | Milestone status for leadership | Solutions, phases, dates, memos |
+| Quad Chart | Weekly status for slides | Updates, milestones, actions, decisions |
+| Detailed Milestone | Full milestone statistics | Breakdowns by phase, cycle, status |
+| Need Alignment | Solution-stakeholder fit | Needs comparison, alignment scores |
+| Stakeholder Coverage | Department engagement gaps | Coverage by solution, gap identification |
+| Engagement Funnel | Pipeline progression | Funnel stages, conversion rates |
+| Department Reach | Federal reach analysis | Department/agency coverage |
+| Historical Updates | Solution update history | Updates by solution over time |
 
 ## Development
 

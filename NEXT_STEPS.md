@@ -1,11 +1,32 @@
 # Next Development Steps
 
-**Last Updated:** 2026-01-16
-**Current Version:** 1.0.0
+**Last Updated:** 2026-01-17
+**Current Version:** 1.0.3
 
 ---
 
-## Completed This Session (2026-01-16) - SEP-NSITE Complete
+## Completed This Session (2026-01-17) - Reports Refinements & Schema Updates
+
+- [x] **Reports Page Refinements**
+  - Removed QuickLook CSV report (MO Viewer replaces its function)
+  - Removed Export functionality temporarily (needs review)
+  - Restored comprehensive "How is this calculated?" methodology sections
+  - **Need Alignment report**: Expandable solution rows - click to see gap analysis inline
+  - No more scrolling to find details - everything expands in place
+
+- [x] **MO-DB_Contacts Schema Update**
+  - Added 6 internal team columns: `is_internal`, `internal_title`, `internal_team`, `supervisor`, `start_date`, `active`
+  - Enables tracking internal MO team members without separate database
+  - Updated DATA_SCHEMA.md documentation
+
+- [x] **Earlier: MO-DB_Updates & Updates API**
+  - Created `sync-updates-to-db.gs` - parses 🆕 updates from agenda documents
+  - Created `updates-api.gs` - data access layer with caching
+  - Supports Internal Planning, SEP Strategy, OPERA Monthly, PBL Monthly agendas
+
+---
+
+## Completed Earlier (2026-01-16) - SEP-NSITE Complete
 
 - [x] **SEP-NSITE Viewer** - Phase 5 stakeholder engagement pipeline
   - Created `sep.html` - complete UI with pipeline and agencies views
@@ -112,12 +133,12 @@ Current deploy/ folder contents:
 ```
 deploy/
 ├── Code.gs                 # Main Apps Script entry point
-├── agencies-api.gs         # Agencies data API (NEW)
+├── agencies-api.gs         # Agencies data API
 ├── contacts.html           # Contacts Directory UI
 ├── contacts-api.gs         # Contacts data API (enhanced with SEP)
 ├── contacts-menu.gs        # Contacts sheet menu
 ├── earthdata-sync.gs       # Earthdata.nasa.gov content scraper/sync
-├── engagements-api.gs      # Engagements data API (NEW)
+├── engagements-api.gs      # Engagements data API
 ├── implementation.html     # Implementation-NSITE UI
 ├── index.html              # Platform shell
 ├── milestones-api.gs       # Milestones data API
@@ -126,12 +147,13 @@ deploy/
 ├── quick-update.html       # Quick Update Form UI
 ├── quick-update-handlers.gs # Quick Update backend
 ├── quicklook-generator.gs  # QuickLook CSV report generator
-├── reports.html            # Reports tab UI
+├── reports.html            # Reports tab UI (redesigned UX)
 ├── schedule.html           # Schedule timeline view
-├── sep.html                # SEP-NSITE UI (NEW)
+├── sep.html                # SEP-NSITE UI
 ├── stakeholder-solution-alignment.gs  # Advanced stakeholder reports
 ├── solutions-api.gs        # Solutions data API
-└── styles.html             # Shared CSS
+├── styles.html             # Shared CSS
+└── updates-api.gs          # Updates data API (NEW)
 ```
 
 ---
@@ -145,6 +167,7 @@ deploy/
 | MO-DB_Agencies | Yes | `MO-Viewer Databases/` | 43 agencies | **Populated** |
 | MO-DB_Engagements | Yes | `MO-Viewer Databases/` | -- | **Ready** |
 | MO-DB_Needs | Yes | `MO-Viewer Databases/` | 2,049 responses | **Populated** |
+| MO-DB_Updates | Yes | `MO-Viewer Databases/` | -- | **Ready** |
 | MO-DB_Config | Yes | `MO-Viewer Databases/` | Configuration | **Active** |
 | MO-DB_Stories | Planned | -- | -- | Planned |
 
