@@ -95,6 +95,10 @@ var PAGES = {
   'actions': {
     title: 'Actions',
     icon: 'check-square'
+  },
+  'about': {
+    title: 'About',
+    icon: 'info'
   }
 };
 
