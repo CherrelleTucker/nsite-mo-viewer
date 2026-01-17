@@ -1,0 +1,1514 @@
+<!-- Actions-NSITE: Action Item Tracking -->
+
+<div class="page-content" id="actions-page">
+  <!-- Header -->
+  <div class="actions-header">
+    <div class="header-title">
+      <h1>Actions</h1>
+      <span class="header-badge" id="open-count">0 open</span>
+    </div>
+    <div class="header-controls">
+      <div class="view-toggle">
+        <button class="view-btn active" data-view="assignee" onclick="ActionsModule.setView('assignee')">
+          <i data-feather="users"></i> By Person
+        </button>
+        <button class="view-btn" data-view="status" onclick="ActionsModule.setView('status')">
+          <i data-feather="columns"></i> By Status
+        </button>
+      </div>
+      <button class="btn-primary btn-add" onclick="ActionsModule.showAddModal()">
+        <i data-feather="plus"></i> Add Action
+      </button>
+      <button class="btn-icon" onclick="ActionsModule.refreshData()" title="Refresh">
+        <i data-feather="refresh-cw"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="actions-filters">
+    <div class="filter-chips">
+      <button class="chip active" data-filter="open" onclick="ActionsModule.setFilter('open')">Open</button>
+      <button class="chip" data-filter="all" onclick="ActionsModule.setFilter('all')">All</button>
+      <button class="chip" data-filter="done" onclick="ActionsModule.setFilter('done')">Done</button>
+    </div>
+    <div class="filter-search">
+      <i data-feather="search"></i>
+      <input type="text" id="action-search" placeholder="Search actions..." onkeyup="ActionsModule.applyFilters()">
+    </div>
+    <select id="filter-source" onchange="ActionsModule.applyFilters()">
+      <option value="">All Sources</option>
+      <option value="MO">Internal (MO)</option>
+      <option value="SEP">SEP</option>
+    </select>
+    <select id="filter-solution" onchange="ActionsModule.applyFilters()">
+      <option value="">All Solutions</option>
+      <!-- Populated by JavaScript -->
+    </select>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="actions-content">
+    <!-- Assignee View (Default) -->
+    <div class="assignee-view active" id="assignee-view">
+      <!-- Populated by JavaScript -->
+    </div>
+
+    <!-- Status/Kanban View -->
+    <div class="status-view" id="status-view">
+      <div class="kanban-column" data-status="pending">
+        <div class="column-header">
+          <span class="dot pending"></span>
+          <span>Pending</span>
+          <span class="count" id="count-pending">0</span>
+        </div>
+        <div class="column-cards" id="cards-pending"></div>
+      </div>
+      <div class="kanban-column" data-status="not_started">
+        <div class="column-header">
+          <span class="dot not-started"></span>
+          <span>Not Started</span>
+          <span class="count" id="count-not-started">0</span>
+        </div>
+        <div class="column-cards" id="cards-not-started"></div>
+      </div>
+      <div class="kanban-column" data-status="in_progress">
+        <div class="column-header">
+          <span class="dot in-progress"></span>
+          <span>In Progress</span>
+          <span class="count" id="count-in-progress">0</span>
+        </div>
+        <div class="column-cards" id="cards-in-progress"></div>
+      </div>
+      <div class="kanban-column" data-status="done">
+        <div class="column-header">
+          <span class="dot done"></span>
+          <span>Done</span>
+          <span class="count" id="count-done">0</span>
+        </div>
+        <div class="column-cards" id="cards-done"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" id="actions-loading">
+    <div class="spinner"></div>
+    <p>Loading actions...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" id="actions-empty" style="display:none;">
+    <i data-feather="inbox"></i>
+    <p>No actions found</p>
+    <p class="empty-hint">Actions sync automatically from meeting agendas</p>
+  </div>
+</div>
+
+<!-- Action Detail Drawer -->
+<div class="drawer-overlay" id="action-drawer">
+  <div class="drawer">
+    <div class="drawer-header">
+      <h3>Action Details</h3>
+      <button class="btn-icon" onclick="ActionsModule.closeDrawer()">
+        <i data-feather="x"></i>
+      </button>
+    </div>
+    <div class="drawer-body" id="drawer-body">
+      <!-- Populated by JavaScript -->
+    </div>
+  </div>
+</div>
+
+<!-- Add Action Modal -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Add Action</h2>
+      <button class="modal-close" onclick="ActionsModule.closeAddModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="add-action-form" onsubmit="return ActionsModule.submitAction(event)">
+        <div class="form-group">
+          <label for="add-task">Task *</label>
+          <textarea id="add-task" rows="3" required placeholder="Describe the action item..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="add-assigned">Assigned To *</label>
+            <input type="text" id="add-assigned" required placeholder="Name">
+          </div>
+          <div class="form-group">
+            <label for="add-category">Source</label>
+            <select id="add-category">
+              <option value="MO">Internal (MO)</option>
+              <option value="SEP">SEP</option>
+              <option value="AdHoc">Ad Hoc</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="add-solution">Solution</label>
+            <input type="text" id="add-solution" placeholder="e.g., HLS, OPERA (optional)">
+          </div>
+          <div class="form-group">
+            <label for="add-priority">Priority</label>
+            <select id="add-priority">
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="add-due">Due Date</label>
+          <input type="date" id="add-due">
+        </div>
+        <div class="form-group">
+          <label for="add-notes">Notes</label>
+          <textarea id="add-notes" rows="2" placeholder="Additional context (optional)"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" onclick="ActionsModule.closeAddModal()">Cancel</button>
+          <button type="submit" class="btn-primary" id="add-submit-btn">
+            <i data-feather="plus"></i> Add Action
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<style>
+/* Actions Page - Clean, Focused Design */
+#actions-page {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  min-height: calc(100vh - 180px);
+}
+
+/* Header */
+.actions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.actions-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a2e);
+  margin: 0;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-badge {
+  background: #eef2ff;
+  color: #4f46e5;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.view-toggle {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.view-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-btn:hover {
+  color: #334155;
+}
+
+.view-btn.active {
+  background: white;
+  color: #1e293b;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.view-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.btn-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Filters */
+.actions-filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.filter-chips {
+  display: flex;
+  gap: 8px;
+}
+
+.chip {
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.chip:hover {
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.chip.active {
+  background: #1e293b;
+  border-color: #1e293b;
+  color: white;
+}
+
+.filter-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  flex: 1;
+  max-width: 300px;
+}
+
+.filter-search svg {
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+}
+
+.filter-search input {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  width: 100%;
+  background: transparent;
+}
+
+.actions-filters select {
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  background: white;
+  color: #334155;
+  cursor: pointer;
+}
+
+/* Assignee View */
+.assignee-view {
+  display: none;
+}
+
+.assignee-view.active {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.assignee-section {
+  background: #f8fafc;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.assignee-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.assignee-header:hover {
+  background: #fafafa;
+}
+
+.assignee-toggle {
+  width: 20px;
+  height: 20px;
+  color: #94a3b8;
+  transition: transform 0.2s;
+}
+
+.assignee-section.collapsed .assignee-toggle {
+  transform: rotate(-90deg);
+}
+
+.assignee-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.assignee-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.assignee-count {
+  background: #eef2ff;
+  color: #4f46e5;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.assignee-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: #e2e8f0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.assignee-section.collapsed .assignee-actions {
+  display: none;
+}
+
+/* Action Row */
+.action-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.action-row:hover {
+  background: #f8fafc;
+}
+
+.action-row-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot.pending { background: #f59e0b; }
+.status-dot.not-started { background: #94a3b8; }
+.status-dot.in-progress { background: #3b82f6; }
+.status-dot.done { background: #10b981; }
+
+.status-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: capitalize;
+}
+
+.action-task {
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.action-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.action-source {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.action-solution {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.action-solution.is-solution {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* Status/Kanban View */
+.status-view {
+  display: none;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.status-view.active {
+  display: grid;
+}
+
+.kanban-column {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 400px;
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.column-header .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot.pending { background: #f59e0b; }
+.dot.not-started { background: #94a3b8; }
+.dot.in-progress { background: #3b82f6; }
+.dot.done { background: #10b981; }
+
+.column-header .count {
+  margin-left: auto;
+  background: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.column-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Kanban Card */
+.kanban-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.kanban-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transform: translateY(-1px);
+}
+
+.kanban-card .task {
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.kanban-card .meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.kanban-card .owner {
+  font-weight: 500;
+  color: #64748b;
+}
+
+/* Drawer */
+.drawer-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 1000;
+}
+
+.drawer-overlay.active {
+  display: block;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 480px;
+  max-width: 100%;
+  height: 100%;
+  background: white;
+  box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.drawer-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.drawer-body {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.detail-field {
+  margin-bottom: 20px;
+}
+
+.detail-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.detail-field .value {
+  font-size: 15px;
+  color: #1e293b;
+  line-height: 1.6;
+}
+
+.detail-field .value a {
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+.detail-field .value a:hover {
+  text-decoration: underline;
+}
+
+.status-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.status-btn {
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.status-btn:hover {
+  background: #f8fafc;
+}
+
+.status-btn.active {
+  background: #1e293b;
+  color: white;
+  border-color: #1e293b;
+}
+
+.status-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.status-btn.loading {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.status-btn.success {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+
+.btn-primary, .btn-secondary {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+}
+
+.btn-primary {
+  background: #4f46e5;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #4338ca;
+}
+
+.btn-secondary {
+  background: white;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+}
+
+/* Loading & Empty States */
+.loading-state, .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  color: #64748b;
+}
+
+.loading-state .spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #4f46e5;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.empty-state svg {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  color: #cbd5e1;
+}
+
+.empty-state p {
+  margin-bottom: 8px;
+}
+
+.empty-hint {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Add Button */
+.btn-add {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.btn-add svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  font-size: 24px;
+  color: #94a3b8;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.modal-close:hover {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+/* Form */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+</style>
+
+<script>
+/**
+ * Actions Module - Assignee-First Action Tracking
+ */
+var ActionsModule = (function() {
+  var state = {
+    actions: [],
+    filteredActions: [],
+    currentView: 'assignee',
+    currentFilter: 'open',
+    currentAction: null,
+    collapsedAssignees: {}
+  };
+
+  function init() {
+    loadData();
+  }
+
+  function loadData() {
+    showLoading(true);
+
+    google.script.run
+      .withSuccessHandler(function(actions) {
+        state.actions = actions || [];
+        state.filteredActions = state.actions;
+        populateSolutionFilter();
+        applyFilters();
+        showLoading(false);
+        updateOpenCount();
+      })
+      .withFailureHandler(function(err) {
+        showLoading(false);
+        showEmpty(true);
+        console.error('Failed to load actions:', err);
+      })
+      .getAllActions();
+  }
+
+  function populateSolutionFilter() {
+    var solutions = {};
+    state.actions.forEach(function(action) {
+      if (action.solution && action.solution.trim()) {
+        solutions[action.solution.trim()] = true;
+      }
+    });
+
+    var select = document.getElementById('filter-solution');
+    select.innerHTML = '\x3coption value="">All Solutions\x3c/option>';
+
+    Object.keys(solutions).sort().forEach(function(solution) {
+      var option = document.createElement('option');
+      option.value = solution;
+      option.textContent = solution;
+      select.appendChild(option);
+    });
+  }
+
+  function refreshData() {
+    google.script.run.clearActionsCache();
+    loadData();
+  }
+
+  function updateOpenCount() {
+    var open = state.actions.filter(function(a) {
+      return normalizeStatus(a.status) !== 'done';
+    }).length;
+    document.getElementById('open-count').textContent = open + ' open';
+  }
+
+  function setView(view) {
+    state.currentView = view;
+
+    document.querySelectorAll('.view-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.view === view);
+    });
+
+    document.getElementById('assignee-view').classList.toggle('active', view === 'assignee');
+    document.getElementById('status-view').classList.toggle('active', view === 'status');
+
+    render();
+  }
+
+  function setFilter(filter) {
+    state.currentFilter = filter;
+
+    document.querySelectorAll('.chip').forEach(function(chip) {
+      chip.classList.toggle('active', chip.dataset.filter === filter);
+    });
+
+    applyFilters();
+  }
+
+  function applyFilters() {
+    var search = (document.getElementById('action-search').value || '').toLowerCase();
+    var source = document.getElementById('filter-source').value;
+    var solution = document.getElementById('filter-solution').value;
+
+    state.filteredActions = state.actions.filter(function(action) {
+      // Status filter
+      var status = normalizeStatus(action.status);
+      if (state.currentFilter === 'open' && status === 'done') return false;
+      if (state.currentFilter === 'done' && status !== 'done') return false;
+
+      // Source filter
+      if (source && action.category !== source) return false;
+
+      // Solution filter
+      if (solution && action.solution !== solution) return false;
+
+      // Search filter
+      if (search) {
+        var text = [action.task, action.assigned_to, action.source_document, action.solution].join(' ').toLowerCase();
+        if (text.indexOf(search) === -1) return false;
+      }
+
+      return true;
+    });
+
+    render();
+    showEmpty(state.filteredActions.length === 0);
+  }
+
+  function render() {
+    if (state.currentView === 'assignee') {
+      renderAssigneeView();
+    } else {
+      renderStatusView();
+    }
+    feather.replace();
+  }
+
+  function renderAssigneeView() {
+    var container = document.getElementById('assignee-view');
+    container.innerHTML = '';
+
+    // Group by assignee
+    var byAssignee = {};
+    state.filteredActions.forEach(function(action) {
+      var owner = action.assigned_to || 'Unassigned';
+      if (!byAssignee[owner]) byAssignee[owner] = [];
+      byAssignee[owner].push(action);
+    });
+
+    // Sort assignees by count (most actions first), then alphabetically
+    var assignees = Object.keys(byAssignee).sort(function(a, b) {
+      var diff = byAssignee[b].length - byAssignee[a].length;
+      if (diff !== 0) return diff;
+      return a.localeCompare(b);
+    });
+
+    assignees.forEach(function(assignee) {
+      var actions = byAssignee[assignee];
+      var initials = assignee.split(' ').map(function(n) { return n[0] || ''; }).join('').toUpperCase().substring(0, 2) || '?';
+      var isCollapsed = state.collapsedAssignees && state.collapsedAssignees[assignee];
+
+      var section = document.createElement('div');
+      section.className = 'assignee-section' + (isCollapsed ? ' collapsed' : '');
+
+      var header = document.createElement('div');
+      header.className = 'assignee-header';
+      header.onclick = function() { toggleAssignee(assignee, section); };
+
+      // Toggle chevron
+      var toggle = document.createElement('i');
+      toggle.setAttribute('data-feather', 'chevron-down');
+      toggle.className = 'assignee-toggle';
+      header.appendChild(toggle);
+
+      // Avatar
+      var avatar = document.createElement('div');
+      avatar.className = 'assignee-avatar';
+      avatar.textContent = initials;
+      header.appendChild(avatar);
+
+      // Name
+      var name = document.createElement('span');
+      name.className = 'assignee-name';
+      name.textContent = assignee;
+      header.appendChild(name);
+
+      // Count
+      var count = document.createElement('span');
+      count.className = 'assignee-count';
+      count.textContent = actions.length;
+      header.appendChild(count);
+
+      section.appendChild(header);
+
+      // Actions list
+      var actionsDiv = document.createElement('div');
+      actionsDiv.className = 'assignee-actions';
+
+      actions.forEach(function(action) {
+        var status = normalizeStatus(action.status);
+        var solution = action.solution || action.category || '';
+        var isSolution = solution && solution !== action.category;
+
+        var row = document.createElement('div');
+        row.className = 'action-row';
+        row.onclick = function(e) {
+          e.stopPropagation();
+          ActionsModule.showDetail(action.action_id);
+        };
+
+        // Task text
+        var taskDiv = document.createElement('div');
+        taskDiv.className = 'action-task';
+        taskDiv.textContent = action.task || '';
+        row.appendChild(taskDiv);
+
+        // Meta row (status, solution, date)
+        var metaDiv = document.createElement('div');
+        metaDiv.className = 'action-row-meta';
+
+        var statusSpan = document.createElement('span');
+        statusSpan.className = 'action-status';
+        var dot = document.createElement('span');
+        dot.className = 'status-dot ' + status.replace('_', '-');
+        statusSpan.appendChild(dot);
+        var statusText = document.createElement('span');
+        statusText.className = 'status-text';
+        statusText.textContent = formatStatus(status);
+        statusSpan.appendChild(statusText);
+        metaDiv.appendChild(statusSpan);
+
+        if (solution) {
+          var solSpan = document.createElement('span');
+          solSpan.className = 'action-solution' + (isSolution ? ' is-solution' : '');
+          solSpan.textContent = solution;
+          metaDiv.appendChild(solSpan);
+        }
+
+        if (action.source_date) {
+          var dateSpan = document.createElement('span');
+          dateSpan.className = 'action-source';
+          dateSpan.textContent = action.source_date;
+          metaDiv.appendChild(dateSpan);
+        }
+
+        row.appendChild(metaDiv);
+        actionsDiv.appendChild(row);
+      });
+
+      section.appendChild(actionsDiv);
+      container.appendChild(section);
+    });
+
+    feather.replace();
+  }
+
+  function toggleAssignee(assignee, section) {
+    if (!state.collapsedAssignees) state.collapsedAssignees = {};
+    state.collapsedAssignees[assignee] = !state.collapsedAssignees[assignee];
+    section.classList.toggle('collapsed');
+  }
+
+  function renderStatusView() {
+    var statuses = ['pending', 'not_started', 'in_progress', 'done'];
+
+    statuses.forEach(function(status) {
+      var container = document.getElementById('cards-' + status.replace('_', '-'));
+      var countEl = document.getElementById('count-' + status.replace('_', '-'));
+
+      var actions = state.filteredActions.filter(function(a) {
+        return normalizeStatus(a.status) === status;
+      });
+
+      countEl.textContent = actions.length;
+
+      container.innerHTML = '';
+      actions.forEach(function(action) {
+        var solution = action.solution || action.category || '';
+        var isSolution = solution && solution !== action.category;
+
+        var card = document.createElement('div');
+        card.className = 'kanban-card';
+        card.onclick = function() { ActionsModule.showDetail(action.action_id); };
+        card.innerHTML = '\x3cdiv class="task">' + escapeHtml(action.task || '') + '\x3c/div>' +
+                         '\x3cdiv class="meta">' +
+                         '\x3cspan class="owner">' + escapeHtml(action.assigned_to || 'Unassigned') + '\x3c/span>' +
+                         '\x3cspan class="action-solution' + (isSolution ? ' is-solution' : '') + '" style="font-size:10px;padding:2px 6px;">' + escapeHtml(solution) + '\x3c/span>' +
+                         '\x3c/div>';
+        container.appendChild(card);
+      });
+    });
+  }
+
+  function showDetail(actionId) {
+    var action = state.actions.find(function(a) { return a.action_id === actionId; });
+    if (!action) return;
+
+    state.currentAction = action;
+    var status = normalizeStatus(action.status);
+
+    var container = document.getElementById('drawer-body');
+    container.innerHTML = '';
+
+    // Task field
+    addDetailField(container, 'Task', escapeHtml(action.task || '-'));
+
+    // Assigned To field
+    addDetailField(container, 'Assigned To', escapeHtml(action.assigned_to || 'Unassigned'));
+
+    // Status field
+    addDetailField(container, 'Status', formatStatus(status));
+
+    // Solution field
+    var solution = action.solution || action.category || '';
+    var isSolution = solution && solution !== action.category;
+    var solSpan = document.createElement('span');
+    solSpan.className = 'action-solution' + (isSolution ? ' is-solution' : '');
+    solSpan.style.display = 'inline-block';
+    solSpan.textContent = solution;
+    addDetailFieldElement(container, 'Solution', solSpan);
+
+    // Source field
+    var sourceDiv = document.createElement('div');
+    sourceDiv.className = 'value';
+    if (action.source_url) {
+      var link = document.createElement('a');
+      link.href = action.source_url;
+      link.target = '_blank';
+      link.textContent = action.source_document || 'View Source';
+      sourceDiv.appendChild(link);
+    } else {
+      sourceDiv.textContent = action.source_document || '-';
+    }
+    if (action.source_date) {
+      var dateSpan = document.createElement('span');
+      dateSpan.style.color = '#94a3b8';
+      dateSpan.textContent = ' (' + action.source_date + ')';
+      sourceDiv.appendChild(dateSpan);
+    }
+    addDetailFieldElement(container, 'Source', sourceDiv, true);
+
+    // Notes field
+    if (action.notes) {
+      addDetailField(container, 'Notes', escapeHtml(action.notes));
+    }
+
+    // Status buttons
+    var btnsDiv = document.createElement('div');
+    btnsDiv.className = 'status-buttons';
+    ['pending', 'not_started', 'in_progress', 'done'].forEach(function(s) {
+      var btn = document.createElement('button');
+      btn.className = 'status-btn' + (status === s ? ' active' : '');
+      btn.textContent = formatStatus(s);
+      btn.onclick = function() { ActionsModule.updateStatus(s); };
+      btnsDiv.appendChild(btn);
+    });
+    container.appendChild(btnsDiv);
+
+    document.getElementById('action-drawer').classList.add('active');
+  }
+
+  function addDetailField(container, label, value) {
+    var field = document.createElement('div');
+    field.className = 'detail-field';
+    var labelEl = document.createElement('label');
+    labelEl.textContent = label;
+    var valueEl = document.createElement('div');
+    valueEl.className = 'value';
+    valueEl.innerHTML = value;
+    field.appendChild(labelEl);
+    field.appendChild(valueEl);
+    container.appendChild(field);
+  }
+
+  function addDetailFieldElement(container, label, element, isValueDiv) {
+    var field = document.createElement('div');
+    field.className = 'detail-field';
+    var labelEl = document.createElement('label');
+    labelEl.textContent = label;
+    field.appendChild(labelEl);
+    if (isValueDiv) {
+      field.appendChild(element);
+    } else {
+      var valueEl = document.createElement('div');
+      valueEl.className = 'value';
+      valueEl.appendChild(element);
+      field.appendChild(valueEl);
+    }
+    container.appendChild(field);
+  }
+
+  function closeDrawer() {
+    document.getElementById('action-drawer').classList.remove('active');
+    state.currentAction = null;
+  }
+
+  function updateStatus(newStatus) {
+    if (!state.currentAction) return;
+
+    // Show loading state on buttons
+    var buttons = document.querySelectorAll('.status-btn');
+    var clickedBtn = null;
+    buttons.forEach(function(btn) {
+      btn.disabled = true;
+      if (btn.textContent === formatStatus(newStatus)) {
+        clickedBtn = btn;
+        btn.classList.add('loading');
+        btn.dataset.originalText = btn.textContent;
+        btn.textContent = 'Updating...';
+      }
+    });
+
+    google.script.run
+      .withSuccessHandler(function() {
+        state.currentAction.status = newStatus;
+
+        // Show success feedback
+        if (clickedBtn) {
+          clickedBtn.textContent = 'Updated!';
+          clickedBtn.classList.remove('loading');
+          clickedBtn.classList.add('success');
+        }
+
+        // Close after brief delay to show success
+        setTimeout(function() {
+          closeDrawer();
+          refreshData();
+        }, 600);
+      })
+      .withFailureHandler(function(err) {
+        // Restore buttons on error
+        buttons.forEach(function(btn) {
+          btn.disabled = false;
+          btn.classList.remove('loading');
+          if (btn.dataset.originalText) {
+            btn.textContent = btn.dataset.originalText;
+          }
+        });
+        alert('Failed to update: ' + err);
+      })
+      .updateActionStatus(state.currentAction.action_id, newStatus);
+  }
+
+  function normalizeStatus(status) {
+    if (!status) return 'not_started';
+    var s = status.toLowerCase().trim().replace(' ', '_');
+    if (s === 'done') return 'done';
+    if (s === 'in_progress') return 'in_progress';
+    if (s === 'pending') return 'pending';
+    return 'not_started';
+  }
+
+  function formatStatus(status) {
+    var map = {
+      'pending': 'Pending',
+      'not_started': 'Not Started',
+      'in_progress': 'In Progress',
+      'done': 'Done'
+    };
+    return map[status] || status;
+  }
+
+  function showLoading(show) {
+    document.getElementById('actions-loading').style.display = show ? 'flex' : 'none';
+    document.querySelector('.actions-content').style.display = show ? 'none' : 'block';
+  }
+
+  function showEmpty(show) {
+    document.getElementById('actions-empty').style.display = show ? 'flex' : 'none';
+    document.querySelector('.actions-content').style.display = show ? 'none' : 'block';
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Add Action Modal
+  function showAddModal() {
+    document.getElementById('add-action-form').reset();
+    document.getElementById('add-modal').classList.add('active');
+    document.getElementById('add-task').focus();
+    feather.replace();
+  }
+
+  function closeAddModal() {
+    document.getElementById('add-modal').classList.remove('active');
+  }
+
+  function submitAction(e) {
+    e.preventDefault();
+
+    var task = document.getElementById('add-task').value.trim();
+    var assigned = document.getElementById('add-assigned').value.trim();
+    var category = document.getElementById('add-category').value;
+    var solution = document.getElementById('add-solution').value.trim();
+    var priority = document.getElementById('add-priority').value;
+    var dueDate = document.getElementById('add-due').value;
+    var notes = document.getElementById('add-notes').value.trim();
+
+    if (!task || !assigned) {
+      alert('Task and Assigned To are required');
+      return false;
+    }
+
+    var btn = document.getElementById('add-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Adding...';
+
+    var actionData = {
+      task: task,
+      assigned_to: assigned,
+      category: category,
+      solution: solution || category,
+      priority: priority,
+      due_date: dueDate,
+      notes: notes,
+      status: 'not_started',
+      source_document: 'Dashboard',
+      source_date: new Date().toISOString().split('T')[0]
+    };
+
+    google.script.run
+      .withSuccessHandler(function(actionId) {
+        btn.textContent = 'Added!';
+        btn.style.background = '#10b981';
+        setTimeout(function() {
+          closeAddModal();
+          btn.disabled = false;
+          btn.textContent = 'Add Action';
+          btn.style.background = '';
+          refreshData();
+        }, 600);
+      })
+      .withFailureHandler(function(err) {
+        btn.disabled = false;
+        btn.textContent = 'Add Action';
+        alert('Failed to add action: ' + err);
+      })
+      .createAction(actionData);
+
+    return false;
+  }
+
+  return {
+    init: init,
+    refreshData: refreshData,
+    setView: setView,
+    setFilter: setFilter,
+    applyFilters: applyFilters,
+    showDetail: showDetail,
+    closeDrawer: closeDrawer,
+    updateStatus: updateStatus,
+    showAddModal: showAddModal,
+    closeAddModal: closeAddModal,
+    submitAction: submitAction
+  };
+})();
+
+// Initialize
+if (typeof google !== 'undefined' && google.script) {
+  ActionsModule.init();
+}
+</script>

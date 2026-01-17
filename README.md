@@ -17,11 +17,12 @@ The naming convention "NSITE" in viewer names represents "in sight" - making dat
 | Component | Focus | Status | Description |
 |-----------|-------|--------|-------------|
 | **Implementation-NSITE** | Solutions/Projects | **Complete** | Track solution status, milestones, and DAAC assignments |
-| **SEP-NSITE** | People/Stakeholders | Planned | Manage stakeholder engagement pipeline and touchpoints |
+| **SEP-NSITE** | People/Stakeholders | **Complete** | Manage stakeholder engagement pipeline and touchpoints |
+| **Actions-NSITE** | Action Items | **Complete** | Track action items with bi-directional agenda sync |
 | **Comms-NSITE** | Stories/Communications | Planned | Track story pipeline and communications coverage |
 | **Quick Update Form** | Input | **Complete** | Submit updates to source documents from within the dashboard |
 | **Contacts Directory** | Stakeholders | **Complete** | Searchable stakeholder database with 423 contacts across 47 solutions |
-| **Shared Resources** | Cross-cutting | In Progress | Reports, schedules, action tracker, templates |
+| **Shared Resources** | Cross-cutting | In Progress | Reports, schedules, templates |
 
 ---
 
@@ -109,7 +110,7 @@ nsite-mo-viewer/
 
 ## Current Status
 
-**Last Updated:** 2026-01-15
+**Last Updated:** 2026-01-16
 
 | Phase | Component | Status |
 |-------|-----------|--------|
@@ -117,9 +118,10 @@ nsite-mo-viewer/
 | Phase 2 | Implementation-NSITE | **Complete** |
 | Phase 3 | Quick Update Form | **Complete** |
 | Phase 4 | Contacts Directory | **Complete** |
-| Phase 5 | SEP-NSITE | Planned |
+| Phase 5 | SEP-NSITE | **Complete** |
+| Phase 5b | Actions-NSITE | **Complete** |
 | Phase 6 | Comms-NSITE | Planned |
-| Phase 7 | Shared Resources | Planned |
+| Phase 7 | Shared Resources | In Progress |
 
 ### Data Sources
 
@@ -128,6 +130,10 @@ nsite-mo-viewer/
 | **MO-DB_Solutions** | Solution data (49 columns, ~37 solutions) | **Populated** |
 | **MO-DB_Contacts** | Stakeholder contacts (423 unique, 47 solutions) | **Populated** |
 | **MO-DB_Milestones** | Milestone tracking (56 milestones, 32 solutions) | **Populated** |
+| **MO-DB_Agencies** | Organization hierarchy (43 agencies) | **Populated** |
+| **MO-DB_Engagements** | Engagement logging (17 columns) | **Populated** |
+| **MO-DB_Needs** | Stakeholder survey responses (2,049 records) | **Populated** |
+| **MO-DB_Actions** | Action item tracking (15 columns) | **Populated** |
 | **MO-DB_Config** | Configuration settings | **Active** |
 
 ---

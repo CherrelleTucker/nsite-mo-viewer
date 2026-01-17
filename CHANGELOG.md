@@ -15,6 +15,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-01-16
+
+### Added - Actions-NSITE (Shared Resources - Action Tracking)
+
+**Actions-NSITE Viewer** (`actions.html`) - Action item tracking dashboard:
+- **Assignee-First View**: Collapsible cards per person, sorted by workload
+- **Action Cards**: Task, source, category, solution, status, priority, due date
+- **Status Management**: Quick status updates with visual feedback ("Updating..." → "Updated!")
+- **Add Action Modal**: Create new actions directly from dashboard
+- **Responsive Grid**: Cards adapt to screen width (min 340px)
+
+**MO-DB_Actions Database** - Action item tracking:
+- 15 columns: action_id, source_document, source_date, source_url, category, solution, status, assigned_to, task, due_date, priority, notes, created_at, updated_at, created_by
+- Status values: not_started, in_progress, done, blocked
+- Categories: MO, SEP, DevSeed, Assessment, AdHoc
+- Solutions: Auto-detected from task text (HLS, OPERA, EMIT, SBG, etc.)
+
+**Bi-directional Sync Architecture**:
+- **Pull**: `sync-actions.gs` pulls actions from Internal and SEP agenda documents
+- **Push**: Status changes in dashboard push back to source agenda documents
+- **Database Container**: MO-DB_Actions spreadsheet runs sync-actions.gs with time-based triggers
+
+**API Layer** (`actions-api.gs`):
+- `getAllActions()` - Get all actions with caching
+- `getActionById()` - Get single action
+- `createAction()` - Create new action
+- `updateActionStatus()` - Update status and push to source agenda
+- `getActionsByAssignee()` - Group actions by person
+- `getActionsStats()` - Dashboard statistics
+
+**Sync Functions** (`sync-actions.gs`):
+- `syncFromInternalAgenda()` - Pull from Monday internal planning
+- `syncFromSEPAgenda()` - Pull from Tuesday SEP strategy
+- `pushStatusToAgenda_()` - Push status changes back to source docs
+- Custom menu for manual sync operations
+
+### Changed
+- `Code.gs` - Added ACTIONS_SHEET_ID config key
+- `index.html` - Added actions routing
+- Navigation - Actions tab now active
+
+---
+
 ## [1.0.0] - 2026-01-16
 
 ### Added - SEP-NSITE (Phase 5 - Stakeholder Engagement Pipeline)

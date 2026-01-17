@@ -47,7 +47,14 @@ var CONFIG_KEYS = {
 
   // SEP-NSITE Database Sheet IDs
   AGENCIES_SHEET_ID: 'AGENCIES_SHEET_ID',
-  ENGAGEMENTS_SHEET_ID: 'ENGAGEMENTS_SHEET_ID'
+  ENGAGEMENTS_SHEET_ID: 'ENGAGEMENTS_SHEET_ID',
+
+  // Comms-NSITE Database Sheet IDs
+  STORIES_SHEET_ID: 'STORIES_SHEET_ID',
+  OUTREACH_SHEET_ID: 'OUTREACH_SHEET_ID',
+
+  // Actions Database Sheet ID
+  ACTIONS_SHEET_ID: 'ACTIONS_SHEET_ID'
 };
 
 // Cache for config values (refreshed per execution)
@@ -301,7 +308,10 @@ function getPlatformConfig() {
       internalPlanning: !!config[CONFIG_KEYS.INTERNAL_AGENDA_ID],
       sepStrategy: !!config[CONFIG_KEYS.SEP_AGENDA_ID],
       commsTracking: !!config[CONFIG_KEYS.COMMS_TRACKING_ID],
-      solutionsDb: !!config[CONFIG_KEYS.SOLUTIONS_SHEET_ID]
+      solutionsDb: !!config[CONFIG_KEYS.SOLUTIONS_SHEET_ID],
+      storiesDb: !!config[CONFIG_KEYS.STORIES_SHEET_ID],
+      outreachDb: !!config[CONFIG_KEYS.OUTREACH_SHEET_ID],
+      actionsDb: !!config[CONFIG_KEYS.ACTIONS_SHEET_ID]
     }
   };
 }
