@@ -1,13 +1,30 @@
 <!-- MO-Viewer About Page -->
 <div class="about-page">
+  <!-- Header -->
   <div class="about-header">
-    <h2>About MO-Viewer</h2>
-    <p class="about-subtitle">Data sources, storage, and transformation documentation</p>
+    <div class="about-header-icon">
+      <span data-feather="info"></span>
+    </div>
+    <div class="about-header-text">
+      <h2>About MO-Viewer</h2>
+      <p>Data sources, storage, and transformation documentation</p>
+    </div>
   </div>
 
+  <!-- Quick Links -->
+  <nav class="about-nav">
+    <a href="#overview">Overview</a>
+    <a href="#databases">Databases</a>
+    <a href="#pages">Page Documentation</a>
+    <a href="#version">Version</a>
+  </nav>
+
   <!-- Platform Overview -->
-  <section class="about-section">
-    <h3>Platform Overview</h3>
+  <section class="about-section about-overview" id="overview">
+    <div class="section-header">
+      <span class="section-icon" data-feather="layers"></span>
+      <h3>Platform Overview</h3>
+    </div>
     <div class="about-content">
       <p>MO-Viewer is a unified dashboard for the NSITE Management Office that consolidates solution tracking, stakeholder engagement, and action management into a single interface.</p>
 
@@ -17,7 +34,6 @@
 │                        MO-VIEWER PLATFORM                       │
 │  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐       │
 │  │Implementation │  │   SEP-NSITE   │  │ Actions-NSITE │       │
-│  │    -NSITE     │  │               │  │               │       │
 │  └───────────────┘  └───────────────┘  └───────────────┘       │
 │  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐       │
 │  │   Contacts    │  │    Reports    │  │   Schedule    │       │
@@ -27,519 +43,642 @@
                               ▼
                ┌──────────────────────────────┐
                │   Google Sheets Databases    │
-               │  (MO-DB_Solutions, Contacts, │
-               │   Agencies, Actions, etc.)   │
                └──────────────────────────────┘
                               │
           ┌───────────────────┼───────────────────┐
           ▼                   ▼                   ▼
    Internal Agenda      SEP Agenda         earthdata.nasa.gov
-     (Mondays)          (Tuesdays)          (Solution pages)
-
-                    SOURCES OF TRUTH
-        </pre>
+                    SOURCES OF TRUTH</pre>
       </div>
 
-      <h4>Technology Stack</h4>
-      <table class="about-table">
-        <tr><td>Frontend</td><td>HTML, CSS, JavaScript (vanilla)</td></tr>
-        <tr><td>Backend</td><td>Google Apps Script</td></tr>
-        <tr><td>Database</td><td>Google Sheets (7 databases)</td></tr>
-        <tr><td>Hosting</td><td>Google Apps Script Web App</td></tr>
-        <tr><td>Authentication</td><td>Google OAuth 2.0</td></tr>
-      </table>
+      <div class="tech-stack">
+        <div class="tech-item"><span class="tech-label">Frontend</span> HTML, CSS, JavaScript</div>
+        <div class="tech-item"><span class="tech-label">Backend</span> Google Apps Script</div>
+        <div class="tech-item"><span class="tech-label">Database</span> Google Sheets</div>
+        <div class="tech-item"><span class="tech-label">Auth</span> Google OAuth 2.0</div>
+      </div>
     </div>
   </section>
 
   <!-- Databases -->
-  <section class="about-section">
-    <h3>Databases</h3>
+  <section class="about-section about-databases" id="databases">
+    <div class="section-header">
+      <span class="section-icon" data-feather="database"></span>
+      <h3>Databases</h3>
+    </div>
     <div class="about-content">
-      <p>All data is stored in Google Sheets workbooks prefixed with "MO-DB_". These serve as the central cache layer between source documents and the dashboard.</p>
-
-      <table class="about-table">
-        <thead>
-          <tr>
-            <th>Database</th>
-            <th>Records</th>
-            <th>Purpose</th>
-            <th>Update Method</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>MO-DB_Solutions</strong></td>
-            <td>37</td>
-            <td>Solution metadata, milestones, documents</td>
-            <td>Manual entry, Earthdata sync</td>
-          </tr>
-          <tr>
-            <td><strong>MO-DB_Contacts</strong></td>
-            <td>423</td>
-            <td>Stakeholder contact information</td>
-            <td>Imported from stakeholder Excel files</td>
-          </tr>
-          <tr>
-            <td><strong>MO-DB_Agencies</strong></td>
-            <td>43</td>
-            <td>Federal agency hierarchy</td>
-            <td>Manual entry, web research</td>
-          </tr>
-          <tr>
-            <td><strong>MO-DB_Engagements</strong></td>
-            <td>—</td>
-            <td>Stakeholder interaction log</td>
-            <td>Manual entry via SEP-NSITE</td>
-          </tr>
-          <tr>
-            <td><strong>MO-DB_Needs</strong></td>
-            <td>2,049</td>
-            <td>Stakeholder survey responses</td>
-            <td>Imported from stakeholder Excel files</td>
-          </tr>
-          <tr>
-            <td><strong>MO-DB_Actions</strong></td>
-            <td>—</td>
-            <td>Action items from agendas</td>
-            <td>Synced from agenda docs (triggered)</td>
-          </tr>
-          <tr>
-            <td><strong>MO-DB_Config</strong></td>
-            <td>—</td>
-            <td>Configuration settings</td>
-            <td>Manual entry</td>
-          </tr>
-        </tbody>
-      </table>
+      <p>All data is stored in Google Sheets workbooks prefixed with "MO-DB_".</p>
+      <div class="db-grid">
+        <div class="db-card">
+          <div class="db-name">MO-DB_Solutions</div>
+          <div class="db-count">37 records</div>
+          <div class="db-desc">Solution metadata, milestones, documents</div>
+        </div>
+        <div class="db-card">
+          <div class="db-name">MO-DB_Contacts</div>
+          <div class="db-count">423 records</div>
+          <div class="db-desc">Stakeholder contact information</div>
+        </div>
+        <div class="db-card">
+          <div class="db-name">MO-DB_Agencies</div>
+          <div class="db-count">43 records</div>
+          <div class="db-desc">Federal agency hierarchy</div>
+        </div>
+        <div class="db-card">
+          <div class="db-name">MO-DB_Needs</div>
+          <div class="db-count">2,049 records</div>
+          <div class="db-desc">Stakeholder survey responses</div>
+        </div>
+        <div class="db-card">
+          <div class="db-name">MO-DB_Actions</div>
+          <div class="db-count">Synced</div>
+          <div class="db-desc">Action items from agendas</div>
+        </div>
+        <div class="db-card">
+          <div class="db-name">MO-DB_Engagements</div>
+          <div class="db-count">Manual</div>
+          <div class="db-desc">Stakeholder interaction log</div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- Implementation-NSITE -->
-  <section class="about-section">
-    <h3>Implementation-NSITE</h3>
-    <div class="about-content">
-      <div class="data-flow">
-        <span class="flow-source">MO-DB_Solutions</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-transform">solutions-api.gs</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-output">Solution cards, milestones, documents</span>
-      </div>
-
-      <h4>Data Sources</h4>
-      <ul>
-        <li><strong>MO-DB_Solutions</strong> (49 columns): Solution identity, lifecycle phase, team assignments, milestones, documentation status</li>
-        <li><strong>MO-DB_Contacts</strong>: Stakeholder counts per solution (loaded async)</li>
-      </ul>
-
-      <h4>Key Transformations</h4>
-      <ul>
-        <li><strong>Phase badges</strong>: Derived from <code>phase</code> column (Formulation, Implementation, Operations, Closeout)</li>
-        <li><strong>Milestone status</strong>: Date columns (atp_date, f2i_date, orr_date, closeout_date) compared to today → completed/planned/not started</li>
-        <li><strong>Document status</strong>: 9 document columns checked for empty/"in_work"/date → status badges</li>
-        <li><strong>Cycle grouping</strong>: Solutions grouped by <code>cycle</code> column (C1-C6)</li>
-      </ul>
-
-      <h4>Update Frequency</h4>
-      <p>Data is read fresh on each page load. Solution content can be synced from earthdata.nasa.gov via scheduled trigger.</p>
+  <!-- Page Documentation -->
+  <section class="about-section about-pages" id="pages">
+    <div class="section-header">
+      <span class="section-icon" data-feather="layout"></span>
+      <h3>Page Documentation</h3>
     </div>
-  </section>
 
-  <!-- SEP-NSITE -->
-  <section class="about-section">
-    <h3>SEP-NSITE</h3>
-    <div class="about-content">
-      <div class="data-flow">
-        <span class="flow-source">MO-DB_Contacts + Agencies + Engagements</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-transform">contacts-api.gs, agencies-api.gs, engagements-api.gs</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-output">Pipeline kanban, agency browser</span>
+    <div class="page-cards">
+      <!-- Implementation-NSITE -->
+      <div class="page-card">
+        <div class="page-card-header implementation">
+          <span class="page-icon" data-feather="folder"></span>
+          <h4>Implementation-NSITE</h4>
+        </div>
+        <div class="page-card-body">
+          <div class="data-flow-mini">
+            <span class="flow-chip source">MO-DB_Solutions</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip output">Solution cards</span>
+          </div>
+          <div class="page-details">
+            <div class="detail-group">
+              <span class="detail-label">Data:</span>
+              <span>49 columns per solution - identity, phase, team, milestones, docs</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Transforms:</span>
+              <span>Phase badges, milestone status (date vs today), cycle grouping</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Updates:</span>
+              <span>Fresh on page load; Earthdata sync via trigger</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <h4>Data Sources</h4>
-      <ul>
-        <li><strong>MO-DB_Contacts</strong>: Contact records with touchpoint_status, lifecycle_phase, engagement_level</li>
-        <li><strong>MO-DB_Agencies</strong>: 43 federal agencies with hierarchy (parent_agency_id), mission statements, data interests</li>
-        <li><strong>MO-DB_Engagements</strong>: Activity log (email, phone, meeting, webinar, conference, site visit, training)</li>
-      </ul>
-
-      <h4>Key Transformations</h4>
-      <ul>
-        <li><strong>Pipeline columns</strong>: Contacts grouped by <code>touchpoint_status</code> (T4, W1, W2, T5, T6, T7, T8)</li>
-        <li><strong>Agency hierarchy</strong>: Tree structure built from <code>parent_agency_id</code> relationships</li>
-        <li><strong>Stats calculation</strong>: Contacts needing follow-up based on <code>last_contact_date</code> + 30 days</li>
-      </ul>
-
-      <h4>Update Frequency</h4>
-      <p>Data is read fresh on each page load. New engagements logged via the "Log Engagement" modal write directly to MO-DB_Engagements.</p>
-    </div>
-  </section>
-
-  <!-- Actions-NSITE -->
-  <section class="about-section">
-    <h3>Actions-NSITE</h3>
-    <div class="about-content">
-      <div class="data-flow">
-        <span class="flow-source">Internal Agenda + SEP Agenda</span>
-        <span class="flow-arrow">↔</span>
-        <span class="flow-transform">MO-DB_Actions (sync-actions.gs)</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-output">Assignee cards</span>
+      <!-- SEP-NSITE -->
+      <div class="page-card">
+        <div class="page-card-header sep">
+          <span class="page-icon" data-feather="users"></span>
+          <h4>SEP-NSITE</h4>
+        </div>
+        <div class="page-card-body">
+          <div class="data-flow-mini">
+            <span class="flow-chip source">Contacts + Agencies</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip output">Pipeline kanban</span>
+          </div>
+          <div class="page-details">
+            <div class="detail-group">
+              <span class="detail-label">Data:</span>
+              <span>Contacts with touchpoint status; 43 agencies with hierarchy</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Transforms:</span>
+              <span>Pipeline columns by touchpoint (T4→T8), agency tree structure</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Updates:</span>
+              <span>Fresh on load; engagements write to MO-DB_Engagements</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <h4>Data Sources</h4>
-      <ul>
-        <li><strong>Internal Planning Agenda</strong> (Monday meetings): Actions parsed from tables in document tabs</li>
-        <li><strong>SEP Strategy Agenda</strong> (Tuesday meetings): Actions parsed from tables in document tabs</li>
-        <li><strong>MO-DB_Actions</strong>: Central database storing all actions with status tracking</li>
-      </ul>
-
-      <h4>Key Transformations</h4>
-      <ul>
-        <li><strong>Action extraction</strong>: Tables in agenda docs scanned for "Actions" section, rows parsed into action records</li>
-        <li><strong>Solution detection</strong>: Task text scanned for solution names (HLS, OPERA, EMIT, etc.) → auto-tagged</li>
-        <li><strong>Assignee grouping</strong>: Actions grouped by <code>assigned_to</code> field, sorted by count (most actions first)</li>
-      </ul>
-
-      <h4>Bi-directional Sync</h4>
-      <ul>
-        <li><strong>Pull</strong>: Time-based trigger runs <code>syncAllActions()</code> to pull new actions from agenda docs</li>
-        <li><strong>Push</strong>: When status is updated in dashboard, change is pushed back to source agenda doc via <code>pushStatusToAgenda_()</code></li>
-      </ul>
-
-      <h4>Update Frequency</h4>
-      <p>Sync runs on a scheduled trigger (configurable). Status changes push immediately to source documents.</p>
-    </div>
-  </section>
-
-  <!-- Contacts Directory -->
-  <section class="about-section">
-    <h3>Contacts Directory</h3>
-    <div class="about-content">
-      <div class="data-flow">
-        <span class="flow-source">47 Stakeholder Excel files</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-transform">Python import script → MO-DB_Contacts</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-output">Searchable directory</span>
+      <!-- Actions-NSITE -->
+      <div class="page-card">
+        <div class="page-card-header actions">
+          <span class="page-icon" data-feather="check-square"></span>
+          <h4>Actions-NSITE</h4>
+        </div>
+        <div class="page-card-body">
+          <div class="data-flow-mini">
+            <span class="flow-chip source">Agenda docs</span>
+            <span class="flow-arrow">↔</span>
+            <span class="flow-chip output">Assignee cards</span>
+          </div>
+          <div class="page-details">
+            <div class="detail-group">
+              <span class="detail-label">Data:</span>
+              <span>Actions parsed from Internal (Mon) and SEP (Tue) agenda tables</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Transforms:</span>
+              <span>Solution auto-detect from text, group by assignee</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Updates:</span>
+              <span class="highlight">Bi-directional: pull via trigger, push status back to docs</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <h4>Data Sources</h4>
-      <ul>
-        <li><strong>Stakeholder Excel files</strong>: One per solution, containing survey responses and contact info</li>
-        <li><strong>MO-DB_Contacts</strong>: Consolidated database with 423 unique contacts across 47 solutions</li>
-      </ul>
-
-      <h4>Key Transformations</h4>
-      <ul>
-        <li><strong>Email normalization</strong>: Lowercased, whitespace trimmed</li>
-        <li><strong>Phone formatting</strong>: Standardized to xxx-xxx-xxxx format</li>
-        <li><strong>Department standardization</strong>: Common variations mapped to canonical names</li>
-        <li><strong>Deduplication</strong>: Same contact across multiple solutions linked by email</li>
-      </ul>
-
-      <h4>Update Frequency</h4>
-      <p>One-time import from Excel files. Manual updates via spreadsheet or future import runs.</p>
-    </div>
-  </section>
-
-  <!-- Reports -->
-  <section class="about-section">
-    <h3>Reports</h3>
-    <div class="about-content">
-      <div class="data-flow">
-        <span class="flow-source">Multiple databases</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-transform">Report generators (*.gs)</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-output">CSV/Preview/Export</span>
+      <!-- Contacts -->
+      <div class="page-card">
+        <div class="page-card-header contacts">
+          <span class="page-icon" data-feather="book"></span>
+          <h4>Contacts Directory</h4>
+        </div>
+        <div class="page-card-body">
+          <div class="data-flow-mini">
+            <span class="flow-chip source">47 Excel files</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip output">Searchable list</span>
+          </div>
+          <div class="page-details">
+            <div class="detail-group">
+              <span class="detail-label">Data:</span>
+              <span>423 unique contacts consolidated from stakeholder Excel files</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Transforms:</span>
+              <span>Email normalization, phone formatting, deduplication</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Updates:</span>
+              <span>One-time import; manual spreadsheet edits</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <h4>Report Types</h4>
-      <table class="about-table">
-        <thead>
-          <tr><th>Report</th><th>Data Sources</th><th>Purpose</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>QuickLook CSV</td>
-            <td>MO-DB_Solutions</td>
-            <td>Milestone status for leadership</td>
-          </tr>
-          <tr>
-            <td>Quad Chart</td>
-            <td>MO-DB_Solutions, internal parsing</td>
-            <td>Weekly meeting slides (Updates, Milestones, Actions, Decisions)</td>
-          </tr>
-          <tr>
-            <td>Detailed Milestone</td>
-            <td>MO-DB_Solutions</td>
-            <td>Full milestone analysis by phase/cycle</td>
-          </tr>
-          <tr>
-            <td>Need Alignment</td>
-            <td>MO-DB_Solutions, MO-DB_Needs</td>
-            <td>Compare solution characteristics vs stakeholder needs</td>
-          </tr>
-          <tr>
-            <td>Stakeholder Coverage</td>
-            <td>MO-DB_Contacts</td>
-            <td>Department/agency engagement per solution</td>
-          </tr>
-          <tr>
-            <td>Engagement Funnel</td>
-            <td>MO-DB_Contacts</td>
-            <td>Stakeholder progression (Submitter → SME)</td>
-          </tr>
-          <tr>
-            <td>Department Reach</td>
-            <td>MO-DB_Contacts</td>
-            <td>Which solutions reach which departments</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h4>Update Frequency</h4>
-      <p>Reports generated on-demand from current database state. QuickLook can be scheduled for automatic export.</p>
-    </div>
-  </section>
-
-  <!-- Schedule -->
-  <section class="about-section">
-    <h3>Schedule</h3>
-    <div class="about-content">
-      <div class="data-flow">
-        <span class="flow-source">MO-DB_Solutions (milestone columns)</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-transform">Date parsing + Google Charts</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-output">Timeline view, Gantt chart</span>
+      <!-- Reports -->
+      <div class="page-card">
+        <div class="page-card-header reports">
+          <span class="page-icon" data-feather="file-text"></span>
+          <h4>Reports</h4>
+        </div>
+        <div class="page-card-body">
+          <div class="data-flow-mini">
+            <span class="flow-chip source">Multiple DBs</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip output">CSV/Preview</span>
+          </div>
+          <div class="page-details">
+            <div class="detail-group">
+              <span class="detail-label">Reports:</span>
+              <span>QuickLook, Quad Chart, Milestone, Need Alignment, Coverage, Funnel, Reach</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Transforms:</span>
+              <span>Aggregation, scoring algorithms, gap analysis</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Updates:</span>
+              <span>Generated on-demand; QuickLook schedulable</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <h4>Data Sources</h4>
-      <ul>
-        <li><strong>MO-DB_Solutions</strong>: Four milestone date columns (atp_date, f2i_date, orr_date, closeout_date)</li>
-      </ul>
-
-      <h4>Key Transformations</h4>
-      <ul>
-        <li><strong>Timeline view</strong>: Milestones grouped by month, colored by type</li>
-        <li><strong>Gantt chart</strong>: Three phases per solution (Formulation, Implementation, Operations) with progress bars</li>
-        <li><strong>Status derivation</strong>: Date compared to today → Completed (past), Planned (future), Overdue (past + not marked complete)</li>
-      </ul>
-
-      <h4>Update Frequency</h4>
-      <p>Data is read fresh on each page load from MO-DB_Solutions.</p>
-    </div>
-  </section>
-
-  <!-- Quick Update -->
-  <section class="about-section">
-    <h3>Quick Update Form</h3>
-    <div class="about-content">
-      <div class="data-flow">
-        <span class="flow-source">User input</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-transform">DocumentApp API</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-output">Internal Agenda / SEP Agenda docs</span>
+      <!-- Schedule -->
+      <div class="page-card">
+        <div class="page-card-header schedule">
+          <span class="page-icon" data-feather="calendar"></span>
+          <h4>Schedule</h4>
+        </div>
+        <div class="page-card-body">
+          <div class="data-flow-mini">
+            <span class="flow-chip source">Milestone dates</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip output">Timeline/Gantt</span>
+          </div>
+          <div class="page-details">
+            <div class="detail-group">
+              <span class="detail-label">Data:</span>
+              <span>Four milestone columns: ATP, F2I, ORR, Closeout dates</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Transforms:</span>
+              <span>Group by month, derive status from date vs today</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Updates:</span>
+              <span>Fresh on page load from MO-DB_Solutions</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <h4>Function</h4>
-      <p>Allows users to submit updates directly to agenda documents without opening them. Updates are inserted under the appropriate solution heading in the selected meeting's agenda.</p>
-
-      <h4>Target Documents</h4>
-      <ul>
-        <li><strong>Internal Planning Agenda</strong>: Monday meetings</li>
-        <li><strong>SEP Strategy Agenda</strong>: Tuesday meetings</li>
-      </ul>
-
-      <h4>Update Process</h4>
-      <ol>
-        <li>User selects solution, meeting, and update type</li>
-        <li>User enters update text</li>
-        <li>System finds solution heading in target document</li>
-        <li>Update appended under heading with timestamp and user info</li>
-      </ol>
+      <!-- Quick Update -->
+      <div class="page-card">
+        <div class="page-card-header quickupdate">
+          <span class="page-icon" data-feather="edit"></span>
+          <h4>Quick Update</h4>
+        </div>
+        <div class="page-card-body">
+          <div class="data-flow-mini">
+            <span class="flow-chip source">User input</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip output">Agenda docs</span>
+          </div>
+          <div class="page-details">
+            <div class="detail-group">
+              <span class="detail-label">Function:</span>
+              <span>Submit updates to agenda docs without opening them</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Targets:</span>
+              <span>Internal Planning (Mon), SEP Strategy (Tue)</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Process:</span>
+              <span>Find solution heading → append update with timestamp</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- Version Info -->
-  <section class="about-section">
-    <h3>Version Information</h3>
-    <div class="about-content">
-      <table class="about-table">
-        <tr><td>Version</td><td>1.0.0</td></tr>
-        <tr><td>Release Date</td><td>2026-01-16</td></tr>
-        <tr><td>Repository</td><td><a href="https://github.com/CherrelleTucker/nsite-mo-viewer" target="_blank">github.com/CherrelleTucker/nsite-mo-viewer</a></td></tr>
-      </table>
+  <section class="about-section about-version" id="version">
+    <div class="section-header">
+      <span class="section-icon" data-feather="tag"></span>
+      <h3>Version Information</h3>
+    </div>
+    <div class="version-info">
+      <div class="version-item">
+        <span class="version-label">Version</span>
+        <span class="version-value">1.0.0</span>
+      </div>
+      <div class="version-item">
+        <span class="version-label">Released</span>
+        <span class="version-value">January 16, 2026</span>
+      </div>
+      <div class="version-item">
+        <span class="version-label">Repository</span>
+        <a href="https://github.com/CherrelleTucker/nsite-mo-viewer" target="_blank" class="version-link">
+          <span data-feather="github"></span>
+          nsite-mo-viewer
+        </a>
+      </div>
     </div>
   </section>
 </div>
 
 <style>
   .about-page {
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: var(--space-lg);
   }
 
+  /* Header */
   .about-header {
-    margin-bottom: var(--space-xl);
-    padding-bottom: var(--space-md);
-    border-bottom: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+    padding: var(--space-lg);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1a5a9e 100%);
+    border-radius: var(--radius-lg);
+    color: white;
   }
 
-  .about-header h2 {
-    margin: 0 0 var(--space-xs) 0;
-    color: var(--text-primary);
+  .about-header-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255,255,255,0.2);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .about-subtitle {
+  .about-header-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .about-header-text h2 {
     margin: 0;
-    color: var(--text-secondary);
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .about-header-text p {
+    margin: var(--space-xs) 0 0 0;
+    opacity: 0.9;
     font-size: 0.95rem;
   }
 
+  /* Quick Nav */
+  .about-nav {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xl);
+    padding: var(--space-sm);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    flex-wrap: wrap;
+  }
+
+  .about-nav a {
+    padding: var(--space-xs) var(--space-md);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.85rem;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+  }
+
+  .about-nav a:hover {
+    background: var(--card-bg);
+    color: var(--primary-color);
+  }
+
+  /* Sections */
   .about-section {
     margin-bottom: var(--space-xl);
-    padding: var(--space-lg);
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
   }
 
-  .about-section h3 {
-    margin: 0 0 var(--space-md) 0;
-    color: var(--primary-color);
-    font-size: 1.1rem;
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-lg);
+    background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: var(--space-sm);
   }
 
-  .about-section h4 {
-    margin: var(--space-md) 0 var(--space-sm) 0;
-    color: var(--text-primary);
-    font-size: 0.95rem;
+  .section-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--primary-color);
   }
 
-  .about-content {
-    font-size: 0.9rem;
-    line-height: 1.6;
-    color: var(--text-secondary);
-  }
-
-  .about-content p {
-    margin: 0 0 var(--space-sm) 0;
-  }
-
-  .about-content ul, .about-content ol {
-    margin: 0 0 var(--space-sm) 0;
-    padding-left: var(--space-lg);
-  }
-
-  .about-content li {
-    margin-bottom: var(--space-xs);
-  }
-
-  .about-content code {
-    background: var(--bg-secondary);
-    padding: 2px 6px;
-    border-radius: var(--radius-sm);
-    font-size: 0.85em;
-  }
-
-  .about-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: var(--space-sm) 0;
-    font-size: 0.85rem;
-  }
-
-  .about-table th,
-  .about-table td {
-    padding: var(--space-sm);
-    text-align: left;
-    border: 1px solid var(--border-color);
-  }
-
-  .about-table th {
-    background: var(--bg-secondary);
+  .section-header h3 {
+    margin: 0;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
   }
 
-  .about-table td:first-child {
-    font-weight: 500;
-    color: var(--text-primary);
+  .about-content {
+    padding: var(--space-lg);
   }
 
+  .about-content p {
+    margin: 0 0 var(--space-md) 0;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Architecture Diagram */
   .architecture-diagram {
-    background: var(--bg-secondary);
+    background: #1e293b;
     border-radius: var(--radius-md);
     padding: var(--space-md);
     overflow-x: auto;
-    margin: var(--space-md) 0;
+    margin-bottom: var(--space-md);
   }
 
   .architecture-diagram pre {
     margin: 0;
     font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 0.75rem;
-    line-height: 1.4;
-    color: var(--text-primary);
+    font-size: 0.7rem;
+    line-height: 1.3;
+    color: #94a3b8;
   }
 
-  .data-flow {
+  /* Tech Stack */
+  .tech-stack {
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     gap: var(--space-sm);
+  }
+
+  .tech-item {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  .tech-label {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    margin-right: var(--space-xs);
+  }
+
+  /* Database Grid */
+  .db-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--space-md);
+  }
+
+  .db-card {
     padding: var(--space-md);
     background: var(--bg-secondary);
     border-radius: var(--radius-md);
-    margin-bottom: var(--space-md);
-    flex-wrap: wrap;
+    border-left: 3px solid var(--primary-color);
   }
 
-  .flow-source {
-    background: var(--primary-color);
-    color: white;
-    padding: var(--space-xs) var(--space-sm);
-    border-radius: var(--radius-sm);
-    font-size: 0.8rem;
+  .db-name {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+  }
+
+  .db-count {
+    font-size: 0.75rem;
+    color: var(--primary-color);
     font-weight: 500;
+    margin-bottom: var(--space-xs);
+  }
+
+  .db-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  /* Page Cards */
+  .page-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-lg);
+    padding: var(--space-lg);
+  }
+
+  .page-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+  }
+
+  .page-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    color: white;
+  }
+
+  .page-card-header.implementation { background: #0B3D91; }
+  .page-card-header.sep { background: #2563eb; }
+  .page-card-header.actions { background: #059669; }
+  .page-card-header.contacts { background: #7c3aed; }
+  .page-card-header.reports { background: #dc2626; }
+  .page-card-header.schedule { background: #d97706; }
+  .page-card-header.quickupdate { background: #0891b2; }
+
+  .page-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .page-card-header h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .page-card-body {
+    padding: var(--space-md);
+  }
+
+  /* Mini Data Flow */
+  .data-flow-mini {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-md);
+    padding: var(--space-sm);
+    background: var(--card-bg);
+    border-radius: var(--radius-sm);
+  }
+
+  .flow-chip {
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    font-weight: 500;
+  }
+
+  .flow-chip.source {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .flow-chip.output {
+    background: #dcfce7;
+    color: #166534;
   }
 
   .flow-arrow {
     color: var(--text-muted);
-    font-weight: bold;
+    font-size: 0.8rem;
   }
 
-  .flow-transform {
-    background: var(--warning-bg);
-    color: var(--warning-text);
-    padding: var(--space-xs) var(--space-sm);
-    border-radius: var(--radius-sm);
-    font-size: 0.8rem;
-    font-family: monospace;
+  /* Page Details */
+  .page-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
   }
 
-  .flow-output {
-    background: var(--success-bg);
-    color: var(--success-text);
-    padding: var(--space-xs) var(--space-sm);
-    border-radius: var(--radius-sm);
+  .detail-group {
     font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--text-secondary);
+  }
+
+  .detail-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-right: var(--space-xs);
+  }
+
+  .detail-group .highlight {
+    color: var(--primary-color);
     font-weight: 500;
   }
 
-  .about-content a {
-    color: var(--primary-color);
-    text-decoration: none;
+  /* Version Info */
+  .version-info {
+    display: flex;
+    gap: var(--space-xl);
+    padding: var(--space-lg);
+    flex-wrap: wrap;
   }
 
-  .about-content a:hover {
+  .version-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .version-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .version-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .version-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .version-link:hover {
     text-decoration: underline;
   }
+
+  .version-link svg {
+    width: 16px;
+    height: 16px;
+  }
 </style>
+
+<script>
+  // Initialize feather icons for this page
+  if (typeof feather !== 'undefined') {
+    feather.replace();
+  }
+</script>

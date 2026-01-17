@@ -76,8 +76,12 @@
     <button type="button" class="nav-icon-btn" onclick="showSearch()" title="Search">
       <span data-feather="search"></span>
     </button>
-    <button type="button" class="nav-icon-btn" onclick="navigateTo('about')" title="About this site">
+    <button type="button" class="nav-tab nav-about-btn <?= activePage === 'about' ? 'active' : '' ?>"
+            data-page="about"
+            onclick="navigateTo('about')"
+            title="About this site">
       <span data-feather="info"></span>
+      <span class="nav-label">About</span>
     </button>
   </div>
 </nav>
