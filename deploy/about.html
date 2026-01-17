@@ -445,27 +445,40 @@
       <h4>Hosting Environment</h4>
       <p>MO-Viewer is a Google Apps Script web application hosted within the <strong>OSDI Google Workspace</strong> environment. All data remains within Google's infrastructure and is subject to NASA OSDI security policies.</p>
 
-      <h4>Access Control</h4>
-      <p>Access is restricted to an approved whitelist of users. To gain access:</p>
+      <h4>Access Control (Two Layers)</h4>
+      <p>Access requires approval at two levels:</p>
+
+      <div class="access-details">
+        <div class="access-item">
+          <span class="access-icon" data-feather="code"></span>
+          <div>
+            <strong>1. Script Project Access</strong>
+            <span>The Apps Script project (script.google.com) is set to <em>Restricted</em> — only people explicitly granted access can open the project or view the code.</span>
+          </div>
+        </div>
+        <div class="access-item">
+          <span class="access-icon" data-feather="globe"></span>
+          <div>
+            <strong>2. Web App Deployment</strong>
+            <span>Execute as: <em>Me</em> (owner) — the app runs with owner permissions to access databases.<br>
+            Who has access: <em>Only users in OSDI Workspace</em> or configured to require explicit sharing.</span>
+          </div>
+        </div>
+      </div>
+
+      <h4>How to Request Access</h4>
       <ol>
-        <li>Submit an access request to the MO-Viewer administrator</li>
-        <li>Upon approval, your Google account email is added to the whitelist</li>
-        <li>Access the application using your approved Google account</li>
+        <li>Contact the MO-Viewer administrator with your Google account email</li>
+        <li>Administrator adds you to the Script project sharing settings</li>
+        <li>Access the deployment URL with your approved Google account</li>
       </ol>
 
       <div class="access-details">
         <div class="access-item">
-          <span class="access-icon" data-feather="lock"></span>
+          <span class="access-icon" data-feather="shield"></span>
           <div>
             <strong>Authentication</strong>
             <span>Google OAuth 2.0 — users must sign in with their Google account</span>
-          </div>
-        </div>
-        <div class="access-item">
-          <span class="access-icon" data-feather="users"></span>
-          <div>
-            <strong>Authorization</strong>
-            <span>Email whitelist stored in Script Properties — only approved emails can access</span>
           </div>
         </div>
         <div class="access-item">
@@ -477,8 +490,8 @@
         </div>
       </div>
 
-      <h4>Request Access</h4>
-      <p>Contact the MO-Viewer administrator to request access. Include your Google account email and justification for access.</p>
+      <h4>Administrator Notes</h4>
+      <p class="admin-note">To restrict access: In Apps Script, go to <strong>Deploy → Manage deployments → Edit</strong> and set "Who has access" to <em>Only myself</em>, then share the script project with approved users individually.</p>
     </div>
   </section>
 
@@ -946,6 +959,14 @@
   .about-content ol li {
     margin-bottom: var(--space-xs);
     color: var(--text-secondary);
+  }
+
+  .admin-note {
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-secondary);
+    border-left: 3px solid var(--primary-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
   }
 
   /* Version Info */
