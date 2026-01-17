@@ -1,4 +1,4 @@
-# MO-Viewer
+# NSITE MO Viewer
 
 **Unified Dashboard Platform for NSITE MO**
 
@@ -8,7 +8,9 @@
 
 ## Overview
 
-MO-Viewer is a unified dashboard platform for the **NSITE MO** (NASA's Support to the satellite Needs working group Implementation TEam Management Office) that consolidates solution tracking, stakeholder engagement, and communications management into a single interface.
+NSITE MO Viewer is a unified dashboard platform for the **NSITE MO** (NASA's Support to the satellite Needs working group Implementation TEam Management Office) that consolidates solution tracking, stakeholder engagement, and communications management into a single interface.
+
+**Access:** Restricted to NASA.gov Google Workspace accounts only.
 
 ### Platform Components
 
@@ -30,7 +32,7 @@ The naming convention "NSITE" in viewer names represents "in sight" - making dat
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                           MO-VIEWER PLATFORM                            │
+│                       NSITE MO VIEWER PLATFORM                          │
 ├─────────────────────────────────────────────────────────────────────────┤
 │  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐           │
 │  │ Implementation- │ │   SEP-Viewer    │ │  Comms-Viewer   │           │

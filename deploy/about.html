@@ -1,4 +1,4 @@
-<!-- MO-Viewer About Page -->
+<!-- NSITE MO Viewer About Page -->
 <div class="about-page">
   <!-- Header -->
   <div class="about-header">
@@ -6,18 +6,18 @@
       <span data-feather="info"></span>
     </div>
     <div class="about-header-text">
-      <h2>About MO-Viewer</h2>
+      <h2>About NSITE MO Viewer</h2>
       <p>Data sources, storage, and transformation documentation</p>
     </div>
   </div>
 
   <!-- Quick Links -->
   <nav class="about-nav">
-    <a href="#overview">Overview</a>
-    <a href="#databases">Databases</a>
-    <a href="#pages">Page Documentation</a>
-    <a href="#security">Security</a>
-    <a href="#version">Version</a>
+    <a href="javascript:void(0)" onclick="document.getElementById('overview').scrollIntoView({behavior:'smooth'})">Overview</a>
+    <a href="javascript:void(0)" onclick="document.getElementById('databases').scrollIntoView({behavior:'smooth'})">Databases</a>
+    <a href="javascript:void(0)" onclick="document.getElementById('pages').scrollIntoView({behavior:'smooth'})">Page Documentation</a>
+    <a href="javascript:void(0)" onclick="document.getElementById('security').scrollIntoView({behavior:'smooth'})">Security</a>
+    <a href="javascript:void(0)" onclick="document.getElementById('version').scrollIntoView({behavior:'smooth'})">Version</a>
   </nav>
 
   <!-- Platform Overview -->
@@ -27,7 +27,7 @@
       <h3>Platform Overview</h3>
     </div>
     <div class="about-content">
-      <p>MO-Viewer is a unified dashboard for the NSITE Management Office that consolidates solution tracking, stakeholder engagement, and action management into a single interface.</p>
+      <p>NSITE MO Viewer is a unified dashboard for the NSITE Management Office that consolidates solution tracking, stakeholder engagement, and action management into a single interface.</p>
 
       <div class="architecture-diagram">
         <pre>
@@ -443,34 +443,34 @@
       </div>
 
       <h4>Hosting Environment</h4>
-      <p>MO-Viewer is a Google Apps Script web application hosted within the <strong>OSDI Google Workspace</strong> environment. All data remains within Google's infrastructure and is subject to NASA OSDI security policies.</p>
+      <p>NSITE MO Viewer is a Google Apps Script web application hosted within the <strong>OSDI Google Workspace</strong> environment. All data remains within Google's infrastructure and is subject to NASA OSDI security policies.</p>
 
-      <h4>Access Control (Two Layers)</h4>
-      <p>Access requires approval at two levels:</p>
+      <h4>Access Control Method</h4>
+      <p>Access is restricted to <strong>NASA.gov Google Workspace accounts</strong> through Google's deployment settings.</p>
 
       <div class="access-details">
         <div class="access-item">
-          <span class="access-icon" data-feather="code"></span>
+          <span class="access-icon" data-feather="lock"></span>
           <div>
-            <strong>1. Script Project Access</strong>
-            <span>The Apps Script project (script.google.com) is set to <em>Restricted</em> — only people explicitly granted access can open the project or view the code.</span>
+            <strong>Deployment Settings</strong>
+            <span>Execute as: <em>Me</em> (owner) — app runs with owner permissions.<br>
+            Who has access: <em>Anyone within NASA.gov Workspace</em></span>
           </div>
         </div>
         <div class="access-item">
-          <span class="access-icon" data-feather="globe"></span>
+          <span class="access-icon" data-feather="users"></span>
           <div>
-            <strong>2. Web App Deployment</strong>
-            <span>Execute as: <em>Me</em> (owner) — the app runs with owner permissions to access databases.<br>
-            Who has access: <em>Only users in OSDI Workspace</em> or configured to require explicit sharing.</span>
+            <strong>User Access</strong>
+            <span>Any user with a NASA.gov Google account can access the app. External accounts are blocked by Google.</span>
           </div>
         </div>
       </div>
 
-      <h4>How to Request Access</h4>
+      <h4>How to Access</h4>
       <ol>
-        <li>Contact the MO-Viewer administrator with your Google account email</li>
-        <li>Administrator adds you to the Script project sharing settings</li>
-        <li>Access the deployment URL with your approved Google account</li>
+        <li>Sign in to your NASA.gov Google account</li>
+        <li>Navigate to the NSITE MO Viewer URL</li>
+        <li>If prompted, authorize with your NASA.gov account</li>
       </ol>
 
       <div class="access-details">
@@ -491,7 +491,15 @@
       </div>
 
       <h4>Administrator Notes</h4>
-      <p class="admin-note">To restrict access: In Apps Script, go to <strong>Deploy → Manage deployments → Edit</strong> and set "Who has access" to <em>Only myself</em>, then share the script project with approved users individually.</p>
+      <div class="admin-note">
+        <p><strong>Deployment configuration:</strong></p>
+        <ol>
+          <li>In Apps Script: <strong>Deploy → Manage deployments → Edit</strong></li>
+          <li>Execute as: <em>Me</em></li>
+          <li>Who has access: <em>Anyone within NASA.gov</em></li>
+        </ol>
+        <p style="margin-top: 8px;">No per-user sharing required. All NASA.gov Workspace users can access automatically.</p>
+      </div>
     </div>
   </section>
 
@@ -522,6 +530,25 @@
 </div>
 
 <style>
+  /* Fallback values for CSS variables */
+  .about-page {
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --primary-color: #0B3D91;
+    --bg-secondary: #f8fafc;
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+
   .about-page {
     max-width: 1000px;
     margin: 0 auto;
@@ -640,6 +667,8 @@
     padding: var(--space-md);
     overflow-x: auto;
     margin-bottom: var(--space-md);
+    display: flex;
+    justify-content: center;
   }
 
   .architecture-diagram pre {
@@ -648,6 +677,7 @@
     font-size: 0.7rem;
     line-height: 1.3;
     color: #94a3b8;
+    text-align: left;
   }
 
   /* Tech Stack */

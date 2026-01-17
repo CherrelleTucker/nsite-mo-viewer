@@ -31,6 +31,9 @@ var CONFIG = {
  * Config keys stored in MO-DB_Config sheet
  */
 var CONFIG_KEYS = {
+  // Access Control
+  ACCESS_FILE_ID: 'ACCESS_FILE_ID',  // Drive file used for access control (editors = approved users)
+
   // Document IDs
   INTERNAL_AGENDA_ID: 'INTERNAL_AGENDA_ID',
   SEP_AGENDA_ID: 'SEP_AGENDA_ID',
@@ -118,6 +121,10 @@ var DEFAULT_PAGE = 'implementation';
  * @returns {HtmlOutput} Rendered HTML page
  */
 function doGet(e) {
+  // Access control is handled by deployment settings:
+  // - Execute as: Me
+  // - Who has access: Anyone within NASA.gov Workspace
+
   var page = e.parameter.page || DEFAULT_PAGE;
 
   // Special routes (not in PAGES)
@@ -150,6 +157,55 @@ function doGet(e) {
       '<p>Error: ' + error.message + '</p>' +
       '</body></html>'
     );
+  }
+}
+
+/**
+ * Validate user access by checking if their email is in the MO-DB_Access sheet
+ *
+ * @param {string} email - User's email address
+ * @param {string} sheetId - ID of the MO-DB_Access Google Sheet
+ * @returns {boolean} True if user has access
+ */
+function validateUserAccess(email, sheetId) {
+  var userEmailLower = email.toLowerCase().trim();
+
+  try {
+    var ss = SpreadsheetApp.openById(sheetId);
+    var sheet = ss.getSheets()[0];
+    var data = sheet.getDataRange().getValues();
+
+    // Find access_email column (expected: name, access_email, purpose)
+    var headers = data[0];
+    var emailColIndex = -1;
+
+    for (var i = 0; i < headers.length; i++) {
+      var header = String(headers[i]).toLowerCase().trim();
+      if (header === 'access_email' || header === 'email') {
+        emailColIndex = i;
+        break;
+      }
+    }
+
+    if (emailColIndex === -1) {
+      Logger.log('access_email column not found in MO-DB_Access');
+      return false;
+    }
+
+    // Check if user's email is in the access list
+    for (var row = 1; row < data.length; row++) {
+      var accessEmail = String(data[row][emailColIndex]).toLowerCase().trim();
+      if (accessEmail === userEmailLower) {
+        return true;
+      }
+    }
+
+    Logger.log('Access denied for: ' + email);
+    return false;
+
+  } catch (e) {
+    Logger.log('Error reading access sheet: ' + e);
+    return false;
   }
 }
 

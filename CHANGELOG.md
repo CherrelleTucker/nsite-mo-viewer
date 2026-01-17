@@ -15,6 +15,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] - 2026-01-16
+
+### Changed
+- **Renamed**: "MO-Viewer" → "NSITE MO Viewer" throughout platform
+- **Security**: Access restricted to NASA.gov Google Workspace accounts only
+  - Deployment: Execute as Me, Who has access: Anyone within NASA.gov
+  - External accounts blocked by Google
+- **Header**: Removed user email display (not functional with "Execute as Me" deployment)
+- **About page**: Added fallback CSS variables for consistent styling
+- **About page**: Fixed quick navigation links (now use JavaScript scrolling instead of anchor hrefs)
+- **About page**: Centered architecture diagram
+- **About page**: Updated Security section to document NASA.gov-only access
+
+---
+
 ## [1.0.0] - 2026-01-16
 
 **MO-Viewer v1.0** - Complete unified dashboard platform with all databases, core viewers, and supporting features.
