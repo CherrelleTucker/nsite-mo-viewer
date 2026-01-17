@@ -10,98 +10,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Phase 6: Comms-NSITE (communications/story tracking)
-- Phase 8: Automation & Sync (scheduled exports, email notifications)
-
----
-
-## [1.1.0] - 2026-01-16
-
-### Added - Actions-NSITE (Shared Resources - Action Tracking)
-
-**Actions-NSITE Viewer** (`actions.html`) - Action item tracking dashboard:
-- **Assignee-First View**: Collapsible cards per person, sorted by workload
-- **Action Cards**: Task, source, category, solution, status, priority, due date
-- **Status Management**: Quick status updates with visual feedback ("Updating..." → "Updated!")
-- **Add Action Modal**: Create new actions directly from dashboard
-- **Responsive Grid**: Cards adapt to screen width (min 340px)
-
-**MO-DB_Actions Database** - Action item tracking:
-- 15 columns: action_id, source_document, source_date, source_url, category, solution, status, assigned_to, task, due_date, priority, notes, created_at, updated_at, created_by
-- Status values: not_started, in_progress, done, blocked
-- Categories: MO, SEP, DevSeed, Assessment, AdHoc
-- Solutions: Auto-detected from task text (HLS, OPERA, EMIT, SBG, etc.)
-
-**Bi-directional Sync Architecture**:
-- **Pull**: `sync-actions.gs` pulls actions from Internal and SEP agenda documents
-- **Push**: Status changes in dashboard push back to source agenda documents
-- **Database Container**: MO-DB_Actions spreadsheet runs sync-actions.gs with time-based triggers
-
-**API Layer** (`actions-api.gs`):
-- `getAllActions()` - Get all actions with caching
-- `getActionById()` - Get single action
-- `createAction()` - Create new action
-- `updateActionStatus()` - Update status and push to source agenda
-- `getActionsByAssignee()` - Group actions by person
-- `getActionsStats()` - Dashboard statistics
-
-**Sync Functions** (`sync-actions.gs`):
-- `syncFromInternalAgenda()` - Pull from Monday internal planning
-- `syncFromSEPAgenda()` - Pull from Tuesday SEP strategy
-- `pushStatusToAgenda_()` - Push status changes back to source docs
-- Custom menu for manual sync operations
-
-### Changed
-- `Code.gs` - Added ACTIONS_SHEET_ID config key
-- `index.html` - Added actions routing
-- Navigation - Actions tab now active
+- Comms-NSITE (communications/story tracking)
+- Automation & Sync (scheduled exports, email notifications)
 
 ---
 
 ## [1.0.0] - 2026-01-16
 
-### Added - SEP-NSITE (Phase 5 - Stakeholder Engagement Pipeline)
+**MO-Viewer v1.0** - Complete unified dashboard platform with all databases, core viewers, and supporting features.
 
-**SEP-NSITE Viewer** (`sep.html`) - Complete stakeholder engagement tracking:
-- **Pipeline View**: Kanban board with 7 touchpoint columns (T4, W1, W2, T5, T6, T7, T8)
-- **Agencies View**: Hierarchical organization browser with detail panel
-- **Stats Dashboard**: Contacts, Agencies, Need Follow-up, This Week counts
-- **Engagement Log**: Recent engagement activity panel
-- **Log Engagement Modal**: Form to record new stakeholder interactions
+### Platform Summary
 
-**MO-DB_Agencies Database** - Organization hierarchy (43 agencies):
-- Federal departments (DOI, USDA, DOC, DOE, EPA, DHS, NSF, HHS, DOS)
-- Sub-agencies and bureaus with parent relationships
-- Enriched with web research: mission statements, data interests, websites
-- 20 columns: agency_id, name, full_name, type, parent_agency_id, abbreviation, leadership, POC, mission_statement, mission_areas, geographic_scope, data_interests, relationship_status, website_url, timestamps
+| Component | Status | Description |
+|-----------|--------|-------------|
+| **Implementation-NSITE** | Complete | Solution tracking with milestones, documents, stakeholders |
+| **SEP-NSITE** | Complete | Stakeholder engagement pipeline with touchpoints |
+| **Actions-NSITE** | Complete | Action item tracking with bi-directional agenda sync |
+| **Contacts Directory** | Complete | 423 contacts across 47 solutions |
+| **Reports** | Complete | 7 report types with methodology documentation |
+| **Schedule** | Complete | Timeline and Gantt views |
+| **Quick Update Form** | Complete | Submit updates to agenda documents |
 
-**MO-DB_Engagements Database** - Engagement logging:
-- 17 columns for tracking all stakeholder interactions
-- Activity types: Email, Phone, Meeting, Webinar, Conference, Site Visit, Training
-- Links to contacts, agencies, and solutions
+### Databases (7 total)
 
-**MO-DB_Contacts Enhanced** - 9 new columns:
-- touchpoint_status, lifecycle_phase, engagement_level
-- agency_id (FK to agencies), title, region
-- last_contact_date, next_scheduled_contact, relationship_notes
+| Database | Records | Purpose |
+|----------|---------|---------|
+| **MO-DB_Solutions** | 37 | Solution data (49 columns) |
+| **MO-DB_Contacts** | 423 | Stakeholder contacts |
+| **MO-DB_Agencies** | 43 | Federal agency hierarchy |
+| **MO-DB_Engagements** | — | Engagement logging |
+| **MO-DB_Needs** | 2,049 | Stakeholder survey responses |
+| **MO-DB_Actions** | — | Action items with agenda sync |
+| **MO-DB_Config** | — | Configuration settings |
 
-**API Layer**:
-- `agencies-api.gs` - CRUD, hierarchy queries, search, statistics
-- `engagements-api.gs` - CRUD, relationship queries, time-based queries
-- `contacts-api.gs` - Enhanced with SEP functions (touchpoint queries, pipeline overview)
+### Core Viewers
 
-**Agency Data Enrichment**:
-- Mission statements for 36 agencies from official sources
-- Earth observation data interests per agency
-- Clickable website hyperlinks
-- Relationship status tracking
+**Implementation-NSITE** (`implementation.html`):
+- Solution cards organized by cycle with phase badges
+- Milestone tracking (ATP, F2I, ORR, Closeout)
+- Document status tracking (9 document types)
+- Stakeholder integration per solution
+- Solution picker with default selection
 
-### Changed
-- `Code.gs` - Added AGENCIES_SHEET_ID and ENGAGEMENTS_SHEET_ID config keys
-- `index.html` - Added SEP routing
-- Navigation - SEP tab now active
+**SEP-NSITE** (`sep.html`):
+- Pipeline kanban (T4 → W1 → W2 → T5 → T6 → T7 → T8)
+- Agencies view with hierarchy browser
+- Engagement logging modal
+- Stats: Contacts, Agencies, Need Follow-up, This Week
+
+**Actions-NSITE** (`actions.html`):
+- Assignee-first collapsible cards
+- Bi-directional sync with agenda documents
+- Status updates push back to source docs
+- Add Action modal for new items
+
+### Supporting Features
+
+**Reports** (`reports.html`):
+- QuickLook CSV, Quad Chart, Detailed Milestone
+- Need Alignment, Stakeholder Coverage, Engagement Funnel, Department Reach
+- Methodology documentation per report
+- Data provenance banners
+
+**Schedule** (`schedule.html`):
+- Timeline view grouped by month
+- Gantt chart with phase dependencies
+- Stats: Upcoming, Overdue, Completed
+
+**Contacts** (`contacts.html`):
+- Card and table views with pagination
+- Search and filters (department, solution, role, year)
+- Export to CSV
 
 ---
+
+## Pre-Release Development History
 
 ## [0.9.3] - 2026-01-16
 
