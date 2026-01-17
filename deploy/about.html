@@ -16,6 +16,7 @@
     <a href="#overview">Overview</a>
     <a href="#databases">Databases</a>
     <a href="#pages">Page Documentation</a>
+    <a href="#security">Security</a>
     <a href="#version">Version</a>
   </nav>
 
@@ -427,6 +428,60 @@
     </div>
   </section>
 
+  <!-- Security -->
+  <section class="about-section about-security" id="security">
+    <div class="section-header">
+      <span class="section-icon" data-feather="shield"></span>
+      <h3>Security & Access</h3>
+    </div>
+    <div class="about-content">
+      <div class="security-notice">
+        <span class="notice-icon" data-feather="alert-triangle"></span>
+        <div class="notice-text">
+          <strong>Contains PII</strong> — This application displays stakeholder contact information including names, emails, phone numbers, and organizational affiliations.
+        </div>
+      </div>
+
+      <h4>Hosting Environment</h4>
+      <p>MO-Viewer is a Google Apps Script web application hosted within the <strong>OSDI Google Workspace</strong> environment. All data remains within Google's infrastructure and is subject to NASA OSDI security policies.</p>
+
+      <h4>Access Control</h4>
+      <p>Access is restricted to an approved whitelist of users. To gain access:</p>
+      <ol>
+        <li>Submit an access request to the MO-Viewer administrator</li>
+        <li>Upon approval, your Google account email is added to the whitelist</li>
+        <li>Access the application using your approved Google account</li>
+      </ol>
+
+      <div class="access-details">
+        <div class="access-item">
+          <span class="access-icon" data-feather="lock"></span>
+          <div>
+            <strong>Authentication</strong>
+            <span>Google OAuth 2.0 — users must sign in with their Google account</span>
+          </div>
+        </div>
+        <div class="access-item">
+          <span class="access-icon" data-feather="users"></span>
+          <div>
+            <strong>Authorization</strong>
+            <span>Email whitelist stored in Script Properties — only approved emails can access</span>
+          </div>
+        </div>
+        <div class="access-item">
+          <span class="access-icon" data-feather="database"></span>
+          <div>
+            <strong>Data Storage</strong>
+            <span>Google Sheets within OSDI Workspace — no external data transfer</span>
+          </div>
+        </div>
+      </div>
+
+      <h4>Request Access</h4>
+      <p>Contact the MO-Viewer administrator to request access. Include your Google account email and justification for access.</p>
+    </div>
+  </section>
+
   <!-- Version Info -->
   <section class="about-section about-version" id="version">
     <div class="section-header">
@@ -816,6 +871,81 @@
   /* Comms header color */
   .page-card-header.comms {
     background: #8b5cf6;
+  }
+
+  /* Security Section */
+  .security-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-lg);
+  }
+
+  .notice-icon {
+    width: 24px;
+    height: 24px;
+    color: #d97706;
+    flex-shrink: 0;
+  }
+
+  .notice-text {
+    font-size: 0.9rem;
+    color: #92400e;
+    line-height: 1.5;
+  }
+
+  .access-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin: var(--space-md) 0;
+  }
+
+  .access-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+  }
+
+  .access-icon {
+    width: 18px;
+    height: 18px;
+    color: var(--primary-color);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .access-item div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .access-item strong {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+  }
+
+  .access-item span {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  .about-content ol {
+    margin: var(--space-sm) 0;
+    padding-left: var(--space-lg);
+  }
+
+  .about-content ol li {
+    margin-bottom: var(--space-xs);
+    color: var(--text-secondary);
   }
 
   /* Version Info */
