@@ -52,10 +52,29 @@
       </div>
 
       <div class="tech-stack">
-        <div class="tech-item"><span class="tech-label">Frontend</span> HTML, CSS, JavaScript</div>
-        <div class="tech-item"><span class="tech-label">Backend</span> Google Apps Script</div>
-        <div class="tech-item"><span class="tech-label">Database</span> Google Sheets</div>
-        <div class="tech-item"><span class="tech-label">Auth</span> Google OAuth 2.0</div>
+        <h4>Technology Stack</h4>
+        <div class="tech-grid">
+          <div class="tech-card">
+            <span class="tech-icon" data-feather="layout"></span>
+            <span class="tech-name">Frontend</span>
+            <span class="tech-value">HTML, CSS, JS</span>
+          </div>
+          <div class="tech-card">
+            <span class="tech-icon" data-feather="server"></span>
+            <span class="tech-name">Backend</span>
+            <span class="tech-value">Apps Script</span>
+          </div>
+          <div class="tech-card">
+            <span class="tech-icon" data-feather="database"></span>
+            <span class="tech-name">Database</span>
+            <span class="tech-value">Google Sheets</span>
+          </div>
+          <div class="tech-card">
+            <span class="tech-icon" data-feather="shield"></span>
+            <span class="tech-name">Auth</span>
+            <span class="tech-value">Google OAuth</span>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -473,24 +492,53 @@
 
   /* Tech Stack */
   .tech-stack {
-    display: flex;
-    flex-wrap: wrap;
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-color);
+  }
+
+  .tech-stack h4 {
+    margin: 0 0 var(--space-sm) 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: var(--space-sm);
   }
 
-  .tech-item {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
+  .tech-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-sm);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    text-align: center;
   }
 
-  .tech-label {
-    display: inline-block;
-    padding: 2px 8px;
-    background: var(--primary-color);
-    color: white;
-    border-radius: var(--radius-sm);
-    font-weight: 500;
-    margin-right: var(--space-xs);
+  .tech-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--primary-color);
+    margin-bottom: var(--space-xs);
+  }
+
+  .tech-name {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .tech-value {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
   }
 
   /* Database Grid */
