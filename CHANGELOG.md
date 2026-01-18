@@ -76,6 +76,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Updated**: 12 HTML files, 70+ icon instances converted
 - **Mapping**: Created `scripts/convert_to_material_icons.py` for automated conversion
 
+**Favicon Implementation** (Apps Script Compatibility)
+- **Custom "MO" favicon** - Navy blue with white text and cyan accent bar
+- **Hosted on GitHub** at `favicon.png` for reliable external access
+- **setFaviconUrl()** - Used HtmlService API method in Code.gs (the key fix)
+- **Multiple link formats** - icon, shortcut icon, apple-touch-icon for browser compatibility
+
 **Database Count: 13 Total**
 - Needs, Actions, Agencies, Availability, Contacts, Engagements, Glossary, Meetings, Milestones, Outreach, Solutions, Stories, Updates
 
