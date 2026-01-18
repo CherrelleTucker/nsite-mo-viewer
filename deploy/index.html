@@ -6,9 +6,8 @@
   <base target="_top">
   <title>NSITE MO Viewer</title>
 
-  <!-- Favicon - Blue grid icon (multiple formats for compatibility) -->
-  <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAABQUlEQVR4nO2WvUoDQRSFv0QsLCws7HwAH8DOB7C0sbGwtLT0AXwEH8HKRrCwsrKxsLCwsLCwMCyEJYRkd+bO7M6SHLjNMnPuuT9zZxdWWOE/YA14ApqOz2vgEVhz5T8HrkPIp8AVcAGklsIBbwG3wJFL8CnNGHwCzAzwEehakt/TCYAvLMUHOl4DDiPJJ8ZUiuCjyHt+Bj4c8VqMgC2XxAR/XMgtxRfAtRNpinwWjPjEhThvKb5oKZ7FIJ6lmJ8E/xYh5ifiOsA2cARMHPEqRkAr8A6sgLlj7oqYIpgB78AO0HHES5gC98AhMHXEOxgDu0DPEW9gDBwAA0e8hjFwBIwc8QrGwDEwcsRLGAMnwNARz2EMnAJDR7w0CPkEOAcGjngpE+Ac6DviNYyBc+DSEa9gDJwDl474CiuswF/gG3qvVJ0Fis8sAAAAAElFTkSuQmCC">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230B3D91'/%3E%3Crect x='5' y='5' width='9' height='9' rx='2' fill='white'/%3E%3Crect x='18' y='5' width='9' height='9' rx='2' fill='white'/%3E%3Crect x='5' y='18' width='9' height='9' rx='2' fill='white'/%3E%3Crect x='18' y='18' width='9' height='9' rx='2' fill='%2300A3E0'/%3E%3C/svg%3E">
+  <!-- Favicon - hosted on GitHub for Apps Script compatibility -->
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/CherrelleTucker/nsite-mo-viewer/main/favicon.png">
 
   <!-- Google Material Icons -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -315,17 +314,19 @@
     // ========================================================================
 
     function setFavicon() {
+      var faviconUrl = 'https://raw.githubusercontent.com/CherrelleTucker/nsite-mo-viewer/main/favicon.png';
+
       // Remove any existing favicons
       var existingIcons = document.querySelectorAll('link[rel*="icon"]');
       existingIcons.forEach(function(icon) {
         icon.parentNode.removeChild(icon);
       });
 
-      // Create and inject PNG favicon (best compatibility)
+      // Create and inject favicon from GitHub
       var link = document.createElement('link');
       link.rel = 'icon';
       link.type = 'image/png';
-      link.href = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAABQUlEQVR4nO2WvUoDQRSFv0QsLCws7HwAH8DOB7C0sbGwtLT0AXwEH8HKRrCwsrKxsLCwsLCwMCyEJYRkd+bO7M6SHLjNMnPuuT9zZxdWWOE/YA14ApqOz2vgEVhz5T8HrkPIp8AVcAGklsIBbwG3wJFL8CnNGHwCzAzwEehakt/TCYAvLMUHOl4DDiPJJ8ZUiuCjyHt+Bj4c8VqMgC2XxAR/XMgtxRfAtRNpinwWjPjEhThvKb5oKZ7FIJ6lmJ8E/xYh5ifiOsA2cARMHPEqRkAr8A6sgLlj7oqYIpgB78AO0HHES5gC98AhMHXEOxgDu0DPEW9gDBwAA0e8hjFwBIwc8QrGwDEwcsRLGAMnwNARz2EMnAJDR7w0CPkEOAcGjngpE+Ac6DviNYyBc+DSEa9gDJwDl474CiuswF/gG3qvVJ0Fis8sAAAAAElFTkSuQmCC';
+      link.href = faviconUrl;
       document.head.appendChild(link);
 
       // Also try to set on parent window (may work in some iframe contexts)
@@ -334,7 +335,7 @@
           var topLink = window.top.document.createElement('link');
           topLink.rel = 'icon';
           topLink.type = 'image/png';
-          topLink.href = link.href;
+          topLink.href = faviconUrl;
           window.top.document.head.appendChild(topLink);
         }
       } catch (e) {
