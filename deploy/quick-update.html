@@ -66,7 +66,7 @@
       <div class="qu-button-group">
         <button type="button" class="btn btn-text btn-clear" onclick="QuickUpdate.resetForm()">Clear Form</button>
         <button type="submit" class="btn btn-primary btn-submit" id="qu-submit-btn">
-          <span data-feather="send"></span>
+          <span class="material-icons">send</span>
           Submit Update
         </button>
       </div>
@@ -80,13 +80,13 @@
 
   <!-- Security notice at bottom -->
   <div class="qu-security-notice">
-    <span data-feather="lock" class="qu-lock-icon"></span>
+    <span class="material-icons">lock</span>
     All submissions are logged and added to the next meeting's agenda.
   </div>
 
   <!-- Future features notice -->
   <div class="qu-future-notice">
-    <span data-feather="info" class="qu-info-icon"></span>
+    <span class="material-icons">info</span>
     <span><strong>Coming soon:</strong> Multiple solution updates per submission, Comms updates</span>
   </div>
 </div>
@@ -365,8 +365,7 @@
       this.initialized = true;
       this.populateSolutions();
       this.bindEvents();
-      feather.replace();
-    },
+},
 
     populateSolutions: function() {
       var select = document.getElementById('qu-solution');

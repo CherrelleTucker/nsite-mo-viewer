@@ -10,17 +10,17 @@
     <div class="header-controls">
       <div class="view-toggle">
         <button class="view-btn active" data-view="assignee" onclick="ActionsModule.setView('assignee')">
-          <i data-feather="users"></i> By Person
+          <span class="material-icons">group</span> By Person
         </button>
         <button class="view-btn" data-view="status" onclick="ActionsModule.setView('status')">
-          <i data-feather="columns"></i> By Status
+          <span class="material-icons">view_column</span> By Status
         </button>
       </div>
       <button class="btn-primary btn-add" onclick="ActionsModule.showAddModal()">
-        <i data-feather="plus"></i> Add Action
+        <span class="material-icons">add</span> Add Action
       </button>
       <button class="btn-icon" onclick="ActionsModule.refreshData()" title="Refresh">
-        <i data-feather="refresh-cw"></i>
+        <span class="material-icons">refresh</span>
       </button>
     </div>
   </div>
@@ -33,7 +33,7 @@
       <button class="chip" data-filter="done" onclick="ActionsModule.setFilter('done')">Done</button>
     </div>
     <div class="filter-search">
-      <i data-feather="search"></i>
+      <span class="material-icons">search</span>
       <input type="text" id="action-search" placeholder="Search actions..." onkeyup="ActionsModule.applyFilters()">
     </div>
     <select id="filter-source" onchange="ActionsModule.applyFilters()">
@@ -99,7 +99,7 @@
 
   <!-- Empty State -->
   <div class="empty-state" id="actions-empty" style="display:none;">
-    <i data-feather="inbox"></i>
+    <span class="material-icons">inbox</span>
     <p>No actions found</p>
     <p class="empty-hint">Actions sync automatically from meeting agendas</p>
   </div>
@@ -111,7 +111,7 @@
     <div class="drawer-header">
       <h3>Action Details</h3>
       <button class="btn-icon" onclick="ActionsModule.closeDrawer()">
-        <i data-feather="x"></i>
+        <span class="material-icons">close</span>
       </button>
     </div>
     <div class="drawer-body" id="drawer-body">
@@ -172,7 +172,7 @@
         <div class="form-actions">
           <button type="button" class="btn-secondary" onclick="ActionsModule.closeAddModal()">Cancel</button>
           <button type="submit" class="btn-primary" id="add-submit-btn">
-            <i data-feather="plus"></i> Add Action
+            <span class="material-icons">add</span> Add Action
           </button>
         </div>
       </form>
@@ -1080,8 +1080,7 @@ var ActionsModule = (function() {
     } else {
       renderStatusView();
     }
-    feather.replace();
-  }
+}
 
   function renderAssigneeView() {
     var container = document.getElementById('assignee-view');
@@ -1115,9 +1114,9 @@ var ActionsModule = (function() {
       header.onclick = function() { toggleAssignee(assignee, section); };
 
       // Toggle chevron
-      var toggle = document.createElement('i');
-      toggle.setAttribute('data-feather', 'chevron-down');
-      toggle.className = 'assignee-toggle';
+      var toggle = document.createElement('span');
+      toggle.className = 'material-icons assignee-toggle';
+      toggle.textContent = 'expand_more';
       header.appendChild(toggle);
 
       // Avatar
@@ -1198,9 +1197,7 @@ var ActionsModule = (function() {
       section.appendChild(actionsDiv);
       container.appendChild(section);
     });
-
-    feather.replace();
-  }
+}
 
   function toggleAssignee(assignee, section) {
     if (!state.collapsedAssignees) state.collapsedAssignees = {};
@@ -1430,8 +1427,7 @@ var ActionsModule = (function() {
     document.getElementById('add-action-form').reset();
     document.getElementById('add-modal').classList.add('active');
     document.getElementById('add-task').focus();
-    feather.replace();
-  }
+}
 
   function closeAddModal() {
     document.getElementById('add-modal').classList.remove('active');

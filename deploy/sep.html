@@ -11,16 +11,16 @@
     <div class="page-actions">
       <div class="view-toggle">
         <button class="view-btn active" data-view="pipeline" onclick="SEP.setView('pipeline')">
-          <span data-feather="columns"></span>
+          <span class="material-icons">view_column</span>
           <span>Pipeline</span>
         </button>
         <button class="view-btn" data-view="agencies" onclick="SEP.setView('agencies')">
-          <span data-feather="git-branch"></span>
+          <span class="material-icons">account_tree</span>
           <span>Agencies</span>
         </button>
       </div>
       <button class="btn btn-primary" onclick="SEP.showLogEngagementModal()">
-        <span data-feather="plus"></span>
+        <span class="material-icons">add</span>
         Log Engagement
       </button>
     </div>
@@ -29,28 +29,28 @@
   <!-- Stats Row -->
   <div class="stats-row">
     <div class="stat-card">
-      <div class="stat-icon"><span data-feather="users"></span></div>
+      <div class="stat-icon"><span class="material-icons">group</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statTotalContacts">--</span>
         <span class="stat-label">Contacts</span>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><span data-feather="briefcase"></span></div>
+      <div class="stat-icon"><span class="material-icons">work</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statTotalAgencies">--</span>
         <span class="stat-label">Agencies</span>
       </div>
     </div>
     <div class="stat-card stat-warning">
-      <div class="stat-icon"><span data-feather="alert-circle"></span></div>
+      <div class="stat-icon"><span class="material-icons">error</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statNeedFollowUp">--</span>
         <span class="stat-label">Need Follow-up</span>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><span data-feather="calendar"></span></div>
+      <div class="stat-icon"><span class="material-icons">calendar_today</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statThisWeek">--</span>
         <span class="stat-label">This Week</span>
@@ -140,7 +140,7 @@
           <div class="panel-header">
             <h3>Agency Browser</h3>
             <button class="btn btn-sm btn-secondary" onclick="SEP.setView('agencies')">
-              <span data-feather="maximize-2"></span>
+              <span class="material-icons">fullscreen</span>
             </button>
           </div>
           <div class="panel-content" id="agencyBrowserMini">
@@ -155,7 +155,7 @@
           <div class="panel-header">
             <h3>Recent Engagements</h3>
             <button class="btn btn-sm btn-primary" onclick="SEP.showLogEngagementModal()">
-              <span data-feather="plus"></span>
+              <span class="material-icons">add</span>
             </button>
           </div>
           <div class="panel-content" id="recentEngagements">
@@ -191,7 +191,7 @@
           </div>
           <div class="panel-content" id="agencyDetail">
             <div class="empty-state">
-              <span data-feather="home"></span>
+              <span class="material-icons">home</span>
               <p>Select an agency to view details</p>
             </div>
           </div>
@@ -930,9 +930,7 @@ var SEP = (function() {
         }).join('');
       }
     });
-
-    feather.replace();
-  }
+}
 
   function renderPipelineCard(contact) {
     var name = (contact.first_name || '') + ' ' + (contact.last_name || '');
@@ -987,8 +985,7 @@ var SEP = (function() {
       html += renderAgencyItemMini(agency);
     });
     container.innerHTML = html;
-    feather.replace();
-  }
+}
 
   function renderAgencyItemMini(agency) {
     var childCount = agency.children ? agency.children.length : 0;
@@ -1004,9 +1001,8 @@ var SEP = (function() {
   function renderAgencyTree() {
     var container = document.getElementById('agencyTree');
     if (!state.agencyHierarchy || state.agencyHierarchy.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span data-feather="home"></span><p>No agencies configured</p></div>';
-      feather.replace();
-      return;
+      container.innerHTML = '<div class="empty-state"><span class="material-icons">home</span><p>No agencies configured</p></div>';
+return;
     }
 
     var html = '';
@@ -1014,8 +1010,7 @@ var SEP = (function() {
       html += renderAgencyTreeItem(agency, 0);
     });
     container.innerHTML = html;
-    feather.replace();
-  }
+}
 
   function renderAgencyTreeItem(agency, level) {
     var hasChildren = agency.children && agency.children.length > 0;
@@ -1023,7 +1018,7 @@ var SEP = (function() {
 
     var html = '<div class="agency-item' + (hasChildren ? ' has-children' : '') + '" style="padding-left: ' + (indent + 8) + 'px;" onclick="SEP.selectAgency(\'' + escapeAttr(agency.agency_id) + '\')">';
     if (hasChildren) {
-      html += '<span class="agency-toggle" data-agency="' + escapeAttr(agency.agency_id) + '" onclick="event.stopPropagation(); SEP.toggleAgencyChildren(\'' + escapeAttr(agency.agency_id) + '\')"><span data-feather="chevron-right"></span></span>';
+      html += '<span class="agency-toggle" data-agency="' + escapeAttr(agency.agency_id) + '" onclick="event.stopPropagation(); SEP.toggleAgencyChildren(\'' + escapeAttr(agency.agency_id) + '\')"><span class="material-icons">chevron_right</span></span>';
     } else {
       html += '<span style="width: 16px;"></span>';
     }
@@ -1084,7 +1079,7 @@ var SEP = (function() {
     html += '<div class="agency-type">' + escapeHtml(agency.type || 'Organization') + '</div>';
     if (agency.website_url) {
       html += '<div class="agency-website"><a href="' + escapeHtml(agency.website_url) + '" target="_blank">';
-      html += '<span data-feather="external-link"></span> ' + escapeHtml(agency.website_url) + '</a></div>';
+      html += '<span class="material-icons">open_in_new</span> ' + escapeHtml(agency.website_url) + '</a></div>';
     }
     html += '</div></div>';
 
@@ -1146,11 +1141,6 @@ var SEP = (function() {
     }
 
     document.getElementById('agencyDetail').innerHTML = html;
-
-    // Re-initialize feather icons for the new content
-    if (typeof feather !== 'undefined') {
-      feather.replace();
-    }
   }
 
   function renderRecentEngagements() {
@@ -1174,7 +1164,7 @@ var SEP = (function() {
     state.engagements.slice(0, 8).forEach(function(e) {
       var icon = iconMap[e.activity_type] || 'message-circle';
       html += '<div class="engagement-item">';
-      html += '<div class="engagement-icon"><span data-feather="' + icon + '"></span></div>';
+      html += '<div class="engagement-icon"><span class="material-icons">' + icon + '</span></div>';
       html += '<div class="engagement-info">';
       html += '<div class="engagement-subject">' + escapeHtml(e.subject || 'No subject') + '</div>';
       html += '<div class="engagement-meta">' + formatDate(e.date) + ' - ' + escapeHtml(e.activity_type || 'Unknown') + '</div>';
@@ -1182,8 +1172,7 @@ var SEP = (function() {
     });
 
     container.innerHTML = html;
-    feather.replace();
-  }
+}
 
   function setView(view) {
     state.currentView = view;
@@ -1268,14 +1257,13 @@ var SEP = (function() {
 
     // Actions
     html += '<div style="display: flex; gap: var(--space-sm); margin-top: var(--space-lg);">';
-    html += '<a href="mailto:' + escapeHtml(contact.email) + '" class="btn btn-primary"><span data-feather="mail"></span> Email</a>';
-    html += '<button class="btn btn-secondary" onclick="SEP.logEngagementFor(\'' + escapeAttr(contact.email) + '\')"><span data-feather="plus"></span> Log Engagement</button>';
+    html += '<a href="mailto:' + escapeHtml(contact.email) + '" class="btn btn-primary"><span class="material-icons">email</span> Email</a>';
+    html += '<button class="btn btn-secondary" onclick="SEP.logEngagementFor(\'' + escapeAttr(contact.email) + '\')"><span class="material-icons">add</span> Log Engagement</button>';
     html += '</div>';
 
     document.getElementById('contactModalBody').innerHTML = html;
     document.getElementById('contactModal').classList.add('active');
-    feather.replace();
-  }
+}
 
   function showLogEngagementModal() {
     setDefaultDate();

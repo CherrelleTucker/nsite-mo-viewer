@@ -35,6 +35,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **sync_stories_from_tracking.py** - Python sync for local development
 
 **Key Messages Integration**
+- **Key Messages View** in Comms-NSITE - New "Messages" tab showing solution key messages:
+  - Summary stats: solutions with messages, coverage %, focus types
+  - Search bar to filter messages by keyword
+  - Card grid displaying key messages, scientific advancement, agency impact, industry connections
+  - Links to public communications pages
 - **Key Messages columns added to MO-DB_Solutions** (6 new columns):
   - key_messages, focus_type, industry_connections
   - scientific_advancement, agency_use_impact, public_comms_links
@@ -43,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `getSolutionsWithKeyMessages()` - Get all solutions with key messages
   - `getKeyMessagesSummary()` - Coverage statistics for comms dashboard
   - `searchKeyMessages(query)` - Search across key message content
+- **13 solutions** populated with key messages from source file
 
 **MO-DB_Milestones Database** (NEW)
 - 185 milestone records extracted from MO-DB_Solutions
@@ -58,6 +64,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Redundant columns merged**: team_management → notes, duplicate URLs consolidated
 - **Key messages integrated**: 6 columns added from separate source files
 - **Backup created** before modification
+
+**Icon Library Migration** (Stability Improvement)
+- **Replaced Feather Icons with Google Material Icons** across all HTML files
+- **Reason**: Feather Icons JS-based approach had stability issues in Google Apps Script iframe sandbox
+- **Benefits**:
+  - CSS-based icons (no JavaScript initialization required)
+  - Native Google compatibility (same icons used in Google products)
+  - Faster load times (no feather.replace() calls needed)
+  - More reliable in SPA navigation context
+- **Updated**: 12 HTML files, 70+ icon instances converted
+- **Mapping**: Created `scripts/convert_to_material_icons.py` for automated conversion
 
 **Database Count: 13 Total**
 - Needs, Actions, Agencies, Availability, Contacts, Engagements, Glossary, Meetings, Milestones, Outreach, Solutions, Stories, Updates

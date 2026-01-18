@@ -33,6 +33,7 @@
   - Milestone types: ATP, F2I, ORR, Closeout, various memo dates
 
 - [x] **KEY MESSAGES INTEGRATION**
+  - **Key Messages View** in Comms-NSITE with search, summary stats, and card grid
   - 6 new columns added to MO-DB_Solutions:
     - key_messages, focus_type, industry_connections
     - scientific_advancement, agency_use_impact, public_comms_links
@@ -41,7 +42,7 @@
     - getSolutionsWithKeyMessages()
     - getKeyMessagesSummary()
     - searchKeyMessages(query)
-  - 14 solutions matched with key messages data
+  - 13 solutions populated with key messages data
 
 ---
 

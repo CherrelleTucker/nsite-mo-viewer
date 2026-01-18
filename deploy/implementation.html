@@ -10,7 +10,7 @@
     </div>
     <div class="page-actions">
       <button class="btn btn-secondary" onclick="Implementation.exportData()">
-        <span data-feather="download"></span>
+        <span class="material-icons">download</span>
         Export
       </button>
     </div>
@@ -21,7 +21,7 @@
     <!-- Stats Summary -->
     <div class="panel stats-panel">
       <div class="panel-header">
-        <span data-feather="bar-chart-2"></span>
+        <span class="material-icons">bar_chart</span>
         <span>Portfolio Overview</span>
       </div>
       <div class="stats-grid-compact" id="implementationStats">
@@ -47,7 +47,7 @@
     <!-- MO Milestones Panel -->
     <div class="panel milestones-panel">
       <div class="panel-header">
-        <span data-feather="flag"></span>
+        <span class="material-icons">flag</span>
         <span>Implementation Milestones</span>
       </div>
       <div class="milestones-tracker">
@@ -77,7 +77,7 @@
     <!-- Document Administration Panel -->
     <div class="panel docs-panel">
       <div class="panel-header">
-        <span data-feather="file-text"></span>
+        <span class="material-icons">description</span>
         <span>Document Administration</span>
       </div>
       <div class="docs-tracker" id="docsTracker">
@@ -108,7 +108,7 @@
   <!-- Per-Solution Tracking Summary -->
   <div class="tracking-summary-row">
     <div class="tracking-card">
-      <span data-feather="database" class="tracking-icon"></span>
+      <span class="material-icons">storage</span>
       <div class="tracking-info">
         <span class="tracking-title">DAAC Assignments</span>
         <span class="tracking-subtitle">Data center allocation</span>
@@ -116,7 +116,7 @@
       <span class="tracking-value" id="statDAAC">--</span>
     </div>
     <div class="tracking-card">
-      <span data-feather="calendar" class="tracking-icon"></span>
+      <span class="material-icons">calendar_today</span>
       <div class="tracking-info">
         <span class="tracking-title">Deep Dives</span>
         <span class="tracking-subtitle">Scheduled reviews</span>
@@ -124,7 +124,7 @@
       <span class="tracking-value" id="statDeepDives">--</span>
     </div>
     <div class="tracking-card">
-      <span data-feather="check-square" class="tracking-icon"></span>
+      <span class="material-icons">check_box</span>
       <div class="tracking-info">
         <span class="tracking-title">Action Items</span>
         <span class="tracking-subtitle">Open items</span>
@@ -132,7 +132,7 @@
       <span class="tracking-value" id="statActions">--</span>
     </div>
     <div class="tracking-card">
-      <span data-feather="users" class="tracking-icon"></span>
+      <span class="material-icons">group</span>
       <div class="tracking-info">
         <span class="tracking-title">Stakeholder Lists</span>
         <span class="tracking-subtitle">Linked contacts</span>
@@ -147,7 +147,7 @@
       <label class="filter-label">Solutions:</label>
       <button class="btn btn-secondary btn-sm solution-picker-btn" id="solutionPickerBtn" onclick="Implementation.toggleSolutionPicker()">
         <span id="solutionPickerLabel">Loading...</span>
-        <span data-feather="chevron-down" class="picker-chevron"></span>
+        <span class="material-icons">expand_more</span>
       </button>
       <div class="solution-picker-dropdown" id="solutionPickerDropdown">
         <div class="picker-actions">
@@ -201,7 +201,7 @@
       </select>
     </div>
     <div class="filter-search">
-      <span data-feather="search" class="search-icon"></span>
+      <span class="material-icons">search</span>
       <input type="text" class="form-input search-input" id="filterSearch"
              placeholder="Search solutions..."
              oninput="Implementation.applyFilters()">
@@ -1459,9 +1459,8 @@ var Implementation = (function() {
     var container = document.getElementById('solutionsContainer');
 
     if (state.filteredSolutions.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span data-feather="inbox"></span><p>No solutions match your filters</p></div>';
-      feather.replace();
-      return;
+      container.innerHTML = '<div class="empty-state"><span class="material-icons">inbox</span><p>No solutions match your filters</p></div>';
+return;
     }
 
     var byCycle = {};
@@ -1482,7 +1481,7 @@ var Implementation = (function() {
 
       html += '<div class="cycle-section" data-cycle="' + cycle + '">';
       html += '<div class="cycle-header' + (isCollapsed ? ' collapsed' : '') + '" onclick="Implementation.toggleCycle(\'' + cycle + '\')">';
-      html += '<span data-feather="chevron-down" class="chevron"></span>';
+      html += '<span class="material-icons">expand_more</span>';
       html += '<span class="cycle-badge badge-c' + cycle + '">C' + cycle + '</span>';
       html += '<span class="cycle-title">Cycle ' + cycle + (cycleYear ? ' (' + cycleYear + ')' : '') + (isFuture ? ' - Assessment' : '') + '</span>';
       html += '<span class="cycle-count">' + solutions.length + ' solution' + (solutions.length !== 1 ? 's' : '') + '</span>';
@@ -1493,8 +1492,7 @@ var Implementation = (function() {
     });
 
     container.innerHTML = html;
-    feather.replace();
-  }
+}
 
   function renderSolutionCard(sol) {
     var phaseClass = getPhaseClass(sol.phase);
@@ -1513,8 +1511,8 @@ var Implementation = (function() {
 
     // Meta info
     html += '<div class="solution-meta">';
-    if (sol.solution_group) html += '<span class="solution-meta-item"><span data-feather="folder"></span>' + escapeHtml(sol.solution_group) + '</span>';
-    if (sol.funded_by_ison === 'Y') html += '<span class="solution-meta-item"><span data-feather="dollar-sign"></span>ISON</span>';
+    if (sol.solution_group) html += '<span class="solution-meta-item"><span class="material-icons">folder</span>' + escapeHtml(sol.solution_group) + '</span>';
+    if (sol.funded_by_ison === 'Y') html += '<span class="solution-meta-item"><span class="material-icons">attach_money</span>ISON</span>';
     html += '</div>';
 
     // Lead
@@ -1526,11 +1524,11 @@ var Implementation = (function() {
 
     // Tracking tags
     html += '<div class="solution-tracking">';
-    if (sol.daac_assignment) html += '<span class="tracking-tag tag-daac"><span data-feather="database"></span>' + escapeHtml(sol.daac_assignment) + '</span>';
+    if (sol.daac_assignment) html += '<span class="tracking-tag tag-daac"><span class="material-icons">storage</span>' + escapeHtml(sol.daac_assignment) + '</span>';
     if (sol.phase && sol.phase.toLowerCase().indexOf('operational') !== -1) {
-      html += '<span class="tracking-tag tag-milestone"><span data-feather="check-circle"></span>OPS</span>';
+      html += '<span class="tracking-tag tag-milestone"><span class="material-icons">check_circle</span>OPS</span>';
     } else if (sol.phase && sol.phase.toLowerCase().indexOf('implementation') !== -1) {
-      html += '<span class="tracking-tag tag-milestone"><span data-feather="play-circle"></span>F2I</span>';
+      html += '<span class="tracking-tag tag-milestone"><span class="material-icons">play_circle</span>F2I</span>';
     }
     html += '</div>';
 
@@ -1539,10 +1537,10 @@ var Implementation = (function() {
 
     // Actions
     html += '<div class="solution-actions">';
-    if (sol.drive_folder_url) html += '<a href="' + escapeHtml(sol.drive_folder_url) + '" target="_blank" class="solution-action-btn"><span data-feather="folder"></span>Drive</a>';
-    if (sol.snwg_solution_page_url) html += '<a href="' + escapeHtml(sol.snwg_solution_page_url) + '" target="_blank" class="solution-action-btn"><span data-feather="external-link"></span>Earthdata</a>';
-    if (sol.project_plan_url) html += '<a href="' + escapeHtml(sol.project_plan_url) + '" target="_blank" class="solution-action-btn"><span data-feather="file-text"></span>Plan</a>';
-    html += '<button class="solution-action-btn" onclick="Implementation.showDetail(\'' + sol.solution_id + '\')"><span data-feather="info"></span>Details</button>';
+    if (sol.drive_folder_url) html += '<a href="' + escapeHtml(sol.drive_folder_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">folder</span>Drive</a>';
+    if (sol.snwg_solution_page_url) html += '<a href="' + escapeHtml(sol.snwg_solution_page_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">open_in_new</span>Earthdata</a>';
+    if (sol.project_plan_url) html += '<a href="' + escapeHtml(sol.project_plan_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">description</span>Plan</a>';
+    html += '<button class="solution-action-btn" onclick="Implementation.showDetail(\'' + sol.solution_id + '\')"><span class="material-icons">info</span>Details</button>';
     html += '</div></div>';
 
     return html;
@@ -1721,7 +1719,7 @@ var Implementation = (function() {
       html += '<div class="detail-text status-truncated" id="statusTruncated">' + escapeHtml(truncatedStatus) + '...</div>';
       html += '<div class="detail-text status-full collapsed" id="statusFull">' + escapeHtml(statusText) + '</div>';
       html += '<button class="status-see-more-btn" onclick="Implementation.toggleStatusSummary()">';
-      html += '<span data-feather="chevron-down" class="see-more-icon"></span>';
+      html += '<span class="material-icons">expand_more</span>';
       html += 'See more';
       html += '</button>';
       html += '</div>';
@@ -1737,12 +1735,12 @@ var Implementation = (function() {
     html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
     html += '<div class="detail-section-title">Documentation Links</div>';
     html += '<div style="display: flex; flex-wrap: wrap; gap: var(--space-sm);">';
-    if (sol.drive_folder_url) html += '<a href="' + escapeHtml(sol.drive_folder_url) + '" target="_blank" class="solution-action-btn"><span data-feather="folder"></span>Drive Folder</a>';
-    if (sol.snwg_solution_page_url) html += '<a href="' + escapeHtml(sol.snwg_solution_page_url) + '" target="_blank" class="solution-action-btn"><span data-feather="globe"></span>Earthdata Page</a>';
-    if (sol.project_plan_url) html += '<a href="' + escapeHtml(sol.project_plan_url) + '" target="_blank" class="solution-action-btn"><span data-feather="file-text"></span>Project Plan</a>';
-    if (sol.science_sow_url) html += '<a href="' + escapeHtml(sol.science_sow_url) + '" target="_blank" class="solution-action-btn"><span data-feather="file"></span>Science SOW</a>';
-    if (sol.risk_register_url) html += '<a href="' + escapeHtml(sol.risk_register_url) + '" target="_blank" class="solution-action-btn"><span data-feather="alert-triangle"></span>Risk Register</a>';
-    if (sol.data_product_table_url) html += '<a href="' + escapeHtml(sol.data_product_table_url) + '" target="_blank" class="solution-action-btn"><span data-feather="table"></span>Data Products</a>';
+    if (sol.drive_folder_url) html += '<a href="' + escapeHtml(sol.drive_folder_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">folder</span>Drive Folder</a>';
+    if (sol.snwg_solution_page_url) html += '<a href="' + escapeHtml(sol.snwg_solution_page_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">public</span>Earthdata Page</a>';
+    if (sol.project_plan_url) html += '<a href="' + escapeHtml(sol.project_plan_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">description</span>Project Plan</a>';
+    if (sol.science_sow_url) html += '<a href="' + escapeHtml(sol.science_sow_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">insert_drive_file</span>Science SOW</a>';
+    if (sol.risk_register_url) html += '<a href="' + escapeHtml(sol.risk_register_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">warning</span>Risk Register</a>';
+    if (sol.data_product_table_url) html += '<a href="' + escapeHtml(sol.data_product_table_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">table_chart</span>Data Products</a>';
     html += '</div></div>';
 
     // Document Status section
@@ -1789,7 +1787,7 @@ var Implementation = (function() {
         var statusClass = 'milestone-' + (m.status || 'not_started');
         var icon = m.status === 'completed' ? 'check-circle' : (m.status === 'planned' ? 'clock' : 'circle');
         html += '<div class="milestone-item ' + statusClass + '">';
-        html += '<span data-feather="' + icon + '" class="milestone-icon"></span>';
+        html += '<span class="material-icons">' + icon + '</span>';
         html += '<span class="milestone-type">' + escapeHtml(m.type) + '</span>';
         if (m.date) {
           html += '<span class="milestone-date">' + m.date + '</span>';
@@ -1872,7 +1870,7 @@ var Implementation = (function() {
       if (updates.hasMore) {
         html += '<div class="updates-extended-section">';
         html += '<button class="updates-see-more-btn" onclick="Implementation.toggleExtendedUpdates()">';
-        html += '<span data-feather="chevron-down" class="see-more-icon"></span>';
+        html += '<span class="material-icons">expand_more</span>';
         html += 'See more (' + updates.extended.length + ' updates from past 6 months)';
         html += '</button>';
         html += '<div class="updates-list updates-extended collapsed" id="extendedUpdates">';
@@ -1886,7 +1884,7 @@ var Implementation = (function() {
       // Historical note
       if (updates.hasHistorical) {
         html += '<div class="updates-historical-note">';
-        html += '<span data-feather="archive"></span>';
+        html += '<span class="material-icons">archive</span>';
         html += 'Full historical updates available in the <a href="' + Platform.baseUrl + '?page=reports">Historical Updates Report</a>.';
         html += '</div>';
       }
@@ -1896,8 +1894,7 @@ var Implementation = (function() {
     html += '</div>';
 
     document.getElementById('modalBody').innerHTML = html;
-    feather.replace();
-  }
+}
 
   function renderUpdateItem(update) {
     var html = '<div class="update-item">';
@@ -1935,10 +1932,9 @@ var Implementation = (function() {
         icon.style.transform = isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)';
       }
       btn.innerHTML = isCollapsed
-        ? '<span data-feather="chevron-down" class="see-more-icon"></span>See more (' + extended.children.length + ' updates from past 6 months)'
-        : '<span data-feather="chevron-up" class="see-more-icon"></span>Show less';
-      feather.replace();
-    }
+        ? '<span class="material-icons">expand_more</span>See more (' + extended.children.length + ' updates from past 6 months)'
+        : '<span class="material-icons">expand_less</span>Show less';
+}
   }
 
   function toggleStatusSummary() {
@@ -1951,15 +1947,14 @@ var Implementation = (function() {
         // Collapse
         full.classList.add('collapsed');
         truncated.style.display = 'block';
-        btn.innerHTML = '<span data-feather="chevron-down" class="see-more-icon"></span>See more';
+        btn.innerHTML = '<span class="material-icons">expand_more</span>See more';
       } else {
         // Expand
         full.classList.remove('collapsed');
         truncated.style.display = 'none';
-        btn.innerHTML = '<span data-feather="chevron-up" class="see-more-icon"></span>Show less';
+        btn.innerHTML = '<span class="material-icons">expand_less</span>Show less';
       }
-      feather.replace();
-    }
+}
   }
 
   function closeModal(event) {
@@ -2003,9 +1998,8 @@ var Implementation = (function() {
 
   function showError(message) {
     var container = document.getElementById('solutionsContainer');
-    container.innerHTML = '<div class="empty-state"><span data-feather="alert-circle"></span><p>' + message + '</p></div>';
-    feather.replace();
-  }
+    container.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>' + message + '</p></div>';
+}
 
   // Close picker when clicking outside (only if picker exists and is open)
   document.addEventListener('click', function(e) {

@@ -9,8 +9,8 @@
   <!-- Favicon - Blue grid icon to distinguish from Apps Script -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230B3D91'/%3E%3Crect x='5' y='5' width='9' height='9' rx='2' fill='white'/%3E%3Crect x='18' y='5' width='9' height='9' rx='2' fill='white'/%3E%3Crect x='5' y='18' width='9' height='9' rx='2' fill='white'/%3E%3Crect x='18' y='18' width='9' height='9' rx='2' fill='%2300A3E0'/%3E%3C/svg%3E">
 
-  <!-- Feather Icons -->
-  <script src="https://unpkg.com/feather-icons"></script>
+  <!-- Google Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
   <!-- Platform Styles (inline for Apps Script) -->
   <?!= include('styles'); ?>
@@ -20,7 +20,7 @@
   <header class="header">
     <div class="header-left">
       <h1 class="logo">
-        <span class="logo-icon" data-feather="grid"></span>
+        <span class="material-icons">grid_view</span>
         NSITE MO Viewer
       </h1>
     </div>
@@ -61,7 +61,7 @@
           <h2><?= pageConfig ? pageConfig.title : activePage ?>-NSITE</h2>
           <p class="page-description">This viewer is coming soon.</p>
           <div class="placeholder-box">
-            <span data-feather="tool"></span>
+            <span class="material-icons">build</span>
             <p>Component under development</p>
             <p class="text-sm text-muted mt-md">Use the navigation above to access available features.</p>
           </div>
@@ -96,9 +96,7 @@
 
     document.addEventListener('DOMContentLoaded', function() {
       // Initialize Feather Icons
-      feather.replace();
-
-      // Load platform config (don't overwrite baseUrl - server value is authoritative)
+// Load platform config (don't overwrite baseUrl - server value is authoritative)
       google.script.run
         .withSuccessHandler(function(config) {
           Platform.config = config;
@@ -167,9 +165,7 @@
           Platform.activePage = page;
 
           // Re-initialize Feather icons for new content
-          feather.replace();
-
-          // Update nav active state
+// Update nav active state
           updateNavActiveState();
 
           // Clear loading state

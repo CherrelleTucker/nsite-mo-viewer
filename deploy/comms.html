@@ -11,32 +11,32 @@
     <div class="page-actions">
       <div class="view-toggle">
         <button class="view-btn active" data-view="pipeline" onclick="COMMS.setView('pipeline')">
-          <span data-feather="columns"></span>
+          <span class="material-icons">view_column</span>
           <span>Pipeline</span>
         </button>
         <button class="view-btn" data-view="events" onclick="COMMS.setView('events')">
-          <span data-feather="map-pin"></span>
+          <span class="material-icons">place</span>
           <span>Events</span>
         </button>
         <button class="view-btn" data-view="coverage" onclick="COMMS.setView('coverage')">
-          <span data-feather="pie-chart"></span>
+          <span class="material-icons">pie_chart</span>
           <span>Coverage</span>
         </button>
         <button class="view-btn" data-view="calendar" onclick="COMMS.setView('calendar')">
-          <span data-feather="calendar"></span>
+          <span class="material-icons">calendar_today</span>
           <span>Calendar</span>
         </button>
         <button class="view-btn" data-view="priorities" onclick="COMMS.setView('priorities')">
-          <span data-feather="flag"></span>
+          <span class="material-icons">flag</span>
           <span>Priorities</span>
         </button>
         <button class="view-btn" data-view="messages" onclick="COMMS.setView('messages')">
-          <span data-feather="message-square"></span>
+          <span class="material-icons">chat</span>
           <span>Messages</span>
         </button>
       </div>
       <button class="btn btn-primary" onclick="COMMS.showCreateStoryModal()">
-        <span data-feather="plus"></span>
+        <span class="material-icons">add</span>
         New Story
       </button>
     </div>
@@ -45,28 +45,28 @@
   <!-- Stats Row -->
   <div class="stats-row">
     <div class="stat-card">
-      <div class="stat-icon"><span data-feather="file-text"></span></div>
+      <div class="stat-icon"><span class="material-icons">description</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statTotalStories">--</span>
         <span class="stat-label">Total Stories</span>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><span data-feather="trending-up"></span></div>
+      <div class="stat-icon"><span class="material-icons">trending_up</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statInPipeline">--</span>
         <span class="stat-label">In Pipeline</span>
       </div>
     </div>
     <div class="stat-card stat-success">
-      <div class="stat-icon"><span data-feather="check-circle"></span></div>
+      <div class="stat-icon"><span class="material-icons">check_circle</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statPublishedQtr">--</span>
         <span class="stat-label">Published (Q)</span>
       </div>
     </div>
     <div class="stat-card stat-warning">
-      <div class="stat-icon"><span data-feather="alert-triangle"></span></div>
+      <div class="stat-icon"><span class="material-icons">warning</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statCoverageGaps">--</span>
         <span class="stat-label">Coverage Gaps</span>
@@ -104,7 +104,7 @@
       </select>
     </div>
     <div class="search-group">
-      <span data-feather="search"></span>
+      <span class="material-icons">search</span>
       <input type="text" id="searchInput" placeholder="Search stories..." oninput="COMMS.applyFilters()">
     </div>
   </div>
@@ -176,7 +176,7 @@
           <div class="panel-header">
             <h3>Story Opportunities</h3>
             <button class="btn btn-sm btn-secondary" onclick="COMMS.refreshOpportunities()">
-              <span data-feather="refresh-cw"></span>
+              <span class="material-icons">refresh</span>
             </button>
           </div>
           <div class="panel-content" id="opportunitiesPanel">
@@ -191,7 +191,7 @@
           <div class="panel-header">
             <h3>Coverage Gaps</h3>
             <button class="btn btn-sm btn-secondary" onclick="COMMS.setView('coverage')">
-              <span data-feather="maximize-2"></span>
+              <span class="material-icons">fullscreen</span>
             </button>
           </div>
           <div class="panel-content" id="coverageGapsPanel">
@@ -209,21 +209,21 @@
         <!-- Coverage Summary -->
         <div class="coverage-summary">
           <div class="summary-card">
-            <div class="summary-icon covered"><span data-feather="check-circle"></span></div>
+            <div class="summary-icon covered"><span class="material-icons">check_circle</span></div>
             <div class="summary-info">
               <span class="summary-value" id="coverageWellCovered">--</span>
               <span class="summary-label">Well Covered</span>
             </div>
           </div>
           <div class="summary-card">
-            <div class="summary-icon attention"><span data-feather="alert-circle"></span></div>
+            <div class="summary-icon attention"><span class="material-icons">error</span></div>
             <div class="summary-info">
               <span class="summary-value" id="coverageNeedsAttention">--</span>
               <span class="summary-label">Needs Attention</span>
             </div>
           </div>
           <div class="summary-card">
-            <div class="summary-icon uncovered"><span data-feather="x-circle"></span></div>
+            <div class="summary-icon uncovered"><span class="material-icons">cancel</span></div>
             <div class="summary-info">
               <span class="summary-value" id="coverageNoStories">--</span>
               <span class="summary-label">No Stories</span>
@@ -263,11 +263,11 @@
       <div class="calendar-layout">
         <div class="calendar-header">
           <button class="btn btn-sm btn-secondary" onclick="COMMS.navigateCalendar(-1)">
-            <span data-feather="chevron-left"></span>
+            <span class="material-icons">chevron_left</span>
           </button>
           <h3 id="calendarTitle">January 2026</h3>
           <button class="btn btn-sm btn-secondary" onclick="COMMS.navigateCalendar(1)">
-            <span data-feather="chevron-right"></span>
+            <span class="material-icons">chevron_right</span>
           </button>
         </div>
         <div class="calendar-grid" id="calendarGrid">
@@ -297,7 +297,7 @@
           <!-- Partnerships -->
           <div class="priority-card" data-priority="partnerships">
             <div class="priority-header">
-              <span class="priority-icon" data-feather="users"></span>
+              <span class="material-icons">group</span>
               <h3>Partnerships & Decision Support</h3>
             </div>
             <div class="priority-stats">
@@ -312,7 +312,7 @@
           <!-- Citizens -->
           <div class="priority-card" data-priority="citizens">
             <div class="priority-header">
-              <span class="priority-icon" data-feather="home"></span>
+              <span class="material-icons">home</span>
               <h3>Benefits to American Citizens</h3>
             </div>
             <div class="priority-stats">
@@ -327,7 +327,7 @@
           <!-- AI Innovation -->
           <div class="priority-card" data-priority="ai_innovation">
             <div class="priority-header">
-              <span class="priority-icon" data-feather="cpu"></span>
+              <span class="material-icons">memory</span>
               <h3>AI Leadership & Tech Innovation</h3>
             </div>
             <div class="priority-stats">
@@ -342,7 +342,7 @@
           <!-- Science Integrity -->
           <div class="priority-card" data-priority="science_integrity">
             <div class="priority-header">
-              <span class="priority-icon" data-feather="award"></span>
+              <span class="material-icons">emoji_events</span>
               <h3>Gold Standard Science & Research Integrity</h3>
             </div>
             <div class="priority-stats">
@@ -357,7 +357,7 @@
           <!-- Efficiency -->
           <div class="priority-card" data-priority="efficiency">
             <div class="priority-header">
-              <span class="priority-icon" data-feather="zap"></span>
+              <span class="material-icons">flash_on</span>
               <h3>Government Efficiency</h3>
             </div>
             <div class="priority-stats">
@@ -372,7 +372,7 @@
           <!-- Untagged -->
           <div class="priority-card priority-card-warning" data-priority="untagged">
             <div class="priority-header">
-              <span class="priority-icon" data-feather="alert-circle"></span>
+              <span class="material-icons">error</span>
               <h3>Not Yet Aligned</h3>
             </div>
             <div class="priority-stats">
@@ -402,7 +402,7 @@
           <h2>Solution Key Messages</h2>
           <p class="messages-subtitle">Approved messaging for communications and outreach</p>
           <div class="messages-search">
-            <span data-feather="search"></span>
+            <span class="material-icons">search</span>
             <input type="text" id="messagesSearchInput" placeholder="Search messages..." oninput="COMMS.searchMessages()">
           </div>
         </div>
@@ -471,7 +471,7 @@
               <option value="attended">Attended</option>
             </select>
             <button class="btn btn-secondary" onclick="COMMS.showDiscoverEventsModal()">
-              <span data-feather="search"></span>
+              <span class="material-icons">search</span>
               Discover Events
             </button>
           </div>
@@ -711,14 +711,14 @@
         </div>
         <div class="form-actions" style="justify-content: flex-start;">
           <button type="button" class="btn btn-primary" onclick="COMMS.performEventSearch()">
-            <span data-feather="search"></span>
+            <span class="material-icons">search</span>
             Search
           </button>
         </div>
       </div>
       <div class="discover-results" id="discoverResults">
         <div class="empty-state">
-          <span data-feather="compass"></span>
+          <span class="material-icons">explore</span>
           <p>Enter a topic or select a sector to discover events</p>
         </div>
       </div>
@@ -1851,9 +1851,7 @@ var COMMS = (function() {
         }).join('');
       }
     });
-
-    feather.replace();
-  }
+}
 
   function renderStoryCard(story) {
     var typeClass = 'type-' + (story.content_type || 'story');
@@ -1891,7 +1889,7 @@ var COMMS = (function() {
       html += '<div class="card-solutions">' + escapeHtml(solDisplay) + '</div>';
     }
     html += '<div class="card-meta">';
-    html += '<span class="card-channel"><span data-feather="' + channelIcon + '"></span> ' + (story.channel || 'web') + '</span>';
+    html += '<span class="card-channel"><span class="material-icons">' + channelIcon + '</span> ' + (story.channel || 'web') + '</span>';
     if (story.author) html += '<span>' + escapeHtml(story.author) + '</span>';
     html += '</div>';
     html += '</div>';
@@ -1903,9 +1901,8 @@ var COMMS = (function() {
     var opp = state.opportunities;
 
     if (!opp || opp.summary.total_opportunities === 0) {
-      container.innerHTML = '<div class="empty-state"><span data-feather="zap"></span><p>No new opportunities detected</p></div>';
-      feather.replace();
-      return;
+      container.innerHTML = '<div class="empty-state"><span class="material-icons">flash_on</span><p>No new opportunities detected</p></div>';
+return;
     }
 
     var html = '';
@@ -1913,7 +1910,7 @@ var COMMS = (function() {
     // Milestones
     opp.milestones.slice(0, 3).forEach(function(m) {
       html += '<div class="opportunity-item" onclick="COMMS.createStoryFromOpportunity(\'milestone\', \'' + escapeAttr(m.solution_name) + '\')">';
-      html += '<div class="opportunity-icon milestone"><span data-feather="flag"></span></div>';
+      html += '<div class="opportunity-icon milestone"><span class="material-icons">flag</span></div>';
       html += '<div class="opportunity-info">';
       html += '<div class="opportunity-title">' + escapeHtml(m.solution_name) + ' - ' + escapeHtml(m.type) + '</div>';
       html += '<div class="opportunity-desc">' + escapeHtml(m.description) + '</div>';
@@ -1923,7 +1920,7 @@ var COMMS = (function() {
     // T8 Contacts
     opp.t8_contacts.slice(0, 3).forEach(function(c) {
       html += '<div class="opportunity-item" onclick="COMMS.createStoryFromOpportunity(\'t8\', \'' + escapeAttr(c.name) + '\')">';
-      html += '<div class="opportunity-icon t8"><span data-feather="users"></span></div>';
+      html += '<div class="opportunity-icon t8"><span class="material-icons">group</span></div>';
       html += '<div class="opportunity-info">';
       html += '<div class="opportunity-title">' + escapeHtml(c.name) + ' at T8 Impact</div>';
       html += '<div class="opportunity-desc">' + escapeHtml(c.agency || '') + (c.solutions && c.solutions.length ? ' - ' + c.solutions.slice(0, 2).join(', ') : '') + '</div>';
@@ -1935,17 +1932,15 @@ var COMMS = (function() {
     }
 
     container.innerHTML = html;
-    feather.replace();
-  }
+}
 
   function renderCoverageGaps() {
     var container = document.getElementById('coverageGapsPanel');
     var coverage = state.coverage;
 
     if (!coverage || (coverage.gaps.length === 0 && coverage.uncovered.length === 0)) {
-      container.innerHTML = '<div class="empty-state"><span data-feather="check-circle"></span><p>All solutions have recent coverage!</p></div>';
-      feather.replace();
-      return;
+      container.innerHTML = '<div class="empty-state"><span class="material-icons">check_circle</span><p>All solutions have recent coverage!</p></div>';
+return;
     }
 
     var html = '';
@@ -2168,9 +2163,7 @@ var COMMS = (function() {
         '</div>';
     });
     document.getElementById('priorityBars').innerHTML = barsHtml;
-
-    feather.replace();
-  }
+}
 
   // Key Messages state
   var messagesState = {
@@ -2203,9 +2196,8 @@ var COMMS = (function() {
         renderMessagesGrid(messagesState.solutions);
       })
       .withFailureHandler(function(err) {
-        grid.innerHTML = '<div class="empty-state"><span data-feather="alert-circle"></span><span>Failed to load key messages</span></div>';
-        feather.replace();
-      })
+        grid.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><span>Failed to load key messages</span></div>';
+})
       .getSolutionsWithKeyMessages();
   }
 
@@ -2213,9 +2205,8 @@ var COMMS = (function() {
     var grid = document.getElementById('messagesGrid');
 
     if (!solutions || solutions.length === 0) {
-      grid.innerHTML = '<div class="empty-state"><span data-feather="message-square"></span><span>No solutions have key messages yet</span></div>';
-      feather.replace();
-      return;
+      grid.innerHTML = '<div class="empty-state"><span class="material-icons">chat</span><span>No solutions have key messages yet</span></div>';
+return;
     }
 
     var html = solutions.map(function(sol) {
@@ -2236,13 +2227,12 @@ var COMMS = (function() {
           (sol.agency_use_impact ? '<div class="message-section"><h4>Agency Use & Impact</h4><p>' + escapeHtml(sol.agency_use_impact) + '</p></div>' : '') +
           (sol.industry_connections ? '<div class="message-section"><h4>Industry Connections</h4><p>' + escapeHtml(sol.industry_connections) + '</p></div>' : '') +
         '</div>' +
-        (sol.public_comms_links ? '<div class="message-card-footer"><a href="' + escapeAttr(sol.public_comms_links) + '" target="_blank" class="message-link"><span data-feather="external-link"></span> View Public Page</a></div>' : '') +
+        (sol.public_comms_links ? '<div class="message-card-footer"><a href="' + escapeAttr(sol.public_comms_links) + '" target="_blank" class="message-link"><span class="material-icons">open_in_new</span> View Public Page</a></div>' : '') +
       '</div>';
     }).join('');
 
     grid.innerHTML = html;
-    feather.replace();
-  }
+}
 
   function searchMessages() {
     var query = document.getElementById('messagesSearchInput').value.toLowerCase().trim();
@@ -2354,11 +2344,11 @@ var COMMS = (function() {
       html += '<div style="margin-bottom: var(--space-md);">';
       if (story.published_link) {
         html += '<a href="' + escapeHtml(story.published_link) + '" target="_blank" class="btn btn-secondary" style="margin-right: var(--space-sm);">';
-        html += '<span data-feather="external-link"></span> View Published</a>';
+        html += '<span class="material-icons">open_in_new</span> View Published</a>';
       }
       if (story.pitch_document_url) {
         html += '<a href="' + escapeHtml(story.pitch_document_url) + '" target="_blank" class="btn btn-secondary">';
-        html += '<span data-feather="file-text"></span> View Draft</a>';
+        html += '<span class="material-icons">description</span> View Draft</a>';
       }
       html += '</div>';
     }
@@ -2373,7 +2363,7 @@ var COMMS = (function() {
 
     // Actions
     html += '<div style="display: flex; gap: var(--space-sm); padding-top: var(--space-md); border-top: 1px solid var(--color-border-light);">';
-    html += '<button class="btn btn-primary" onclick="COMMS.editStory(\'' + escapeAttr(story.story_id) + '\')"><span data-feather="edit-2"></span> Edit</button>';
+    html += '<button class="btn btn-primary" onclick="COMMS.editStory(\'' + escapeAttr(story.story_id) + '\')"><span class="material-icons">edit</span> Edit</button>';
     if (story.status !== 'published') {
       var nextStatus = getNextStatus(story.status);
       if (nextStatus) {
@@ -2386,8 +2376,7 @@ var COMMS = (function() {
 
     document.getElementById('storyModalBody').innerHTML = html;
     document.getElementById('storyModal').classList.add('active');
-    feather.replace();
-  }
+}
 
   function getNextStatus(currentStatus) {
     var order = ['idea', 'researching', 'drafting', 'review', 'published'];
@@ -2724,7 +2713,7 @@ var COMMS = (function() {
 
     var upcomingHtml = '';
     if (upcomingEvents.length === 0) {
-      upcomingHtml = '<div class="empty-state"><span data-feather="calendar"></span><p>No upcoming events</p></div>';
+      upcomingHtml = '<div class="empty-state"><span class="material-icons">calendar_today</span><p>No upcoming events</p></div>';
     } else {
       upcomingEvents.forEach(function(e) {
         upcomingHtml += renderEventCard(e);
@@ -2739,7 +2728,7 @@ var COMMS = (function() {
 
     var potentialHtml = '';
     if (potentialEvents.length === 0) {
-      potentialHtml = '<div class="empty-state"><span data-feather="compass"></span><p>No potential events</p></div>';
+      potentialHtml = '<div class="empty-state"><span class="material-icons">explore</span><p>No potential events</p></div>';
     } else {
       potentialEvents.forEach(function(e) {
         potentialHtml += renderEventCard(e, true);
@@ -2750,9 +2739,7 @@ var COMMS = (function() {
 
     // Render events table
     renderEventsTable(events);
-
-    feather.replace();
-  }
+}
 
   function renderEventCard(event, showActions) {
     var typeIcons = {
@@ -2775,17 +2762,17 @@ var COMMS = (function() {
 
     var html = '<div class="event-card" onclick="COMMS.showEventDetail(\'' + escapeAttr(event.event_id) + '\')">';
     html += '<div class="event-card-header">';
-    html += '<span class="event-type-icon"><span data-feather="' + icon + '"></span></span>';
+    html += '<span class="event-type-icon"><span class="material-icons">' + icon + '</span></span>';
     html += '<span class="event-status" style="background: ' + statusColor + ';">' + capitalizeFirst(event.status) + '</span>';
     html += '</div>';
     html += '<div class="event-card-title">' + escapeHtml(event.name) + '</div>';
 
     if (event.start_date) {
-      html += '<div class="event-card-date"><span data-feather="calendar"></span> ' + formatDate(event.start_date) + '</div>';
+      html += '<div class="event-card-date"><span class="material-icons">calendar_today</span> ' + formatDate(event.start_date) + '</div>';
     }
 
     if (event.location) {
-      html += '<div class="event-card-location"><span data-feather="map-pin"></span> ' + escapeHtml(event.location.substring(0, 30)) + '</div>';
+      html += '<div class="event-card-location"><span class="material-icons">place</span> ' + escapeHtml(event.location.substring(0, 30)) + '</div>';
     }
 
     if (showActions && (event.status === 'potential' || event.status === 'considering')) {
@@ -2828,14 +2815,14 @@ var COMMS = (function() {
 
       html += '<tr onclick="COMMS.showEventDetail(\'' + escapeAttr(e.event_id) + '\')" style="cursor: pointer;">';
       html += '<td><strong>' + escapeHtml(e.name) + '</strong></td>';
-      html += '<td><span data-feather="' + icon + '" style="width: 14px; height: 14px;"></span> ' + capitalizeFirst(e.event_type || 'event') + '</td>';
+      html += '<td><span class="material-icons">' + icon + '</span> ' + capitalizeFirst(e.event_type || 'event') + '</td>';
       html += '<td>' + (e.start_date ? formatDate(e.start_date) : '--') + '</td>';
       html += '<td>' + escapeHtml(e.location || '--').substring(0, 25) + '</td>';
       html += '<td><span class="status-badge ' + statusClass + '">' + capitalizeFirst(e.status) + '</span></td>';
       html += '<td>' + escapeHtml(e.team_members || '--').substring(0, 20) + '</td>';
       html += '<td>';
       if (e.event_url) {
-        html += '<a href="' + escapeHtml(e.event_url) + '" target="_blank" class="btn btn-sm btn-secondary" onclick="event.stopPropagation()"><span data-feather="external-link"></span></a>';
+        html += '<a href="' + escapeHtml(e.event_url) + '" target="_blank" class="btn btn-sm btn-secondary" onclick="event.stopPropagation()"><span class="material-icons">open_in_new</span></a>';
       }
       html += '</td>';
       html += '</tr>';
@@ -2954,11 +2941,11 @@ var COMMS = (function() {
       html += '<div style="margin-bottom: var(--space-md);">';
       if (event.event_url) {
         html += '<a href="' + escapeHtml(event.event_url) + '" target="_blank" class="btn btn-secondary" style="margin-right: var(--space-sm);">';
-        html += '<span data-feather="external-link"></span> Event Website</a>';
+        html += '<span class="material-icons">open_in_new</span> Event Website</a>';
       }
       if (event.presentation_url) {
         html += '<a href="' + escapeHtml(event.presentation_url) + '" target="_blank" class="btn btn-secondary">';
-        html += '<span data-feather="file-text"></span> Presentation</a>';
+        html += '<span class="material-icons">description</span> Presentation</a>';
       }
       html += '</div>';
     }
@@ -2986,8 +2973,7 @@ var COMMS = (function() {
 
     document.getElementById('eventModalBody').innerHTML = html;
     document.getElementById('eventModal').classList.add('active');
-    feather.replace();
-  }
+}
 
   function updateEventStatus(eventId, newStatus) {
     google.script.run
@@ -3005,10 +2991,9 @@ var COMMS = (function() {
     document.getElementById('discoverSearchTopic').value = '';
     document.getElementById('discoverSector').value = '';
     document.getElementById('discoverResults').innerHTML =
-      '<div class="empty-state"><span data-feather="compass"></span><p>Enter a topic or select a sector to discover events</p></div>';
+      '<div class="empty-state"><span class="material-icons">explore</span><p>Enter a topic or select a sector to discover events</p></div>';
     document.getElementById('discoverEventsModal').classList.add('active');
-    feather.replace();
-  }
+}
 
   function performEventSearch() {
     var topic = document.getElementById('discoverSearchTopic').value.trim();
@@ -3028,9 +3013,8 @@ var COMMS = (function() {
           renderDiscoverResults(results);
         })
         .withFailureHandler(function(error) {
-          resultsContainer.innerHTML = '<div class="empty-state"><span data-feather="alert-circle"></span><p>Search failed: ' + escapeHtml(error) + '</p></div>';
-          feather.replace();
-        })
+          resultsContainer.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>Search failed: ' + escapeHtml(error) + '</p></div>';
+})
         .discoverEventsBySector(sector);
     } else {
       google.script.run
@@ -3038,9 +3022,8 @@ var COMMS = (function() {
           renderDiscoverResults(results);
         })
         .withFailureHandler(function(error) {
-          resultsContainer.innerHTML = '<div class="empty-state"><span data-feather="alert-circle"></span><p>Search failed: ' + escapeHtml(error) + '</p></div>';
-          feather.replace();
-        })
+          resultsContainer.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>Search failed: ' + escapeHtml(error) + '</p></div>';
+})
         .discoverEvents(topic, 10);
     }
   }
@@ -3049,9 +3032,8 @@ var COMMS = (function() {
     var container = document.getElementById('discoverResults');
 
     if (!results || results.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span data-feather="inbox"></span><p>No events found. Try a different search term.</p></div>';
-      feather.replace();
-      return;
+      container.innerHTML = '<div class="empty-state"><span class="material-icons">inbox</span><p>No events found. Try a different search term.</p></div>';
+return;
     }
 
     var html = '<div class="discover-results-list">';
@@ -3072,8 +3054,7 @@ var COMMS = (function() {
     html += '</div>';
 
     container.innerHTML = html;
-    feather.replace();
-  }
+}
 
   function addDiscoveredEvent(name, url) {
     var eventData = {

@@ -10,11 +10,11 @@
     </div>
     <div class="page-actions">
       <button class="btn btn-secondary" onclick="Contacts.exportList()">
-        <span data-feather="download"></span>
+        <span class="material-icons">download</span>
         Export
       </button>
       <button class="btn btn-primary" onclick="Contacts.refresh()">
-        <span data-feather="refresh-cw"></span>
+        <span class="material-icons">refresh</span>
         Refresh
       </button>
     </div>
@@ -23,28 +23,28 @@
   <!-- Stats Row -->
   <div class="stats-row">
     <div class="stat-card">
-      <div class="stat-icon"><span data-feather="users"></span></div>
+      <div class="stat-icon"><span class="material-icons">group</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statTotalContacts">--</span>
         <span class="stat-label">Total Contacts</span>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><span data-feather="briefcase"></span></div>
+      <div class="stat-icon"><span class="material-icons">work</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statDepartments">--</span>
         <span class="stat-label">Departments</span>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><span data-feather="folder"></span></div>
+      <div class="stat-icon"><span class="material-icons">folder</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statSolutions">--</span>
         <span class="stat-label">Solutions</span>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><span data-feather="star"></span></div>
+      <div class="stat-icon"><span class="material-icons">star</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statTopEngaged">--</span>
         <span class="stat-label">Multi-Solution</span>
@@ -55,7 +55,7 @@
   <!-- Search and Filters -->
   <div class="search-section">
     <div class="search-box">
-      <span data-feather="search" class="search-icon"></span>
+      <span class="material-icons">search</span>
       <input type="text" id="searchInput" class="search-input"
              placeholder="Search by name, email, or organization..."
              oninput="Contacts.debounceSearch()">
@@ -104,10 +104,10 @@
     <span id="resultsCount">Loading...</span>
     <div class="view-toggle">
       <button class="view-btn active" data-view="cards" onclick="Contacts.setView('cards')">
-        <span data-feather="grid"></span>
+        <span class="material-icons">grid_view</span>
       </button>
       <button class="view-btn" data-view="table" onclick="Contacts.setView('table')">
-        <span data-feather="list"></span>
+        <span class="material-icons">list</span>
       </button>
     </div>
   </div>
@@ -760,10 +760,9 @@ var Contacts = (function() {
       'Showing ' + (total > 0 ? start + 1 : 0) + '-' + end + ' of ' + total + ' contacts';
 
     if (total === 0) {
-      container.innerHTML = '<div class="empty-state"><span data-feather="users"></span><p>No contacts match your filters</p></div>';
+      container.innerHTML = '<div class="empty-state"><span class="material-icons">group</span><p>No contacts match your filters</p></div>';
       container.className = 'contacts-container';
-      feather.replace();
-      renderPagination();
+renderPagination();
       return;
     }
 
@@ -774,9 +773,7 @@ var Contacts = (function() {
       container.className = 'contacts-container view-table';
       container.innerHTML = renderContactTable(pageContacts);
     }
-
-    feather.replace();
-    renderPagination();
+renderPagination();
   }
 
   function renderContactCard(contact) {
@@ -891,11 +888,11 @@ var Contacts = (function() {
     }
 
     if (contact.phone) {
-      html += '<div class="contact-detail-org"><span data-feather="phone" style="width:14px;height:14px;margin-right:4px;"></span>' + escapeHtml(contact.phone) + '</div>';
+      html += '<div class="contact-detail-org"><span class="material-icons">phone</span>' + escapeHtml(contact.phone) + '</div>';
     }
 
     html += '<div class="contact-actions">';
-    html += '<a href="mailto:' + escapeHtml(contact.email) + '" class="btn btn-primary btn-sm"><span data-feather="mail"></span> Email</a>';
+    html += '<a href="mailto:' + escapeHtml(contact.email) + '" class="btn btn-primary btn-sm"><span class="material-icons">email</span> Email</a>';
     html += '</div>';
     html += '</div></div>';
 
@@ -947,9 +944,7 @@ var Contacts = (function() {
 
     document.getElementById('modalBody').innerHTML = html;
     document.getElementById('contactModal').classList.add('active');
-    feather.replace();
-
-    // Load related contacts async
+// Load related contacts async
     google.script.run
       .withSuccessHandler(function(related) {
         renderRelatedContacts(related);
@@ -1031,9 +1026,8 @@ var Contacts = (function() {
 
   function showError(message) {
     document.getElementById('contactsContainer').innerHTML =
-      '<div class="empty-state"><span data-feather="alert-circle"></span><p>' + message + '</p></div>';
-    feather.replace();
-  }
+      '<div class="empty-state"><span class="material-icons">error</span><p>' + message + '</p></div>';
+}
 
   return {
     init: init,

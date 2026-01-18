@@ -193,7 +193,7 @@ def merge_key_messages(solutions_df, key_messages_path):
     # Rename columns to match our schema
     column_map = {
         'Solution Name': 'name',
-        'Key Messages (Oct 2025)': 'key_messages',
+        'Key Messages (Oct 2025)': 'key_messages_new',
         'Key Messages [old]': 'key_messages_old',
         'Science or Decision Making Focus': 'focus_type',
         'Primary Thematic Area': 'primary_thematic_area',
@@ -206,6 +206,14 @@ def merge_key_messages(solutions_df, key_messages_path):
     }
 
     km_df = km_df.rename(columns={k: v for k, v in column_map.items() if k in km_df.columns})
+
+    # Use new key messages if available, otherwise fall back to old
+    if 'key_messages_new' in km_df.columns and 'key_messages_old' in km_df.columns:
+        km_df['key_messages'] = km_df['key_messages_new'].fillna(km_df['key_messages_old'])
+    elif 'key_messages_old' in km_df.columns:
+        km_df['key_messages'] = km_df['key_messages_old']
+    elif 'key_messages_new' in km_df.columns:
+        km_df['key_messages'] = km_df['key_messages_new']
 
     # Known name mappings (Solutions DB name -> Key Messages name)
     name_aliases = {
