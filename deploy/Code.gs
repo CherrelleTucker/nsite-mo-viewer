@@ -171,10 +171,14 @@ function doGet(e) {
 
   var page = e.parameter.page || DEFAULT_PAGE;
 
+  // Favicon URL (hosted on GitHub)
+  var faviconUrl = 'https://raw.githubusercontent.com/CherrelleTucker/nsite-mo-viewer/main/favicon.png';
+
   // Special routes (not in PAGES)
   if (page === 'test') {
     return HtmlService.createHtmlOutputFromFile('test-frontend')
       .setTitle('Frontend Test')
+      .setFaviconUrl(faviconUrl)
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 
@@ -191,6 +195,7 @@ function doGet(e) {
 
     return template.evaluate()
       .setTitle('MO-Viewer | NSITE MO Dashboard')
+      .setFaviconUrl(faviconUrl)
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   } catch (error) {
     Logger.log('Error in doGet: ' + error);

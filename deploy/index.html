@@ -6,8 +6,10 @@
   <base target="_top">
   <title>NSITE MO Viewer</title>
 
-  <!-- Favicon - hosted on GitHub for Apps Script compatibility -->
+  <!-- Favicon - hosted on GitHub (also set via setFaviconUrl in Code.gs) -->
   <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/CherrelleTucker/nsite-mo-viewer/main/favicon.png">
+  <link rel="shortcut icon" href="https://raw.githubusercontent.com/CherrelleTucker/nsite-mo-viewer/main/favicon.png">
+  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/CherrelleTucker/nsite-mo-viewer/main/favicon.png">
 
   <!-- Google Material Icons -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -95,9 +97,6 @@
     // ========================================================================
 
     document.addEventListener('DOMContentLoaded', function() {
-      // Set favicon dynamically (helps override Apps Script default in some contexts)
-      setFavicon();
-
       // Load platform config (don't overwrite baseUrl - server value is authoritative)
       google.script.run
         .withSuccessHandler(function(config) {
@@ -306,40 +305,6 @@
       var activeTab = document.querySelector('[data-page="' + Platform.activePage + '"]');
       if (activeTab) {
         activeTab.classList.add('active');
-      }
-    }
-
-    // ========================================================================
-    // FAVICON (dynamic injection for Apps Script compatibility)
-    // ========================================================================
-
-    function setFavicon() {
-      var faviconUrl = 'https://raw.githubusercontent.com/CherrelleTucker/nsite-mo-viewer/main/favicon.png';
-
-      // Remove any existing favicons
-      var existingIcons = document.querySelectorAll('link[rel*="icon"]');
-      existingIcons.forEach(function(icon) {
-        icon.parentNode.removeChild(icon);
-      });
-
-      // Create and inject favicon from GitHub
-      var link = document.createElement('link');
-      link.rel = 'icon';
-      link.type = 'image/png';
-      link.href = faviconUrl;
-      document.head.appendChild(link);
-
-      // Also try to set on parent window (may work in some iframe contexts)
-      try {
-        if (window.top !== window.self) {
-          var topLink = window.top.document.createElement('link');
-          topLink.rel = 'icon';
-          topLink.type = 'image/png';
-          topLink.href = faviconUrl;
-          window.top.document.head.appendChild(topLink);
-        }
-      } catch (e) {
-        // Cross-origin restriction - expected in Apps Script
       }
     }
 
