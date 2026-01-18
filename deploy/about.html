@@ -37,7 +37,7 @@
 │  │Implementation │  │   SEP-NSITE   │  │ Actions-NSITE │       │
 │  └───────────────┘  └───────────────┘  └───────────────┘       │
 │  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐       │
-│  │   Contacts    │  │    Reports    │  │   Schedule    │       │
+│  │   Contacts    │  │    Reports    │  │     Team      │       │
 │  └───────────────┘  └───────────────┘  └───────────────┘       │
 └─────────────────────────────────────────────────────────────────┘
                               │
@@ -119,6 +119,21 @@
           <div class="db-count">Manual</div>
           <div class="db-desc">Stakeholder interaction log</div>
         </div>
+        <div class="db-card">
+          <div class="db-name">MO-DB_Availability</div>
+          <div class="db-count">Synced</div>
+          <div class="db-desc">Team availability and OOO calendar</div>
+        </div>
+        <div class="db-card">
+          <div class="db-name">MO-DB_Meetings</div>
+          <div class="db-count">Manual</div>
+          <div class="db-desc">Recurring meeting schedule</div>
+        </div>
+        <div class="db-card">
+          <div class="db-name">MO-DB_Glossary</div>
+          <div class="db-count">Manual</div>
+          <div class="db-desc">Terms and acronym definitions</div>
+        </div>
       </div>
     </div>
   </section>
@@ -162,7 +177,6 @@
             <ul>
               <li>Populate remaining solution metadata in MO-DB_Solutions</li>
               <li>Add inline editing for solution fields</li>
-              <li>Fix blank page on repeated tab clicks</li>
             </ul>
           </div>
         </div>
@@ -420,7 +434,43 @@
             <ul>
               <li>Implement story opportunity detection from SEP/Implementation data</li>
               <li>Add story editing from dashboard</li>
-              <li>Deploy comms.html to web app</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Team-NSITE -->
+      <div class="page-card">
+        <div class="page-card-header team">
+          <span class="page-icon" data-feather="users"></span>
+          <h4>Team-NSITE</h4>
+        </div>
+        <div class="page-card-body">
+          <div class="data-flow-mini">
+            <span class="flow-chip source">Contacts + Config</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip output">Team dashboard</span>
+          </div>
+          <div class="page-details">
+            <div class="detail-group">
+              <span class="detail-label">Data:</span>
+              <span>Internal team (is_internal=TRUE), availability, meetings, glossary, directing docs</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Views:</span>
+              <span>Overview, Meetings (weekly schedule), Availability (calendar), Documents (directing docs)</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Updates:</span>
+              <span>Fresh on load; availability add/delete via modals</span>
+            </div>
+          </div>
+          <div class="next-steps">
+            <span class="next-label">Next Steps:</span>
+            <ul>
+              <li>Add glossary search/browse view</li>
+              <li>Implement meeting add/edit functionality</li>
+              <li>Add team member profile editing</li>
             </ul>
           </div>
         </div>
@@ -512,11 +562,11 @@
     <div class="version-info">
       <div class="version-item">
         <span class="version-label">Version</span>
-        <span class="version-value">1.0.0</span>
+        <span class="version-value">1.1.0</span>
       </div>
       <div class="version-item">
         <span class="version-label">Released</span>
-        <span class="version-value">January 16, 2026</span>
+        <span class="version-value">January 18, 2026</span>
       </div>
       <div class="version-item">
         <span class="version-label">Repository</span>
@@ -914,6 +964,11 @@
   /* Comms header color */
   .page-card-header.comms {
     background: #8b5cf6;
+  }
+
+  /* Team header color */
+  .page-card-header.team {
+    background: #0d9488;
   }
 
   /* Security Section */

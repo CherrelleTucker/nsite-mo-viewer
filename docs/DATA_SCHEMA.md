@@ -1,7 +1,7 @@
 # MO-Viewer Data Schema
 
-**Version:** 1.0.1
-**Date:** 2026-01-17
+**Version:** 1.1.0
+**Date:** 2026-01-18
 **Reference:** [ARCHITECTURE.md](../ARCHITECTURE.md)
 
 ---
@@ -479,6 +479,194 @@ Many-to-many relationship between solutions and stakeholders.
 
 ---
 
+### 9. AVAILABILITY (MO-DB_Availability)
+
+**Status: ACTIVE** - Team Viewer
+
+Tracks team member availability, office closures, and travel schedules.
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `availability_id` | STRING | Yes | Primary key (e.g., "AVAIL_0001") |
+| `contact_id` | STRING | No | Foreign key to CONTACTS (blank for office-wide events) |
+| `contact_name` | STRING | No | Display name (denormalized for performance) |
+| `type` | STRING | Yes | Type (see AvailabilityType enum) |
+| `start_date` | DATE | Yes | Start date (YYYY-MM-DD) |
+| `end_date` | DATE | Yes | End date (YYYY-MM-DD) |
+| `recurrence` | STRING | No | Recurrence pattern (see RecurrenceType enum) |
+| `holiday_name` | STRING | No | Name of holiday (for type=holiday) |
+| `partners` | STRING | No | Comma-separated list of affected partners (NASA, UAH, DevSeed) |
+| `location` | STRING | No | Location (e.g., "AGU Conference", "HQ") |
+| `notes` | STRING | No | Additional notes |
+| `created_at` | DATE | Yes | Record creation timestamp |
+
+**Indexes:**
+- Primary: `availability_id`
+- Secondary: `contact_id`, `type`, `start_date`
+
+**Example (Personal):**
+```json
+{
+  "availability_id": "AVAIL_0001",
+  "contact_id": "CON_500",
+  "contact_name": "Jane Smith",
+  "type": "vacation",
+  "start_date": "2026-02-15",
+  "end_date": "2026-02-22",
+  "recurrence": "none",
+  "holiday_name": "",
+  "partners": "",
+  "location": "",
+  "notes": "Annual leave",
+  "created_at": "2026-01-18"
+}
+```
+
+**Example (Holiday):**
+```json
+{
+  "availability_id": "AVAIL_0010",
+  "contact_id": "",
+  "contact_name": "",
+  "type": "holiday",
+  "start_date": "2026-05-25",
+  "end_date": "2026-05-25",
+  "recurrence": "annually",
+  "holiday_name": "Memorial Day",
+  "partners": "NASA, UAH",
+  "location": "",
+  "notes": "",
+  "created_at": "2026-01-18"
+}
+```
+
+---
+
+### 10. MEETINGS (MO-DB_Meetings)
+
+**Status: ACTIVE** - Team Viewer
+
+Tracks recurring and ad-hoc meetings for the MO team.
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `meeting_id` | STRING | Yes | Primary key (e.g., "MTG_0001") |
+| `name` | STRING | Yes | Meeting name |
+| `category` | STRING | Yes | Category (see MeetingCategory enum) |
+| `type` | STRING | Yes | Type (see MeetingType enum) |
+| `cadence` | STRING | No | Frequency (Weekly, Bi-Weekly, Monthly, etc.) |
+| `day_of_week` | STRING | No | Day (Monday, Tuesday, etc.) |
+| `time` | STRING | No | Time (e.g., "2:00 PM ET") |
+| `duration_minutes` | INTEGER | No | Duration in minutes (default: 60) |
+| `purpose` | STRING | No | Meeting purpose/description |
+| `online_link` | STRING | No | Video conference URL |
+| `drive_folder_url` | STRING | No | Google Drive folder URL |
+| `agenda_url` | STRING | No | Agenda document URL |
+| `notes_url` | STRING | No | Notes document URL |
+| `slides_url` | STRING | No | Slides document URL |
+| `recording_url` | STRING | No | Recording URL |
+| `is_active` | BOOLEAN | Yes | Whether meeting is currently active |
+| `created_at` | DATE | Yes | Record creation timestamp |
+
+**Indexes:**
+- Primary: `meeting_id`
+- Secondary: `category`, `day_of_week`, `is_active`
+
+**Example:**
+```json
+{
+  "meeting_id": "MTG_0001",
+  "name": "MO Weekly Sync",
+  "category": "MO",
+  "type": "Status/Sync",
+  "cadence": "Weekly",
+  "day_of_week": "Monday",
+  "time": "10:00 AM ET",
+  "duration_minutes": 60,
+  "purpose": "Weekly team sync to discuss priorities and blockers",
+  "online_link": "https://meet.google.com/xxx-xxx-xxx",
+  "drive_folder_url": "https://drive.google.com/drive/folders/xxx",
+  "agenda_url": "https://docs.google.com/document/d/xxx",
+  "notes_url": "",
+  "slides_url": "",
+  "recording_url": "",
+  "is_active": true,
+  "created_at": "2026-01-18"
+}
+```
+
+---
+
+### 11. GLOSSARY (MO-DB_Glossary)
+
+**Status: ACTIVE** - Team Viewer / Shared Resource
+
+Glossary of terms, acronyms, and definitions used across NSITE MO.
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `term_id` | STRING | Yes | Primary key (e.g., "TERM_0001") |
+| `term` | STRING | Yes | Term or acronym |
+| `definition` | STRING | Yes | Definition/explanation |
+| `category` | STRING | No | Category (e.g., "Technical", "Process", "Organization") |
+| `related_terms` | STRING | No | Pipe-delimited related terms |
+| `source` | STRING | No | Source of definition |
+| `created_at` | DATE | Yes | Record creation timestamp |
+
+**Indexes:**
+- Primary: `term_id`
+- Secondary: `term`, `category`
+
+**Example:**
+```json
+{
+  "term_id": "TERM_0001",
+  "term": "SNWG",
+  "definition": "Satellite Needs Working Group - An interagency working group that identifies and prioritizes satellite data needs across federal agencies.",
+  "category": "Organization",
+  "related_terms": "NSITE|MO|Assessment",
+  "source": "SNWG Charter",
+  "created_at": "2026-01-18"
+}
+```
+
+---
+
+### 12. CONFIG (MO-DB_Config)
+
+**Status: ACTIVE** - System Configuration
+
+Central configuration store for all document IDs, sheet IDs, and system settings.
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `key` | STRING | Yes | Configuration key name |
+| `value` | STRING | Yes | Configuration value (typically a Google ID or URL) |
+| `description` | STRING | No | Human-readable description |
+| `category` | STRING | No | Category for grouping |
+
+**Key Categories:**
+
+| Category | Keys |
+|----------|------|
+| **Database Sheets** | SOLUTIONS_SHEET_ID, CONTACTS_SHEET_ID, NEEDS_SHEET_ID, AGENCIES_SHEET_ID, ENGAGEMENTS_SHEET_ID, UPDATES_SHEET_ID, ACTIONS_SHEET_ID, STORIES_SHEET_ID, OUTREACH_SHEET_ID |
+| **Team Sheets** | AVAILABILITY_SHEET_ID, MEETINGS_SHEET_ID, GLOSSARY_SHEET_ID |
+| **Source Documents** | INTERNAL_AGENDA_ID, SEP_AGENDA_ID, OPERA_MONTHLY_ID, PBL_MONTHLY_ID |
+| **Folders** | MONTHLY_FOLDER_ID |
+| **Directing Documents** | MO_PROJECT_PLAN_DOC_ID, HQ_PROJECT_PLAN_DOC_ID, SEP_PLAN_DOC_ID, SEP_BLUEPRINT_DOC_ID, COMMS_PLAN_DOC_ID, STYLE_GUIDE_DOC_ID, ASSESSEMENT_PROCESS_DOC_ID, ASSESSEMENT_CHEATSHEET_DOC_ID, MO_RISK_REGISTER_DOC_ID, INFO_MANAGEMENT_PLAN_DOC_ID, etc. |
+| **System** | API_LIBRARY_ID, ACCESS_FILE_ID |
+
+**Example:**
+```
+| key                    | value                              | description                |
+|------------------------|------------------------------------|-----------------------------|
+| SOLUTIONS_SHEET_ID     | 1abc...xyz                         | MO-DB_Solutions sheet ID   |
+| INTERNAL_AGENDA_ID     | 1def...uvw                         | Internal Planning agenda   |
+| MO_PROJECT_PLAN_DOC_ID | 1ghi...rst                         | MO Project Plan document   |
+```
+
+---
+
 ## Enumerations
 
 ### Phase
@@ -544,6 +732,35 @@ Milestone definitions:
 ### ActionStatus
 ```
 open | in_progress | closed | blocked
+```
+
+### AvailabilityType
+```
+vacation | work_travel | ooo | 9_80 | holiday | special_event
+```
+
+| Code | Description |
+|------|-------------|
+| vacation | Personal vacation/leave |
+| work_travel | Work-related travel |
+| ooo | Out of Office (other reasons) |
+| 9_80 | 9/80 schedule day off |
+| holiday | Office-wide holiday |
+| special_event | Office-wide special event |
+
+### RecurrenceType
+```
+none | weekly | biweekly | monthly | annually
+```
+
+### MeetingCategory
+```
+MO | Assessment | SEP | Comms | Implementation | Operations | Ad Hoc
+```
+
+### MeetingType
+```
+Planning | Working | Brainstorm | Status/Sync | Review | Training
 ```
 
 ---
@@ -867,5 +1084,6 @@ The original SolutionFlow schema maps to this unified schema:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1.0 | 2026-01-18 | Added Team Viewer tables: AVAILABILITY, MEETINGS, GLOSSARY, CONFIG. Added new enumerations for availability and meeting types. |
 | 1.0.1 | 2026-01-17 | Added Data Sources section with Monthly Meeting Presentations sync documentation |
 | 1.0.0 | 2026-01-14 | Initial schema definition |

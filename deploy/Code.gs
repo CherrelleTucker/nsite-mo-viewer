@@ -34,13 +34,18 @@ var CONFIG_KEYS = {
   // Access Control
   ACCESS_FILE_ID: 'ACCESS_FILE_ID',  // Drive file used for access control (editors = approved users)
 
-  // Document IDs
+  // Source Document IDs (Agendas)
   INTERNAL_AGENDA_ID: 'INTERNAL_AGENDA_ID',
   SEP_AGENDA_ID: 'SEP_AGENDA_ID',
   COMMS_TRACKING_ID: 'COMMS_TRACKING_ID',
+  OPERA_MONTHLY_ID: 'OPERA_MONTHLY_ID',
+  PBL_MONTHLY_ID: 'PBL_MONTHLY_ID',
 
   // Folder IDs
   MONTHLY_FOLDER_ID: 'MONTHLY_FOLDER_ID',  // Monthly Meeting presentations folder
+
+  // Library Reference
+  API_LIBRARY_ID: 'API_LIBRARY_ID',  // MO-APIs Library ID
 
   // Database Sheet IDs
   SOLUTIONS_SHEET_ID: 'SOLUTIONS_SHEET_ID',
@@ -62,8 +67,36 @@ var CONFIG_KEYS = {
   STORIES_SHEET_ID: 'STORIES_SHEET_ID',
   OUTREACH_SHEET_ID: 'OUTREACH_SHEET_ID',
 
-  // Actions Database Sheet ID
-  ACTIONS_SHEET_ID: 'ACTIONS_SHEET_ID'
+  // Team-related Database Sheet IDs
+  AVAILABILITY_SHEET_ID: 'AVAILABILITY_SHEET_ID',
+  MEETINGS_SHEET_ID: 'MEETINGS_SHEET_ID',
+  GLOSSARY_SHEET_ID: 'GLOSSARY_SHEET_ID',
+
+  // Directing Documents (Core)
+  MO_PROJECT_PLAN_DOC_ID: 'MO_PROJECT_PLAN_DOC_ID',
+  HQ_PROJECT_PLAN_DOC_ID: 'HQ_PROJECT_PLAN_DOC_ID',
+  SOLUTION_REQUIREMENTS_EXPECTATIONS_DOC_ID: 'SOLUTION_REQUIREMENTS_EXPECTATIONS_DOC_ID',
+
+  // Directing Documents (SEP)
+  SEP_PLAN_DOC_ID: 'SEP_PLAN_DOC_ID',
+  SEP_BLUEPRINT_DOC_ID: 'SEP_BLUEPRINT_DOC_ID',
+  CODESIGN_PIPELINE_DOC_ID: 'CODESIGN_PIPELINE_DOC_ID',
+
+  // Directing Documents (Comms)
+  COMMS_PLAN_DOC_ID: 'COMMS_PLAN_DOC_ID',
+  STYLE_GUIDE_DOC_ID: 'STYLE_GUIDE_DOC_ID',
+  HIGHLIGHTER_BLURBS_DOC_ID: 'HIGHLIGHTER_BLURBS_DOC_ID',
+  WEBPAGE_LOG_DOC_ID: 'WEBPAGE_LOG_DOC_ID',
+
+  // Directing Documents (Assessment)
+  ASSESSEMENT_PROCESS_DOC_ID: 'ASSESSEMENT_PROCESS_DOC_ID',
+  ASSESSEMENT_CHEATSHEET_DOC_ID: 'ASSESSEMENT_CHEATSHEET_DOC_ID',
+
+  // Directing Documents (Operations)
+  MO_RISK_REGISTER_DOC_ID: 'MO_RISK_REGISTER_DOC_ID',
+  RISK_REGISTER_DOC_ID: 'RISK_REGISTER_DOC_ID',
+  INFO_MANAGEMENT_PLAN_DOC_ID: 'INFO_MANAGEMENT_PLAN_DOC_ID',
+  AUDIT_LOG_DOC_ID: 'AUDIT_LOG_DOC_ID'
 };
 
 // Cache for config values (refreshed per execution)
@@ -104,6 +137,10 @@ var PAGES = {
   'actions': {
     title: 'Actions',
     icon: 'check-square'
+  },
+  'team': {
+    title: 'Team',
+    icon: 'user-check'
   },
   'about': {
     title: 'About',

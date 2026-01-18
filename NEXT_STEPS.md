@@ -1,11 +1,42 @@
 # Next Development Steps
 
-**Last Updated:** 2026-01-17
-**Current Version:** 1.0.3
+**Last Updated:** 2026-01-18
+**Current Version:** 1.1.0
 
 ---
 
-## Completed This Session (2026-01-17) - MO-APIs Library, Wrapper Conversion & SPA Navigation
+## Completed This Session (2026-01-18) - Team Viewer & Config Alignment
+
+- [x] **Team Viewer - Documents View Implementation**
+  - Added `getDirectingDocuments()` function to team-api.gs (deploy and library)
+  - Reads 16 directing document IDs from MO-DB_Config
+  - Documents grouped by category: Core, SEP, Comms, Assessment, Operations
+  - Renders clickable document cards with icons and descriptions
+  - Document count now shows in Team stats
+
+- [x] **Code.gs CONFIG_KEYS Updated**
+  - Added 24 new config key constants for documentation
+  - Source Documents: OPERA_MONTHLY_ID, PBL_MONTHLY_ID
+  - Library Reference: API_LIBRARY_ID
+  - Directing Documents (16): MO_PROJECT_PLAN_DOC_ID, HQ_PROJECT_PLAN_DOC_ID, SEP_PLAN_DOC_ID, SEP_BLUEPRINT_DOC_ID, COMMS_PLAN_DOC_ID, STYLE_GUIDE_DOC_ID, ASSESSEMENT_PROCESS_DOC_ID, ASSESSEMENT_CHEATSHEET_DOC_ID, MO_RISK_REGISTER_DOC_ID, RISK_REGISTER_DOC_ID, INFO_MANAGEMENT_PLAN_DOC_ID, AUDIT_LOG_DOC_ID, CODESIGN_PIPELINE_DOC_ID, HIGHLIGHTER_BLURBS_DOC_ID, WEBPAGE_LOG_DOC_ID, SOLUTION_REQUIREMENTS_EXPECTATIONS_DOC_ID
+
+- [x] **DATA_SCHEMA.md Updated to v1.1.0**
+  - Added AVAILABILITY table schema (team OOO calendar)
+  - Added MEETINGS table schema (recurring meetings)
+  - Added GLOSSARY table schema (terms and definitions)
+  - Added CONFIG table schema (system configuration)
+  - Added new enumerations: AvailabilityType, RecurrenceType, MeetingCategory, MeetingType
+
+- [x] **about.html Updated**
+  - Added Team-NSITE documentation card
+  - Added MO-DB_Availability, MO-DB_Meetings, MO-DB_Glossary to database section
+  - Updated architecture diagram to show Team
+  - Removed obsolete items (blank page fix already done, comms already deployed)
+  - Updated version to 1.1.0
+
+---
+
+## Completed Previous Session (2026-01-17) - MO-APIs Library, Wrapper Conversion & SPA Navigation
 
 - [x] **SPA Navigation Architecture** - Fixed blank page after 3 tab clicks (**CRITICAL FIX**)
   - Root cause: Google Apps Script iframe sandbox fails after ~3 `window.location` navigations
@@ -25,11 +56,12 @@
   - Config: `CONFIG_SHEET_ID` script property points to MO-DB_Config
   - All 6 databases verified accessible
 
-- [x] **Thin Wrapper Conversion** - NSITE-MO-Viewer API files converted
-  - `deploy/*-api.gs` files now delegate to `MoApi.*` library functions
-  - Reduced ~2,700 lines of duplicated code to ~540 lines of wrappers
-  - HTML files unchanged - `google.script.run` calls work through wrappers
+- [x] **API Code Organization** - Parallel library and deploy implementations
+  - `library/*-api.gs` files contain shared implementations (MO-APIs Library)
+  - `deploy/*-api.gs` files contain identical implementations for web app
+  - HTML files use `google.script.run` to call deploy API functions
   - All UI viewers tested and working (Implementation, SEP, etc.)
+  - **Note:** True thin wrapper conversion not yet implemented - deploy files have full implementations
 
 - [x] **Monthly Meeting Presentations Sync**
   - Created `sync-monthly-presentations.gs` for MO-DB_Updates container
@@ -173,21 +205,24 @@ library/
 ├── contacts-api.gs         # Contacts data (stakeholders, SEP)
 ├── agencies-api.gs         # Agencies hierarchy
 ├── updates-api.gs          # Updates data
-└── engagements-api.gs      # Engagements logging
+├── engagements-api.gs      # Engagements logging
+└── team-api.gs             # Team, availability, meetings, glossary, directing docs
 ```
 
 ### NSITE-MO-Viewer (main web app)
 ```
 deploy/
-├── Code.gs                 # Main Apps Script entry point
-├── agencies-api.gs         # Thin wrapper → MoApi.* (agencies)
+├── Code.gs                 # Main Apps Script entry point, config keys
+├── about.html              # Platform documentation page
+├── actions.html            # Actions-NSITE UI
+├── agencies-api.gs         # Agencies data (full implementation)
 ├── contacts.html           # Contacts Directory UI
-├── contacts-api.gs         # Thin wrapper → MoApi.* (contacts)
+├── contacts-api.gs         # Contacts data (full implementation)
 ├── contacts-menu.gs        # Contacts sheet menu
 ├── earthdata-sync.gs       # Earthdata.nasa.gov content scraper/sync
-├── engagements-api.gs      # Thin wrapper → MoApi.* (engagements)
+├── engagements-api.gs      # Engagements data (full implementation)
 ├── implementation.html     # Implementation-NSITE UI
-├── index.html              # Platform shell
+├── index.html              # Platform shell with SPA routing
 ├── milestones-api.gs       # Milestones data API
 ├── navigation.html         # Tab navigation
 ├── quadchart-data.gs       # Quad Chart report generator
@@ -198,13 +233,15 @@ deploy/
 ├── schedule.html           # Schedule timeline view
 ├── sep.html                # SEP-NSITE UI
 ├── stakeholder-solution-alignment.gs  # Advanced stakeholder reports
-├── solutions-api.gs        # Thin wrapper → MoApi.* (solutions)
+├── solutions-api.gs        # Solutions data (full implementation)
 ├── styles.html             # Shared CSS
-└── updates-api.gs          # Thin wrapper → MoApi.* (updates)
+├── team.html               # Team-NSITE UI (profiles, meetings, availability, docs)
+├── team-api.gs             # Team data (full implementation)
+└── updates-api.gs          # Updates data (full implementation)
 ```
 
-**Note:** The *-api.gs files are thin wrappers that delegate to the MO-APIs Library.
-This enables single source of truth while maintaining `google.script.run` compatibility.
+**Note:** The deploy/*-api.gs files currently contain full implementations (not thin wrappers).
+The library/ folder contains parallel implementations for use as an Apps Script Library.
 
 ### Container-Bound Scripts (in respective database sheets)
 ```
@@ -230,6 +267,9 @@ MO-DB_Actions:
 | MO-DB_Needs | Yes | `MO-Viewer Databases/` | 2,049 responses | **Populated** |
 | MO-DB_Updates | Yes | `MO-Viewer Databases/` | -- | **Ready** |
 | MO-DB_Config | Yes | `MO-Viewer Databases/` | Configuration | **Active** |
+| MO-DB_Availability | Yes | `MO-Viewer Databases/` | Team OOO | **Active** |
+| MO-DB_Meetings | Yes | `MO-Viewer Databases/` | Meetings | **Active** |
+| MO-DB_Glossary | Yes | `MO-Viewer Databases/` | Terms | **Active** |
 | MO-DB_Stories | Planned | -- | -- | Planned |
 
 **Local Database Files:** `C:\...\MO-development\database-files\MO-Viewer Databases\`

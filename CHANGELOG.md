@@ -9,18 +9,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned
+- Comms-NSITE (communications/story tracking)
+- Automation & Sync (scheduled exports, email notifications)
+- True thin wrapper conversion (deploy APIs delegate to MoApi library)
+
+---
+
+## [1.1.0] - 2026-01-18
+
+### Added
+- **Team-NSITE Viewer** - Documents View Implementation
+  - `getDirectingDocuments()` function reads 16 directing document IDs from MO-DB_Config
+  - Documents grouped by category: Core, SEP, Comms, Assessment, Operations
+  - Clickable document cards with icons, descriptions, and external links
+  - Document count displayed in Team stats dashboard
+- **Code.gs CONFIG_KEYS** - 24 new config key constants
+  - Source Documents: OPERA_MONTHLY_ID, PBL_MONTHLY_ID
+  - Library Reference: API_LIBRARY_ID
+  - Directing Documents (16 total): MO_PROJECT_PLAN_DOC_ID, HQ_PROJECT_PLAN_DOC_ID, SEP_PLAN_DOC_ID, SEP_BLUEPRINT_DOC_ID, COMMS_PLAN_DOC_ID, STYLE_GUIDE_DOC_ID, and more
+- **MO-DB_Availability** - Team availability calendar database
+- **MO-DB_Meetings** - Recurring meetings schedule database
+- **MO-DB_Glossary** - Terms and definitions database
+
+### Changed
+- **about.html** - Updated for Team Viewer
+  - Added Team-NSITE documentation card
+  - Added new databases to database section (Availability, Meetings, Glossary)
+  - Updated architecture diagram to show Team
+  - Removed obsolete next steps (blank page fix already done, comms already deployed)
+  - Version updated to 1.1.0
+- **DATA_SCHEMA.md** - Updated to v1.1.0
+  - Added AVAILABILITY, MEETINGS, GLOSSARY, CONFIG table schemas
+  - Added new enumerations: AvailabilityType, RecurrenceType, MeetingCategory, MeetingType
+- **NEXT_STEPS.md** - Corrected documentation
+  - Fixed inaccurate thin wrapper claims (deploy files have full implementations, not wrappers)
+  - Added team-api.gs to library and deploy file listings
+  - Added new Team-related databases to data sources reference
+
+---
+
+## [1.0.3] - 2026-01-17
+
 ### Added
 - **MO-APIs Library**: Standalone Apps Script library for shared data access (**DEPLOYED**)
-  - Library files in `library/` folder: config-helpers.gs, solutions-api.gs, contacts-api.gs, agencies-api.gs, updates-api.gs, engagements-api.gs
+  - Library files in `library/` folder: config-helpers.gs, solutions-api.gs, contacts-api.gs, agencies-api.gs, updates-api.gs, engagements-api.gs, team-api.gs
   - Deployed as Apps Script Library with identifier: `MoApi`
-  - Single source of truth for all database access functions
   - Config: `CONFIG_SHEET_ID` script property points to MO-DB_Config
-- **Thin Wrapper Architecture**: NSITE-MO-Viewer API files converted to wrappers
-  - `deploy/*-api.gs` files now delegate to `MoApi.*` library functions
-  - Reduced ~2,700 lines of duplicated code to ~540 lines of wrappers
-  - HTML files unchanged - `google.script.run` calls work through wrappers
-  - Enables single source of truth for all data access logic
-
+- **API Code Organization**: Parallel implementations in library and deploy
+  - `library/*-api.gs` files for MO-APIs Library
+  - `deploy/*-api.gs` files contain full implementations for web app
+  - **Note:** True thin wrapper conversion not yet implemented
 - **sync-monthly-presentations.gs**: Container-bound script for MO-DB_Updates that parses Monthly Meeting Google Slides
   - Extracts solution_id from speaker notes (preferred) or name mapping (fallback)
   - Categorizes updates: programmatic, development, engagement, roadblock
@@ -29,18 +68,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **MO-DB_Solutions schema**: Added `alternate_names` column
   - Pipe-delimited list of name variants for matching (e.g., "Harmonized Landsat Sentinel-2|HLS v2")
   - Used by `findSolutionIdsInText()` for solution detection in text
-  - No code changes needed to add new variants - just edit the spreadsheet
 - **sync-updates-to-db.gs**: Container-bound script for MO-DB_Updates that parses 🆕 updates from agenda documents
   - Supports Internal Planning (table format) and SEP Strategy (paragraph format)
   - Also supports OPERA Monthly and PBL Monthly agendas
   - Reads config from MO-DB_Config (INTERNAL_AGENDA_ID, SEP_AGENDA_ID, etc.)
-  - Deduplicates by solution + update text
-  - Custom menu for manual sync triggers
 - **updates-api.gs**: Data access layer for MO-DB_Updates
   - `getAllUpdates()`, `getUpdatesBySolution()`, `getRecentUpdatesBySolution()`
-  - `getUpdatesForSolutionCard()` - structured data for solution cards (recent/extended/historical)
-  - `getUpdatesGroupedBySolution()`, `getUpdatesStats()`
-  - Cache with 1-minute duration
+  - `getUpdatesForSolutionCard()` - structured data for solution cards
 - **MO-DB_Contacts schema**: Added 6 internal team columns
   - `is_internal` (Y/N), `internal_title`, `internal_team`, `supervisor`, `start_date`, `active`
   - Enables tracking internal MO team members without separate database
@@ -51,8 +85,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed Export functionality (temporary - for review)
   - Restored comprehensive "How is this calculated?" methodology sections for all 7 reports
   - **Need Alignment report**: Expandable solution rows - click any solution to see its gap analysis inline
-  - Compact card layout with 4 cards across (responsive: 4→3→2→1)
-  - Removed Impl/SEP/Comms badges from cards (reduced visual noise)
 
 ### Fixed
 - **Blank page after 3 tab clicks** - Implemented SPA navigation architecture
@@ -60,15 +92,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Solution**: Replaced full page reloads with Single Page Application (SPA) pattern
   - Added `getPageHTML(pageName)` server function to fetch page content
   - Navigation now uses `google.script.history.push()` instead of `window.location`
-  - Content loaded dynamically via `google.script.run.getPageHTML()`
-  - Added script execution handler for dynamically loaded content
   - Browser back/forward buttons now work correctly
   - **Bonus**: Navigation bar now works in Apps Script preview mode
   - See `docs/SPA_NAVIGATION.md` for full technical documentation
-
-### Planned
-- Comms-NSITE (communications/story tracking)
-- Automation & Sync (scheduled exports, email notifications)
 
 ---
 
