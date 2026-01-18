@@ -30,6 +30,10 @@
           <span data-feather="flag"></span>
           <span>Priorities</span>
         </button>
+        <button class="view-btn" data-view="messages" onclick="COMMS.setView('messages')">
+          <span data-feather="message-square"></span>
+          <span>Messages</span>
+        </button>
       </div>
       <button class="btn btn-primary" onclick="COMMS.showCreateStoryModal()">
         <span data-feather="plus"></span>
@@ -386,6 +390,44 @@
           <h3>Coverage Summary</h3>
           <div class="priority-bars" id="priorityBars">
             <!-- Will be rendered by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Messages View -->
+    <div class="view-panel" id="messagesView">
+      <div class="messages-layout">
+        <div class="messages-header">
+          <h2>Solution Key Messages</h2>
+          <p class="messages-subtitle">Approved messaging for communications and outreach</p>
+          <div class="messages-search">
+            <span data-feather="search"></span>
+            <input type="text" id="messagesSearchInput" placeholder="Search messages..." oninput="COMMS.searchMessages()">
+          </div>
+        </div>
+
+        <!-- Messages Summary -->
+        <div class="messages-summary" id="messagesSummary">
+          <div class="summary-stat">
+            <span class="summary-value" id="msgTotalSolutions">--</span>
+            <span class="summary-label">Solutions with Messages</span>
+          </div>
+          <div class="summary-stat">
+            <span class="summary-value" id="msgCoverage">--</span>
+            <span class="summary-label">Coverage</span>
+          </div>
+          <div class="summary-stat">
+            <span class="summary-value" id="msgByFocus">--</span>
+            <span class="summary-label">Focus Types</span>
+          </div>
+        </div>
+
+        <!-- Messages Grid -->
+        <div class="messages-grid" id="messagesGrid">
+          <div class="loading-state">
+            <span class="loading-spinner"></span>
+            <span>Loading key messages...</span>
           </div>
         </div>
       </div>
@@ -1527,12 +1569,146 @@
     flex-shrink: 0;
   }
 
+  /* Key Messages View */
+  .messages-layout { padding: var(--space-md); }
+  .messages-header {
+    margin-bottom: var(--space-lg);
+  }
+  .messages-header h2 {
+    margin: 0 0 var(--space-xs) 0;
+    font-size: var(--font-size-xl);
+  }
+  .messages-subtitle {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    margin: 0 0 var(--space-md) 0;
+  }
+  .messages-search {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-xs) var(--space-sm);
+    max-width: 400px;
+  }
+  .messages-search input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: var(--font-size-sm);
+    outline: none;
+  }
+  .messages-search svg {
+    width: 16px;
+    height: 16px;
+    color: var(--color-text-muted);
+  }
+  .messages-summary {
+    display: flex;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+  }
+  .summary-stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+  .summary-value {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+  .summary-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+  .messages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: var(--space-md);
+  }
+  .message-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .message-card:hover { box-shadow: var(--shadow-md); }
+  .message-card-header {
+    padding: var(--space-md);
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .message-solution-name {
+    margin: 0;
+    font-size: var(--font-size-md);
+    font-weight: 600;
+  }
+  .focus-badge {
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--color-primary);
+    color: white;
+    font-weight: 500;
+  }
+  .focus-science { background: #2196F3; }
+  .focus-operations { background: #4CAF50; }
+  .focus-applications { background: #9C27B0; }
+  .message-card-body {
+    padding: var(--space-md);
+  }
+  .message-section {
+    margin-bottom: var(--space-md);
+  }
+  .message-section:last-child { margin-bottom: 0; }
+  .message-section h4 {
+    margin: 0 0 var(--space-xs) 0;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .message-section p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    color: var(--color-text);
+  }
+  .message-card-footer {
+    padding: var(--space-sm) var(--space-md);
+    border-top: 1px solid var(--color-border-light);
+    background: var(--color-surface-alt);
+  }
+  .message-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+  .message-link:hover { text-decoration: underline; }
+  .message-link svg { width: 14px; height: 14px; }
+
   /* Responsive */
   @media (max-width: 1200px) {
     .pipeline-board { grid-template-columns: repeat(3, 1fr); }
     .bottom-panels { grid-template-columns: 1fr; }
     .coverage-summary { grid-template-columns: 1fr; }
     .priorities-grid { grid-template-columns: repeat(2, 1fr); }
+    .messages-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 768px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
@@ -1542,6 +1718,7 @@
     .filter-bar { flex-direction: column; }
     .priorities-grid { grid-template-columns: 1fr; }
     .priority-bar-label { width: 120px; }
+    .messages-summary { flex-direction: column; gap: var(--space-sm); }
   }
 </style>
 
@@ -1889,6 +2066,7 @@ var COMMS = (function() {
     document.getElementById('coverageView').classList.toggle('active', view === 'coverage');
     document.getElementById('calendarView').classList.toggle('active', view === 'calendar');
     document.getElementById('prioritiesView').classList.toggle('active', view === 'priorities');
+    document.getElementById('messagesView').classList.toggle('active', view === 'messages');
 
     if (view === 'calendar') {
       renderCalendar();
@@ -1901,6 +2079,10 @@ var COMMS = (function() {
 
     if (view === 'priorities') {
       renderPrioritiesView();
+    }
+
+    if (view === 'messages') {
+      renderMessagesView();
     }
   }
 
@@ -1988,6 +2170,103 @@ var COMMS = (function() {
     document.getElementById('priorityBars').innerHTML = barsHtml;
 
     feather.replace();
+  }
+
+  // Key Messages state
+  var messagesState = {
+    solutions: [],
+    summary: null,
+    searchQuery: ''
+  };
+
+  function renderMessagesView() {
+    var grid = document.getElementById('messagesGrid');
+    grid.innerHTML = '<div class="loading-state"><span class="loading-spinner"></span><span>Loading key messages...</span></div>';
+
+    // Load summary
+    google.script.run
+      .withSuccessHandler(function(summary) {
+        messagesState.summary = summary;
+        document.getElementById('msgTotalSolutions').textContent = summary.with_key_messages;
+        document.getElementById('msgCoverage').textContent = summary.coverage_percent + '%';
+        document.getElementById('msgByFocus').textContent = Object.keys(summary.by_focus_type || {}).length;
+      })
+      .withFailureHandler(function(err) {
+        console.error('Failed to load messages summary:', err);
+      })
+      .getKeyMessagesSummary();
+
+    // Load solutions with messages
+    google.script.run
+      .withSuccessHandler(function(solutions) {
+        messagesState.solutions = solutions || [];
+        renderMessagesGrid(messagesState.solutions);
+      })
+      .withFailureHandler(function(err) {
+        grid.innerHTML = '<div class="empty-state"><span data-feather="alert-circle"></span><span>Failed to load key messages</span></div>';
+        feather.replace();
+      })
+      .getSolutionsWithKeyMessages();
+  }
+
+  function renderMessagesGrid(solutions) {
+    var grid = document.getElementById('messagesGrid');
+
+    if (!solutions || solutions.length === 0) {
+      grid.innerHTML = '<div class="empty-state"><span data-feather="message-square"></span><span>No solutions have key messages yet</span></div>';
+      feather.replace();
+      return;
+    }
+
+    var html = solutions.map(function(sol) {
+      var focusBadge = sol.focus_type ?
+        '<span class="focus-badge focus-' + sol.focus_type.toLowerCase().replace(/\s+/g, '-') + '">' + escapeHtml(sol.focus_type) + '</span>' : '';
+
+      return '<div class="message-card">' +
+        '<div class="message-card-header">' +
+          '<h3 class="message-solution-name">' + escapeHtml(sol.solution_name || sol.solution_id) + '</h3>' +
+          focusBadge +
+        '</div>' +
+        '<div class="message-card-body">' +
+          '<div class="message-section">' +
+            '<h4>Key Messages</h4>' +
+            '<p>' + escapeHtml(sol.key_messages || 'No key messages defined') + '</p>' +
+          '</div>' +
+          (sol.scientific_advancement ? '<div class="message-section"><h4>Scientific Advancement</h4><p>' + escapeHtml(sol.scientific_advancement) + '</p></div>' : '') +
+          (sol.agency_use_impact ? '<div class="message-section"><h4>Agency Use & Impact</h4><p>' + escapeHtml(sol.agency_use_impact) + '</p></div>' : '') +
+          (sol.industry_connections ? '<div class="message-section"><h4>Industry Connections</h4><p>' + escapeHtml(sol.industry_connections) + '</p></div>' : '') +
+        '</div>' +
+        (sol.public_comms_links ? '<div class="message-card-footer"><a href="' + escapeAttr(sol.public_comms_links) + '" target="_blank" class="message-link"><span data-feather="external-link"></span> View Public Page</a></div>' : '') +
+      '</div>';
+    }).join('');
+
+    grid.innerHTML = html;
+    feather.replace();
+  }
+
+  function searchMessages() {
+    var query = document.getElementById('messagesSearchInput').value.toLowerCase().trim();
+    messagesState.searchQuery = query;
+
+    if (!query) {
+      renderMessagesGrid(messagesState.solutions);
+      return;
+    }
+
+    var filtered = messagesState.solutions.filter(function(sol) {
+      var searchText = [
+        sol.solution_name,
+        sol.solution_id,
+        sol.key_messages,
+        sol.scientific_advancement,
+        sol.agency_use_impact,
+        sol.industry_connections,
+        sol.focus_type
+      ].join(' ').toLowerCase();
+      return searchText.indexOf(query) !== -1;
+    });
+
+    renderMessagesGrid(filtered);
   }
 
   function showStoryDetail(storyId) {
@@ -2872,7 +3151,9 @@ var COMMS = (function() {
     updateEventStatus: updateEventStatus,
     showDiscoverEventsModal: showDiscoverEventsModal,
     performEventSearch: performEventSearch,
-    addDiscoveredEvent: addDiscoveredEvent
+    addDiscoveredEvent: addDiscoveredEvent,
+    // Key Messages functions
+    searchMessages: searchMessages
   };
 })();
 
