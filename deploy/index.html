@@ -96,12 +96,10 @@
       // Initialize Feather Icons
       feather.replace();
 
-      // Load platform config
+      // Load platform config (don't overwrite baseUrl - server value is authoritative)
       google.script.run
         .withSuccessHandler(function(config) {
           Platform.config = config;
-          Platform.baseUrl = config.baseUrl;
-          updateNavActiveState();
         })
         .withFailureHandler(handleError)
         .getPlatformConfig();
@@ -120,11 +118,14 @@
     });
 
     // ========================================================================
-    // NAVIGATION
+    // SPA NAVIGATION (avoids iframe sandbox blank page issue)
     // ========================================================================
 
     var isNavigating = false;
 
+    /**
+     * Navigate to a page using SPA pattern (no full page reload)
+     */
     function navigateTo(page) {
       // Prevent double-clicks and multiple navigations
       if (isNavigating) {
@@ -138,30 +139,165 @@
         return;
       }
 
+      console.log('SPA navigating to:', page);
       isNavigating = true;
 
-      // Show loading state on clicked tab
+      // Show loading state
+      showLoadingState(page);
+
+      // Update browser URL and history (no page reload)
+      google.script.history.push(null, {page: page});
+
+      // Load page content dynamically
+      loadPageContent(page);
+    }
+
+    /**
+     * Load page content via google.script.run (SPA style)
+     */
+    function loadPageContent(page) {
+      google.script.run
+        .withSuccessHandler(function(html) {
+          // Update content area and execute scripts
+          setInnerHTMLWithScripts(document.getElementById('contentArea'), html);
+
+          // Update active page
+          Platform.activePage = page;
+
+          // Re-initialize Feather icons for new content
+          feather.replace();
+
+          // Update nav active state
+          updateNavActiveState();
+
+          // Clear loading state
+          clearLoadingState();
+          isNavigating = false;
+
+          console.log('Page loaded:', page);
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load page:', error);
+          document.getElementById('contentArea').innerHTML =
+            '<div class="page-placeholder"><h2>Error</h2><p>Failed to load page. Please refresh.</p></div>';
+          clearLoadingState();
+          isNavigating = false;
+        })
+        .getPageHTML(page);
+    }
+
+    /**
+     * Set innerHTML and execute any script tags (innerHTML alone won't run scripts)
+     */
+    function setInnerHTMLWithScripts(element, html) {
+      element.innerHTML = html;
+
+      // Find and execute all script tags
+      var scripts = element.querySelectorAll('script');
+      scripts.forEach(function(oldScript) {
+        var newScript = document.createElement('script');
+
+        // Copy attributes
+        Array.from(oldScript.attributes).forEach(function(attr) {
+          newScript.setAttribute(attr.name, attr.value);
+        });
+
+        // Copy content
+        newScript.textContent = oldScript.textContent;
+
+        // Replace old script with new one (this executes it)
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+      });
+    }
+
+    /**
+     * Initialize page-specific JavaScript after content loads
+     */
+    function initializePage(page) {
+      // Each page may have an init function - call it if exists
+      switch(page) {
+        case 'implementation':
+          if (typeof Implementation !== 'undefined' && Implementation.init) {
+            Implementation.init();
+          }
+          break;
+        case 'sep':
+          if (typeof SEP !== 'undefined' && SEP.init) {
+            SEP.init();
+          }
+          break;
+        case 'contacts':
+          if (typeof Contacts !== 'undefined' && Contacts.init) {
+            Contacts.init();
+          }
+          break;
+        case 'reports':
+          if (typeof Reports !== 'undefined' && Reports.init) {
+            Reports.init();
+          }
+          break;
+        case 'schedule':
+          if (typeof Schedule !== 'undefined' && Schedule.init) {
+            Schedule.init();
+          }
+          break;
+        case 'actions':
+          if (typeof Actions !== 'undefined' && Actions.init) {
+            Actions.init();
+          }
+          break;
+        case 'quick-update':
+          if (typeof QuickUpdate !== 'undefined' && QuickUpdate.init) {
+            QuickUpdate.init();
+          }
+          break;
+        // about and comms don't need special init
+      }
+    }
+
+    /**
+     * Handle browser back/forward buttons
+     */
+    google.script.history.setChangeHandler(function(e) {
+      var page = (e.location && e.location.parameter && e.location.parameter.page)
+        ? e.location.parameter.page
+        : 'implementation';
+
+      console.log('History change, loading:', page);
+
+      if (page !== Platform.activePage) {
+        isNavigating = true;
+        showLoadingState(page);
+        loadPageContent(page);
+      }
+    });
+
+    /**
+     * Show loading state on navigation
+     */
+    function showLoadingState(page) {
       var clickedTab = document.querySelector('[data-page="' + page + '"]');
       if (clickedTab) {
         clickedTab.classList.add('loading');
       }
-
-      // Disable all nav tabs during navigation
       document.querySelectorAll('.nav-tab').forEach(function(tab) {
         tab.disabled = true;
       });
-
-      // Get base URL - prefer the server-rendered value, fall back to current URL
-      var baseUrl = Platform.baseUrl;
-      if (!baseUrl || baseUrl === 'undefined' || baseUrl === '') {
-        // Extract base URL from current location (remove any existing query params)
-        baseUrl = window.location.href.split('?')[0];
-      }
-
-      console.log('Navigating to:', page, 'baseUrl:', baseUrl);
-      window.location.href = baseUrl + '?page=' + page;
     }
 
+    /**
+     * Clear loading state after navigation completes
+     */
+    function clearLoadingState() {
+      document.querySelectorAll('.nav-tab').forEach(function(tab) {
+        tab.disabled = false;
+        tab.classList.remove('loading');
+      });
+    }
+
+    /**
+     * Update navigation active state
+     */
     function updateNavActiveState() {
       document.querySelectorAll('.nav-tab').forEach(function(tab) {
         tab.classList.remove('active');

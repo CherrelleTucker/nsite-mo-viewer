@@ -8,12 +8,13 @@
  *
  * Setup:
  * 1. Bind this script to MO-DB_Actions spreadsheet
- * 2. Set Script Properties:
+ * 2. Add MO-APIs Library (identifier: MoApi) - uses API_LIBRARY_ID from config
+ * 3. Set Script Properties:
  *    - CONFIG_SHEET_ID: ID of MO-DB_Config spreadsheet
- * 3. Ensure MO-DB_Config has:
+ * 4. Ensure MO-DB_Config has:
  *    - INTERNAL_AGENDA_ID: Google Doc ID for Internal Planning Meeting
  *    - SEP_AGENDA_ID: Google Doc ID for SEP Meeting
- * 4. Run syncAllActions() or use the menu
+ * 5. Run syncAllActions() or use the menu
  */
 
 // ============================================================================
@@ -479,29 +480,18 @@ function normalizeStatus_(status) {
 
 /**
  * Detect solution name from task text
- * Returns solution name if found, otherwise returns category default
+ * Uses MoApi library (findSolutionIdsInText) which reads from the database
+ * Returns solution ID if found, otherwise returns category default
  */
 function detectSolution_(taskText, category) {
   if (!taskText) return category;
 
-  var text = taskText.toUpperCase();
+  // Use the MoApi library function
+  // This reads solution names from the database (including alternate_names)
+  var foundIds = MoApi.findSolutionIdsInText(taskText);
 
-  // Known solution abbreviations/names (add more as needed)
-  var solutions = [
-    'HLS', 'OPERA', 'NISAR', 'DIST', 'DSWx', 'EMIT', 'ECOSTRESS',
-    'GEDI', 'ICESat-2', 'ICESAT2', 'GRACE-FO', 'GRACEFO',
-    'SMAP', 'OCO', 'TEMPO', 'TROPOMI', 'Landsat', 'MODIS',
-    'VIIRS', 'GPM', 'IMERG', 'SPoRT', 'SERVIR', 'ARSET',
-    'DEVELOP', 'GABAN', 'VLM', 'PBL', 'Pandora'
-  ];
-
-  for (var i = 0; i < solutions.length; i++) {
-    var sol = solutions[i];
-    // Check if solution name appears as whole word (not part of another word)
-    var regex = new RegExp('\\b' + sol + '\\b', 'i');
-    if (regex.test(taskText)) {
-      return sol;
-    }
+  if (foundIds.length > 0) {
+    return foundIds[0];
   }
 
   // No solution found - return category as default

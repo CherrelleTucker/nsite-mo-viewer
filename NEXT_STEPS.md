@@ -5,7 +5,42 @@
 
 ---
 
-## Completed This Session (2026-01-17) - Reports Refinements & Schema Updates
+## Completed This Session (2026-01-17) - MO-APIs Library, Wrapper Conversion & SPA Navigation
+
+- [x] **SPA Navigation Architecture** - Fixed blank page after 3 tab clicks (**CRITICAL FIX**)
+  - Root cause: Google Apps Script iframe sandbox fails after ~3 `window.location` navigations
+  - Implemented Single Page Application (SPA) pattern using `google.script.history`
+  - Added `getPageHTML(pageName)` to Code.gs for dynamic content loading
+  - Navigation now uses `google.script.run` + `innerHTML` instead of page reloads
+  - Browser back/forward buttons work correctly
+  - Bonus: Nav bar now works in Apps Script preview mode
+  - Full documentation: `docs/SPA_NAVIGATION.md`
+
+- [x] **MO-APIs Library** - Standalone shared data access layer (**DEPLOYED & TESTED**)
+  - Created `library/` folder with extracted APIs
+  - `config-helpers.gs` - configuration loading and database sheet access
+  - `solutions-api.gs` - includes `findSolutionIdsInText()` for name matching
+  - `contacts-api.gs`, `agencies-api.gs`, `updates-api.gs`, `engagements-api.gs`
+  - Deployed as Apps Script Library with identifier: `MoApi`
+  - Config: `CONFIG_SHEET_ID` script property points to MO-DB_Config
+  - All 6 databases verified accessible
+
+- [x] **Thin Wrapper Conversion** - NSITE-MO-Viewer API files converted
+  - `deploy/*-api.gs` files now delegate to `MoApi.*` library functions
+  - Reduced ~2,700 lines of duplicated code to ~540 lines of wrappers
+  - HTML files unchanged - `google.script.run` calls work through wrappers
+  - All UI viewers tested and working (Implementation, SEP, etc.)
+
+- [x] **Monthly Meeting Presentations Sync**
+  - Created `sync-monthly-presentations.gs` for MO-DB_Updates container
+  - Parses Google Slides presentations from MONTHLY_FOLDER_ID
+  - Solution identification: speaker notes (preferred) or name mapping (fallback)
+  - Categorizes updates: programmatic, development, engagement, roadblock
+
+- [x] **MO-DB_Solutions Schema Update**
+  - Added `alternate_names` column for solution name variants
+  - Pipe-delimited (e.g., "Harmonized Landsat Sentinel-2|HLS v2")
+  - Used by `findSolutionIdsInText()` - no code changes needed for new variants
 
 - [x] **Reports Page Refinements**
   - Removed QuickLook CSV report (MO Viewer replaces its function)
@@ -109,7 +144,8 @@
 ## Technical Debt / Improvements
 
 ### Known Bugs
-- [ ] **Blank page on repeated tab clicks** - Page goes blank after clicking tabs ~3 times
+- [x] ~~**Blank page after 3 tab clicks**~~ - Fixed: SPA navigation architecture (2026-01-17)
+  - See `docs/SPA_NAVIGATION.md` for full technical documentation
 
 ### Implementation-NSITE
 - [ ] Add loading states for async operations
@@ -129,16 +165,27 @@
 
 ## Deploy Files Reference
 
-Current deploy/ folder contents:
+### MO-APIs Library (standalone Apps Script project)
+```
+library/
+├── config-helpers.gs       # Configuration loading, getConfigValue()
+├── solutions-api.gs        # Solutions data + findSolutionIdsInText()
+├── contacts-api.gs         # Contacts data (stakeholders, SEP)
+├── agencies-api.gs         # Agencies hierarchy
+├── updates-api.gs          # Updates data
+└── engagements-api.gs      # Engagements logging
+```
+
+### NSITE-MO-Viewer (main web app)
 ```
 deploy/
 ├── Code.gs                 # Main Apps Script entry point
-├── agencies-api.gs         # Agencies data API
+├── agencies-api.gs         # Thin wrapper → MoApi.* (agencies)
 ├── contacts.html           # Contacts Directory UI
-├── contacts-api.gs         # Contacts data API (enhanced with SEP)
+├── contacts-api.gs         # Thin wrapper → MoApi.* (contacts)
 ├── contacts-menu.gs        # Contacts sheet menu
 ├── earthdata-sync.gs       # Earthdata.nasa.gov content scraper/sync
-├── engagements-api.gs      # Engagements data API
+├── engagements-api.gs      # Thin wrapper → MoApi.* (engagements)
 ├── implementation.html     # Implementation-NSITE UI
 ├── index.html              # Platform shell
 ├── milestones-api.gs       # Milestones data API
@@ -151,9 +198,23 @@ deploy/
 ├── schedule.html           # Schedule timeline view
 ├── sep.html                # SEP-NSITE UI
 ├── stakeholder-solution-alignment.gs  # Advanced stakeholder reports
-├── solutions-api.gs        # Solutions data API
+├── solutions-api.gs        # Thin wrapper → MoApi.* (solutions)
 ├── styles.html             # Shared CSS
-└── updates-api.gs          # Updates data API (NEW)
+└── updates-api.gs          # Thin wrapper → MoApi.* (updates)
+```
+
+**Note:** The *-api.gs files are thin wrappers that delegate to the MO-APIs Library.
+This enables single source of truth while maintaining `google.script.run` compatibility.
+
+### Container-Bound Scripts (in respective database sheets)
+```
+MO-DB_Updates:
+├── sync-updates-to-db.gs       # Sync from agenda docs (🆕 markers)
+└── sync-monthly-presentations.gs # Sync from Monthly Meeting slides
+
+MO-DB_Actions:
+├── sync-actions.gs             # Sync actions from agendas
+└── sync-actions-to-db.gs       # Alternative sync script
 ```
 
 ---

@@ -1,7 +1,7 @@
 # MO-Viewer Data Schema
 
-**Version:** 1.0.0
-**Date:** 2026-01-14
+**Version:** 1.0.1
+**Date:** 2026-01-17
 **Reference:** [ARCHITECTURE.md](../ARCHITECTURE.md)
 
 ---
@@ -88,6 +88,7 @@ Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across li
 | `source_doc` | STRING | No | Source document type ('internal' | 'sep') |
 | `source_tab` | STRING | No | Source document tab name (e.g., "01_13") |
 | `show_in_default` | STRING | No | Show in default selection ('Y' = yes, blank = no). Controls which solutions appear selected by default in Implementation-NSITE. |
+| `alternate_names` | STRING | No | Pipe-delimited list of alternate names for matching (e.g., "Harmonized Landsat Sentinel-2\|harmonized landsat\|HLS v2"). Used by sync scripts to match solution names in source documents. |
 | `atp_date` | DATE | No | Authority to Proceed Decision Gate date. Past = completed, future = planned. |
 | `f2i_date` | DATE | No | Formulation to Implementation Decision Gate date. Past = completed, future = planned. |
 | `orr_date` | DATE | No | Operational Readiness Review date. Past = completed, future = planned. |
@@ -586,6 +587,93 @@ var needs = row.needs.split('|').map(s => s.trim());
 
 ---
 
+## Data Sources
+
+### Source Documents Overview
+
+| Source | Type | Sync Script | Target Table | Frequency |
+|--------|------|-------------|--------------|-----------|
+| Internal Planning Agenda | Google Doc | `sync-updates-to-db.gs` | MO-DB_Updates | Weekly (manual) |
+| SEP Strategy Agenda | Google Doc | `sync-updates-to-db.gs` | MO-DB_Updates | Weekly (manual) |
+| OPERA Monthly Agenda | Google Doc | `sync-updates-to-db.gs` | MO-DB_Updates | Monthly (manual) |
+| PBL Monthly Agenda | Google Doc | `sync-updates-to-db.gs` | MO-DB_Updates | Monthly (manual) |
+| Monthly Meeting Presentations | Google Slides | `sync-monthly-presentations.gs` | MO-DB_Updates | Monthly (manual) |
+
+### Monthly Meeting Presentations
+
+**Location:** `MONTHLY_FOLDER_ID` (with FY subfolders for historical data)
+
+**Format:** Google Slides - one presentation per month (e.g., "2026-01 NSITE Monthly Meeting...")
+
+**Structure:**
+- Title slide with meeting date
+- Agenda slide listing solutions by cycle
+- HQ/MO update slides
+- Cycle divider slides ("Cycle 1 (2016)", etc.)
+- Solution slides with standardized sections
+
+**Solution Slide Structure:**
+```
+┌────────────────────────────────────────────────────────────┐
+│ [Vertical: Solution Name]  │  Project Status               │
+│ [Vertical: Speaker Name]   │  -------------------------    │
+│                            │  What have I done to ensure   │
+│                            │  right fit / intended impact? │
+│                            │  -------------------------    │
+│                            │  The SNWG MO can help me...   │
+│                            │  -------------------------    │
+│                            │  Programmatic milestones...   │
+│                            │  -------------------------    │
+│                            │  Development milestones...    │
+│                            │                               │
+│                            │  Update as of: [DATE]         │
+└────────────────────────────────────────────────────────────┘
+```
+
+**Solution Identification:**
+
+**For new presentations** - use speaker notes (preferred):
+
+Each solution slide should have `solution_id` in the speaker notes:
+```
+solution_id: HLS
+```
+
+For multi-solution slides (e.g., ESDIS):
+```
+solution_ids: DSWx, DIST, DISP
+```
+
+The sync script extracts solution IDs from speaker notes using pattern matching. Other content in speaker notes is ignored.
+
+**For historical presentations** - automatic name mapping:
+
+When speaker notes don't contain `solution_id`, the script falls back to matching solution names found in the slide content against `SOLUTION_NAME_MAP`. This includes:
+- Short names: HLS, OPERA, DSWx, DIST, VLM, etc.
+- Full names: "Harmonized Landsat Sentinel-2", "Vertical Land Motion", etc.
+- Common variations: "OPERA DSWx", "NISAR Downlink", etc.
+
+Run `testExtractAllSolutionIds()` to see which slides match via speaker notes vs. name mapping.
+
+**Update Categories:**
+
+Content is categorized based on slide section:
+
+| Category | Trigger Keywords |
+|----------|------------------|
+| `programmatic` | "programmatic", "project timeline", "milestone" |
+| `development` | "software", "hardware", "location", "product development" |
+| `engagement` | "ensure", "right fit", "end users", "intended impact" |
+| `roadblock` | "help me with", "roadblock", "challenge" |
+| `general` | Default for uncategorized content |
+
+**Sync Functions:**
+- `syncLatestMonthlyPresentation()` - Sync most recent presentation
+- `syncAllMonthlyPresentations()` - Historical backfill (all FYs)
+- `syncPresentationById(id)` - Sync specific presentation
+
+---
+
 ## Data Sync Patterns
 
 ### Full Sync
@@ -779,4 +867,5 @@ The original SolutionFlow schema maps to this unified schema:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.0.1 | 2026-01-17 | Added Data Sources section with Monthly Meeting Presentations sync documentation |
 | 1.0.0 | 2026-01-14 | Initial schema definition |

@@ -39,6 +39,9 @@ var CONFIG_KEYS = {
   SEP_AGENDA_ID: 'SEP_AGENDA_ID',
   COMMS_TRACKING_ID: 'COMMS_TRACKING_ID',
 
+  // Folder IDs
+  MONTHLY_FOLDER_ID: 'MONTHLY_FOLDER_ID',  // Monthly Meeting presentations folder
+
   // Database Sheet IDs
   SOLUTIONS_SHEET_ID: 'SOLUTIONS_SHEET_ID',
   CONTACTS_SHEET_ID: 'CONTACTS_SHEET_ID',
@@ -223,6 +226,25 @@ function validateUserAccess(email, sheetId) {
  */
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+/**
+ * Get page HTML content for SPA navigation (called from client via google.script.run)
+ * @param {string} pageName - Page name (e.g., 'implementation', 'sep', 'reports')
+ * @returns {string} HTML content of the page
+ */
+function getPageHTML(pageName) {
+  // Validate page exists
+  if (!PAGES[pageName]) {
+    return '<div class="error">Page not found: ' + pageName + '</div>';
+  }
+
+  try {
+    return HtmlService.createHtmlOutputFromFile(pageName).getContent();
+  } catch (e) {
+    Logger.log('Error loading page ' + pageName + ': ' + e.message);
+    return '<div class="page-placeholder"><h2>Error</h2><p>Could not load page: ' + pageName + '</p></div>';
+  }
 }
 
 // ============================================================================

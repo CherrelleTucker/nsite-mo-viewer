@@ -10,6 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **MO-APIs Library**: Standalone Apps Script library for shared data access (**DEPLOYED**)
+  - Library files in `library/` folder: config-helpers.gs, solutions-api.gs, contacts-api.gs, agencies-api.gs, updates-api.gs, engagements-api.gs
+  - Deployed as Apps Script Library with identifier: `MoApi`
+  - Single source of truth for all database access functions
+  - Config: `CONFIG_SHEET_ID` script property points to MO-DB_Config
+- **Thin Wrapper Architecture**: NSITE-MO-Viewer API files converted to wrappers
+  - `deploy/*-api.gs` files now delegate to `MoApi.*` library functions
+  - Reduced ~2,700 lines of duplicated code to ~540 lines of wrappers
+  - HTML files unchanged - `google.script.run` calls work through wrappers
+  - Enables single source of truth for all data access logic
+
+- **sync-monthly-presentations.gs**: Container-bound script for MO-DB_Updates that parses Monthly Meeting Google Slides
+  - Extracts solution_id from speaker notes (preferred) or name mapping (fallback)
+  - Categorizes updates: programmatic, development, engagement, roadblock
+  - Supports historical backfill with `syncAllMonthlyPresentations()`
+  - Config key: `MONTHLY_FOLDER_ID` for presentations folder
+- **MO-DB_Solutions schema**: Added `alternate_names` column
+  - Pipe-delimited list of name variants for matching (e.g., "Harmonized Landsat Sentinel-2|HLS v2")
+  - Used by `findSolutionIdsInText()` for solution detection in text
+  - No code changes needed to add new variants - just edit the spreadsheet
 - **sync-updates-to-db.gs**: Container-bound script for MO-DB_Updates that parses 🆕 updates from agenda documents
   - Supports Internal Planning (table format) and SEP Strategy (paragraph format)
   - Also supports OPERA Monthly and PBL Monthly agendas
@@ -33,6 +53,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Need Alignment report**: Expandable solution rows - click any solution to see its gap analysis inline
   - Compact card layout with 4 cards across (responsive: 4→3→2→1)
   - Removed Impl/SEP/Comms badges from cards (reduced visual noise)
+
+### Fixed
+- **Blank page after 3 tab clicks** - Implemented SPA navigation architecture
+  - **Root cause**: Google Apps Script iframe sandbox fails after ~3 `window.location` navigations
+  - **Solution**: Replaced full page reloads with Single Page Application (SPA) pattern
+  - Added `getPageHTML(pageName)` server function to fetch page content
+  - Navigation now uses `google.script.history.push()` instead of `window.location`
+  - Content loaded dynamically via `google.script.run.getPageHTML()`
+  - Added script execution handler for dynamically loaded content
+  - Browser back/forward buttons now work correctly
+  - **Bonus**: Navigation bar now works in Apps Script preview mode
+  - See `docs/SPA_NAVIGATION.md` for full technical documentation
 
 ### Planned
 - Comms-NSITE (communications/story tracking)

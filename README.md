@@ -180,10 +180,36 @@ See [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md) for detailed deployment instructi
 |-------|------------|
 | Frontend | HTML, CSS, JavaScript (vanilla) |
 | Backend | Google Apps Script |
+| Shared Library | MO-APIs Library (Apps Script Library, identifier: `MoApi`) |
 | Database | Google Sheets (cache layer) |
 | Source Documents | Google Docs |
 | Authentication | Google OAuth 2.0 |
 | Hosting | Google Apps Script Web App |
+
+### Library Architecture
+
+The **MO-APIs Library** provides centralized data access for all MO-DB databases:
+
+```
+┌──────────────────────┐     ┌──────────────────────┐
+│  NSITE-MO-Viewer     │     │  Container Scripts   │
+│  (thin wrappers)     │     │  (MO-DB_Updates, etc)│
+└──────────┬───────────┘     └──────────┬───────────┘
+           │                            │
+           └──────────┬─────────────────┘
+                      ▼
+           ┌──────────────────────┐
+           │   MO-APIs Library    │
+           │   (identifier: MoApi)│
+           └──────────┬───────────┘
+                      ▼
+           ┌──────────────────────┐
+           │    MO-DB_Config      │
+           │  (database sheet IDs)│
+           └──────────────────────┘
+```
+
+See `library/README.md` for setup and usage details.
 
 ---
 

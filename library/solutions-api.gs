@@ -1,8 +1,11 @@
 /**
- * Solutions API
- * =============
+ * MO-APIs Library - Solutions API
+ * ================================
  * Data access functions for MO-DB_Solutions.
  * Reads from the Solutions sheet configured in MO-DB_Config.
+ *
+ * Part of MO-APIs Library - shared data access layer
+ * Requires: config-helpers.gs
  *
  * @fileoverview Solutions data access layer
  */
