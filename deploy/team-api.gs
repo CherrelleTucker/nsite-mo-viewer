@@ -1,1009 +1,128 @@
 /**
- * MO-APIs Library - Team API
- * ==========================
- * Query functions for Team-related data:
- * - Internal team members (from Contacts)
- * - Office availability/outages
- * - Office meetings
- * - Glossary terms
- *
- * Part of MO-APIs Library - shared data access layer
- * Requires: config-helpers.gs
+ * Team API - Thin Wrapper
+ * =======================
+ * Delegates to MoApi library for Team data access.
+ * Full implementation in: library/team-api.gs
  */
 
-// ============================================================================
-// INTERNAL TEAM (from Contacts where is_internal = TRUE)
-// ============================================================================
-
-/**
- * Cache for internal team data
- */
-var _internalTeamCache = null;
-
-/**
- * Get all internal team members
- * @returns {Array} Array of internal team member objects
- */
+// Internal Team (from Contacts)
 function getInternalTeam() {
-  if (_internalTeamCache !== null) {
-    return JSON.parse(JSON.stringify(_internalTeamCache));
-  }
-
-  try {
-    var sheetId = getConfigValue('CONTACTS_SHEET_ID');
-    if (!sheetId) {
-      Logger.log('CONTACTS_SHEET_ID not configured');
-      return [];
-    }
-
-    var ss = SpreadsheetApp.openById(sheetId);
-    var sheet = ss.getSheets()[0];
-    var data = sheet.getDataRange().getValues();
-
-    if (data.length < 2) return [];
-
-    var headers = data[0];
-    var results = [];
-
-    // Find column indices
-    var colMap = {};
-    headers.forEach(function(h, i) {
-      colMap[h] = i;
-    });
-
-    for (var i = 1; i < data.length; i++) {
-      var row = data[i];
-      var isInternal = row[colMap['is_internal']];
-
-      if (isInternal === true || isInternal === 'TRUE' || isInternal === 1) {
-        results.push({
-          contact_id: row[colMap['contact_id']] || '',
-          first_name: row[colMap['first_name']] || '',
-          last_name: row[colMap['last_name']] || '',
-          email: row[colMap['email']] || '',
-          internal_title: row[colMap['internal_title']] || '',
-          internal_team: row[colMap['internal_team']] || '',
-          supervisor: row[colMap['supervisor']] || '',
-          active: row[colMap['active']] !== false
-        });
-      }
-    }
-
-    // Sort by team, then last name
-    results.sort(function(a, b) {
-      if (a.internal_team !== b.internal_team) {
-        return (a.internal_team || '').localeCompare(b.internal_team || '');
-      }
-      return (a.last_name || '').localeCompare(b.last_name || '');
-    });
-
-    _internalTeamCache = results;
-    return JSON.parse(JSON.stringify(results));
-  } catch (e) {
-    Logger.log('Error in getInternalTeam: ' + e);
-    return [];
-  }
+  return MoApi.getInternalTeam();
 }
 
-/**
- * Get internal team members by team name
- * @param {string} teamName - Team name to filter by
- * @returns {Array} Matching team members
- */
 function getInternalTeamByTeam(teamName) {
-  var team = getInternalTeam();
-  return team.filter(function(m) {
-    return m.internal_team && m.internal_team.toLowerCase() === teamName.toLowerCase();
-  });
+  return MoApi.getInternalTeamByTeam(teamName);
 }
 
-/**
- * Get internal team statistics
- * @returns {Object} Team stats (counts by team, total)
- */
 function getInternalTeamStats() {
-  var team = getInternalTeam();
-  var byTeam = {};
-
-  team.forEach(function(m) {
-    var t = m.internal_team || 'Unassigned';
-    byTeam[t] = (byTeam[t] || 0) + 1;
-  });
-
-  return {
-    total: team.length,
-    by_team: byTeam
-  };
+  return MoApi.getInternalTeamStats();
 }
 
-// ============================================================================
-// AVAILABILITY
-// ============================================================================
-
-/**
- * Get the Availability sheet
- * @private
- */
-function getAvailabilitySheet_() {
-  var sheetId = getConfigValue('AVAILABILITY_SHEET_ID');
-  if (!sheetId) {
-    throw new Error('AVAILABILITY_SHEET_ID not configured');
-  }
-  var ss = SpreadsheetApp.openById(sheetId);
-  return ss.getSheets()[0];
-}
-
-/**
- * Cache for availability data
- */
-var _availabilityCache = null;
-
-/**
- * Load all availability entries
- * @private
- */
-function loadAllAvailability_() {
-  if (_availabilityCache !== null) {
-    return _availabilityCache;
-  }
-
-  try {
-    var sheet = getAvailabilitySheet_();
-    var data = sheet.getDataRange().getValues();
-
-    if (data.length < 2) return [];
-
-    var headers = data[0];
-    var results = [];
-
-    for (var i = 1; i < data.length; i++) {
-      var row = data[i];
-      var obj = {};
-      headers.forEach(function(h, j) {
-        var val = row[j];
-        // Format dates
-        if ((h === 'start_date' || h === 'end_date') && val instanceof Date) {
-          val = Utilities.formatDate(val, Session.getScriptTimeZone(), 'yyyy-MM-dd');
-        }
-        obj[h] = val;
-      });
-      results.push(obj);
-    }
-
-    _availabilityCache = results;
-    return results;
-  } catch (e) {
-    Logger.log('Error in loadAllAvailability_: ' + e);
-    return [];
-  }
-}
-
-/**
- * Get all availability entries
- * @returns {Array} Array of availability objects
- */
+// Availability
 function getAvailability() {
-  var avail = loadAllAvailability_();
-  return JSON.parse(JSON.stringify(avail));
+  return MoApi.getAvailability();
 }
 
-/**
- * Get availability by contact name
- * @param {string} contactName - Contact name to filter by
- * @returns {Array} Matching availability entries
- */
 function getAvailabilityByContact(contactName) {
-  var avail = loadAllAvailability_();
-  var nameLower = contactName.toLowerCase();
-  var results = avail.filter(function(a) {
-    return a.contact_name && a.contact_name.toLowerCase().indexOf(nameLower) !== -1;
-  });
-  return JSON.parse(JSON.stringify(results));
+  return MoApi.getAvailabilityByContact(contactName);
 }
 
-/**
- * Get availability for a date range
- * @param {string} startDate - Start date (YYYY-MM-DD)
- * @param {string} endDate - End date (YYYY-MM-DD)
- * @returns {Array} Availability entries overlapping the range
- */
 function getAvailabilityInRange(startDate, endDate) {
-  var avail = loadAllAvailability_();
-  var start = new Date(startDate);
-  var end = new Date(endDate);
-
-  var results = avail.filter(function(a) {
-    var aStart = new Date(a.start_date);
-    var aEnd = new Date(a.end_date);
-    // Check for overlap
-    return aStart <= end && aEnd >= start;
-  });
-
-  return JSON.parse(JSON.stringify(results));
+  return MoApi.getAvailabilityInRange(startDate, endDate);
 }
 
-/**
- * Get current and upcoming availability (next N days)
- * @param {number} days - Number of days to look ahead (default 30)
- * @returns {Array} Upcoming availability entries
- */
 function getUpcomingAvailability(days) {
-  days = days || 30;
-  var today = new Date();
-  today.setHours(0, 0, 0, 0);
-  var endDate = new Date();
-  endDate.setDate(endDate.getDate() + days);
-
-  var todayStr = Utilities.formatDate(today, Session.getScriptTimeZone(), 'yyyy-MM-dd');
-  var endStr = Utilities.formatDate(endDate, Session.getScriptTimeZone(), 'yyyy-MM-dd');
-
-  return getAvailabilityInRange(todayStr, endStr);
+  return MoApi.getUpcomingAvailability(days);
 }
 
-/**
- * Add a new availability entry
- * @param {Object} data - Availability data
- * @returns {Object} Result with success status
- */
 function addAvailability(data) {
-  try {
-    var sheet = getAvailabilitySheet_();
-    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-
-    // Generate ID
-    var lastRow = sheet.getLastRow();
-    var newId = 'AVAIL_' + String(lastRow).padStart(4, '0');
-
-    // Build row
-    var newRow = headers.map(function(h) {
-      if (h === 'availability_id') return newId;
-      if (h === 'created_at') return new Date();
-      return data[h] || '';
-    });
-
-    sheet.appendRow(newRow);
-    _availabilityCache = null; // Clear cache
-
-    return { success: true, availability_id: newId };
-  } catch (e) {
-    Logger.log('Error in addAvailability: ' + e);
-    return { success: false, error: e.message };
-  }
+  return MoApi.addAvailability(data);
 }
 
-/**
- * Delete an availability entry
- * @param {string} availabilityId - Availability ID to delete
- * @returns {Object} Result with success status
- */
 function deleteAvailability(availabilityId) {
-  try {
-    var sheet = getAvailabilitySheet_();
-    var data = sheet.getDataRange().getValues();
-    var headers = data[0];
-    var idCol = headers.indexOf('availability_id');
-
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][idCol] === availabilityId) {
-        sheet.deleteRow(i + 1);
-        _availabilityCache = null;
-        return { success: true };
-      }
-    }
-
-    return { success: false, error: 'Availability not found' };
-  } catch (e) {
-    Logger.log('Error in deleteAvailability: ' + e);
-    return { success: false, error: e.message };
-  }
+  return MoApi.deleteAvailability(availabilityId);
 }
 
-// ============================================================================
-// MEETINGS
-// ============================================================================
-
-/**
- * Get the Meetings sheet
- * @private
- */
-function getMeetingsSheet_() {
-  var sheetId = getConfigValue('MEETINGS_SHEET_ID');
-  if (!sheetId) {
-    throw new Error('MEETINGS_SHEET_ID not configured');
-  }
-  var ss = SpreadsheetApp.openById(sheetId);
-  return ss.getSheets()[0];
-}
-
-/**
- * Cache for meetings data
- */
-var _meetingsCache = null;
-
-/**
- * Load all meetings
- * @private
- */
-function loadAllMeetings_() {
-  if (_meetingsCache !== null) {
-    return _meetingsCache;
-  }
-
-  try {
-    var sheet = getMeetingsSheet_();
-    var data = sheet.getDataRange().getValues();
-
-    if (data.length < 2) return [];
-
-    var headers = data[0];
-    var results = [];
-
-    for (var i = 1; i < data.length; i++) {
-      var row = data[i];
-      var obj = {};
-      headers.forEach(function(h, j) {
-        obj[h] = row[j];
-      });
-      results.push(obj);
-    }
-
-    // Sort by day of week, then time
-    var dayOrder = {'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, '': 6};
-    results.sort(function(a, b) {
-      var dayA = dayOrder[a.day_of_week] || 6;
-      var dayB = dayOrder[b.day_of_week] || 6;
-      if (dayA !== dayB) return dayA - dayB;
-      return (a.time || '').localeCompare(b.time || '');
-    });
-
-    _meetingsCache = results;
-    return results;
-  } catch (e) {
-    Logger.log('Error in loadAllMeetings_: ' + e);
-    return [];
-  }
-}
-
-/**
- * Get all meetings
- * @returns {Array} Array of meeting objects
- */
+// Meetings
 function getAllMeetings() {
-  var meetings = loadAllMeetings_();
-  return JSON.parse(JSON.stringify(meetings));
+  return MoApi.getAllMeetings();
 }
 
-/**
- * Get meeting by ID
- * @param {string} meetingId - Meeting ID
- * @returns {Object} Meeting object or null
- */
 function getMeetingById(meetingId) {
-  var meetings = loadAllMeetings_();
-  var found = meetings.find(function(m) {
-    return m.meeting_id === meetingId;
-  });
-  return found ? JSON.parse(JSON.stringify(found)) : null;
+  return MoApi.getMeetingById(meetingId);
 }
 
-/**
- * Get meetings by day of week
- * @param {string} day - Day name (Monday, Tuesday, etc.)
- * @returns {Array} Meetings on that day
- */
 function getMeetingsByDay(day) {
-  var meetings = loadAllMeetings_();
-  var results = meetings.filter(function(m) {
-    return m.day_of_week && m.day_of_week.toLowerCase() === day.toLowerCase();
-  });
-  return JSON.parse(JSON.stringify(results));
+  return MoApi.getMeetingsByDay(day);
 }
 
-/**
- * Get meetings by category
- * @param {string} category - Category (MO, Assessment, SEP, Comms, etc.)
- * @returns {Array} Meetings in that category
- */
 function getMeetingsByCategory(category) {
-  var meetings = loadAllMeetings_();
-  var results = meetings.filter(function(m) {
-    return m.category && m.category.toLowerCase() === category.toLowerCase();
-  });
-  return JSON.parse(JSON.stringify(results));
+  return MoApi.getMeetingsByCategory(category);
 }
 
-/**
- * Get active meetings only
- * @returns {Array} Active meetings
- */
 function getActiveMeetings() {
-  var meetings = loadAllMeetings_();
-  var results = meetings.filter(function(m) {
-    return m.is_active === true || m.is_active === 'TRUE' || m.is_active === 1;
-  });
-  return JSON.parse(JSON.stringify(results));
+  return MoApi.getActiveMeetings();
 }
 
-/**
- * Get weekly meeting schedule (grouped by day)
- * @returns {Object} Meetings grouped by day of week
- */
 function getWeeklySchedule() {
-  var meetings = getActiveMeetings();
-  var schedule = {
-    Monday: [],
-    Tuesday: [],
-    Wednesday: [],
-    Thursday: [],
-    Friday: []
-  };
-
-  meetings.forEach(function(m) {
-    if (m.day_of_week && schedule.hasOwnProperty(m.day_of_week)) {
-      schedule[m.day_of_week].push(m);
-    }
-  });
-
-  return schedule;
+  return MoApi.getWeeklySchedule();
 }
 
-/**
- * Add a new meeting
- * @param {Object} data - Meeting data
- * @returns {Object} Result with success status
- */
 function addMeeting(data) {
-  try {
-    var sheet = getMeetingsSheet_();
-    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-
-    // Generate ID
-    var lastRow = sheet.getLastRow();
-    var newId = 'MTG_' + String(lastRow).padStart(4, '0');
-
-    // Build row
-    var newRow = headers.map(function(h) {
-      if (h === 'meeting_id') return newId;
-      if (h === 'is_active') return true;
-      if (h === 'created_at') return new Date();
-      return data[h] || '';
-    });
-
-    sheet.appendRow(newRow);
-    _meetingsCache = null;
-
-    return { success: true, meeting_id: newId };
-  } catch (e) {
-    Logger.log('Error in addMeeting: ' + e);
-    return { success: false, error: e.message };
-  }
+  return MoApi.addMeeting(data);
 }
 
-/**
- * Update an existing meeting
- * @param {string} meetingId - Meeting ID
- * @param {Object} updates - Fields to update
- * @returns {Object} Result with success status
- */
 function updateMeeting(meetingId, updates) {
-  try {
-    var sheet = getMeetingsSheet_();
-    var data = sheet.getDataRange().getValues();
-    var headers = data[0];
-
-    // Find row with matching ID
-    var idCol = headers.indexOf('meeting_id');
-    var rowIndex = -1;
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][idCol] === meetingId) {
-        rowIndex = i + 1; // 1-indexed for sheet
-        break;
-      }
-    }
-
-    if (rowIndex === -1) {
-      throw new Error('Meeting not found: ' + meetingId);
-    }
-
-    // Update cells
-    for (var key in updates) {
-      var colIndex = headers.indexOf(key);
-      if (colIndex !== -1) {
-        sheet.getRange(rowIndex, colIndex + 1).setValue(updates[key]);
-      }
-    }
-
-    _meetingsCache = null;
-    return { success: true };
-  } catch (e) {
-    Logger.log('Error in updateMeeting: ' + e);
-    return { success: false, error: e.message };
-  }
+  return MoApi.updateMeeting(meetingId, updates);
 }
 
-/**
- * Delete a meeting
- * @param {string} meetingId - Meeting ID to delete
- * @returns {Object} Result with success status
- */
 function deleteMeeting(meetingId) {
-  try {
-    var sheet = getMeetingsSheet_();
-    var data = sheet.getDataRange().getValues();
-    var headers = data[0];
-    var idCol = headers.indexOf('meeting_id');
-
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][idCol] === meetingId) {
-        sheet.deleteRow(i + 1);
-        _meetingsCache = null;
-        return { success: true };
-      }
-    }
-
-    return { success: false, error: 'Meeting not found' };
-  } catch (e) {
-    Logger.log('Error in deleteMeeting: ' + e);
-    return { success: false, error: e.message };
-  }
+  return MoApi.deleteMeeting(meetingId);
 }
 
-// ============================================================================
-// GLOSSARY
-// ============================================================================
-
-/**
- * Get the Glossary sheet
- * @private
- */
-function getGlossarySheet_() {
-  var sheetId = getConfigValue('GLOSSARY_SHEET_ID');
-  if (!sheetId) {
-    throw new Error('GLOSSARY_SHEET_ID not configured');
-  }
-  var ss = SpreadsheetApp.openById(sheetId);
-  return ss.getSheets()[0];
-}
-
-/**
- * Cache for glossary data
- */
-var _glossaryCache = null;
-
-/**
- * Load all glossary terms
- * @private
- */
-function loadAllGlossaryTerms_() {
-  if (_glossaryCache !== null) {
-    return _glossaryCache;
-  }
-
-  try {
-    var sheet = getGlossarySheet_();
-    var data = sheet.getDataRange().getValues();
-
-    if (data.length < 2) return [];
-
-    var headers = data[0];
-    var results = [];
-
-    for (var i = 1; i < data.length; i++) {
-      var row = data[i];
-      var obj = {};
-      headers.forEach(function(h, j) {
-        obj[h] = row[j];
-      });
-      results.push(obj);
-    }
-
-    // Sort alphabetically by term
-    results.sort(function(a, b) {
-      return (a.term || '').localeCompare(b.term || '');
-    });
-
-    _glossaryCache = results;
-    return results;
-  } catch (e) {
-    Logger.log('Error in loadAllGlossaryTerms_: ' + e);
-    return [];
-  }
-}
-
-/**
- * Get all glossary terms
- * @returns {Array} Array of term objects
- */
+// Glossary
 function getGlossaryTerms() {
-  var terms = loadAllGlossaryTerms_();
-  return JSON.parse(JSON.stringify(terms));
+  return MoApi.getGlossaryTerms();
 }
 
-/**
- * Get glossary term by ID
- * @param {string} termId - Term ID
- * @returns {Object} Term object or null
- */
 function getGlossaryTermById(termId) {
-  var terms = loadAllGlossaryTerms_();
-  var found = terms.find(function(t) {
-    return t.term_id === termId;
-  });
-  return found ? JSON.parse(JSON.stringify(found)) : null;
+  return MoApi.getGlossaryTermById(termId);
 }
 
-/**
- * Search glossary terms
- * @param {string} query - Search query
- * @returns {Array} Matching terms
- */
 function searchGlossary(query) {
-  var terms = loadAllGlossaryTerms_();
-  var queryLower = (query || '').toLowerCase();
-
-  var results = terms.filter(function(t) {
-    return (t.term || '').toLowerCase().indexOf(queryLower) !== -1 ||
-           (t.definition || '').toLowerCase().indexOf(queryLower) !== -1;
-  });
-
-  return JSON.parse(JSON.stringify(results));
+  return MoApi.searchGlossary(query);
 }
 
-/**
- * Get glossary terms by category
- * @param {string} category - Category to filter by
- * @returns {Array} Terms in that category
- */
 function getGlossaryByCategory(category) {
-  var terms = loadAllGlossaryTerms_();
-  var results = terms.filter(function(t) {
-    return t.category && t.category.toLowerCase() === category.toLowerCase();
-  });
-  return JSON.parse(JSON.stringify(results));
+  return MoApi.getGlossaryByCategory(category);
 }
 
-/**
- * Add a glossary term
- * @param {Object} data - Term data
- * @returns {Object} Result with success status
- */
 function addGlossaryTerm(data) {
-  try {
-    var sheet = getGlossarySheet_();
-    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-
-    // Generate ID
-    var lastRow = sheet.getLastRow();
-    var newId = 'TERM_' + String(lastRow).padStart(4, '0');
-
-    // Build row
-    var newRow = headers.map(function(h) {
-      if (h === 'term_id') return newId;
-      if (h === 'created_at') return new Date();
-      return data[h] || '';
-    });
-
-    sheet.appendRow(newRow);
-    _glossaryCache = null;
-
-    return { success: true, term_id: newId };
-  } catch (e) {
-    Logger.log('Error in addGlossaryTerm: ' + e);
-    return { success: false, error: e.message };
-  }
+  return MoApi.addGlossaryTerm(data);
 }
 
-/**
- * Update a glossary term
- * @param {string} termId - Term ID
- * @param {Object} updates - Fields to update
- * @returns {Object} Result with success status
- */
 function updateGlossaryTerm(termId, updates) {
-  try {
-    var sheet = getGlossarySheet_();
-    var data = sheet.getDataRange().getValues();
-    var headers = data[0];
-
-    var idCol = headers.indexOf('term_id');
-    var rowIndex = -1;
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][idCol] === termId) {
-        rowIndex = i + 1;
-        break;
-      }
-    }
-
-    if (rowIndex === -1) {
-      throw new Error('Term not found: ' + termId);
-    }
-
-    for (var key in updates) {
-      var colIndex = headers.indexOf(key);
-      if (colIndex !== -1) {
-        sheet.getRange(rowIndex, colIndex + 1).setValue(updates[key]);
-      }
-    }
-
-    _glossaryCache = null;
-    return { success: true };
-  } catch (e) {
-    Logger.log('Error in updateGlossaryTerm: ' + e);
-    return { success: false, error: e.message };
-  }
+  return MoApi.updateGlossaryTerm(termId, updates);
 }
 
-/**
- * Delete a glossary term
- * @param {string} termId - Term ID to delete
- * @returns {Object} Result with success status
- */
 function deleteGlossaryTerm(termId) {
-  try {
-    var sheet = getGlossarySheet_();
-    var data = sheet.getDataRange().getValues();
-    var headers = data[0];
-    var idCol = headers.indexOf('term_id');
-
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][idCol] === termId) {
-        sheet.deleteRow(i + 1);
-        _glossaryCache = null;
-        return { success: true };
-      }
-    }
-
-    return { success: false, error: 'Term not found' };
-  } catch (e) {
-    Logger.log('Error in deleteGlossaryTerm: ' + e);
-    return { success: false, error: e.message };
-  }
+  return MoApi.deleteGlossaryTerm(termId);
 }
 
-// ============================================================================
-// TEAM OVERVIEW (Aggregated stats)
-// ============================================================================
-
-/**
- * Get team overview for dashboard
- * @returns {Object} Comprehensive team statistics
- */
+// Team Overview
 function getTeamOverview() {
-  var team = getInternalTeam();
-  var availability = getUpcomingAvailability(30);
-  var meetings = getActiveMeetings();
-
-  // Count upcoming OOO/travel
-  var today = new Date();
-  today.setHours(0, 0, 0, 0);
-  var todayStr = Utilities.formatDate(today, Session.getScriptTimeZone(), 'yyyy-MM-dd');
-
-  var currentlyOut = availability.filter(function(a) {
-    return a.start_date <= todayStr && a.end_date >= todayStr;
-  });
-
-  var upcomingOut = availability.filter(function(a) {
-    return a.start_date > todayStr;
-  });
-
-  // Team counts
-  var teamStats = getInternalTeamStats();
-
-  // Meeting counts by category
-  var meetingsByCategory = {};
-  meetings.forEach(function(m) {
-    var cat = m.category || 'Other';
-    meetingsByCategory[cat] = (meetingsByCategory[cat] || 0) + 1;
-  });
-
-  return {
-    team: {
-      total: teamStats.total,
-      by_team: teamStats.by_team
-    },
-    availability: {
-      currently_out: currentlyOut.length,
-      upcoming_out: upcomingOut.length,
-      currently_out_names: currentlyOut.map(function(a) { return a.contact_name; })
-    },
-    meetings: {
-      total_active: meetings.length,
-      by_category: meetingsByCategory
-    }
-  };
+  return MoApi.getTeamOverview();
 }
 
-// ============================================================================
-// DIRECTING DOCUMENTS
-// ============================================================================
-
-/**
- * Document definitions with config keys, display names, descriptions, and categories
- * @private
- */
-var DIRECTING_DOCUMENTS = [
-  // Core Documents
-  {
-    configKey: 'MO_PROJECT_PLAN_DOC_ID',
-    name: 'MO Project Plan',
-    description: 'Overall project plan for NSITE Management Office operations',
-    category: 'Core',
-    icon: 'file-text'
-  },
-  {
-    configKey: 'HQ_PROJECT_PLAN_DOC_ID',
-    name: 'HQ Project Plan',
-    description: 'NASA Headquarters project plan and directives',
-    category: 'Core',
-    icon: 'file-text'
-  },
-  {
-    configKey: 'SOLUTION_REQUIREMENTS_EXPECTATIONS_DOC_ID',
-    name: 'Solution Requirements & Expectations',
-    description: 'Requirements and expectations for SNWG solutions',
-    category: 'Core',
-    icon: 'clipboard'
-  },
-
-  // SEP Documents
-  {
-    configKey: 'SEP_PLAN_DOC_ID',
-    name: 'SEP Plan',
-    description: 'Stakeholder Engagement Program strategic plan',
-    category: 'SEP',
-    icon: 'users'
-  },
-  {
-    configKey: 'SEP_BLUEPRINT_DOC_ID',
-    name: 'SEP Blueprint',
-    description: 'Detailed blueprint for stakeholder engagement activities',
-    category: 'SEP',
-    icon: 'map'
-  },
-  {
-    configKey: 'CODESIGN_PIPELINE_DOC_ID',
-    name: 'CoDesign Pipeline',
-    description: 'CoDesign process pipeline and workflow documentation',
-    category: 'SEP',
-    icon: 'git-merge'
-  },
-
-  // Comms Documents
-  {
-    configKey: 'COMMS_PLAN_DOC_ID',
-    name: 'Communications Plan',
-    description: 'Strategic communications and outreach plan',
-    category: 'Comms',
-    icon: 'message-square'
-  },
-  {
-    configKey: 'STYLE_GUIDE_DOC_ID',
-    name: 'Style Guide',
-    description: 'Brand and style guidelines for NSITE MO communications',
-    category: 'Comms',
-    icon: 'edit-3'
-  },
-  {
-    configKey: 'HIGHLIGHTER_BLURBS_DOC_ID',
-    name: 'Highlighter Blurbs',
-    description: 'Pre-approved highlight content and blurbs',
-    category: 'Comms',
-    icon: 'star'
-  },
-  {
-    configKey: 'WEBPAGE_LOG_DOC_ID',
-    name: 'Webpage Log',
-    description: 'Log of website updates and changes',
-    category: 'Comms',
-    icon: 'globe'
-  },
-
-  // Assessment Documents
-  {
-    configKey: 'ASSESSEMENT_PROCESS_DOC_ID',
-    name: 'Assessment Process',
-    description: 'Detailed assessment cycle process documentation',
-    category: 'Assessment',
-    icon: 'check-circle'
-  },
-  {
-    configKey: 'ASSESSEMENT_CHEATSHEET_DOC_ID',
-    name: 'Assessment Cheatsheet',
-    description: 'Quick reference guide for assessment activities',
-    category: 'Assessment',
-    icon: 'zap'
-  },
-
-  // Operations Documents
-  {
-    configKey: 'MO_RISK_REGISTER_DOC_ID',
-    name: 'MO Risk Register',
-    description: 'Management Office risk tracking and mitigation',
-    category: 'Operations',
-    icon: 'alert-triangle'
-  },
-  {
-    configKey: 'RISK_REGISTER_DOC_ID',
-    name: 'Risk Register',
-    description: 'Program-wide risk register',
-    category: 'Operations',
-    icon: 'alert-triangle'
-  },
-  {
-    configKey: 'INFO_MANAGEMENT_PLAN_DOC_ID',
-    name: 'Information Management Plan',
-    description: 'Data and information management guidelines',
-    category: 'Operations',
-    icon: 'database'
-  },
-  {
-    configKey: 'AUDIT_LOG_DOC_ID',
-    name: 'Audit Log',
-    description: 'Audit trail and change log',
-    category: 'Operations',
-    icon: 'list'
-  }
-];
-
-/**
- * Get all directing documents with URLs from config
- * @returns {Array} Array of document objects with name, description, category, url, icon
- */
+// Directing Documents
 function getDirectingDocuments() {
-  var config = loadConfigFromSheet();
-  var results = [];
-
-  DIRECTING_DOCUMENTS.forEach(function(doc) {
-    var docId = config[doc.configKey];
-
-    // Only include documents that have an ID configured
-    if (docId) {
-      results.push({
-        id: doc.configKey,
-        name: doc.name,
-        description: doc.description,
-        category: doc.category,
-        icon: doc.icon,
-        url: 'https://docs.google.com/document/d/' + docId + '/edit',
-        configured: true
-      });
-    }
-  });
-
-  // Sort by category, then by name
-  var categoryOrder = ['Core', 'SEP', 'Comms', 'Assessment', 'Operations'];
-  results.sort(function(a, b) {
-    var catA = categoryOrder.indexOf(a.category);
-    var catB = categoryOrder.indexOf(b.category);
-    if (catA !== catB) return catA - catB;
-    return a.name.localeCompare(b.name);
-  });
-
-  return results;
+  return MoApi.getDirectingDocuments();
 }
 
-/**
- * Get directing documents grouped by category
- * @returns {Object} Documents grouped by category
- */
 function getDirectingDocumentsByCategory() {
-  var docs = getDirectingDocuments();
-  var grouped = {};
-
-  docs.forEach(function(doc) {
-    if (!grouped[doc.category]) {
-      grouped[doc.category] = [];
-    }
-    grouped[doc.category].push(doc);
-  });
-
-  return grouped;
+  return MoApi.getDirectingDocumentsByCategory();
 }
 
-/**
- * Get count of configured directing documents
- * @returns {number} Count of documents with URLs configured
- */
 function getDirectingDocumentsCount() {
-  return getDirectingDocuments().length;
+  return MoApi.getDirectingDocumentsCount();
 }

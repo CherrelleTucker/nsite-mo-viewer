@@ -10,9 +10,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Comms-NSITE (communications/story tracking)
+- Comms-NSITE (communications/story tracking) - UI for stories-api.gs
 - Automation & Sync (scheduled exports, email notifications)
-- True thin wrapper conversion (deploy APIs delegate to MoApi library)
+
+---
+
+## [1.2.0] - 2026-01-18
+
+### Added - TRUE THIN WRAPPER CONVERSION (**MAJOR ARCHITECTURE CHANGE**)
+- **Complete API Conversion**: All 10 deploy/*-api.gs files now delegate to MoApi library
+  - Pattern: `function X(...args) { return MoApi.X(...args); }`
+  - Full implementations moved to library/ folder
+  - Deploy wrappers reduced from ~6,500 lines to ~700 lines total
+- **4 New Library API Files**:
+  - `library/actions-api.gs` - Action tracking with bi-directional agenda sync (667 lines)
+  - `library/milestones-api.gs` - Milestone tracking for Implementation-NSITE (420 lines)
+  - `library/outreach-api.gs` - Event/outreach tracking with web discovery (696 lines)
+  - `library/stories-api.gs` - Communications story pipeline (955 lines)
+
+### Changed
+- **deploy/solutions-api.gs** → Thin wrapper (70 lines, was 376)
+- **deploy/contacts-api.gs** → Thin wrapper (148 lines, was 997)
+- **deploy/agencies-api.gs** → Thin wrapper (75 lines, was 458)
+- **deploy/updates-api.gs** → Thin wrapper (56 lines, was 336)
+- **deploy/engagements-api.gs** → Thin wrapper (88 lines, was 557)
+- **deploy/team-api.gs** → Thin wrapper (128 lines, was 1010)
+- **deploy/actions-api.gs** → Thin wrapper (88 lines, was 667)
+- **deploy/milestones-api.gs** → Thin wrapper (61 lines, was 420)
+- **deploy/outreach-api.gs** → Thin wrapper (111 lines, was 696)
+- **deploy/stories-api.gs** → Thin wrapper (117 lines, was 955)
 
 ---
 

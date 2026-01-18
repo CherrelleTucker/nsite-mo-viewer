@@ -5,7 +5,20 @@
 
 ---
 
-## Completed This Session (2026-01-18) - Team Viewer & Config Alignment
+## Completed This Session (2026-01-18) - API Conversion & Team Viewer
+
+- [x] **TRUE THIN WRAPPER CONVERSION** (**MAJOR ARCHITECTURE CHANGE**)
+  - All 10 deploy/*-api.gs files now delegate to MoApi library
+  - Full implementations moved to library/ folder
+  - Deploy wrappers reduced from ~6,500 lines to ~700 lines total
+  - Pattern: `function X(...args) { return MoApi.X(...args); }`
+  - APIs converted: solutions, contacts, agencies, updates, engagements, team, actions, milestones, outreach, stories
+
+- [x] **4 NEW LIBRARY API FILES**
+  - Added `library/actions-api.gs` - Action tracking with bi-directional agenda sync
+  - Added `library/milestones-api.gs` - Milestone tracking for Implementation-NSITE
+  - Added `library/outreach-api.gs` - Event/outreach tracking with web discovery
+  - Added `library/stories-api.gs` - Communications story pipeline
 
 - [x] **Team Viewer - Documents View Implementation**
   - Added `getDirectingDocuments()` function to team-api.gs (deploy and library)
@@ -200,13 +213,17 @@
 ### MO-APIs Library (standalone Apps Script project)
 ```
 library/
-├── config-helpers.gs       # Configuration loading, getConfigValue()
+├── config-helpers.gs       # Configuration loading, getConfigValue(), getDatabaseSheet()
 ├── solutions-api.gs        # Solutions data + findSolutionIdsInText()
 ├── contacts-api.gs         # Contacts data (stakeholders, SEP)
 ├── agencies-api.gs         # Agencies hierarchy
 ├── updates-api.gs          # Updates data
 ├── engagements-api.gs      # Engagements logging
-└── team-api.gs             # Team, availability, meetings, glossary, directing docs
+├── team-api.gs             # Team, availability, meetings, glossary, directing docs
+├── actions-api.gs          # Actions tracking with bi-directional agenda sync
+├── milestones-api.gs       # Milestone tracking
+├── outreach-api.gs         # Event/outreach tracking
+└── stories-api.gs          # Communications story pipeline
 ```
 
 ### NSITE-MO-Viewer (main web app)
@@ -215,16 +232,18 @@ deploy/
 ├── Code.gs                 # Main Apps Script entry point, config keys
 ├── about.html              # Platform documentation page
 ├── actions.html            # Actions-NSITE UI
-├── agencies-api.gs         # Agencies data (full implementation)
+├── agencies-api.gs         # THIN WRAPPER → MoApi.getAllAgencies(), etc.
+├── actions-api.gs          # THIN WRAPPER → MoApi.getAllActions(), etc.
 ├── contacts.html           # Contacts Directory UI
-├── contacts-api.gs         # Contacts data (full implementation)
+├── contacts-api.gs         # THIN WRAPPER → MoApi.getAllContacts(), etc.
 ├── contacts-menu.gs        # Contacts sheet menu
 ├── earthdata-sync.gs       # Earthdata.nasa.gov content scraper/sync
-├── engagements-api.gs      # Engagements data (full implementation)
+├── engagements-api.gs      # THIN WRAPPER → MoApi.getAllEngagements(), etc.
 ├── implementation.html     # Implementation-NSITE UI
 ├── index.html              # Platform shell with SPA routing
-├── milestones-api.gs       # Milestones data API
+├── milestones-api.gs       # THIN WRAPPER → MoApi.getAllMilestones(), etc.
 ├── navigation.html         # Tab navigation
+├── outreach-api.gs         # THIN WRAPPER → MoApi.getAllEvents(), etc.
 ├── quadchart-data.gs       # Quad Chart report generator
 ├── quick-update.html       # Quick Update Form UI
 ├── quick-update-handlers.gs # Quick Update backend
@@ -233,15 +252,16 @@ deploy/
 ├── schedule.html           # Schedule timeline view
 ├── sep.html                # SEP-NSITE UI
 ├── stakeholder-solution-alignment.gs  # Advanced stakeholder reports
-├── solutions-api.gs        # Solutions data (full implementation)
+├── solutions-api.gs        # THIN WRAPPER → MoApi.getAllSolutions(), etc.
+├── stories-api.gs          # THIN WRAPPER → MoApi.getAllStories(), etc.
 ├── styles.html             # Shared CSS
 ├── team.html               # Team-NSITE UI (profiles, meetings, availability, docs)
-├── team-api.gs             # Team data (full implementation)
-└── updates-api.gs          # Updates data (full implementation)
+├── team-api.gs             # THIN WRAPPER → MoApi.getInternalTeam(), etc.
+└── updates-api.gs          # THIN WRAPPER → MoApi.getAllUpdates(), etc.
 ```
 
-**Note:** The deploy/*-api.gs files currently contain full implementations (not thin wrappers).
-The library/ folder contains parallel implementations for use as an Apps Script Library.
+**ARCHITECTURE:** All deploy/*-api.gs files are now THIN WRAPPERS that delegate to the MoApi library.
+Full implementations live in library/*-api.gs files.
 
 ### Container-Bound Scripts (in respective database sheets)
 ```

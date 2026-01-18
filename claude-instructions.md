@@ -20,27 +20,31 @@ Files to deploy to MO-APIs Library (Google Apps Script):
 C:\Users\cjtucke3\Documents\Personal\MO-development\nsite-mo-viewer\library\<filename>
 ```
 
-### 2. Keep Library and Deploy API Files in Sync
+### 2. API Architecture: Library = Full, Deploy = Thin Wrappers
 
-When updating ANY `*-api.gs` file:
-- Update BOTH `deploy/<name>-api.gs` AND `library/<name>-api.gs`
-- The files should contain identical implementations
-- The MO-APIs Library is a separate Google Apps Script project with identifier `MoApi`
+**CRITICAL:** The architecture is now:
+- `library/*-api.gs` files contain FULL implementations
+- `deploy/*-api.gs` files are THIN WRAPPERS that call `MoApi.*` functions
 
-**Current API files that exist in BOTH locations:**
-- config-helpers.gs (library only - provides getConfigValue())
-- solutions-api.gs
-- contacts-api.gs
-- agencies-api.gs
-- updates-api.gs
-- engagements-api.gs
-- team-api.gs
+**When updating an API:**
+1. Edit the `library/<name>-api.gs` file with the full implementation
+2. The `deploy/<name>-api.gs` wrapper does NOT need changes (unless adding new functions)
+3. If adding a NEW function, add the wrapper in deploy: `function newFunc(x) { return MoApi.newFunc(x); }`
+4. The MO-APIs Library is a separate Google Apps Script project with identifier `MoApi`
 
-**API files that exist ONLY in deploy/ (not yet in library):**
-- actions-api.gs
-- milestones-api.gs
-- outreach-api.gs
-- stories-api.gs
+**All 11 API files exist in BOTH locations:**
+- config-helpers.gs (library only - provides getConfigValue(), getDatabaseSheet())
+- solutions-api.gs, contacts-api.gs, agencies-api.gs, updates-api.gs
+- engagements-api.gs, team-api.gs, actions-api.gs, milestones-api.gs
+- outreach-api.gs, stories-api.gs
+
+**Thin wrapper pattern:**
+```javascript
+// deploy/solutions-api.gs
+function getAllSolutions() {
+  return MoApi.getAllSolutions();
+}
+```
 
 ### 3. Update about.html When Any Page Changes
 
@@ -188,7 +192,7 @@ Before completing any task, verify:
 
 4. **Incomplete documentation** - Update ALL relevant docs, not just code
 
-5. **Thin wrapper confusion** - Despite earlier documentation claims, deploy/*-api.gs files are FULL implementations, not thin wrappers. Both deploy and library have identical code.
+5. **Editing wrong file** - For API logic changes, edit `library/*-api.gs` files (the full implementations). Deploy wrappers rarely need changes unless adding new functions.
 
 6. **Forgetting about.html** - This is the user-facing documentation. Keep it current.
 
@@ -250,7 +254,7 @@ When beginning a new session:
 
 ## Version Information
 
-- **Current Version:** 1.1.0
+- **Current Version:** 1.2.0
 - **Last Updated:** 2026-01-18
 - **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
 
