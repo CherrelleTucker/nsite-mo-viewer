@@ -68,3 +68,20 @@ function findSolutionIdsInText(text) {
 function clearSolutionNameMapCache() {
   return MoApi.clearSolutionNameMapCache();
 }
+
+// Key Messages Functions
+function getKeyMessages(solutionId) {
+  return MoApi.getKeyMessages(solutionId);
+}
+
+function getSolutionsWithKeyMessages() {
+  return MoApi.getSolutionsWithKeyMessages();
+}
+
+function getKeyMessagesSummary() {
+  return MoApi.getKeyMessagesSummary();
+}
+
+function searchKeyMessages(query) {
+  return MoApi.searchKeyMessages(query);
+}

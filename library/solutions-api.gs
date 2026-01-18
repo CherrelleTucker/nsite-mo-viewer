@@ -376,3 +376,110 @@ function escapeRegExp_(string) {
 function clearSolutionNameMapCache() {
   _solutionNameMapCache = null;
 }
+
+// ============================================================================
+// KEY MESSAGES FUNCTIONS
+// ============================================================================
+
+/**
+ * Get key messages for a specific solution
+ *
+ * @param {string} solutionId - Solution ID
+ * @returns {Object|null} Key messages data or null if not found
+ */
+function getKeyMessages(solutionId) {
+  var solution = getSolution(solutionId);
+  if (!solution) return null;
+
+  return {
+    solution_id: solution.solution_id,
+    solution_name: solution.name,
+    key_messages: solution.key_messages || '',
+    focus_type: solution.focus_type || '',
+    industry_connections: solution.industry_connections || '',
+    scientific_advancement: solution.scientific_advancement || '',
+    agency_use_impact: solution.agency_use_impact || '',
+    public_comms_links: solution.public_comms_links || ''
+  };
+}
+
+/**
+ * Get all solutions with key messages
+ *
+ * @returns {Array} Array of solutions that have key_messages populated
+ */
+function getSolutionsWithKeyMessages() {
+  var solutions = getAllSolutions();
+  return solutions.filter(function(sol) {
+    return sol.key_messages && sol.key_messages.trim().length > 0;
+  }).map(function(sol) {
+    return {
+      solution_id: sol.solution_id,
+      solution_name: sol.name,
+      key_messages: sol.key_messages || '',
+      focus_type: sol.focus_type || '',
+      industry_connections: sol.industry_connections || '',
+      scientific_advancement: sol.scientific_advancement || '',
+      agency_use_impact: sol.agency_use_impact || '',
+      public_comms_links: sol.public_comms_links || ''
+    };
+  });
+}
+
+/**
+ * Get key messages summary for comms dashboard
+ *
+ * @returns {Object} Summary statistics for key messages coverage
+ */
+function getKeyMessagesSummary() {
+  var solutions = getAllSolutions();
+  var withMessages = solutions.filter(function(sol) {
+    return sol.key_messages && sol.key_messages.trim().length > 0;
+  });
+
+  var byFocusType = {};
+  withMessages.forEach(function(sol) {
+    var focus = sol.focus_type || 'Unspecified';
+    byFocusType[focus] = (byFocusType[focus] || 0) + 1;
+  });
+
+  return {
+    total_solutions: solutions.length,
+    with_key_messages: withMessages.length,
+    without_key_messages: solutions.length - withMessages.length,
+    coverage_percent: Math.round((withMessages.length / solutions.length) * 100),
+    by_focus_type: byFocusType
+  };
+}
+
+/**
+ * Search key messages by keyword
+ *
+ * @param {string} query - Search query
+ * @returns {Array} Matching solutions with key messages
+ */
+function searchKeyMessages(query) {
+  if (!query || query.trim().length < 2) return [];
+
+  var solutions = getAllSolutions();
+  var lowerQuery = query.toLowerCase();
+
+  return solutions.filter(function(sol) {
+    var searchText = [
+      sol.name,
+      sol.key_messages,
+      sol.scientific_advancement,
+      sol.agency_use_impact,
+      sol.industry_connections
+    ].join(' ').toLowerCase();
+
+    return searchText.indexOf(lowerQuery) !== -1;
+  }).map(function(sol) {
+    return {
+      solution_id: sol.solution_id,
+      solution_name: sol.name,
+      key_messages: sol.key_messages || '',
+      focus_type: sol.focus_type || ''
+    };
+  });
+}

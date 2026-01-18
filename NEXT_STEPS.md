@@ -1,11 +1,51 @@
 # Next Development Steps
 
 **Last Updated:** 2026-01-18
-**Current Version:** 1.1.0
+**Current Version:** 1.3.0
 
 ---
 
-## Completed This Session (2026-01-18) - API Conversion & Team Viewer
+## Completed This Session (2026-01-18) - Comms-NSITE & Database Consolidation
+
+- [x] **COMMS-NSITE ENHANCEMENTS**
+  - Added Admin Priorities view showing stories aligned with Biden-Harris priorities
+  - Added admin_priorities checkbox group to story form
+  - 5 priority categories: Partnerships, Citizen Science, AI Innovation, Science Integrity, Efficiency
+  - renderPrioritiesView() function with priority cards
+
+- [x] **MO-DB_STORIES DATABASE** (NEW)
+  - 38 stories extracted from NSITE Story Tracking workbook
+  - 6 content types: story, web_content, social_media, nugget, key_date, science_advancement
+  - 22 columns including admin_priorities and source tracking
+  - Created sync-stories-from-tracking.gs (container-bound)
+  - Created sync_stories_from_tracking.py (local development)
+
+- [x] **MO-DB_SOLUTIONS CONSOLIDATION** (**MAJOR CLEANUP**)
+  - Reduced from 80 → 48 columns (32 columns removed/migrated)
+  - Milestone data extracted to MO-DB_Milestones
+  - Empty columns removed (17 with no data)
+  - Redundant columns merged
+  - Created consolidate_solutions_db.py script
+
+- [x] **MO-DB_MILESTONES DATABASE** (NEW)
+  - 185 milestone records extracted from Solutions
+  - Columns: milestone_id, solution_id, milestone_type, target_date, actual_date, status, notes
+  - Milestone types: ATP, F2I, ORR, Closeout, various memo dates
+
+- [x] **KEY MESSAGES INTEGRATION**
+  - 6 new columns added to MO-DB_Solutions:
+    - key_messages, focus_type, industry_connections
+    - scientific_advancement, agency_use_impact, public_comms_links
+  - Key Messages API functions in solutions-api.gs:
+    - getKeyMessages(solutionId)
+    - getSolutionsWithKeyMessages()
+    - getKeyMessagesSummary()
+    - searchKeyMessages(query)
+  - 14 solutions matched with key messages data
+
+---
+
+## Completed Previous Session (2026-01-18) - API Conversion & Team Viewer
 
 - [x] **TRUE THIN WRAPPER CONVERSION** (**MAJOR ARCHITECTURE CHANGE**)
   - All 10 deploy/*-api.gs files now delegate to MoApi library
@@ -26,26 +66,6 @@
   - Documents grouped by category: Core, SEP, Comms, Assessment, Operations
   - Renders clickable document cards with icons and descriptions
   - Document count now shows in Team stats
-
-- [x] **Code.gs CONFIG_KEYS Updated**
-  - Added 24 new config key constants for documentation
-  - Source Documents: OPERA_MONTHLY_ID, PBL_MONTHLY_ID
-  - Library Reference: API_LIBRARY_ID
-  - Directing Documents (16): MO_PROJECT_PLAN_DOC_ID, HQ_PROJECT_PLAN_DOC_ID, SEP_PLAN_DOC_ID, SEP_BLUEPRINT_DOC_ID, COMMS_PLAN_DOC_ID, STYLE_GUIDE_DOC_ID, ASSESSEMENT_PROCESS_DOC_ID, ASSESSEMENT_CHEATSHEET_DOC_ID, MO_RISK_REGISTER_DOC_ID, RISK_REGISTER_DOC_ID, INFO_MANAGEMENT_PLAN_DOC_ID, AUDIT_LOG_DOC_ID, CODESIGN_PIPELINE_DOC_ID, HIGHLIGHTER_BLURBS_DOC_ID, WEBPAGE_LOG_DOC_ID, SOLUTION_REQUIREMENTS_EXPECTATIONS_DOC_ID
-
-- [x] **DATA_SCHEMA.md Updated to v1.1.0**
-  - Added AVAILABILITY table schema (team OOO calendar)
-  - Added MEETINGS table schema (recurring meetings)
-  - Added GLOSSARY table schema (terms and definitions)
-  - Added CONFIG table schema (system configuration)
-  - Added new enumerations: AvailabilityType, RecurrenceType, MeetingCategory, MeetingType
-
-- [x] **about.html Updated**
-  - Added Team-NSITE documentation card
-  - Added MO-DB_Availability, MO-DB_Meetings, MO-DB_Glossary to database section
-  - Updated architecture diagram to show Team
-  - Removed obsolete items (blank page fix already done, comms already deployed)
-  - Updated version to 1.1.0
 
 ---
 
@@ -160,17 +180,15 @@
 
 ## Priority Tasks for Next Session
 
-### 1. Comms-NSITE Viewer (Phase 6)
+### 1. Comms-NSITE Completion
 
-**Data Preparation**
-- [ ] Define story schema (story_id, title, solution_id, status, channel, etc.)
-- [ ] Create MO-DB_Stories database
-- [ ] Build stories-api.gs
+**Remaining Features**
+- [ ] Add Key Messaging panel to comms.html (view/search key messages)
+- [ ] External Mentions tracking (track published stories across channels)
+- [ ] Story analytics and coverage metrics
 
-**UI Development**
-- [ ] Create `comms.html` - communications pipeline view
-- [ ] Build story cards with status badges
-- [ ] Add kanban-style pipeline view
+**Documentation**
+- [ ] Update about.html with full Comms-NSITE documentation
 
 ### 2. SEP-NSITE Enhancements
 
@@ -278,19 +296,24 @@ MO-DB_Actions:
 
 ## Data Sources Reference
 
+**13 Databases Total**
+
 | Database | Google Sheet | Local Backup | Records | Status |
 |----------|--------------|--------------|---------|--------|
-| MO-DB_Solutions | Yes | `MO-Viewer Databases/` | 37 solutions | **Populated** |
-| MO-DB_Contacts | Yes | `MO-Viewer Databases/` | 4,221 records | **Enhanced** |
+| MO-DB_Actions | Yes | `MO-Viewer Databases/` | -- | **Active** |
 | MO-DB_Agencies | Yes | `MO-Viewer Databases/` | 43 agencies | **Populated** |
-| MO-DB_Engagements | Yes | `MO-Viewer Databases/` | -- | **Ready** |
-| MO-DB_Needs | Yes | `MO-Viewer Databases/` | 2,049 responses | **Populated** |
-| MO-DB_Updates | Yes | `MO-Viewer Databases/` | -- | **Ready** |
-| MO-DB_Config | Yes | `MO-Viewer Databases/` | Configuration | **Active** |
 | MO-DB_Availability | Yes | `MO-Viewer Databases/` | Team OOO | **Active** |
-| MO-DB_Meetings | Yes | `MO-Viewer Databases/` | Meetings | **Active** |
+| MO-DB_Config | Yes | `MO-Viewer Databases/` | Configuration | **Active** |
+| MO-DB_Contacts | Yes | `MO-Viewer Databases/` | 4,221 records | **Enhanced** |
+| MO-DB_Engagements | Yes | `MO-Viewer Databases/` | -- | **Ready** |
 | MO-DB_Glossary | Yes | `MO-Viewer Databases/` | Terms | **Active** |
-| MO-DB_Stories | Planned | -- | -- | Planned |
+| MO-DB_Meetings | Yes | `MO-Viewer Databases/` | Meetings | **Active** |
+| MO-DB_Milestones | Yes | `MO-Viewer Databases/` | 185 milestones | **NEW** |
+| MO-DB_Needs | Yes | `MO-Viewer Databases/` | 2,049 responses | **Populated** |
+| MO-DB_Outreach | Yes | `MO-Viewer Databases/` | Events | **Active** |
+| MO-DB_Solutions | Yes | `MO-Viewer Databases/` | 37 solutions (48 cols) | **Consolidated** |
+| MO-DB_Stories | Yes | `MO-Viewer Databases/` | 38 stories | **NEW** |
+| MO-DB_Updates | Yes | `MO-Viewer Databases/` | -- | **Ready** |
 
 **Local Database Files:** `C:\...\MO-development\database-files\MO-Viewer Databases\`
 **Source Archives:** `C:\...\MO-development\source-archives\`

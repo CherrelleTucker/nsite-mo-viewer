@@ -1,0 +1,2887 @@
+<!-- Comms-NSITE: Communications Pipeline -->
+<!-- Story tracking, opportunity detection, and coverage analysis -->
+
+<div class="comms-viewer">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Comms-NSITE</h1>
+      <p class="page-subtitle">Communications Pipeline</p>
+    </div>
+    <div class="page-actions">
+      <div class="view-toggle">
+        <button class="view-btn active" data-view="pipeline" onclick="COMMS.setView('pipeline')">
+          <span data-feather="columns"></span>
+          <span>Pipeline</span>
+        </button>
+        <button class="view-btn" data-view="events" onclick="COMMS.setView('events')">
+          <span data-feather="map-pin"></span>
+          <span>Events</span>
+        </button>
+        <button class="view-btn" data-view="coverage" onclick="COMMS.setView('coverage')">
+          <span data-feather="pie-chart"></span>
+          <span>Coverage</span>
+        </button>
+        <button class="view-btn" data-view="calendar" onclick="COMMS.setView('calendar')">
+          <span data-feather="calendar"></span>
+          <span>Calendar</span>
+        </button>
+        <button class="view-btn" data-view="priorities" onclick="COMMS.setView('priorities')">
+          <span data-feather="flag"></span>
+          <span>Priorities</span>
+        </button>
+      </div>
+      <button class="btn btn-primary" onclick="COMMS.showCreateStoryModal()">
+        <span data-feather="plus"></span>
+        New Story
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon"><span data-feather="file-text"></span></div>
+      <div class="stat-info">
+        <span class="stat-value" id="statTotalStories">--</span>
+        <span class="stat-label">Total Stories</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><span data-feather="trending-up"></span></div>
+      <div class="stat-info">
+        <span class="stat-value" id="statInPipeline">--</span>
+        <span class="stat-label">In Pipeline</span>
+      </div>
+    </div>
+    <div class="stat-card stat-success">
+      <div class="stat-icon"><span data-feather="check-circle"></span></div>
+      <div class="stat-info">
+        <span class="stat-value" id="statPublishedQtr">--</span>
+        <span class="stat-label">Published (Q)</span>
+      </div>
+    </div>
+    <div class="stat-card stat-warning">
+      <div class="stat-icon"><span data-feather="alert-triangle"></span></div>
+      <div class="stat-info">
+        <span class="stat-value" id="statCoverageGaps">--</span>
+        <span class="stat-label">Coverage Gaps</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <select id="filterType" onchange="COMMS.applyFilters()">
+        <option value="">All Types</option>
+        <option value="story">Impact Story</option>
+        <option value="web_content">Web Content</option>
+        <option value="social_media">Social Media</option>
+        <option value="external_mention">External Mention</option>
+        <option value="nugget">Nugget Slide</option>
+        <option value="key_date">Key Date</option>
+      </select>
+      <select id="filterStatus" onchange="COMMS.applyFilters()">
+        <option value="">All Status</option>
+        <option value="idea">Idea</option>
+        <option value="researching">Researching</option>
+        <option value="drafting">Drafting</option>
+        <option value="review">Review</option>
+        <option value="published">Published</option>
+      </select>
+      <select id="filterChannel" onchange="COMMS.applyFilters()">
+        <option value="">All Channels</option>
+        <option value="web">Web</option>
+        <option value="social">Social</option>
+        <option value="slide">Slide</option>
+        <option value="external">External</option>
+        <option value="newsletter">Newsletter</option>
+      </select>
+    </div>
+    <div class="search-group">
+      <span data-feather="search"></span>
+      <input type="text" id="searchInput" placeholder="Search stories..." oninput="COMMS.applyFilters()">
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="comms-content">
+    <!-- Pipeline View -->
+    <div class="view-panel active" id="pipelineView">
+      <!-- Story Pipeline -->
+      <div class="pipeline-section">
+        <div class="section-header">
+          <h2>Story Pipeline</h2>
+          <div class="pipeline-legend">
+            <span class="legend-item"><span class="dot dot-idea"></span>Idea</span>
+            <span class="legend-item"><span class="dot dot-research"></span>Research</span>
+            <span class="legend-item"><span class="dot dot-draft"></span>Draft</span>
+            <span class="legend-item"><span class="dot dot-review"></span>Review</span>
+            <span class="legend-item"><span class="dot dot-published"></span>Published</span>
+          </div>
+        </div>
+        <div class="pipeline-board" id="pipelineBoard">
+          <!-- Idea Column -->
+          <div class="pipeline-column" data-status="idea">
+            <div class="column-header">
+              <span class="column-title">Idea</span>
+              <span class="column-count" id="countIdea">0</span>
+            </div>
+            <div class="column-cards" id="cardsIdea"></div>
+          </div>
+          <!-- Researching Column -->
+          <div class="pipeline-column" data-status="researching">
+            <div class="column-header">
+              <span class="column-title">Researching</span>
+              <span class="column-count" id="countResearching">0</span>
+            </div>
+            <div class="column-cards" id="cardsResearching"></div>
+          </div>
+          <!-- Drafting Column -->
+          <div class="pipeline-column" data-status="drafting">
+            <div class="column-header">
+              <span class="column-title">Drafting</span>
+              <span class="column-count" id="countDrafting">0</span>
+            </div>
+            <div class="column-cards" id="cardsDrafting"></div>
+          </div>
+          <!-- Review Column -->
+          <div class="pipeline-column" data-status="review">
+            <div class="column-header">
+              <span class="column-title">Review</span>
+              <span class="column-count" id="countReview">0</span>
+            </div>
+            <div class="column-cards" id="cardsReview"></div>
+          </div>
+          <!-- Published Column -->
+          <div class="pipeline-column" data-status="published">
+            <div class="column-header">
+              <span class="column-title">Published</span>
+              <span class="column-count" id="countPublished">0</span>
+            </div>
+            <div class="column-cards" id="cardsPublished"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Panels: Opportunities + Coverage Gaps -->
+      <div class="bottom-panels">
+        <!-- Story Opportunities -->
+        <div class="panel opportunities-panel">
+          <div class="panel-header">
+            <h3>Story Opportunities</h3>
+            <button class="btn btn-sm btn-secondary" onclick="COMMS.refreshOpportunities()">
+              <span data-feather="refresh-cw"></span>
+            </button>
+          </div>
+          <div class="panel-content" id="opportunitiesPanel">
+            <div class="loading-state">
+              <span class="loading-spinner"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coverage Gaps -->
+        <div class="panel coverage-panel">
+          <div class="panel-header">
+            <h3>Coverage Gaps</h3>
+            <button class="btn btn-sm btn-secondary" onclick="COMMS.setView('coverage')">
+              <span data-feather="maximize-2"></span>
+            </button>
+          </div>
+          <div class="panel-content" id="coverageGapsPanel">
+            <div class="loading-state">
+              <span class="loading-spinner"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coverage View -->
+    <div class="view-panel" id="coverageView">
+      <div class="coverage-layout">
+        <!-- Coverage Summary -->
+        <div class="coverage-summary">
+          <div class="summary-card">
+            <div class="summary-icon covered"><span data-feather="check-circle"></span></div>
+            <div class="summary-info">
+              <span class="summary-value" id="coverageWellCovered">--</span>
+              <span class="summary-label">Well Covered</span>
+            </div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon attention"><span data-feather="alert-circle"></span></div>
+            <div class="summary-info">
+              <span class="summary-value" id="coverageNeedsAttention">--</span>
+              <span class="summary-label">Needs Attention</span>
+            </div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon uncovered"><span data-feather="x-circle"></span></div>
+            <div class="summary-info">
+              <span class="summary-value" id="coverageNoStories">--</span>
+              <span class="summary-label">No Stories</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coverage Table -->
+        <div class="coverage-table-container">
+          <table class="coverage-table" id="coverageTable">
+            <thead>
+              <tr>
+                <th>Solution</th>
+                <th>Phase</th>
+                <th>Total Stories</th>
+                <th>Recent (90d)</th>
+                <th>Last Story</th>
+                <th>Days Since</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="coverageTableBody">
+              <tr>
+                <td colspan="8" class="loading-state">
+                  <span class="loading-spinner"></span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar View -->
+    <div class="view-panel" id="calendarView">
+      <div class="calendar-layout">
+        <div class="calendar-header">
+          <button class="btn btn-sm btn-secondary" onclick="COMMS.navigateCalendar(-1)">
+            <span data-feather="chevron-left"></span>
+          </button>
+          <h3 id="calendarTitle">January 2026</h3>
+          <button class="btn btn-sm btn-secondary" onclick="COMMS.navigateCalendar(1)">
+            <span data-feather="chevron-right"></span>
+          </button>
+        </div>
+        <div class="calendar-grid" id="calendarGrid">
+          <!-- Calendar will be rendered here -->
+        </div>
+        <div class="upcoming-targets">
+          <h4>Upcoming Targets</h4>
+          <div id="upcomingTargetsList">
+            <div class="loading-state">
+              <span class="loading-spinner"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Priorities View -->
+    <div class="view-panel" id="prioritiesView">
+      <div class="priorities-layout">
+        <div class="priorities-header">
+          <h2>Admin Priorities Alignment</h2>
+          <p class="priorities-subtitle">Track story coverage across administration priorities</p>
+        </div>
+
+        <!-- Priority Cards -->
+        <div class="priorities-grid" id="prioritiesGrid">
+          <!-- Partnerships -->
+          <div class="priority-card" data-priority="partnerships">
+            <div class="priority-header">
+              <span class="priority-icon" data-feather="users"></span>
+              <h3>Partnerships & Decision Support</h3>
+            </div>
+            <div class="priority-stats">
+              <span class="priority-count" id="priorityCountPartnerships">0</span>
+              <span class="priority-label">stories</span>
+            </div>
+            <div class="priority-stories" id="priorityStoriesPartnerships">
+              <div class="empty-state">No stories tagged</div>
+            </div>
+          </div>
+
+          <!-- Citizens -->
+          <div class="priority-card" data-priority="citizens">
+            <div class="priority-header">
+              <span class="priority-icon" data-feather="home"></span>
+              <h3>Benefits to American Citizens</h3>
+            </div>
+            <div class="priority-stats">
+              <span class="priority-count" id="priorityCountCitizens">0</span>
+              <span class="priority-label">stories</span>
+            </div>
+            <div class="priority-stories" id="priorityStoriesCitizens">
+              <div class="empty-state">No stories tagged</div>
+            </div>
+          </div>
+
+          <!-- AI Innovation -->
+          <div class="priority-card" data-priority="ai_innovation">
+            <div class="priority-header">
+              <span class="priority-icon" data-feather="cpu"></span>
+              <h3>AI Leadership & Tech Innovation</h3>
+            </div>
+            <div class="priority-stats">
+              <span class="priority-count" id="priorityCountAiInnovation">0</span>
+              <span class="priority-label">stories</span>
+            </div>
+            <div class="priority-stories" id="priorityStoriesAiInnovation">
+              <div class="empty-state">No stories tagged</div>
+            </div>
+          </div>
+
+          <!-- Science Integrity -->
+          <div class="priority-card" data-priority="science_integrity">
+            <div class="priority-header">
+              <span class="priority-icon" data-feather="award"></span>
+              <h3>Gold Standard Science & Research Integrity</h3>
+            </div>
+            <div class="priority-stats">
+              <span class="priority-count" id="priorityCountScienceIntegrity">0</span>
+              <span class="priority-label">stories</span>
+            </div>
+            <div class="priority-stories" id="priorityStoriesScienceIntegrity">
+              <div class="empty-state">No stories tagged</div>
+            </div>
+          </div>
+
+          <!-- Efficiency -->
+          <div class="priority-card" data-priority="efficiency">
+            <div class="priority-header">
+              <span class="priority-icon" data-feather="zap"></span>
+              <h3>Government Efficiency</h3>
+            </div>
+            <div class="priority-stats">
+              <span class="priority-count" id="priorityCountEfficiency">0</span>
+              <span class="priority-label">stories</span>
+            </div>
+            <div class="priority-stories" id="priorityStoriesEfficiency">
+              <div class="empty-state">No stories tagged</div>
+            </div>
+          </div>
+
+          <!-- Untagged -->
+          <div class="priority-card priority-card-warning" data-priority="untagged">
+            <div class="priority-header">
+              <span class="priority-icon" data-feather="alert-circle"></span>
+              <h3>Not Yet Aligned</h3>
+            </div>
+            <div class="priority-stats">
+              <span class="priority-count" id="priorityCountUntagged">0</span>
+              <span class="priority-label">stories need tagging</span>
+            </div>
+            <div class="priority-stories" id="priorityStoriesUntagged">
+              <div class="empty-state">All stories tagged!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Priority Summary -->
+        <div class="priorities-summary">
+          <h3>Coverage Summary</h3>
+          <div class="priority-bars" id="priorityBars">
+            <!-- Will be rendered by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Events View -->
+    <div class="view-panel" id="eventsView">
+      <div class="events-layout">
+        <!-- Events Header -->
+        <div class="events-header">
+          <div class="events-stats">
+            <div class="event-stat">
+              <span class="event-stat-value" id="eventStatUpcoming">--</span>
+              <span class="event-stat-label">Upcoming</span>
+            </div>
+            <div class="event-stat">
+              <span class="event-stat-value" id="eventStatConfirmed">--</span>
+              <span class="event-stat-label">Confirmed</span>
+            </div>
+            <div class="event-stat">
+              <span class="event-stat-value" id="eventStatPotential">--</span>
+              <span class="event-stat-label">Potential</span>
+            </div>
+            <div class="event-stat">
+              <span class="event-stat-value" id="eventStatDeadlines">--</span>
+              <span class="event-stat-label">Deadlines (30d)</span>
+            </div>
+          </div>
+          <div class="events-actions">
+            <select id="eventYearFilter" onchange="COMMS.filterEvents()">
+              <option value="">All Years</option>
+              <option value="2025">2025</option>
+              <option value="2026" selected>2026</option>
+              <option value="2027">2027</option>
+            </select>
+            <select id="eventStatusFilter" onchange="COMMS.filterEvents()">
+              <option value="">All Status</option>
+              <option value="potential">Potential</option>
+              <option value="considering">Considering</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="attended">Attended</option>
+            </select>
+            <button class="btn btn-secondary" onclick="COMMS.showDiscoverEventsModal()">
+              <span data-feather="search"></span>
+              Discover Events
+            </button>
+          </div>
+        </div>
+
+        <!-- Events Grid -->
+        <div class="events-content">
+          <!-- Upcoming Events -->
+          <div class="events-panel">
+            <div class="panel-header">
+              <h3>Upcoming Events</h3>
+            </div>
+            <div class="panel-content" id="upcomingEventsPanel">
+              <div class="loading-state">
+                <span class="loading-spinner"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Event Opportunities (Potential) -->
+          <div class="events-panel">
+            <div class="panel-header">
+              <h3>Event Opportunities</h3>
+              <span class="badge" id="potentialBadge">0</span>
+            </div>
+            <div class="panel-content" id="potentialEventsPanel">
+              <div class="loading-state">
+                <span class="loading-spinner"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Events Table -->
+        <div class="events-table-container">
+          <table class="events-table" id="eventsTable">
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Team</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="eventsTableBody">
+              <tr>
+                <td colspan="7" class="loading-state">
+                  <span class="loading-spinner"></span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Story Detail Modal -->
+<div class="modal-overlay" id="storyModal" onclick="COMMS.closeModal('storyModal', event)">
+  <div class="modal-content modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalStoryTitle">Story Details</h2>
+      <button class="modal-close" onclick="COMMS.closeModal('storyModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="storyModalBody">
+      <!-- Dynamic content -->
+    </div>
+  </div>
+</div>
+
+<!-- Create/Edit Story Modal -->
+<div class="modal-overlay" id="editStoryModal" onclick="COMMS.closeModal('editStoryModal', event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="editStoryModalTitle">New Story</h2>
+      <button class="modal-close" onclick="COMMS.closeModal('editStoryModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="storyForm" onsubmit="COMMS.submitStory(event)">
+        <input type="hidden" id="editStoryId">
+        <div class="form-row">
+          <div class="form-group form-group-wide">
+            <label>Title *</label>
+            <input type="text" id="storyTitle" required placeholder="Story title">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Content Type</label>
+            <select id="storyContentType">
+              <option value="story">Impact Story</option>
+              <option value="web_content">Web Content</option>
+              <option value="social_media">Social Media</option>
+              <option value="external_mention">External Mention</option>
+              <option value="nugget">Nugget Slide</option>
+              <option value="key_date">Key Date</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="storyStatus">
+              <option value="idea">Idea</option>
+              <option value="researching">Researching</option>
+              <option value="drafting">Drafting</option>
+              <option value="review">Review</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Priority</label>
+            <select id="storyPriority">
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Channel</label>
+            <select id="storyChannel">
+              <option value="web">Web</option>
+              <option value="social">Social</option>
+              <option value="slide">Slide</option>
+              <option value="external">External</option>
+              <option value="newsletter">Newsletter</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Primary Outlet</label>
+            <input type="text" id="storyOutlet" placeholder="Target publication">
+          </div>
+          <div class="form-group">
+            <label>Author</label>
+            <input type="text" id="storyAuthor" placeholder="Story author">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Solutions (comma-separated)</label>
+          <input type="text" id="storySolutions" placeholder="HLS, OPERA DSWx, VLM">
+        </div>
+        <div class="form-group">
+          <label>Admin Priorities (check all that apply)</label>
+          <div class="checkbox-group" id="storyAdminPriorities">
+            <label class="checkbox-item">
+              <input type="checkbox" name="adminPriority" value="partnerships">
+              <span>Partnerships & Decision Support</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="adminPriority" value="citizens">
+              <span>Benefits to American Citizens</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="adminPriority" value="ai_innovation">
+              <span>AI Leadership & Tech Innovation</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="adminPriority" value="science_integrity">
+              <span>Gold Standard Science & Research Integrity</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="adminPriority" value="efficiency">
+              <span>Government Efficiency</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Target Date</label>
+            <input type="date" id="storyTargetDate">
+          </div>
+          <div class="form-group">
+            <label>Publish Date</label>
+            <input type="date" id="storyPublishDate">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Source / Origin</label>
+          <input type="text" id="storySource" placeholder="Where did this idea come from?">
+        </div>
+        <div class="form-group">
+          <label>Pitch/Draft Document URL</label>
+          <input type="url" id="storyPitchUrl" placeholder="https://...">
+        </div>
+        <div class="form-group">
+          <label>Published Link</label>
+          <input type="url" id="storyPublishedLink" placeholder="https://...">
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="storyNotes" rows="3" placeholder="Additional notes..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="COMMS.closeModal('editStoryModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Story</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Discover Events Modal -->
+<div class="modal-overlay" id="discoverEventsModal" onclick="COMMS.closeModal('discoverEventsModal', event)">
+  <div class="modal-content modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Discover Events</h2>
+      <button class="modal-close" onclick="COMMS.closeModal('discoverEventsModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom: var(--space-md); color: var(--color-text-secondary);">
+        Search for conferences and events that align with our priorities. Discovered events are marked as "potential" for review.
+      </p>
+      <div class="discover-search">
+        <div class="form-row">
+          <div class="form-group" style="flex: 2;">
+            <label>Search Topic</label>
+            <input type="text" id="discoverSearchTopic" placeholder="e.g., agriculture remote sensing, water resources GIS">
+          </div>
+          <div class="form-group">
+            <label>Sector</label>
+            <select id="discoverSector">
+              <option value="">Any Sector</option>
+              <option value="Agriculture">Agriculture</option>
+              <option value="Water Resources">Water Resources</option>
+              <option value="Disasters">Disasters</option>
+              <option value="Ecological Conservation">Ecological Conservation</option>
+              <option value="Climate">Climate</option>
+              <option value="Wildland Fires">Wildland Fires</option>
+              <option value="Land Use">Land Use</option>
+              <option value="Energy">Energy</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions" style="justify-content: flex-start;">
+          <button type="button" class="btn btn-primary" onclick="COMMS.performEventSearch()">
+            <span data-feather="search"></span>
+            Search
+          </button>
+        </div>
+      </div>
+      <div class="discover-results" id="discoverResults">
+        <div class="empty-state">
+          <span data-feather="compass"></span>
+          <p>Enter a topic or select a sector to discover events</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Event Detail Modal -->
+<div class="modal-overlay" id="eventModal" onclick="COMMS.closeModal('eventModal', event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalEventName">Event Details</h2>
+      <button class="modal-close" onclick="COMMS.closeModal('eventModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="eventModalBody">
+      <!-- Dynamic content -->
+    </div>
+  </div>
+</div>
+
+<!-- Comms Styles -->
+<style>
+  .comms-viewer { max-width: 1600px; margin: 0 auto; }
+
+  /* Page Header */
+  .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg); }
+  .page-title h1 { font-size: var(--font-size-xxl); color: var(--color-comms); margin-bottom: var(--space-xs); }
+  .page-subtitle { color: var(--color-text-secondary); font-size: var(--font-size-md); }
+  .page-actions { display: flex; gap: var(--space-md); align-items: center; }
+
+  /* View Toggle */
+  .view-toggle {
+    display: flex;
+    gap: 2px;
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    padding: 2px;
+    box-shadow: var(--shadow-sm);
+  }
+  .view-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    transition: all var(--transition-fast);
+  }
+  .view-btn:hover { color: var(--color-text); background: var(--color-surface-alt); }
+  .view-btn.active { background: var(--color-comms); color: white; }
+  .view-btn svg { width: 16px; height: 16px; }
+
+  /* Stats Row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+  .stat-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+  .stat-card.stat-success .stat-icon { background: rgba(46, 125, 50, 0.1); color: var(--color-success); }
+  .stat-card.stat-warning .stat-icon { background: rgba(237, 108, 2, 0.1); color: var(--color-warning); }
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(123, 31, 162, 0.1);
+    border-radius: var(--radius-md);
+    color: var(--color-comms);
+  }
+  .stat-icon svg { width: 24px; height: 24px; }
+  .stat-info { display: flex; flex-direction: column; }
+  .stat-value { font-size: var(--font-size-xl); font-weight: 700; color: var(--color-text); }
+  .stat-label { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+
+  /* Filter Bar */
+  .filter-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+  .filter-group {
+    display: flex;
+    gap: var(--space-sm);
+  }
+  .filter-group select {
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    background: var(--color-surface);
+  }
+  .search-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+  }
+  .search-group svg { width: 16px; height: 16px; color: var(--color-text-muted); }
+  .search-group input {
+    border: none;
+    outline: none;
+    font-size: var(--font-size-sm);
+    width: 200px;
+  }
+
+  /* View Panels */
+  .view-panel { display: none; }
+  .view-panel.active { display: block; }
+
+  /* Pipeline Section */
+  .pipeline-section { margin-bottom: var(--space-lg); }
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+  }
+  .section-header h2 { font-size: var(--font-size-lg); color: var(--color-text); margin: 0; }
+  .pipeline-legend {
+    display: flex;
+    gap: var(--space-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+  .legend-item { display: flex; align-items: center; gap: var(--space-xs); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-idea { background: #9E9E9E; }
+  .dot-research { background: #2196F3; }
+  .dot-draft { background: #FF9800; }
+  .dot-review { background: #9C27B0; }
+  .dot-published { background: #4CAF50; }
+
+  /* Pipeline Board */
+  .pipeline-board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-sm);
+    overflow-x: auto;
+    padding-bottom: var(--space-sm);
+  }
+  .pipeline-column {
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-md);
+    min-width: 200px;
+    max-height: 450px;
+    display: flex;
+    flex-direction: column;
+  }
+  .column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--color-border-light);
+    background: var(--color-surface);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+  .column-title { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text); }
+  .column-count {
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    background: var(--color-comms);
+    color: white;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+  .column-cards {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  /* Story Cards */
+  .story-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-sm);
+    padding: var(--space-sm);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border-left: 3px solid var(--color-comms);
+  }
+  .story-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+  .story-card.priority-high { border-left-color: var(--color-error); }
+  .story-card.priority-low { border-left-color: var(--color-text-muted); }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 4px;
+  }
+  .card-type {
+    font-size: 10px;
+    padding: 2px 6px;
+    background: rgba(123, 31, 162, 0.1);
+    color: var(--color-comms);
+    border-radius: 3px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .card-type.type-web_content { background: rgba(33, 150, 243, 0.1); color: #2196F3; }
+  .card-type.type-social_media { background: rgba(0, 150, 136, 0.1); color: #009688; }
+  .card-type.type-external_mention { background: rgba(96, 125, 139, 0.1); color: #607D8B; }
+  .card-type.type-nugget { background: rgba(255, 152, 0, 0.1); color: #FF9800; }
+  .card-type.type-key_date { background: rgba(244, 67, 54, 0.1); color: #F44336; }
+  .card-date { font-size: 10px; color: var(--color-text-muted); }
+  .card-title {
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    margin-bottom: 4px;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-solutions {
+    font-size: var(--font-size-xs);
+    color: var(--color-comms);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+  .card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: var(--color-text-muted);
+    padding-top: 4px;
+    border-top: 1px solid var(--color-border-light);
+  }
+  .card-channel {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .card-channel svg { width: 12px; height: 12px; }
+
+  /* Bottom Panels */
+  .bottom-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+  }
+  .panel {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .panel-header h3 { font-size: var(--font-size-md); font-weight: 600; margin: 0; }
+  .panel-content { padding: var(--space-md); max-height: 300px; overflow-y: auto; }
+
+  /* Opportunity Items */
+  .opportunity-item {
+    display: flex;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--color-comms);
+    margin-bottom: var(--space-sm);
+    background: var(--color-surface-alt);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+  }
+  .opportunity-item:hover { background: var(--color-border-light); }
+  .opportunity-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(123, 31, 162, 0.1);
+    border-radius: var(--radius-sm);
+    color: var(--color-comms);
+    flex-shrink: 0;
+  }
+  .opportunity-icon svg { width: 16px; height: 16px; }
+  .opportunity-icon.milestone { background: rgba(76, 175, 80, 0.1); color: var(--color-success); }
+  .opportunity-icon.t8 { background: rgba(33, 150, 243, 0.1); color: #2196F3; }
+  .opportunity-info { flex: 1; min-width: 0; }
+  .opportunity-title { font-weight: 500; font-size: var(--font-size-sm); margin-bottom: 2px; }
+  .opportunity-desc { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+
+  /* Coverage Gap Items */
+  .gap-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+    background: var(--color-surface-alt);
+  }
+  .gap-item.severe { border-left: 3px solid var(--color-error); }
+  .gap-item.moderate { border-left: 3px solid var(--color-warning); }
+  .gap-info { flex: 1; }
+  .gap-solution { font-weight: 500; font-size: var(--font-size-sm); }
+  .gap-days { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+  .gap-action {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-xs);
+    background: var(--color-comms);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+
+  /* Coverage View */
+  .coverage-layout { padding: var(--space-md); }
+  .coverage-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+  .summary-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+  .summary-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+  }
+  .summary-icon.covered { background: rgba(76, 175, 80, 0.1); color: var(--color-success); }
+  .summary-icon.attention { background: rgba(255, 152, 0, 0.1); color: var(--color-warning); }
+  .summary-icon.uncovered { background: rgba(244, 67, 54, 0.1); color: var(--color-error); }
+  .summary-icon svg { width: 24px; height: 24px; }
+  .summary-value { font-size: var(--font-size-xl); font-weight: 700; }
+  .summary-label { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+
+  .coverage-table-container {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .coverage-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+  .coverage-table th {
+    background: var(--color-surface-alt);
+    padding: var(--space-sm) var(--space-md);
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .coverage-table td {
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .coverage-table tr:hover { background: var(--color-surface-alt); }
+  .status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+  }
+  .status-badge.covered { background: rgba(76, 175, 80, 0.1); color: var(--color-success); }
+  .status-badge.attention { background: rgba(255, 152, 0, 0.1); color: var(--color-warning); }
+  .status-badge.uncovered { background: rgba(244, 67, 54, 0.1); color: var(--color-error); }
+
+  /* Calendar View */
+  .calendar-layout { padding: var(--space-md); }
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+  .calendar-header h3 { margin: 0; min-width: 200px; text-align: center; }
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: var(--space-lg);
+  }
+  .calendar-day-header {
+    background: var(--color-surface-alt);
+    padding: var(--space-sm);
+    text-align: center;
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+  }
+  .calendar-day {
+    background: var(--color-surface);
+    min-height: 80px;
+    padding: var(--space-xs);
+  }
+  .calendar-day.other-month { background: var(--color-surface-alt); opacity: 0.5; }
+  .calendar-day.today { background: rgba(123, 31, 162, 0.05); }
+  .calendar-day-number {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    margin-bottom: var(--space-xs);
+  }
+  .calendar-event {
+    font-size: 10px;
+    padding: 2px 4px;
+    background: var(--color-comms);
+    color: white;
+    border-radius: 2px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+  }
+  .calendar-event.published { background: var(--color-success); }
+  .calendar-event.target { background: var(--color-warning); }
+
+  .upcoming-targets {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    box-shadow: var(--shadow-sm);
+  }
+  .upcoming-targets h4 { margin: 0 0 var(--space-md) 0; }
+  .target-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm);
+    border-left: 3px solid var(--color-warning);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+  }
+  .target-info { flex: 1; }
+  .target-title { font-weight: 500; font-size: var(--font-size-sm); }
+  .target-date { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+
+  /* Modal & Forms */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--space-md);
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-content {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .modal-content.modal-lg { max-width: 900px; }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--color-border-light);
+    background: var(--color-surface-alt);
+  }
+  .modal-title { font-size: var(--font-size-lg); font-weight: 600; margin: 0; }
+  .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--color-text-muted); }
+  .modal-close:hover { color: var(--color-text); }
+  .modal-body { padding: var(--space-lg); overflow-y: auto; }
+
+  .form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); }
+  .form-group { margin-bottom: var(--space-md); }
+  .form-group-wide { grid-column: span 3; }
+  .form-group label { display: block; font-size: var(--font-size-sm); font-weight: 500; margin-bottom: var(--space-xs); }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: var(--space-sm);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-comms);
+  }
+  .form-actions { display: flex; justify-content: flex-end; gap: var(--space-sm); margin-top: var(--space-md); }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: none;
+  }
+  .btn svg { width: 16px; height: 16px; }
+  .btn-primary { background: var(--color-comms); color: white; }
+  .btn-primary:hover { background: #6a1b9a; }
+  .btn-secondary { background: var(--color-surface-alt); color: var(--color-text); border: 1px solid var(--color-border); }
+  .btn-secondary:hover { background: var(--color-border-light); }
+  .btn-sm { padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-xs); }
+
+  /* Loading & Empty States */
+  .loading-state { text-align: center; padding: var(--space-lg); color: var(--color-text-muted); }
+  .loading-spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-comms);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty-state { text-align: center; padding: var(--space-lg); color: var(--color-text-muted); }
+  .empty-state svg { width: 48px; height: 48px; margin-bottom: var(--space-sm); opacity: 0.5; }
+
+  /* Events View */
+  .events-layout { display: flex; flex-direction: column; gap: var(--space-md); }
+  .events-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+  .events-stats { display: flex; gap: var(--space-lg); }
+  .event-stat { text-align: center; }
+  .event-stat-value { display: block; font-size: var(--font-size-xl); font-weight: 700; color: var(--color-comms); }
+  .event-stat-label { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+  .events-actions { display: flex; gap: var(--space-sm); align-items: center; }
+  .events-actions select {
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+  }
+  .events-content { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
+  .events-panel {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .events-panel .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .events-panel .panel-content { max-height: 300px; overflow-y: auto; }
+  .badge {
+    padding: 2px 8px;
+    background: var(--color-comms);
+    color: white;
+    border-radius: 12px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+  }
+  .event-card {
+    padding: var(--space-sm);
+    border-left: 3px solid var(--color-comms);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+  }
+  .event-card:hover { background: var(--color-border-light); }
+  .event-card.status-confirmed { border-left-color: var(--color-warning); }
+  .event-card.status-attended { border-left-color: var(--color-success); }
+  .event-card.status-potential { border-left-color: var(--color-text-muted); }
+  .event-card-name { font-weight: 600; font-size: var(--font-size-sm); margin-bottom: 2px; }
+  .event-card-date { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+  .event-card-location { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+  .event-card-meta {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-xs);
+    font-size: 10px;
+  }
+  .event-type-badge {
+    padding: 1px 6px;
+    background: rgba(123, 31, 162, 0.1);
+    color: var(--color-comms);
+    border-radius: 3px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .events-table-container {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .events-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+  .events-table th {
+    background: var(--color-surface-alt);
+    padding: var(--space-sm) var(--space-md);
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .events-table td {
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .events-table tr:hover { background: var(--color-surface-alt); }
+  .event-status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+  }
+  .event-status-badge.potential { background: rgba(158, 158, 158, 0.2); color: #616161; }
+  .event-status-badge.considering { background: rgba(33, 150, 243, 0.2); color: #1976D2; }
+  .event-status-badge.confirmed { background: rgba(255, 152, 0, 0.2); color: #F57C00; }
+  .event-status-badge.attended { background: rgba(76, 175, 80, 0.2); color: #388E3C; }
+
+  /* Discover Events */
+  .discover-search { margin-bottom: var(--space-lg); }
+  .discover-results { max-height: 400px; overflow-y: auto; }
+  .discover-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+  }
+  .discover-result-info { flex: 1; min-width: 0; }
+  .discover-result-title { font-weight: 500; font-size: var(--font-size-sm); margin-bottom: 2px; }
+  .discover-result-url { font-size: var(--font-size-xs); color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Checkbox Group */
+  .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+  }
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+  }
+  .checkbox-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+  .checkbox-item span { flex: 1; }
+
+  /* Priorities View */
+  .priorities-layout { padding: var(--space-md); }
+  .priorities-header {
+    margin-bottom: var(--space-lg);
+  }
+  .priorities-header h2 {
+    margin: 0 0 var(--space-xs) 0;
+    font-size: var(--font-size-xl);
+  }
+  .priorities-subtitle {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    margin: 0;
+  }
+  .priorities-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+  .priority-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    transition: box-shadow 0.2s;
+  }
+  .priority-card:hover { box-shadow: var(--shadow-sm); }
+  .priority-card-warning {
+    background: rgba(255, 152, 0, 0.05);
+    border-color: rgba(255, 152, 0, 0.3);
+  }
+  .priority-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+  .priority-header h3 {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+  }
+  .priority-icon { color: var(--color-primary); }
+  .priority-card-warning .priority-icon { color: #F57C00; }
+  .priority-stats {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-sm);
+  }
+  .priority-count {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+  .priority-card-warning .priority-count { color: #F57C00; }
+  .priority-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+  .priority-stories {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .priority-story-item {
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-xs);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .priority-story-item:hover { background: var(--color-border-light); }
+  .priority-story-title { font-weight: 500; margin-bottom: 2px; }
+  .priority-story-meta {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+  .priorities-summary {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+  }
+  .priorities-summary h3 {
+    margin: 0 0 var(--space-md) 0;
+    font-size: var(--font-size-md);
+  }
+  .priority-bar-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm);
+  }
+  .priority-bar-label {
+    width: 200px;
+    font-size: var(--font-size-sm);
+    flex-shrink: 0;
+  }
+  .priority-bar-track {
+    flex: 1;
+    height: 20px;
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .priority-bar-fill {
+    height: 100%;
+    background: var(--color-primary);
+    border-radius: var(--radius-sm);
+    transition: width 0.3s ease;
+  }
+  .priority-bar-value {
+    width: 60px;
+    text-align: right;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .pipeline-board { grid-template-columns: repeat(3, 1fr); }
+    .bottom-panels { grid-template-columns: 1fr; }
+    .coverage-summary { grid-template-columns: 1fr; }
+    .priorities-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .pipeline-board { grid-template-columns: repeat(2, 1fr); }
+    .form-row { grid-template-columns: 1fr; }
+    .form-group-wide { grid-column: span 1; }
+    .filter-bar { flex-direction: column; }
+    .priorities-grid { grid-template-columns: 1fr; }
+    .priority-bar-label { width: 120px; }
+  }
+</style>
+
+<!-- Comms JavaScript -->
+<script>
+var COMMS = (function() {
+  var state = {
+    overview: null,
+    stories: [],
+    opportunities: null,
+    coverage: null,
+    currentView: 'pipeline',
+    calendarDate: new Date(),
+    filters: {
+      type: '',
+      status: '',
+      channel: '',
+      search: ''
+    },
+    // Events state
+    events: [],
+    eventsOverview: null,
+    eventFilters: {
+      year: '2026',
+      status: ''
+    }
+  };
+
+  function init() {
+    console.log('COMMS.init()');
+    loadOverview();
+    loadStories();
+    loadOpportunities();
+    loadCoverage();
+  }
+
+  function loadOverview() {
+    google.script.run
+      .withSuccessHandler(function(overview) {
+        state.overview = overview;
+        renderStats(overview);
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load overview:', error);
+      })
+      .getCommsOverview();
+  }
+
+  function loadStories() {
+    google.script.run
+      .withSuccessHandler(function(stories) {
+        state.stories = stories || [];
+        renderPipeline();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load stories:', error);
+        showPipelineError('Failed to load stories');
+      })
+      .getPipelineStoriesForUI();
+  }
+
+  function loadOpportunities() {
+    google.script.run
+      .withSuccessHandler(function(opportunities) {
+        state.opportunities = opportunities;
+        renderOpportunities();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load opportunities:', error);
+        document.getElementById('opportunitiesPanel').innerHTML =
+          '<div class="empty-state"><p>Could not load opportunities</p></div>';
+      })
+      .detectStoryOpportunities();
+  }
+
+  function loadCoverage() {
+    google.script.run
+      .withSuccessHandler(function(coverage) {
+        state.coverage = coverage;
+        renderCoverageGaps();
+        renderCoverageView();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load coverage:', error);
+        document.getElementById('coverageGapsPanel').innerHTML =
+          '<div class="empty-state"><p>Could not load coverage data</p></div>';
+      })
+      .getCoverageAnalysis(90);
+  }
+
+  function renderStats(overview) {
+    if (!overview) return;
+    document.getElementById('statTotalStories').textContent = overview.stats ? overview.stats.total_stories : 0;
+    document.getElementById('statInPipeline').textContent = overview.stats ? overview.stats.active_pipeline : 0;
+    document.getElementById('statPublishedQtr').textContent = overview.stats ? overview.stats.published_this_quarter : 0;
+    document.getElementById('statCoverageGaps').textContent = overview.coverage_gaps_count || 0;
+  }
+
+  function renderPipeline() {
+    var statuses = ['idea', 'researching', 'drafting', 'review', 'published'];
+    var storiesByStatus = {};
+
+    statuses.forEach(function(s) {
+      storiesByStatus[s] = [];
+    });
+
+    var filteredStories = applyFiltersToStories(state.stories);
+
+    filteredStories.forEach(function(story) {
+      var status = (story.status || 'idea').toLowerCase();
+      if (storiesByStatus[status]) {
+        storiesByStatus[status].push(story);
+      }
+    });
+
+    statuses.forEach(function(status) {
+      var containerId = 'cards' + capitalizeFirst(status);
+      var countId = 'count' + capitalizeFirst(status);
+      var container = document.getElementById(containerId);
+      var countEl = document.getElementById(countId);
+      var stories = storiesByStatus[status];
+
+      countEl.textContent = stories.length;
+
+      if (stories.length === 0) {
+        container.innerHTML = '<div class="empty-state" style="padding: var(--space-md);"><p style="font-size: var(--font-size-xs);">No stories</p></div>';
+      } else {
+        container.innerHTML = stories.slice(0, 15).map(function(s) {
+          return renderStoryCard(s);
+        }).join('');
+      }
+    });
+
+    feather.replace();
+  }
+
+  function renderStoryCard(story) {
+    var typeClass = 'type-' + (story.content_type || 'story');
+    var typeNames = {
+      'story': 'Story',
+      'web_content': 'Web',
+      'social_media': 'Social',
+      'external_mention': 'External',
+      'nugget': 'Nugget',
+      'key_date': 'Key Date'
+    };
+    var typeName = typeNames[story.content_type] || 'Story';
+
+    var channelIcons = {
+      'web': 'globe',
+      'social': 'share-2',
+      'slide': 'monitor',
+      'external': 'external-link',
+      'newsletter': 'mail'
+    };
+    var channelIcon = channelIcons[story.channel] || 'file-text';
+
+    var dateStr = story.target_date ? formatDate(story.target_date) : (story.idea_date ? formatDate(story.idea_date) : '');
+
+    var priorityClass = story.priority === 'high' ? 'priority-high' : (story.priority === 'low' ? 'priority-low' : '');
+
+    var html = '<div class="story-card ' + priorityClass + '" onclick="COMMS.showStoryDetail(\'' + escapeAttr(story.story_id) + '\')">';
+    html += '<div class="card-header">';
+    html += '<span class="card-type ' + typeClass + '">' + typeName + '</span>';
+    if (dateStr) html += '<span class="card-date">' + dateStr + '</span>';
+    html += '</div>';
+    html += '<div class="card-title">' + escapeHtml(story.title || 'Untitled') + '</div>';
+    if (story.solution_names) {
+      var solDisplay = story.solution_names.length > 30 ? story.solution_names.substring(0, 30) + '...' : story.solution_names;
+      html += '<div class="card-solutions">' + escapeHtml(solDisplay) + '</div>';
+    }
+    html += '<div class="card-meta">';
+    html += '<span class="card-channel"><span data-feather="' + channelIcon + '"></span> ' + (story.channel || 'web') + '</span>';
+    if (story.author) html += '<span>' + escapeHtml(story.author) + '</span>';
+    html += '</div>';
+    html += '</div>';
+    return html;
+  }
+
+  function renderOpportunities() {
+    var container = document.getElementById('opportunitiesPanel');
+    var opp = state.opportunities;
+
+    if (!opp || opp.summary.total_opportunities === 0) {
+      container.innerHTML = '<div class="empty-state"><span data-feather="zap"></span><p>No new opportunities detected</p></div>';
+      feather.replace();
+      return;
+    }
+
+    var html = '';
+
+    // Milestones
+    opp.milestones.slice(0, 3).forEach(function(m) {
+      html += '<div class="opportunity-item" onclick="COMMS.createStoryFromOpportunity(\'milestone\', \'' + escapeAttr(m.solution_name) + '\')">';
+      html += '<div class="opportunity-icon milestone"><span data-feather="flag"></span></div>';
+      html += '<div class="opportunity-info">';
+      html += '<div class="opportunity-title">' + escapeHtml(m.solution_name) + ' - ' + escapeHtml(m.type) + '</div>';
+      html += '<div class="opportunity-desc">' + escapeHtml(m.description) + '</div>';
+      html += '</div></div>';
+    });
+
+    // T8 Contacts
+    opp.t8_contacts.slice(0, 3).forEach(function(c) {
+      html += '<div class="opportunity-item" onclick="COMMS.createStoryFromOpportunity(\'t8\', \'' + escapeAttr(c.name) + '\')">';
+      html += '<div class="opportunity-icon t8"><span data-feather="users"></span></div>';
+      html += '<div class="opportunity-info">';
+      html += '<div class="opportunity-title">' + escapeHtml(c.name) + ' at T8 Impact</div>';
+      html += '<div class="opportunity-desc">' + escapeHtml(c.agency || '') + (c.solutions && c.solutions.length ? ' - ' + c.solutions.slice(0, 2).join(', ') : '') + '</div>';
+      html += '</div></div>';
+    });
+
+    if (!html) {
+      html = '<div class="empty-state"><p>No new opportunities</p></div>';
+    }
+
+    container.innerHTML = html;
+    feather.replace();
+  }
+
+  function renderCoverageGaps() {
+    var container = document.getElementById('coverageGapsPanel');
+    var coverage = state.coverage;
+
+    if (!coverage || (coverage.gaps.length === 0 && coverage.uncovered.length === 0)) {
+      container.innerHTML = '<div class="empty-state"><span data-feather="check-circle"></span><p>All solutions have recent coverage!</p></div>';
+      feather.replace();
+      return;
+    }
+
+    var html = '';
+
+    // Gaps (solutions with old stories)
+    coverage.gaps.slice(0, 4).forEach(function(g) {
+      var severity = g.days_since_story > 180 ? 'severe' : 'moderate';
+      html += '<div class="gap-item ' + severity + '">';
+      html += '<div class="gap-info">';
+      html += '<div class="gap-solution">' + escapeHtml(g.solution_name) + '</div>';
+      html += '<div class="gap-days">No stories in ' + g.days_since_story + ' days</div>';
+      html += '</div>';
+      html += '<button class="gap-action" onclick="COMMS.suggestStory(\'' + escapeAttr(g.solution_name) + '\')">Suggest Story</button>';
+      html += '</div>';
+    });
+
+    // Uncovered (no stories ever)
+    coverage.uncovered.slice(0, 3).forEach(function(u) {
+      html += '<div class="gap-item severe">';
+      html += '<div class="gap-info">';
+      html += '<div class="gap-solution">' + escapeHtml(u.solution_name) + '</div>';
+      html += '<div class="gap-days">No stories ever</div>';
+      html += '</div>';
+      html += '<button class="gap-action" onclick="COMMS.suggestStory(\'' + escapeAttr(u.solution_name) + '\')">Suggest Story</button>';
+      html += '</div>';
+    });
+
+    container.innerHTML = html;
+  }
+
+  function renderCoverageView() {
+    var coverage = state.coverage;
+    if (!coverage) return;
+
+    document.getElementById('coverageWellCovered').textContent = coverage.well_covered || 0;
+    document.getElementById('coverageNeedsAttention').textContent = coverage.needs_attention || 0;
+    document.getElementById('coverageNoStories').textContent = coverage.no_stories || 0;
+
+    // Render table
+    var tbody = document.getElementById('coverageTableBody');
+    var allSolutions = []
+      .concat(coverage.gaps || [])
+      .concat(coverage.uncovered || [])
+      .concat(coverage.covered || []);
+
+    if (allSolutions.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No coverage data available</td></tr>';
+      return;
+    }
+
+    // Sort by days_since_story descending (worst first)
+    allSolutions.sort(function(a, b) {
+      var aVal = a.days_since_story !== null ? a.days_since_story : 9999;
+      var bVal = b.days_since_story !== null ? b.days_since_story : 9999;
+      return bVal - aVal;
+    });
+
+    var html = '';
+    allSolutions.slice(0, 50).forEach(function(sol) {
+      var statusClass, statusText;
+      if (sol.total_stories === 0) {
+        statusClass = 'uncovered';
+        statusText = 'No Coverage';
+      } else if (sol.days_since_story > 90) {
+        statusClass = 'attention';
+        statusText = 'Needs Attention';
+      } else {
+        statusClass = 'covered';
+        statusText = 'Covered';
+      }
+
+      html += '<tr>';
+      html += '<td><strong>' + escapeHtml(sol.solution_name) + '</strong></td>';
+      html += '<td>' + escapeHtml(sol.phase || '--') + '</td>';
+      html += '<td>' + (sol.total_stories || 0) + '</td>';
+      html += '<td>' + (sol.recent_stories || 0) + '</td>';
+      html += '<td>' + (sol.last_story_date ? formatDate(sol.last_story_date) : '--') + '</td>';
+      html += '<td>' + (sol.days_since_story !== null ? sol.days_since_story : '--') + '</td>';
+      html += '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>';
+      html += '<td><button class="btn btn-sm btn-secondary" onclick="COMMS.suggestStory(\'' + escapeAttr(sol.solution_name) + '\')">+ Story</button></td>';
+      html += '</tr>';
+    });
+
+    tbody.innerHTML = html;
+  }
+
+  function applyFiltersToStories(stories) {
+    var filters = state.filters;
+    return stories.filter(function(s) {
+      if (filters.type && s.content_type !== filters.type) return false;
+      if (filters.status && s.status !== filters.status) return false;
+      if (filters.channel && s.channel !== filters.channel) return false;
+      if (filters.search) {
+        var searchLower = filters.search.toLowerCase();
+        var titleMatch = s.title && s.title.toLowerCase().indexOf(searchLower) !== -1;
+        var solMatch = s.solution_names && s.solution_names.toLowerCase().indexOf(searchLower) !== -1;
+        if (!titleMatch && !solMatch) return false;
+      }
+      return true;
+    });
+  }
+
+  function applyFilters() {
+    state.filters.type = document.getElementById('filterType').value;
+    state.filters.status = document.getElementById('filterStatus').value;
+    state.filters.channel = document.getElementById('filterChannel').value;
+    state.filters.search = document.getElementById('searchInput').value;
+    renderPipeline();
+  }
+
+  function setView(view) {
+    state.currentView = view;
+    document.querySelectorAll('.view-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    document.getElementById('pipelineView').classList.toggle('active', view === 'pipeline');
+    document.getElementById('eventsView').classList.toggle('active', view === 'events');
+    document.getElementById('coverageView').classList.toggle('active', view === 'coverage');
+    document.getElementById('calendarView').classList.toggle('active', view === 'calendar');
+    document.getElementById('prioritiesView').classList.toggle('active', view === 'priorities');
+
+    if (view === 'calendar') {
+      renderCalendar();
+      loadUpcomingTargets();
+    }
+
+    if (view === 'events') {
+      loadEvents();
+    }
+
+    if (view === 'priorities') {
+      renderPrioritiesView();
+    }
+  }
+
+  function renderPrioritiesView() {
+    var priorityConfig = {
+      partnerships: { name: 'Partnerships & Decision Support', id: 'Partnerships' },
+      citizens: { name: 'Benefits to American Citizens', id: 'Citizens' },
+      ai_innovation: { name: 'AI Leadership & Tech Innovation', id: 'AiInnovation' },
+      science_integrity: { name: 'Gold Standard Science & Research Integrity', id: 'ScienceIntegrity' },
+      efficiency: { name: 'Government Efficiency', id: 'Efficiency' }
+    };
+
+    var priorityCounts = {
+      partnerships: [],
+      citizens: [],
+      ai_innovation: [],
+      science_integrity: [],
+      efficiency: [],
+      untagged: []
+    };
+
+    // Categorize stories by priority
+    state.stories.forEach(function(story) {
+      var priorities = story.admin_priorities ? story.admin_priorities.split(',').map(function(p) { return p.trim(); }) : [];
+
+      if (priorities.length === 0) {
+        priorityCounts.untagged.push(story);
+      } else {
+        priorities.forEach(function(p) {
+          if (priorityCounts[p]) {
+            priorityCounts[p].push(story);
+          }
+        });
+      }
+    });
+
+    // Render each priority card
+    Object.keys(priorityConfig).forEach(function(key) {
+      var config = priorityConfig[key];
+      var stories = priorityCounts[key];
+
+      document.getElementById('priorityCount' + config.id).textContent = stories.length;
+
+      var container = document.getElementById('priorityStories' + config.id);
+      if (stories.length === 0) {
+        container.innerHTML = '<div class="empty-state">No stories tagged</div>';
+      } else {
+        container.innerHTML = stories.map(function(story) {
+          return '<div class="priority-story-item" onclick="COMMS.showStoryDetail(\'' + escapeAttr(story.story_id) + '\')">' +
+            '<div class="priority-story-title">' + escapeHtml(story.title) + '</div>' +
+            '<div class="priority-story-meta">' + escapeHtml(story.solution_names || 'No solutions') + ' • ' + capitalizeFirst(story.status) + '</div>' +
+            '</div>';
+        }).join('');
+      }
+    });
+
+    // Render untagged
+    document.getElementById('priorityCountUntagged').textContent = priorityCounts.untagged.length;
+    var untaggedContainer = document.getElementById('priorityStoriesUntagged');
+    if (priorityCounts.untagged.length === 0) {
+      untaggedContainer.innerHTML = '<div class="empty-state">All stories tagged!</div>';
+    } else {
+      untaggedContainer.innerHTML = priorityCounts.untagged.map(function(story) {
+        return '<div class="priority-story-item" onclick="COMMS.editStory(\'' + escapeAttr(story.story_id) + '\')">' +
+          '<div class="priority-story-title">' + escapeHtml(story.title) + '</div>' +
+          '<div class="priority-story-meta">Click to add priorities</div>' +
+          '</div>';
+      }).join('');
+    }
+
+    // Render summary bars
+    var totalStories = state.stories.length || 1;
+    var barsHtml = '';
+    Object.keys(priorityConfig).forEach(function(key) {
+      var config = priorityConfig[key];
+      var count = priorityCounts[key].length;
+      var percent = Math.round((count / totalStories) * 100);
+
+      barsHtml += '<div class="priority-bar-item">' +
+        '<div class="priority-bar-label">' + config.name + '</div>' +
+        '<div class="priority-bar-track"><div class="priority-bar-fill" style="width: ' + percent + '%"></div></div>' +
+        '<div class="priority-bar-value">' + count + ' (' + percent + '%)</div>' +
+        '</div>';
+    });
+    document.getElementById('priorityBars').innerHTML = barsHtml;
+
+    feather.replace();
+  }
+
+  function showStoryDetail(storyId) {
+    var story = state.stories.find(function(s) { return s.story_id === storyId; });
+    if (!story) {
+      // Load from server
+      google.script.run
+        .withSuccessHandler(function(s) {
+          if (s) renderStoryDetailModal(s);
+        })
+        .getStoryById(storyId);
+      return;
+    }
+    renderStoryDetailModal(story);
+  }
+
+  function renderStoryDetailModal(story) {
+    document.getElementById('modalStoryTitle').textContent = story.title || 'Story Details';
+
+    var typeNames = {
+      'story': 'Impact Story',
+      'web_content': 'Web Content',
+      'social_media': 'Social Media',
+      'external_mention': 'External Mention',
+      'nugget': 'Nugget Slide',
+      'key_date': 'Key Date'
+    };
+
+    var statusInfo = {
+      'idea': { name: 'Idea', color: '#9E9E9E' },
+      'researching': { name: 'Researching', color: '#2196F3' },
+      'drafting': { name: 'Drafting', color: '#FF9800' },
+      'review': { name: 'Review', color: '#9C27B0' },
+      'published': { name: 'Published', color: '#4CAF50' },
+      'archived': { name: 'Archived', color: '#607D8B' }
+    };
+
+    var status = statusInfo[story.status] || { name: story.status, color: '#9E9E9E' };
+
+    var html = '<div class="story-detail">';
+
+    // Header with type and status
+    html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); padding-bottom: var(--space-md); border-bottom: 1px solid var(--color-border-light);">';
+    html += '<span style="font-size: var(--font-size-sm); color: var(--color-comms);">' + (typeNames[story.content_type] || 'Story') + '</span>';
+    html += '<span style="padding: 4px 12px; background: ' + status.color + '; color: white; border-radius: 12px; font-size: var(--font-size-sm);">' + status.name + '</span>';
+    html += '</div>';
+
+    // Details grid
+    html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-md);">';
+
+    if (story.solution_names) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">SOLUTIONS</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(story.solution_names) + '</div></div>';
+    }
+
+    if (story.channel) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">CHANNEL</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + capitalizeFirst(story.channel) + '</div></div>';
+    }
+
+    if (story.author) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">AUTHOR</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(story.author) + '</div></div>';
+    }
+
+    if (story.primary_outlet) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">OUTLET</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(story.primary_outlet) + '</div></div>';
+    }
+
+    if (story.target_date) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">TARGET DATE</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + formatDate(story.target_date) + '</div></div>';
+    }
+
+    if (story.publish_date) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">PUBLISH DATE</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + formatDate(story.publish_date) + '</div></div>';
+    }
+
+    html += '</div>';
+
+    // Links
+    if (story.published_link || story.pitch_document_url) {
+      html += '<div style="margin-bottom: var(--space-md);">';
+      if (story.published_link) {
+        html += '<a href="' + escapeHtml(story.published_link) + '" target="_blank" class="btn btn-secondary" style="margin-right: var(--space-sm);">';
+        html += '<span data-feather="external-link"></span> View Published</a>';
+      }
+      if (story.pitch_document_url) {
+        html += '<a href="' + escapeHtml(story.pitch_document_url) + '" target="_blank" class="btn btn-secondary">';
+        html += '<span data-feather="file-text"></span> View Draft</a>';
+      }
+      html += '</div>';
+    }
+
+    // Notes
+    if (story.notes) {
+      html += '<div style="background: var(--color-surface-alt); padding: var(--space-md); border-radius: var(--radius-sm); margin-bottom: var(--space-md);">';
+      html += '<div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: var(--space-xs);">NOTES</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(story.notes) + '</div>';
+      html += '</div>';
+    }
+
+    // Actions
+    html += '<div style="display: flex; gap: var(--space-sm); padding-top: var(--space-md); border-top: 1px solid var(--color-border-light);">';
+    html += '<button class="btn btn-primary" onclick="COMMS.editStory(\'' + escapeAttr(story.story_id) + '\')"><span data-feather="edit-2"></span> Edit</button>';
+    if (story.status !== 'published') {
+      var nextStatus = getNextStatus(story.status);
+      if (nextStatus) {
+        html += '<button class="btn btn-secondary" onclick="COMMS.advanceStatus(\'' + escapeAttr(story.story_id) + '\', \'' + nextStatus + '\')">Move to ' + capitalizeFirst(nextStatus) + '</button>';
+      }
+    }
+    html += '</div>';
+
+    html += '</div>';
+
+    document.getElementById('storyModalBody').innerHTML = html;
+    document.getElementById('storyModal').classList.add('active');
+    feather.replace();
+  }
+
+  function getNextStatus(currentStatus) {
+    var order = ['idea', 'researching', 'drafting', 'review', 'published'];
+    var idx = order.indexOf(currentStatus);
+    if (idx >= 0 && idx < order.length - 1) {
+      return order[idx + 1];
+    }
+    return null;
+  }
+
+  function advanceStatus(storyId, newStatus) {
+    google.script.run
+      .withSuccessHandler(function(result) {
+        closeModal('storyModal');
+        loadStories();
+        loadOverview();
+      })
+      .withFailureHandler(function(error) {
+        alert('Failed to update status: ' + error);
+      })
+      .updateStoryStatus(storyId, newStatus);
+  }
+
+  function showCreateStoryModal() {
+    document.getElementById('editStoryModalTitle').textContent = 'New Story';
+    document.getElementById('storyForm').reset();
+    document.getElementById('editStoryId').value = '';
+    // Clear admin priority checkboxes
+    var checkboxes = document.querySelectorAll('#storyAdminPriorities input[type="checkbox"]');
+    checkboxes.forEach(function(cb) { cb.checked = false; });
+    document.getElementById('editStoryModal').classList.add('active');
+  }
+
+  function editStory(storyId) {
+    var story = state.stories.find(function(s) { return s.story_id === storyId; });
+    if (!story) {
+      google.script.run
+        .withSuccessHandler(function(s) {
+          if (s) populateStoryForm(s);
+        })
+        .getStoryById(storyId);
+      return;
+    }
+    populateStoryForm(story);
+  }
+
+  function populateStoryForm(story) {
+    document.getElementById('editStoryModalTitle').textContent = 'Edit Story';
+    document.getElementById('editStoryId').value = story.story_id;
+    document.getElementById('storyTitle').value = story.title || '';
+    document.getElementById('storyContentType').value = story.content_type || 'story';
+    document.getElementById('storyStatus').value = story.status || 'idea';
+    document.getElementById('storyPriority').value = story.priority || 'medium';
+    document.getElementById('storyChannel').value = story.channel || 'web';
+    document.getElementById('storyOutlet').value = story.primary_outlet || '';
+    document.getElementById('storyAuthor').value = story.author || '';
+    document.getElementById('storySolutions').value = story.solution_names || '';
+    document.getElementById('storyTargetDate').value = story.target_date ? story.target_date.split('T')[0] : '';
+    document.getElementById('storyPublishDate').value = story.publish_date ? story.publish_date.split('T')[0] : '';
+    document.getElementById('storySource').value = story.source || '';
+    document.getElementById('storyPitchUrl').value = story.pitch_document_url || '';
+    document.getElementById('storyPublishedLink').value = story.published_link || '';
+    document.getElementById('storyNotes').value = story.notes || '';
+
+    // Populate admin priorities checkboxes
+    var priorities = story.admin_priorities ? story.admin_priorities.split(',').map(function(p) { return p.trim(); }) : [];
+    var checkboxes = document.querySelectorAll('#storyAdminPriorities input[type="checkbox"]');
+    checkboxes.forEach(function(cb) {
+      cb.checked = priorities.indexOf(cb.value) !== -1;
+    });
+
+    closeModal('storyModal');
+    document.getElementById('editStoryModal').classList.add('active');
+  }
+
+  function submitStory(event) {
+    event.preventDefault();
+
+    var storyId = document.getElementById('editStoryId').value;
+    var solutionNames = document.getElementById('storySolutions').value;
+    var solutionIds = solutionNames.split(',').map(function(n) {
+      return n.trim().toLowerCase().replace(/\s+/g, '_');
+    }).join(', ');
+
+    // Collect admin priorities from checkboxes
+    var adminPriorities = [];
+    var checkboxes = document.querySelectorAll('#storyAdminPriorities input[type="checkbox"]:checked');
+    checkboxes.forEach(function(cb) {
+      adminPriorities.push(cb.value);
+    });
+
+    var storyData = {
+      title: document.getElementById('storyTitle').value,
+      content_type: document.getElementById('storyContentType').value,
+      status: document.getElementById('storyStatus').value,
+      priority: document.getElementById('storyPriority').value,
+      channel: document.getElementById('storyChannel').value,
+      primary_outlet: document.getElementById('storyOutlet').value,
+      author: document.getElementById('storyAuthor').value,
+      solution_names: solutionNames,
+      solution_ids: solutionIds,
+      admin_priorities: adminPriorities.join(', '),
+      target_date: document.getElementById('storyTargetDate').value,
+      publish_date: document.getElementById('storyPublishDate').value,
+      source: document.getElementById('storySource').value,
+      pitch_document_url: document.getElementById('storyPitchUrl').value,
+      published_link: document.getElementById('storyPublishedLink').value,
+      notes: document.getElementById('storyNotes').value
+    };
+
+    if (storyId) {
+      // Update existing
+      google.script.run
+        .withSuccessHandler(function(result) {
+          closeModal('editStoryModal');
+          loadStories();
+          loadOverview();
+          alert('Story updated successfully!');
+        })
+        .withFailureHandler(function(error) {
+          alert('Failed to update story: ' + error);
+        })
+        .updateStory(storyId, storyData);
+    } else {
+      // Create new
+      google.script.run
+        .withSuccessHandler(function(result) {
+          closeModal('editStoryModal');
+          loadStories();
+          loadOverview();
+          alert('Story created successfully!');
+        })
+        .withFailureHandler(function(error) {
+          alert('Failed to create story: ' + error);
+        })
+        .createStory(storyData);
+    }
+  }
+
+  function suggestStory(solutionName) {
+    showCreateStoryModal();
+    document.getElementById('storySolutions').value = solutionName;
+    document.getElementById('storySource').value = 'Coverage gap identified';
+  }
+
+  function createStoryFromOpportunity(type, value) {
+    showCreateStoryModal();
+    if (type === 'milestone') {
+      document.getElementById('storySolutions').value = value;
+      document.getElementById('storySource').value = 'Milestone opportunity';
+    } else if (type === 't8') {
+      document.getElementById('storySource').value = 'T8 Impact contact: ' + value;
+    }
+  }
+
+  function refreshOpportunities() {
+    document.getElementById('opportunitiesPanel').innerHTML = '<div class="loading-state"><span class="loading-spinner"></span></div>';
+    loadOpportunities();
+  }
+
+  // Calendar functions
+  function renderCalendar() {
+    var date = state.calendarDate;
+    var year = date.getFullYear();
+    var month = date.getMonth();
+
+    document.getElementById('calendarTitle').textContent =
+      date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    var firstDay = new Date(year, month, 1);
+    var lastDay = new Date(year, month + 1, 0);
+    var startDay = firstDay.getDay();
+    var daysInMonth = lastDay.getDate();
+
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Get stories with dates in this month
+    var monthStories = state.stories.filter(function(s) {
+      var targetDate = s.target_date ? new Date(s.target_date) : null;
+      var publishDate = s.publish_date ? new Date(s.publish_date) : null;
+      if (targetDate && targetDate.getMonth() === month && targetDate.getFullYear() === year) return true;
+      if (publishDate && publishDate.getMonth() === month && publishDate.getFullYear() === year) return true;
+      return false;
+    });
+
+    // Group by day
+    var storiesByDay = {};
+    monthStories.forEach(function(s) {
+      if (s.target_date) {
+        var d = new Date(s.target_date).getDate();
+        if (!storiesByDay[d]) storiesByDay[d] = [];
+        storiesByDay[d].push({ story: s, type: 'target' });
+      }
+      if (s.publish_date && s.status === 'published') {
+        var d = new Date(s.publish_date).getDate();
+        if (!storiesByDay[d]) storiesByDay[d] = [];
+        storiesByDay[d].push({ story: s, type: 'published' });
+      }
+    });
+
+    var html = '';
+
+    // Day headers
+    ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(function(day) {
+      html += '<div class="calendar-day-header">' + day + '</div>';
+    });
+
+    // Previous month days
+    var prevMonth = new Date(year, month, 0);
+    var prevMonthDays = prevMonth.getDate();
+    for (var i = startDay - 1; i >= 0; i--) {
+      html += '<div class="calendar-day other-month"><div class="calendar-day-number">' + (prevMonthDays - i) + '</div></div>';
+    }
+
+    // Current month days
+    for (var day = 1; day <= daysInMonth; day++) {
+      var isToday = (day === today.getDate() && month === today.getMonth() && year === today.getFullYear());
+      html += '<div class="calendar-day' + (isToday ? ' today' : '') + '">';
+      html += '<div class="calendar-day-number">' + day + '</div>';
+
+      if (storiesByDay[day]) {
+        storiesByDay[day].slice(0, 3).forEach(function(item) {
+          html += '<div class="calendar-event ' + item.type + '" onclick="COMMS.showStoryDetail(\'' + escapeAttr(item.story.story_id) + '\')" title="' + escapeAttr(item.story.title) + '">';
+          html += escapeHtml(item.story.title ? item.story.title.substring(0, 15) : 'Untitled');
+          html += '</div>';
+        });
+        if (storiesByDay[day].length > 3) {
+          html += '<div style="font-size: 10px; color: var(--color-text-muted);">+' + (storiesByDay[day].length - 3) + ' more</div>';
+        }
+      }
+
+      html += '</div>';
+    }
+
+    // Next month days
+    var totalCells = startDay + daysInMonth;
+    var remaining = totalCells % 7;
+    if (remaining > 0) {
+      for (var i = 1; i <= 7 - remaining; i++) {
+        html += '<div class="calendar-day other-month"><div class="calendar-day-number">' + i + '</div></div>';
+      }
+    }
+
+    document.getElementById('calendarGrid').innerHTML = html;
+  }
+
+  function navigateCalendar(direction) {
+    var date = state.calendarDate;
+    date.setMonth(date.getMonth() + direction);
+    renderCalendar();
+  }
+
+  function loadUpcomingTargets() {
+    google.script.run
+      .withSuccessHandler(function(targets) {
+        var container = document.getElementById('upcomingTargetsList');
+        if (!targets || targets.length === 0) {
+          container.innerHTML = '<div class="empty-state"><p>No upcoming targets</p></div>';
+          return;
+        }
+
+        var html = '';
+        targets.slice(0, 10).forEach(function(t) {
+          html += '<div class="target-item" onclick="COMMS.showStoryDetail(\'' + escapeAttr(t.story_id) + '\')">';
+          html += '<div class="target-info">';
+          html += '<div class="target-title">' + escapeHtml(t.title || 'Untitled') + '</div>';
+          html += '<div class="target-date">' + formatDate(t.target_date) + '</div>';
+          html += '</div></div>';
+        });
+
+        container.innerHTML = html;
+      })
+      .withFailureHandler(function(error) {
+        document.getElementById('upcomingTargetsList').innerHTML =
+          '<div class="empty-state"><p>Could not load targets</p></div>';
+      })
+      .getUpcomingTargets(60);
+  }
+
+  function closeModal(modalId, event) {
+    if (!event || event.target === document.getElementById(modalId)) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+  }
+
+  // ============================================
+  // Events Functions
+  // ============================================
+
+  function loadEvents() {
+    google.script.run
+      .withSuccessHandler(function(events) {
+        state.events = events || [];
+        renderEventsStats();
+        renderEventsView();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load events:', error);
+        document.getElementById('eventsTableBody').innerHTML =
+          '<tr><td colspan="7" class="empty-state">Failed to load events</td></tr>';
+      })
+      .getAllEvents();
+
+    // Also load overview for stats
+    google.script.run
+      .withSuccessHandler(function(overview) {
+        state.eventsOverview = overview;
+        renderEventsStats();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load events overview:', error);
+      })
+      .getOutreachOverview();
+  }
+
+  function renderEventsStats() {
+    var overview = state.eventsOverview;
+    if (overview && overview.stats) {
+      document.getElementById('eventStatUpcoming').textContent = overview.stats.upcoming_events || 0;
+      document.getElementById('eventStatConfirmed').textContent = overview.stats.confirmed_events || 0;
+      document.getElementById('eventStatPotential').textContent = overview.stats.potential_events || 0;
+      document.getElementById('eventStatDeadlines').textContent = overview.stats.deadlines_30_days || 0;
+    }
+  }
+
+  function renderEventsView() {
+    var events = filterEventsData(state.events);
+
+    // Render upcoming events panel
+    var upcomingEvents = events.filter(function(e) {
+      return e.status === 'confirmed' && e.start_date && new Date(e.start_date) >= new Date();
+    }).slice(0, 5);
+
+    var upcomingHtml = '';
+    if (upcomingEvents.length === 0) {
+      upcomingHtml = '<div class="empty-state"><span data-feather="calendar"></span><p>No upcoming events</p></div>';
+    } else {
+      upcomingEvents.forEach(function(e) {
+        upcomingHtml += renderEventCard(e);
+      });
+    }
+    document.getElementById('upcomingEventsPanel').innerHTML = upcomingHtml;
+
+    // Render potential events panel
+    var potentialEvents = events.filter(function(e) {
+      return e.status === 'potential' || e.status === 'considering';
+    }).slice(0, 5);
+
+    var potentialHtml = '';
+    if (potentialEvents.length === 0) {
+      potentialHtml = '<div class="empty-state"><span data-feather="compass"></span><p>No potential events</p></div>';
+    } else {
+      potentialEvents.forEach(function(e) {
+        potentialHtml += renderEventCard(e, true);
+      });
+    }
+    document.getElementById('potentialEventsPanel').innerHTML = potentialHtml;
+    document.getElementById('potentialBadge').textContent = potentialEvents.length;
+
+    // Render events table
+    renderEventsTable(events);
+
+    feather.replace();
+  }
+
+  function renderEventCard(event, showActions) {
+    var typeIcons = {
+      'conference': 'users',
+      'workshop': 'tool',
+      'webinar': 'video',
+      'meeting': 'briefcase',
+      'site_visit': 'map-pin'
+    };
+    var icon = typeIcons[event.event_type] || 'calendar';
+
+    var statusColors = {
+      'confirmed': '#4CAF50',
+      'potential': '#FF9800',
+      'considering': '#2196F3',
+      'attended': '#9E9E9E',
+      'cancelled': '#F44336'
+    };
+    var statusColor = statusColors[event.status] || '#9E9E9E';
+
+    var html = '<div class="event-card" onclick="COMMS.showEventDetail(\'' + escapeAttr(event.event_id) + '\')">';
+    html += '<div class="event-card-header">';
+    html += '<span class="event-type-icon"><span data-feather="' + icon + '"></span></span>';
+    html += '<span class="event-status" style="background: ' + statusColor + ';">' + capitalizeFirst(event.status) + '</span>';
+    html += '</div>';
+    html += '<div class="event-card-title">' + escapeHtml(event.name) + '</div>';
+
+    if (event.start_date) {
+      html += '<div class="event-card-date"><span data-feather="calendar"></span> ' + formatDate(event.start_date) + '</div>';
+    }
+
+    if (event.location) {
+      html += '<div class="event-card-location"><span data-feather="map-pin"></span> ' + escapeHtml(event.location.substring(0, 30)) + '</div>';
+    }
+
+    if (showActions && (event.status === 'potential' || event.status === 'considering')) {
+      html += '<div class="event-card-actions">';
+      html += '<button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); COMMS.updateEventStatus(\'' + escapeAttr(event.event_id) + '\', \'confirmed\')">Confirm</button>';
+      html += '<button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); COMMS.updateEventStatus(\'' + escapeAttr(event.event_id) + '\', \'cancelled\')">Decline</button>';
+      html += '</div>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  function renderEventsTable(events) {
+    var tbody = document.getElementById('eventsTableBody');
+
+    if (events.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No events found</td></tr>';
+      return;
+    }
+
+    // Sort by date
+    events.sort(function(a, b) {
+      var dateA = a.start_date ? new Date(a.start_date) : new Date('9999-12-31');
+      var dateB = b.start_date ? new Date(b.start_date) : new Date('9999-12-31');
+      return dateA - dateB;
+    });
+
+    var html = '';
+    events.slice(0, 50).forEach(function(e) {
+      var statusClass = 'status-' + (e.status || 'potential');
+      var typeIcons = {
+        'conference': 'users',
+        'workshop': 'tool',
+        'webinar': 'video',
+        'meeting': 'briefcase',
+        'site_visit': 'map-pin'
+      };
+      var icon = typeIcons[e.event_type] || 'calendar';
+
+      html += '<tr onclick="COMMS.showEventDetail(\'' + escapeAttr(e.event_id) + '\')" style="cursor: pointer;">';
+      html += '<td><strong>' + escapeHtml(e.name) + '</strong></td>';
+      html += '<td><span data-feather="' + icon + '" style="width: 14px; height: 14px;"></span> ' + capitalizeFirst(e.event_type || 'event') + '</td>';
+      html += '<td>' + (e.start_date ? formatDate(e.start_date) : '--') + '</td>';
+      html += '<td>' + escapeHtml(e.location || '--').substring(0, 25) + '</td>';
+      html += '<td><span class="status-badge ' + statusClass + '">' + capitalizeFirst(e.status) + '</span></td>';
+      html += '<td>' + escapeHtml(e.team_members || '--').substring(0, 20) + '</td>';
+      html += '<td>';
+      if (e.event_url) {
+        html += '<a href="' + escapeHtml(e.event_url) + '" target="_blank" class="btn btn-sm btn-secondary" onclick="event.stopPropagation()"><span data-feather="external-link"></span></a>';
+      }
+      html += '</td>';
+      html += '</tr>';
+    });
+
+    tbody.innerHTML = html;
+  }
+
+  function filterEventsData(events) {
+    var filters = state.eventFilters;
+    return events.filter(function(e) {
+      if (filters.year && e.year && e.year.toString() !== filters.year) return false;
+      if (filters.status && e.status !== filters.status) return false;
+      return true;
+    });
+  }
+
+  function filterEvents() {
+    state.eventFilters.year = document.getElementById('eventYearFilter').value;
+    state.eventFilters.status = document.getElementById('eventStatusFilter').value;
+    renderEventsView();
+  }
+
+  function showEventDetail(eventId) {
+    var event = state.events.find(function(e) { return e.event_id === eventId; });
+    if (!event) {
+      google.script.run
+        .withSuccessHandler(function(e) {
+          if (e) renderEventDetailModal(e);
+        })
+        .getEventById(eventId);
+      return;
+    }
+    renderEventDetailModal(event);
+  }
+
+  function renderEventDetailModal(event) {
+    document.getElementById('modalEventName').textContent = event.name || 'Event Details';
+
+    var statusColors = {
+      'confirmed': '#4CAF50',
+      'potential': '#FF9800',
+      'considering': '#2196F3',
+      'attended': '#9E9E9E',
+      'cancelled': '#F44336'
+    };
+    var statusColor = statusColors[event.status] || '#9E9E9E';
+
+    var html = '<div class="event-detail">';
+
+    // Status header
+    html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); padding-bottom: var(--space-md); border-bottom: 1px solid var(--color-border-light);">';
+    html += '<span style="font-size: var(--font-size-sm); color: var(--color-text-muted);">' + capitalizeFirst(event.event_type || 'Event') + '</span>';
+    html += '<span style="padding: 4px 12px; background: ' + statusColor + '; color: white; border-radius: 12px; font-size: var(--font-size-sm);">' + capitalizeFirst(event.status) + '</span>';
+    html += '</div>';
+
+    // Details grid
+    html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-md);">';
+
+    if (event.start_date) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">DATE</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + formatDate(event.start_date);
+      if (event.end_date && event.end_date !== event.start_date) {
+        html += ' - ' + formatDate(event.end_date);
+      }
+      html += '</div></div>';
+    }
+
+    if (event.location) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">LOCATION</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(event.location) + '</div></div>';
+    }
+
+    if (event.deadline) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">DEADLINE</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + formatDate(event.deadline) + '</div></div>';
+    }
+
+    if (event.sector) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">SECTOR</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(event.sector) + '</div></div>';
+    }
+
+    if (event.solution_names) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">RELEVANT SOLUTIONS</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(event.solution_names) + '</div></div>';
+    }
+
+    if (event.team_members) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">TEAM</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(event.team_members) + '</div></div>';
+    }
+
+    if (event.stakeholders) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">AUDIENCE</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(event.stakeholders) + '</div></div>';
+    }
+
+    if (event.priority) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">PRIORITY</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + capitalizeFirst(event.priority) + '</div></div>';
+    }
+
+    html += '</div>';
+
+    // Purpose
+    if (event.purpose) {
+      html += '<div style="margin-bottom: var(--space-md);">';
+      html += '<div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">PURPOSE</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(event.purpose) + '</div>';
+      html += '</div>';
+    }
+
+    // Links
+    if (event.event_url || event.presentation_url) {
+      html += '<div style="margin-bottom: var(--space-md);">';
+      if (event.event_url) {
+        html += '<a href="' + escapeHtml(event.event_url) + '" target="_blank" class="btn btn-secondary" style="margin-right: var(--space-sm);">';
+        html += '<span data-feather="external-link"></span> Event Website</a>';
+      }
+      if (event.presentation_url) {
+        html += '<a href="' + escapeHtml(event.presentation_url) + '" target="_blank" class="btn btn-secondary">';
+        html += '<span data-feather="file-text"></span> Presentation</a>';
+      }
+      html += '</div>';
+    }
+
+    // Notes
+    if (event.notes) {
+      html += '<div style="background: var(--color-surface-alt); padding: var(--space-md); border-radius: var(--radius-sm); margin-bottom: var(--space-md);">';
+      html += '<div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: var(--space-xs);">NOTES</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(event.notes) + '</div>';
+      html += '</div>';
+    }
+
+    // Actions
+    html += '<div style="display: flex; gap: var(--space-sm); padding-top: var(--space-md); border-top: 1px solid var(--color-border-light);">';
+    if (event.status === 'potential' || event.status === 'considering') {
+      html += '<button class="btn btn-primary" onclick="COMMS.updateEventStatus(\'' + escapeAttr(event.event_id) + '\', \'confirmed\')">Confirm Attendance</button>';
+      html += '<button class="btn btn-secondary" onclick="COMMS.updateEventStatus(\'' + escapeAttr(event.event_id) + '\', \'cancelled\')">Decline</button>';
+    } else if (event.status === 'confirmed') {
+      html += '<button class="btn btn-primary" onclick="COMMS.updateEventStatus(\'' + escapeAttr(event.event_id) + '\', \'attended\')">Mark Attended</button>';
+      html += '<button class="btn btn-secondary" onclick="COMMS.updateEventStatus(\'' + escapeAttr(event.event_id) + '\', \'cancelled\')">Cancel</button>';
+    }
+    html += '</div>';
+
+    html += '</div>';
+
+    document.getElementById('eventModalBody').innerHTML = html;
+    document.getElementById('eventModal').classList.add('active');
+    feather.replace();
+  }
+
+  function updateEventStatus(eventId, newStatus) {
+    google.script.run
+      .withSuccessHandler(function(result) {
+        closeModal('eventModal');
+        loadEvents();
+      })
+      .withFailureHandler(function(error) {
+        alert('Failed to update event status: ' + error);
+      })
+      .updateEventStatus(eventId, newStatus);
+  }
+
+  function showDiscoverEventsModal() {
+    document.getElementById('discoverSearchTopic').value = '';
+    document.getElementById('discoverSector').value = '';
+    document.getElementById('discoverResults').innerHTML =
+      '<div class="empty-state"><span data-feather="compass"></span><p>Enter a topic or select a sector to discover events</p></div>';
+    document.getElementById('discoverEventsModal').classList.add('active');
+    feather.replace();
+  }
+
+  function performEventSearch() {
+    var topic = document.getElementById('discoverSearchTopic').value.trim();
+    var sector = document.getElementById('discoverSector').value;
+
+    if (!topic && !sector) {
+      alert('Please enter a search topic or select a sector');
+      return;
+    }
+
+    var resultsContainer = document.getElementById('discoverResults');
+    resultsContainer.innerHTML = '<div class="loading-state"><span class="loading-spinner"></span><p>Searching for events...</p></div>';
+
+    if (sector && !topic) {
+      google.script.run
+        .withSuccessHandler(function(results) {
+          renderDiscoverResults(results);
+        })
+        .withFailureHandler(function(error) {
+          resultsContainer.innerHTML = '<div class="empty-state"><span data-feather="alert-circle"></span><p>Search failed: ' + escapeHtml(error) + '</p></div>';
+          feather.replace();
+        })
+        .discoverEventsBySector(sector);
+    } else {
+      google.script.run
+        .withSuccessHandler(function(results) {
+          renderDiscoverResults(results);
+        })
+        .withFailureHandler(function(error) {
+          resultsContainer.innerHTML = '<div class="empty-state"><span data-feather="alert-circle"></span><p>Search failed: ' + escapeHtml(error) + '</p></div>';
+          feather.replace();
+        })
+        .discoverEvents(topic, 10);
+    }
+  }
+
+  function renderDiscoverResults(results) {
+    var container = document.getElementById('discoverResults');
+
+    if (!results || results.length === 0) {
+      container.innerHTML = '<div class="empty-state"><span data-feather="inbox"></span><p>No events found. Try a different search term.</p></div>';
+      feather.replace();
+      return;
+    }
+
+    var html = '<div class="discover-results-list">';
+    results.forEach(function(r) {
+      html += '<div class="discover-result-item">';
+      html += '<div class="result-info">';
+      html += '<div class="result-title">' + escapeHtml(r.title || r.name) + '</div>';
+      if (r.description) {
+        html += '<div class="result-desc">' + escapeHtml(r.description.substring(0, 150)) + (r.description.length > 150 ? '...' : '') + '</div>';
+      }
+      if (r.url) {
+        html += '<div class="result-url"><a href="' + escapeHtml(r.url) + '" target="_blank">' + escapeHtml(r.url.substring(0, 50)) + '</a></div>';
+      }
+      html += '</div>';
+      html += '<button class="btn btn-sm btn-primary" onclick="COMMS.addDiscoveredEvent(\'' + escapeAttr(r.title || r.name) + '\', \'' + escapeAttr(r.url || '') + '\')">+ Add</button>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+    feather.replace();
+  }
+
+  function addDiscoveredEvent(name, url) {
+    var eventData = {
+      name: name,
+      event_type: 'conference',
+      status: 'potential',
+      source: 'web_search',
+      event_url: url,
+      year: 2026,
+      notes: 'Discovered via web search'
+    };
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result && result.event_id) {
+          alert('Event added as potential: ' + name);
+          loadEvents();
+        }
+      })
+      .withFailureHandler(function(error) {
+        alert('Failed to add event: ' + error);
+      })
+      .createEvent(eventData);
+  }
+
+  // ============================================
+  // Utility functions
+  function formatDate(dateStr) {
+    if (!dateStr) return '--';
+    var date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function capitalizeFirst(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function escapeAttr(text) {
+    return (text || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  }
+
+  function showPipelineError(message) {
+    var statuses = ['Idea', 'Researching', 'Drafting', 'Review', 'Published'];
+    statuses.forEach(function(status) {
+      document.getElementById('cards' + status).innerHTML =
+        '<div class="empty-state"><p style="font-size: var(--font-size-xs);">Error</p></div>';
+    });
+  }
+
+  return {
+    init: init,
+    setView: setView,
+    applyFilters: applyFilters,
+    showStoryDetail: showStoryDetail,
+    showCreateStoryModal: showCreateStoryModal,
+    editStory: editStory,
+    submitStory: submitStory,
+    advanceStatus: advanceStatus,
+    suggestStory: suggestStory,
+    createStoryFromOpportunity: createStoryFromOpportunity,
+    refreshOpportunities: refreshOpportunities,
+    navigateCalendar: navigateCalendar,
+    closeModal: closeModal,
+    // Events functions
+    filterEvents: filterEvents,
+    showEventDetail: showEventDetail,
+    updateEventStatus: updateEventStatus,
+    showDiscoverEventsModal: showDiscoverEventsModal,
+    performEventSearch: performEventSearch,
+    addDiscoveredEvent: addDiscoveredEvent
+  };
+})();
+
+// Initialize
+if (typeof google !== 'undefined' && google.script) {
+  COMMS.init();
+} else {
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() { COMMS.init(); }, 500);
+  });
+}
+</script>

@@ -10,8 +10,9 @@
 // ============================================================================
 
 /**
- * Get the Stories sheet
+ * Get the Stories database sheet
  * Reads STORIES_SHEET_ID from MO-DB_Config
+ * Note: STORIES_TRACKING_SHEET_ID is the source workbook, this is the normalized database
  */
 function getStoriesSheet_() {
   var sheetId = getConfigValue('STORIES_SHEET_ID');

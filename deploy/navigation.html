@@ -66,6 +66,12 @@
       <span data-feather="check-square"></span>
       <span class="nav-label">Actions</span>
     </button>
+    <button type="button" class="nav-tab <?= activePage === 'team' ? 'active' : '' ?>"       
+              data-page="team"
+              onclick="navigateTo('team')">
+        <span data-feather="user-check"></span>
+        <span class="nav-label">Team</span>
+      </button>
   </div>
 
   <!-- Right side actions -->

@@ -10,8 +10,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Comms-NSITE (communications/story tracking) - UI for stories-api.gs
 - Automation & Sync (scheduled exports, email notifications)
+- External Mentions tracking for Comms-NSITE
+
+---
+
+## [1.3.0] - 2026-01-18
+
+### Added - Comms-NSITE & Database Consolidation
+
+**Comms-NSITE Enhancements**
+- **Admin Priorities View** - New view showing stories aligned with 5 Biden-Harris administration priorities:
+  - International Partnerships
+  - Citizen Science & Open Science
+  - AI Innovation
+  - Science Integrity
+  - Efficiency
+- **Admin Priorities in Story Form** - Checkbox group for tagging stories with priority alignment
+- **MO-DB_Stories Database** - 38 stories extracted from NSITE Story Tracking workbook
+  - 6 content types: story, web_content, social_media, nugget, key_date, science_advancement
+  - 22 columns including admin_priorities
+  - Source tracking for data provenance
+- **sync-stories-from-tracking.gs** - Container-bound sync script for MO-DB_Stories
+- **sync_stories_from_tracking.py** - Python sync for local development
+
+**Key Messages Integration**
+- **Key Messages columns added to MO-DB_Solutions** (6 new columns):
+  - key_messages, focus_type, industry_connections
+  - scientific_advancement, agency_use_impact, public_comms_links
+- **Key Messages API Functions** in solutions-api.gs:
+  - `getKeyMessages(solutionId)` - Get key messages for a solution
+  - `getSolutionsWithKeyMessages()` - Get all solutions with key messages
+  - `getKeyMessagesSummary()` - Coverage statistics for comms dashboard
+  - `searchKeyMessages(query)` - Search across key message content
+
+**MO-DB_Milestones Database** (NEW)
+- 185 milestone records extracted from MO-DB_Solutions
+- Columns: milestone_id, solution_id, milestone_type, target_date, actual_date, status, notes
+- Milestone types: ATP, F2I, ORR, Closeout, Memo dates
+
+### Changed
+
+**MO-DB_Solutions Consolidation** (**MAJOR CLEANUP**)
+- **Reduced from 80 → 48 columns** (32 columns removed/migrated)
+- **Milestone data extracted** to MO-DB_Milestones (8 date columns → foreign key)
+- **Empty columns removed**: 17 columns with no data
+- **Redundant columns merged**: team_management → notes, duplicate URLs consolidated
+- **Key messages integrated**: 6 columns added from separate source files
+- **Backup created** before modification
+
+**Database Count: 13 Total**
+- Needs, Actions, Agencies, Availability, Contacts, Engagements, Glossary, Meetings, Milestones, Outreach, Solutions, Stories, Updates
+
+### Scripts Added
+- `scripts/consolidate_solutions_db.py` - Full Solutions database consolidation
+- `scripts/sync_stories_from_tracking.py` - Story extraction from tracking workbook
+- `deploy/sync-stories-from-tracking.gs` - GAS sync for MO-DB_Stories
 
 ---
 

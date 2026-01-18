@@ -64,7 +64,8 @@ var CONFIG_KEYS = {
   UPDATES_SHEET_ID: 'UPDATES_SHEET_ID',
 
   // Comms-NSITE Database Sheet IDs
-  STORIES_SHEET_ID: 'STORIES_SHEET_ID',
+  STORIES_SHEET_ID: 'STORIES_SHEET_ID',           // MO-DB_Stories (normalized database)
+  STORIES_TRACKING_SHEET_ID: 'STORIES_TRACKING_SHEET_ID', // NSITE Story Tracking (source workbook)
   OUTREACH_SHEET_ID: 'OUTREACH_SHEET_ID',
 
   // Team-related Database Sheet IDs
