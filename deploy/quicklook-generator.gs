@@ -441,3 +441,201 @@ function generateDetailedMilestoneReport(options) {
     filters: options
   };
 }
+
+// ============================================================================
+// DETAILED MILESTONES EXPORT TO GOOGLE SHEET
+// ============================================================================
+
+/**
+ * Export Detailed Milestones report to a new Google Sheet
+ * Includes methodology and data source documentation
+ * @param {Object} options - Report options
+ * @returns {Object} { url, fileName, sheetId }
+ */
+function exportDetailedMilestonesToSheet(options) {
+  options = options || {};
+
+  try {
+    var report = generateDetailedMilestoneReport(options);
+    var solutions = getAllSolutions();
+
+    // Create new spreadsheet
+    var today = new Date();
+    var dateStr = Utilities.formatDate(today, Session.getScriptTimeZone(), 'yyyy-MM-dd_HHmm');
+    var fileName = 'DetailedMilestones_' + dateStr;
+    var newSS = SpreadsheetApp.create(fileName);
+
+    // Get source sheet URL
+    var solutionsSheetUrl = '';
+    try {
+      var configSheetId = getProperty(CONFIG.CONFIG_SHEET_ID);
+      if (configSheetId) {
+        solutionsSheetUrl = 'https://docs.google.com/spreadsheets/d/' + configSheetId;
+      }
+    } catch (e) {}
+
+    // ========================================
+    // SHEET 1: Milestone Overview
+    // ========================================
+    var overviewSheet = newSS.getActiveSheet();
+    overviewSheet.setName('Milestone Overview');
+
+    var overviewData = [report.headers];
+    report.rows.forEach(function(row) {
+      overviewData.push(row);
+    });
+
+    overviewSheet.getRange(1, 1, overviewData.length, report.headers.length).setValues(overviewData);
+    styleHeaderRow_(overviewSheet, report.headers.length);
+    autoResizeColumns_(overviewSheet, report.headers.length);
+
+    // ========================================
+    // SHEET 2: Statistics Summary
+    // ========================================
+    var statsSheet = newSS.insertSheet('Statistics');
+
+    var statsData = [
+      ['MILESTONE STATISTICS', ''],
+      ['', ''],
+      ['Generated', today.toISOString()],
+      ['Total Solutions', report.stats.total],
+      ['', ''],
+      ['BY PHASE', ''],
+    ];
+
+    Object.keys(report.stats.byPhase).forEach(function(phase) {
+      statsData.push([phase, report.stats.byPhase[phase]]);
+    });
+
+    statsData.push(['', '']);
+    statsData.push(['BY CYCLE', '']);
+
+    Object.keys(report.stats.byCycle).sort().forEach(function(cycle) {
+      statsData.push([cycle, report.stats.byCycle[cycle]]);
+    });
+
+    statsData.push(['', '']);
+    statsData.push(['MILESTONE STATUS', '']);
+    statsData.push(['Milestones Completed', report.stats.milestonesCompleted]);
+    statsData.push(['Upcoming (90 days)', report.stats.milestonesUpcoming90]);
+    statsData.push(['', '']);
+    statsData.push(['DOCUMENT STATUS', '']);
+    statsData.push(['Documents Complete', report.stats.documentsComplete]);
+    statsData.push(['Documents In Work', report.stats.documentsInWork]);
+    statsData.push(['Documents Not Started', report.stats.documentsNotStarted]);
+
+    statsSheet.getRange(1, 1, statsData.length, 2).setValues(statsData);
+    statsSheet.getRange(1, 1).setFontWeight('bold').setFontSize(14);
+    statsSheet.getRange(6, 1).setFontWeight('bold');
+    autoResizeColumns_(statsSheet, 2);
+
+    // ========================================
+    // SHEET 3: Methodology & Data Sources
+    // ========================================
+    var methodSheet = newSS.insertSheet('Methodology & Data Sources');
+
+    var methodData = [
+      ['METHODOLOGY & DATA SOURCES', ''],
+      ['', ''],
+      ['This document explains how the Detailed Milestones report is generated.', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['DATA SOURCE', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['MO-DB_Solutions', ''],
+      ['   Total Records:', report.count + ' solutions'],
+      ['   Source:', solutionsSheetUrl || 'Contact MO team for access'],
+      ['   Description:', 'Master solution database maintained by MO team'],
+      ['', ''],
+      ['   Key Fields Used:', ''],
+      ['   - name/solution_id: Solution identifier', ''],
+      ['   - cycle: Project cycle (1-5)', ''],
+      ['   - phase: Current lifecycle phase', ''],
+      ['   - atp_date, f2i_date, orr_date, closeout_date: Milestone dates', ''],
+      ['   - atp_memo, f2i_memo, orr_memo, closeout_memo: Document status', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['MILESTONE DATE INTERPRETATION', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['Date with ✓:', 'Milestone date has passed (completed)'],
+      ['Date without ✓:', 'Milestone is upcoming'],
+      ['Empty:', 'Milestone date not yet scheduled'],
+      ['', ''],
+      ['Milestone Types:', ''],
+      ['   ATP DG: Authority to Proceed Decision Gate', ''],
+      ['   F2I DG: Formulation to Implementation Decision Gate', ''],
+      ['   ORR: Operational Readiness Review', ''],
+      ['   Closeout: Project closeout date', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['DOCUMENT STATUS INTERPRETATION', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['Date with ✓:', 'Document completed on that date'],
+      ['In Work:', 'Document is being prepared'],
+      ['— (dash):', 'Document not started or not applicable'],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['STATISTICS CALCULATIONS', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['Milestones Completed:', 'Count of milestone dates in the past'],
+      ['Upcoming (90 days):', 'Milestones with dates within next 90 days'],
+      ['Documents Complete:', 'Fields with completion dates'],
+      ['Documents In Work:', 'Fields marked "in_work" or "in work"'],
+      ['Documents Not Started:', 'Empty document fields'],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['SHEETS IN THIS WORKBOOK', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['1. Milestone Overview - All solutions with milestone and document status', ''],
+      ['2. Statistics - Summary counts by phase, cycle, and status', ''],
+      ['3. Methodology & Data Sources - This sheet', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['VERIFICATION', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['To verify any data in this report:', ''],
+      ['', ''],
+      ['1. Open MO-DB_Solutions (link above)', ''],
+      ['2. Find the solution by name', ''],
+      ['3. Compare milestone date columns with this report', ''],
+      ['', ''],
+      ['For questions, contact the MO team.', '']
+    ];
+
+    methodSheet.getRange(1, 1, methodData.length, 2).setValues(methodData);
+    methodSheet.getRange(1, 1).setFontWeight('bold').setFontSize(14);
+
+    // Make URL clickable
+    if (solutionsSheetUrl) {
+      methodSheet.getRange(11, 2).setFormula('=HYPERLINK("' + solutionsSheetUrl + '", "Click to open MO-DB_Solutions")');
+    }
+
+    methodSheet.setColumnWidth(1, 400);
+    methodSheet.setColumnWidth(2, 400);
+
+    // Move Methodology to last position (it's created last so already there)
+    // Reorder: Milestone Overview first
+    newSS.setActiveSheet(overviewSheet);
+    newSS.moveActiveSheet(1);
+
+    Logger.log('Detailed Milestones exported: ' + newSS.getUrl());
+
+    return {
+      url: newSS.getUrl(),
+      fileName: fileName,
+      sheetId: newSS.getId(),
+      rowCount: report.count,
+      sheets: ['Milestone Overview', 'Statistics', 'Methodology & Data Sources']
+    };
+
+  } catch (e) {
+    Logger.log('Error exporting Detailed Milestones report: ' + e.message);
+    throw new Error('Failed to export report: ' + e.message);
+  }
+}

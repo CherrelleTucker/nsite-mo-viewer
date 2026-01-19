@@ -17,7 +17,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.0] - 2026-01-18
 
-### Added - Comms-NSITE & Database Consolidation
+### Added - Comms-NSITE, Database Consolidation & Report Exports
+
+**Report Export to Google Sheets** (NEW)
+- **All 6 reports now export to multi-tab Google Sheets** with methodology documentation
+- **Methodology & Data Sources tab** - Each export includes:
+  - Clickable links to source databases
+  - Calculation explanations for all scores
+  - Verification instructions for leadership review
+- **Performance optimization** - Batch `setValues()` replaces slow `appendRow()` loops
+- **Confidence weighting** - Need Alignment report now shows confidence based on response count
+  - Formula: `100 * (1 - e^(-responses/10))`
+- **Export files created:**
+  - `export-helpers.gs` - Shared utilities (styling, formatting, methodology helpers) (NEW FILE)
+  - `stakeholder-solution-alignment.gs` - Need Alignment, Stakeholder Coverage, Engagement Funnel, Department Reach exports
+  - `quicklook-generator.gs` - Detailed Milestones export
+  - `historical-updates-export.gs` - Historical Updates export (NEW FILE)
+- **Generic export handler** in reports.html - Single `exportToGoogleSheet()` function for all reports
+- **Bug fixes:**
+  - Fixed `getAllHistoricalUpdatesForReport()` data structure handling (returns `{solutions: [...]}` not keyed object)
+  - Fixed methodology sheet column mismatch in Stakeholder Coverage and Department Reach exports
+  - Fixed broken `getProperty(CONFIG.CONFIG_SHEET_ID)` → `getConfigValue('SOLUTIONS_SHEET_ID')` in all export functions
 
 **Comms-NSITE Enhancements**
 - **Admin Priorities View** - New view showing stories aligned with 5 Biden-Harris administration priorities:

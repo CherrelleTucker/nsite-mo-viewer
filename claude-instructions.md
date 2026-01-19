@@ -152,6 +152,19 @@ The app uses Single Page Application navigation:
 - Content loaded via `google.script.run.getPageHTML(pageName)`
 - See `docs/SPA_NAVIGATION.md` for details
 
+### Report Export Pattern
+
+Report exports create multi-tab Google Sheets with methodology documentation:
+- `export-helpers.gs` - Shared utilities (styleHeaderRow_, autoResizeColumns_, etc.)
+- `stakeholder-solution-alignment.gs` - 4 exports: Need Alignment, Stakeholder Coverage, Engagement Funnel, Department Reach
+- `quicklook-generator.gs` - Detailed Milestones export
+- `historical-updates-export.gs` - Historical Updates export
+
+Each export should include a "Methodology & Data Sources" tab with:
+- Links to source databases
+- Calculation explanations
+- Verification instructions
+
 ---
 
 ## Quality Checklist
@@ -254,7 +267,7 @@ When beginning a new session:
 
 ## Version Information
 
-- **Current Version:** 1.2.0
+- **Current Version:** 1.3.0
 - **Last Updated:** 2026-01-18
 - **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
 

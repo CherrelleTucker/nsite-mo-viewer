@@ -188,6 +188,10 @@
         <div class="report-info">
           <p><strong>Shows:</strong> Gap analysis - what stakeholders need vs what solutions deliver</p>
         </div>
+        <div class="report-notice">
+          <span class="material-icons">schedule</span>
+          <span>Large report (2,000+ records) - may take 1-2 minutes to generate or export</span>
+        </div>
         <details class="methodology-details">
           <summary><span class="material-icons">info</span> How is this calculated?</summary>
           <div class="methodology-content">
@@ -200,6 +204,8 @@
               <tr><td>Coverage Match</td><td>20</td><td>Solution geographic_coverage meets/exceeds stated needs</td></tr>
             </table>
             <p><strong>Total Score:</strong> 0-100% alignment</p>
+            <p><strong>Confidence Weighting:</strong> Based on survey response count (1 resp: 10%, 10 resp: 63%, 20 resp: 86%, 30+ resp: 95%)</p>
+            <p><strong>Weighted Score:</strong> Alignment × Confidence - prioritizes scores backed by more data</p>
             <p><strong>Gap Identification:</strong> Shows specific mismatches where solution doesn't meet requirements</p>
           </div>
         </details>
@@ -433,6 +439,24 @@
 
   .report-info strong {
     color: var(--color-text);
+  }
+
+  .report-notice {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    color: #92400e;
+    margin-bottom: var(--space-sm);
+  }
+
+  .report-notice .material-icons {
+    font-size: 16px;
+    color: #d97706;
   }
 
   .report-options {
@@ -1251,38 +1275,80 @@
     }
 
     function exportPreview() {
-      var table = document.querySelector('#previewContent .preview-table');
-      if (!table) {
-        alert('No table data to export');
+      // Map report types to their server-side export functions
+      var exportFunctions = {
+        needAlignment: { fn: 'exportNeedAlignmentToSheet', name: 'Need Alignment' },
+        detailedReport: { fn: 'exportDetailedMilestonesToSheet', name: 'Detailed Milestones' },
+        stakeholderCoverage: { fn: 'exportStakeholderCoverageToSheet', name: 'Stakeholder Coverage' },
+        engagementFunnel: { fn: 'exportEngagementFunnelToSheet', name: 'Engagement Funnel' },
+        departmentReach: { fn: 'exportDepartmentReachToSheet', name: 'Department Reach' },
+        historicalUpdates: { fn: 'exportHistoricalUpdatesToSheet', name: 'Historical Updates' }
+      };
+
+      var exportConfig = exportFunctions[currentReportType];
+
+      if (exportConfig) {
+        exportToGoogleSheet(exportConfig.fn, exportConfig.name);
         return;
       }
-      var csv = '';
-      var rows = table.querySelectorAll('tr');
-      rows.forEach(function(row) {
-        var cols = row.querySelectorAll('th, td');
-        var rowData = [];
-        cols.forEach(function(col) {
-          var text = col.textContent || '';
-          rowData.push('"' + text.replace(/"/g, '""') + '"');
+
+      // Fallback for reports without server-side export (like Quad Chart)
+      alert('Export not available for this report type');
+    }
+
+    /**
+     * Generic export to Google Sheet with methodology tab
+     * Calls the appropriate server-side export function
+     */
+    function exportToGoogleSheet(functionName, reportName) {
+      // Show loading state
+      var exportBtn = document.querySelector('#previewPanel .btn-secondary');
+      var originalText = exportBtn.innerHTML;
+      exportBtn.innerHTML = '<span class="material-icons">hourglass_empty</span> Exporting...';
+      exportBtn.disabled = true;
+
+      // Use bracket notation to call the dynamic function name
+      var runner = google.script.run
+        .withSuccessHandler(function(result) {
+          exportBtn.innerHTML = originalText;
+          exportBtn.disabled = false;
+
+          if (result && result.url) {
+            // Show success message with link
+            var successHtml = '<div style="padding: var(--space-md); background: rgba(46, 125, 50, 0.1); border-radius: var(--radius-sm); margin-bottom: var(--space-md);">';
+            successHtml += '<strong style="color: var(--color-success);">Export Complete!</strong><br><br>';
+            successHtml += '<p>Your <strong>' + escapeHtml(reportName) + '</strong> report has been exported to Google Sheets:</p>';
+            successHtml += '<ul style="margin: var(--space-sm) 0 var(--space-md) var(--space-lg);">';
+            result.sheets.forEach(function(sheet) {
+              successHtml += '<li>' + escapeHtml(sheet) + '</li>';
+            });
+            successHtml += '</ul>';
+            successHtml += '<a href="' + result.url + '" target="_blank" class="btn btn-primary" style="text-decoration: none;">';
+            successHtml += '<span class="material-icons">open_in_new</span> Open in Google Sheets</a>';
+            successHtml += '</div>';
+
+            // Insert at top of preview content
+            var previewContent = document.getElementById('previewContent');
+            var existingAlert = previewContent.querySelector('.export-success-alert');
+            if (existingAlert) existingAlert.remove();
+
+            var alertDiv = document.createElement('div');
+            alertDiv.className = 'export-success-alert';
+            alertDiv.innerHTML = successHtml;
+            previewContent.insertBefore(alertDiv, previewContent.firstChild);
+
+            // Also open in new tab
+            window.open(result.url, '_blank');
+          }
+        })
+        .withFailureHandler(function(err) {
+          exportBtn.innerHTML = originalText;
+          exportBtn.disabled = false;
+          alert('Export failed: ' + err.message);
         });
-        csv += rowData.join(',') + '\n';
-      });
-      var blob = new Blob([csv], {type: 'text/csv'});
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      var reportNames = {
-        detailedReport: 'detailed-milestones',
-        needAlignment: 'need-alignment',
-        stakeholderCoverage: 'stakeholder-coverage',
-        engagementFunnel: 'engagement-funnel',
-        departmentReach: 'department-reach',
-        historicalUpdates: 'historical-updates'
-      };
-      var filename = reportNames[currentReportType] || 'report';
-      a.download = filename + '-' + new Date().toISOString().split('T')[0] + '.csv';
-      a.click();
-      URL.revokeObjectURL(url);
+
+      // Call the function dynamically
+      runner[functionName]({});
     }
 
     // Utility functions
@@ -1296,6 +1362,21 @@
     function truncate(str, len) {
       if (!str) return '';
       return str.length > len ? str.substring(0, len) + '...' : str;
+    }
+
+    /**
+     * Calculate confidence score based on survey response count
+     * More responses = higher confidence in the alignment score
+     * Uses asymptotic formula approaching 100% as responses increase
+     * @param {number} responseCount - Number of survey responses
+     * @returns {number} Confidence percentage (0-100)
+     */
+    function calculateConfidence(responseCount) {
+      if (!responseCount || responseCount <= 0) return 0;
+      // Asymptotic formula: 100 * (1 - e^(-n/10))
+      // 1 response: ~10%, 5: ~39%, 10: ~63%, 20: ~86%, 30: ~95%
+      var confidence = 100 * (1 - Math.exp(-responseCount / 10));
+      return Math.round(confidence);
     }
 
     function copyToClipboard(text) {
@@ -1405,9 +1486,32 @@
       }
       html += '</div>';
 
+      // Export table (hidden but scrapable)
+      html += '<table class="preview-table" style="display: none;">';
+      html += '<thead><tr><th>Solution</th><th>Cycle</th><th>Phase</th><th>Survey Responses</th><th>Unique Submitters</th><th>Avg Satisfaction</th><th>Alignment Score</th><th>Confidence</th><th>Weighted Score</th><th>Gaps</th></tr></thead>';
+      html += '<tbody>';
+      data.alignments.forEach(function(a) {
+        var avgMet = a.stakeholderNeeds.avgDegreeNeedMet !== null ? a.stakeholderNeeds.avgDegreeNeedMet + '%' : 'N/A';
+        var confidence = calculateConfidence(a.stakeholderNeeds.total);
+        var weightedScore = Math.round(a.alignmentScore * confidence / 100);
+        html += '<tr>';
+        html += '<td>' + escapeHtml(a.solution) + '</td>';
+        html += '<td>' + escapeHtml(a.cycle) + '</td>';
+        html += '<td>' + escapeHtml(a.phase) + '</td>';
+        html += '<td>' + a.stakeholderNeeds.total + '</td>';
+        html += '<td>' + a.stakeholderNeeds.uniqueSubmitters + '</td>';
+        html += '<td>' + avgMet + '</td>';
+        html += '<td>' + a.alignmentScore + '%</td>';
+        html += '<td>' + confidence + '%</td>';
+        html += '<td>' + weightedScore + '%</td>';
+        html += '<td>' + escapeHtml((a.gaps || []).join('; ') || 'None') + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+
       // Alignment table with expandable rows
       html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">Solutions by Alignment Score</h4>';
-      html += '<p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin-bottom: var(--space-sm);">Click a solution to view detailed gap analysis.</p>';
+      html += '<p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin-bottom: var(--space-sm);">Click a solution to view detailed gap analysis. Confidence reflects survey response count.</p>';
 
       // Store alignments data at module level for expansion
       gapAnalysisData = data.alignments;
@@ -1415,6 +1519,8 @@
       data.alignments.forEach(function(a, idx) {
         var scoreClass = a.alignmentScore >= 70 ? 'high' : (a.alignmentScore >= 40 ? 'medium' : 'low');
         var hasNeeds = a.stakeholderNeeds.total > 0;
+        var confidence = calculateConfidence(a.stakeholderNeeds.total);
+        var weightedScore = Math.round(a.alignmentScore * confidence / 100);
         // Show avg % met or reason why it's unavailable
         var avgMet;
         if (a.stakeholderNeeds.avgDegreeNeedMet !== null) {
@@ -1428,13 +1534,14 @@
         }
         var gapText = (a.gaps && a.gaps.length > 0) ? a.gaps.join('; ') : 'None identified';
         var statusColor = hasNeeds ? (a.alignmentScore >= 70 ? 'var(--color-success)' : (a.alignmentScore >= 40 ? 'var(--color-warning)' : 'var(--color-error)')) : 'var(--color-text-muted)';
+        var confidenceClass = confidence >= 70 ? 'high' : (confidence >= 40 ? 'medium' : 'low');
 
         html += '<details class="alignment-row" style="margin-bottom: var(--space-xs); border: 1px solid var(--color-border-light); border-radius: var(--radius-sm);">';
         html += '<summary style="padding: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: var(--space-md);">';
         html += '<span style="flex: 2;"><strong>' + escapeHtml(a.solution) + '</strong> <small style="color: var(--color-text-muted);">(' + escapeHtml(a.cycle) + ', ' + escapeHtml(a.phase) + ')</small></span>';
-        html += '<span style="flex: 1; text-align: center;">' + a.stakeholderNeeds.total + ' needs</span>';
+        html += '<span style="flex: 1; text-align: center;">' + a.stakeholderNeeds.total + ' <small style="color: var(--color-text-muted);">(' + confidence + '% conf)</small></span>';
         html += '<span style="flex: 1; text-align: center;">' + avgMet + '</span>';
-        html += '<span style="flex: 1; text-align: center;"><span class="alignment-score ' + scoreClass + '">' + a.alignmentScore + '%</span></span>';
+        html += '<span style="flex: 1; text-align: center;"><span class="alignment-score ' + scoreClass + '">' + a.alignmentScore + '%</span> <small style="color: var(--color-text-muted);">→ ' + weightedScore + '%</small></span>';
         html += '</summary>';
 
         // Expanded content - gap analysis

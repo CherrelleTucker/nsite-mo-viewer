@@ -39,7 +39,7 @@ function getAllNeeds() {
 
     // Option 2: Look for MO-DB_Needs sheet in the config spreadsheet
     if (!sheet) {
-      var configSheetId = getProperty(CONFIG.CONFIG_SHEET_ID);
+      var configSheetId = getConfigValue('SOLUTIONS_SHEET_ID');
       if (configSheetId) {
         ss = SpreadsheetApp.openById(configSheetId);
         sheet = ss.getSheetByName('MO-DB_Needs');
@@ -1277,9 +1277,9 @@ function exportNeedAlignmentToSheet(options) {
       'Needs Count', 'Unique Submitters', 'Avg % Met', 'Alignment Score',
       'Survey Years', 'Departments', 'Identified Gaps'
     ];
-    overviewSheet.appendRow(overviewHeaders);
-    styleHeaderRow_(overviewSheet, overviewHeaders.length);
 
+    // Build all rows first, then write in batch
+    var overviewData = [overviewHeaders];
     report.alignments.forEach(function(a) {
       var avgMetValue = formatAvgMetValue_(a.stakeholderNeeds);
       var surveyYears = Object.keys(a.stakeholderNeeds.bySurveyYear || {}).sort().join(', ');
@@ -1287,7 +1287,7 @@ function exportNeedAlignmentToSheet(options) {
         return d.name;
       }).slice(0, 5).join(', ');
 
-      var row = [
+      overviewData.push([
         a.solution_id || '',
         a.solution || '',
         a.fullName || '',
@@ -1300,10 +1300,12 @@ function exportNeedAlignmentToSheet(options) {
         surveyYears,
         departments,
         (a.gaps || []).join('; ')
-      ];
-      overviewSheet.appendRow(row);
+      ]);
     });
 
+    // Batch write
+    overviewSheet.getRange(1, 1, overviewData.length, overviewHeaders.length).setValues(overviewData);
+    styleHeaderRow_(overviewSheet, overviewHeaders.length);
     autoResizeColumns_(overviewSheet, overviewHeaders.length);
 
     // ========================================
@@ -1332,9 +1334,9 @@ function exportNeedAlignmentToSheet(options) {
       'Characteristic', 'Solution Provides', 'Stakeholder Requests',
       'Request Counts', 'Has Gap?', 'Gap Notes'
     ];
-    gapSheet.appendRow(gapHeaders);
-    styleHeaderRow_(gapSheet, gapHeaders.length);
 
+    // Build all gap data first
+    var gapData = [gapHeaders];
     report.alignments.forEach(function(a) {
       var characteristics = a.stakeholderNeeds.characteristics || {};
 
@@ -1360,7 +1362,6 @@ function exportNeedAlignmentToSheet(options) {
             hasGap = 'YES';
             gapNotes = 'Solution does not specify this characteristic';
           } else {
-            // Simple check - if solution provides something and stakeholders want something
             var topNeed = charData[0].name.toLowerCase();
             var solLower = solProvides.toLowerCase();
             if (solLower.indexOf(topNeed) !== -1 || topNeed.indexOf(solLower) !== -1) {
@@ -1375,7 +1376,7 @@ function exportNeedAlignmentToSheet(options) {
           gapNotes = 'Characteristic not tracked in solution database';
         }
 
-        var row = [
+        gapData.push([
           a.solution_id || '',
           a.solution || '',
           a.cycle,
@@ -1385,11 +1386,13 @@ function exportNeedAlignmentToSheet(options) {
           requestCounts || '-',
           hasGap,
           gapNotes
-        ];
-        gapSheet.appendRow(row);
+        ]);
       });
     });
 
+    // Batch write
+    gapSheet.getRange(1, 1, gapData.length, gapHeaders.length).setValues(gapData);
+    styleHeaderRow_(gapSheet, gapHeaders.length);
     autoResizeColumns_(gapSheet, gapHeaders.length);
 
     // ========================================
@@ -1399,12 +1402,11 @@ function exportNeedAlignmentToSheet(options) {
     var yearSheet = newSS.insertSheet('Survey Year Breakdown');
 
     var yearHeaders = ['Solution ID', 'Solution Name', 'Cycle', '2016', '2018', '2020', '2022', '2024', 'Total'];
-    yearSheet.appendRow(yearHeaders);
-    styleHeaderRow_(yearSheet, yearHeaders.length);
+    var yearData = [yearHeaders];
 
     report.alignments.forEach(function(a) {
       var bySurveyYear = a.stakeholderNeeds.bySurveyYear || {};
-      var row = [
+      yearData.push([
         a.solution_id || '',
         a.solution || '',
         a.cycle,
@@ -1414,10 +1416,12 @@ function exportNeedAlignmentToSheet(options) {
         bySurveyYear['2022'] || 0,
         bySurveyYear['2024'] || 0,
         a.stakeholderNeeds.total
-      ];
-      yearSheet.appendRow(row);
+      ]);
     });
 
+    // Batch write
+    yearSheet.getRange(1, 1, yearData.length, yearHeaders.length).setValues(yearData);
+    styleHeaderRow_(yearSheet, yearHeaders.length);
     autoResizeColumns_(yearSheet, yearHeaders.length);
 
     // ========================================
@@ -1427,62 +1431,247 @@ function exportNeedAlignmentToSheet(options) {
     var deptSheet = newSS.insertSheet('Department Breakdown');
 
     var deptHeaders = ['Solution ID', 'Solution Name', 'Cycle', 'Department', 'Request Count'];
-    deptSheet.appendRow(deptHeaders);
-    styleHeaderRow_(deptSheet, deptHeaders.length);
+    var deptData = [deptHeaders];
 
     report.alignments.forEach(function(a) {
       var byDepartment = a.stakeholderNeeds.byDepartment || [];
       byDepartment.forEach(function(dept) {
-        var row = [
+        deptData.push([
           a.solution_id || '',
           a.solution || '',
           a.cycle,
           dept.name,
           dept.count
-        ];
-        deptSheet.appendRow(row);
+        ]);
       });
     });
 
+    // Batch write
+    if (deptData.length > 1) {
+      deptSheet.getRange(1, 1, deptData.length, deptHeaders.length).setValues(deptData);
+    } else {
+      deptSheet.getRange(1, 1, 1, deptHeaders.length).setValues([deptHeaders]);
+    }
+    styleHeaderRow_(deptSheet, deptHeaders.length);
     autoResizeColumns_(deptSheet, deptHeaders.length);
 
     // ========================================
-    // SHEET 5: Summary Statistics
+    // SHEET 5: Methodology & Data Sources
+    // Comprehensive explanation for leadership verification
+    // ========================================
+    var methodSheet = newSS.insertSheet('Methodology & Data Sources');
+
+    // Get source sheet URL for linking
+    var needsSheetUrl = '';
+    var solutionsSheetUrl = '';
+    try {
+      var needsSheetId = getConfigValue('NEEDS_SHEET_ID');
+      if (needsSheetId) {
+        needsSheetUrl = 'https://docs.google.com/spreadsheets/d/' + needsSheetId;
+      }
+      var configSheetId = getConfigValue('SOLUTIONS_SHEET_ID');
+      if (configSheetId) {
+        solutionsSheetUrl = 'https://docs.google.com/spreadsheets/d/' + configSheetId;
+      }
+    } catch (e) {
+      Logger.log('Could not get sheet URLs: ' + e.message);
+    }
+
+    var methodData = [
+      ['METHODOLOGY & DATA SOURCES', ''],
+      ['', ''],
+      ['This document explains how the Need Alignment Gap Analysis is calculated,', ''],
+      ['including data sources, matching logic, and scoring methodology.', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['DATA SOURCES', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['1. MO-DB_Needs (Stakeholder Survey Responses)', ''],
+      ['   Total Records:', report.totalNeeds + ' survey responses'],
+      ['   Survey Years:', '2016, 2018, 2020, 2022, 2024'],
+      ['   Source:', needsSheetUrl || 'Contact MO team for access'],
+      ['   Description:', 'Raw survey data collected from federal agency stakeholders'],
+      ['', ''],
+      ['   Key Fields Used:', ''],
+      ['   - solution: Which NASA solution the stakeholder is evaluating', ''],
+      ['   - submitter_name: Who submitted the survey response', ''],
+      ['   - department: Federal department of the submitter', ''],
+      ['   - survey_year: When the survey was submitted', ''],
+      ['   - degree_need_met: Stakeholder rating of how well solution meets their need (0-100%)', ''],
+      ['   - horizontal_resolution: Spatial resolution requirements', ''],
+      ['   - temporal_frequency: How often data is needed', ''],
+      ['   - geographic_coverage: Geographic area requirements', ''],
+      ['   - And 8 additional characteristic fields', ''],
+      ['', ''],
+      ['2. MO-DB_Solutions (Solution Characteristics)', ''],
+      ['   Total Records:', report.count + ' solutions'],
+      ['   Source:', solutionsSheetUrl || 'Contact MO team for access'],
+      ['   Description:', 'Solution specifications from NASA ESD'],
+      ['', ''],
+      ['   Key Fields Used:', ''],
+      ['   - solution_id: Unique identifier for matching', ''],
+      ['   - name: Display name used in meetings', ''],
+      ['   - horizontal_resolution: What the solution provides', ''],
+      ['   - temporal_frequency: Data delivery frequency', ''],
+      ['   - geographic_domain: Coverage area', ''],
+      ['   - cycle, phase: Project lifecycle stage', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['MATCHING LOGIC', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['How survey responses are matched to solutions:', ''],
+      ['', ''],
+      ['1. Parenthetical Match (Primary)', ''],
+      ['   Survey "Harmonized Landsat and Sentinel-2 (HLS)" matches solution_id "HLS"', ''],
+      ['   Looks for solution_id in parentheses at end of survey solution field', ''],
+      ['', ''],
+      ['2. Exact Match', ''],
+      ['   Survey solution field exactly equals solution_id or name', ''],
+      ['', ''],
+      ['3. Substring Match (min 3 characters)', ''],
+      ['   Solution_id appears within the survey solution field', ''],
+      ['   Example: "HLS" found in "HLS Data Products"', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['ALIGNMENT SCORE CALCULATION (0-100 points)', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['The alignment score measures how well a solution meets stakeholder needs.', ''],
+      ['It consists of four components:', ''],
+      ['', ''],
+      ['1. DEGREE NEED MET (0-40 points)', ''],
+      ['   Source: Survey field "degree_need_met"', ''],
+      ['   Calculation: Average of all stakeholder ratings × 0.4', ''],
+      ['   Example: If stakeholders report 75% satisfaction → 30 points', ''],
+      ['   This is the PRIMARY indicator as it reflects direct stakeholder feedback', ''],
+      ['', ''],
+      ['2. RESOLUTION MATCH (0-20 points)', ''],
+      ['   Compares: Solution horizontal_resolution vs survey requests', ''],
+      ['   Full match (20 pts): Solution meets or exceeds top requested resolution', ''],
+      ['   Partial match (10 pts): Solution is within one tier of requested', ''],
+      ['   No match (0 pts): Significant gap between solution and need', ''],
+      ['   Resolution hierarchy: <1m > 1-5m > 10-30m > 100-250m > >1km', ''],
+      ['', ''],
+      ['3. FREQUENCY MATCH (0-20 points)', ''],
+      ['   Compares: Solution temporal_frequency vs survey requests', ''],
+      ['   Full match (20 pts): Solution meets or exceeds requested frequency', ''],
+      ['   Partial match (5 pts): Some alignment but gaps exist', ''],
+      ['   Frequency hierarchy: hourly > daily > weekly > monthly > yearly', ''],
+      ['', ''],
+      ['4. COVERAGE MATCH (0-20 points)', ''],
+      ['   Compares: Solution geographic_domain vs survey requests', ''],
+      ['   Full match (20 pts): Solution covers requested area (or is global)', ''],
+      ['   Partial match (10 pts): Some overlap in coverage', ''],
+      ['', ''],
+      ['TOTAL SCORE = Sum of all four components (max 100)', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['CONFIDENCE WEIGHTING', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['Scores are weighted by survey response count to indicate reliability:', ''],
+      ['', ''],
+      ['Formula: Confidence = 100 × (1 - e^(-responses/10))', ''],
+      ['', ''],
+      ['Response Count → Confidence:', ''],
+      ['  1 response  →  10% confidence', ''],
+      ['  5 responses →  39% confidence', ''],
+      ['  10 responses → 63% confidence', ''],
+      ['  20 responses → 86% confidence', ''],
+      ['  30+ responses → 95% confidence', ''],
+      ['', ''],
+      ['Weighted Score = Alignment Score × Confidence', ''],
+      ['This prioritizes solutions with more survey data backing their scores.', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['GAP IDENTIFICATION', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['Gaps are identified when:', ''],
+      ['', ''],
+      ['1. Low Satisfaction: Stakeholders report <50% degree_need_met', ''],
+      ['2. Resolution Gap: Stakeholders request finer resolution than solution provides', ''],
+      ['3. Frequency Gap: Stakeholders need more frequent data than solution delivers', ''],
+      ['4. Coverage Gap: Stakeholders need geographic areas solution doesn\'t cover', ''],
+      ['5. Missing Spec: Stakeholders have requirements but solution spec is undefined', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['SHEETS IN THIS WORKBOOK', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['1. Summary - Report overview and key statistics', ''],
+      ['2. Solution Overview - One row per solution with alignment scores', ''],
+      ['3. Gap Analysis - Detailed comparison (1 row per solution per characteristic)', ''],
+      ['4. Survey Year Breakdown - Response counts by survey year', ''],
+      ['5. Department Breakdown - Which departments requested each solution', ''],
+      ['6. Methodology & Data Sources - This sheet', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['VERIFICATION', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['To verify any number in this report:', ''],
+      ['', ''],
+      ['1. Open the source data (links above)', ''],
+      ['2. Filter MO-DB_Needs by solution name', ''],
+      ['3. Compare survey responses to the aggregated data in this report', ''],
+      ['', ''],
+      ['For questions about methodology, contact the MO team.', '']
+    ];
+
+    methodSheet.getRange(1, 1, methodData.length, 2).setValues(methodData);
+
+    // Style the headers
+    methodSheet.getRange(1, 1).setFontWeight('bold').setFontSize(14);
+    var headerRows = [6, 7, 8, 40, 41, 42, 55, 56, 57, 90, 91, 92, 105, 106, 107, 118, 119, 120, 131, 132, 133];
+    headerRows.forEach(function(row) {
+      if (row <= methodData.length) {
+        methodSheet.getRange(row, 1).setFontWeight('bold');
+      }
+    });
+
+    // Make URLs clickable
+    if (needsSheetUrl) {
+      methodSheet.getRange(13, 2).setFormula('=HYPERLINK("' + needsSheetUrl + '", "Click to open MO-DB_Needs")');
+    }
+    if (solutionsSheetUrl) {
+      methodSheet.getRange(28, 2).setFormula('=HYPERLINK("' + solutionsSheetUrl + '", "Click to open MO-DB_Solutions")');
+    }
+
+    methodSheet.setColumnWidth(1, 400);
+    methodSheet.setColumnWidth(2, 400);
+
+    // ========================================
+    // SHEET 6: Summary Statistics
     // ========================================
     var summarySheet = newSS.insertSheet('Summary');
-    summarySheet.appendRow(['Need Alignment Gap Analysis - Summary']);
-    summarySheet.appendRow(['']);
-    summarySheet.appendRow(['Generated', today.toISOString()]);
-    summarySheet.appendRow(['Report Type', 'Comprehensive Gap Analysis']);
-    summarySheet.appendRow(['']);
-    summarySheet.appendRow(['OVERVIEW']);
-    summarySheet.appendRow(['Total Solutions', report.count]);
-    summarySheet.appendRow(['Total Survey Responses (Needs)', report.totalNeeds]);
-    summarySheet.appendRow(['Solutions with Survey Data', report.summary.solutionsWithNeeds]);
-    summarySheet.appendRow(['Solutions without Survey Data', report.summary.solutionsWithoutNeeds]);
-    summarySheet.appendRow(['']);
-    summarySheet.appendRow(['ALIGNMENT SCORES']);
-    summarySheet.appendRow(['Average Alignment Score', report.summary.averageAlignmentScore + '%']);
-    summarySheet.appendRow(['Total Identified Gaps', report.summary.totalGaps]);
-    summarySheet.appendRow(['Solutions with Low Satisfaction (<50%)', report.summary.lowSatisfactionCount]);
-    summarySheet.appendRow(['']);
-    summarySheet.appendRow(['METHODOLOGY']);
-    summarySheet.appendRow(['Data Source', 'MO-DB_Needs (stakeholder survey responses 2016-2024)']);
-    summarySheet.appendRow(['Characteristics Tracked', '11 (horizontal/vertical resolution, temporal frequency, data latency, geographic coverage, spectral bands, measurement uncertainty, processing level, format, access, critical attributes)']);
-    summarySheet.appendRow(['Gap Identification', 'Compares solution characteristics vs top stakeholder requests']);
-    summarySheet.appendRow(['']);
-    summarySheet.appendRow(['SHEETS IN THIS WORKBOOK']);
-    summarySheet.appendRow(['1. Solution Overview', 'High-level summary per solution']);
-    summarySheet.appendRow(['2. Gap Analysis - All Characteristics', 'Detailed gap analysis (1 row per solution per characteristic)']);
-    summarySheet.appendRow(['3. Survey Year Breakdown', 'Response counts by survey year']);
-    summarySheet.appendRow(['4. Department Breakdown', 'Which departments requested each solution']);
-    summarySheet.appendRow(['5. Summary', 'This sheet - report metadata and methodology']);
 
+    var summaryData = [
+      ['Need Alignment Gap Analysis', ''],
+      ['', ''],
+      ['Generated', today.toISOString()],
+      ['Report Type', 'Comprehensive Gap Analysis'],
+      ['', ''],
+      ['OVERVIEW', ''],
+      ['Total Solutions Analyzed', report.count],
+      ['Total Survey Responses', report.totalNeeds],
+      ['Solutions with Survey Data', report.summary.solutionsWithNeeds],
+      ['Solutions without Survey Data', report.summary.solutionsWithoutNeeds],
+      ['', ''],
+      ['ALIGNMENT SCORES', ''],
+      ['Average Alignment Score', report.summary.averageAlignmentScore + '%'],
+      ['Total Identified Gaps', report.summary.totalGaps],
+      ['Solutions with Low Satisfaction (<50%)', report.summary.lowSatisfactionCount],
+      ['', ''],
+      ['See "Methodology & Data Sources" tab for full explanation of calculations.', '']
+    ];
+
+    summarySheet.getRange(1, 1, summaryData.length, 2).setValues(summaryData);
     summarySheet.getRange(1, 1).setFontWeight('bold').setFontSize(14);
     summarySheet.getRange(6, 1).setFontWeight('bold');
     summarySheet.getRange(12, 1).setFontWeight('bold');
-    summarySheet.getRange(17, 1).setFontWeight('bold');
-    summarySheet.getRange(22, 1).setFontWeight('bold');
     autoResizeColumns_(summarySheet, 2);
 
     // Move Summary to first position
@@ -1496,7 +1685,7 @@ function exportNeedAlignmentToSheet(options) {
       fileName: fileName,
       sheetId: newSS.getId(),
       rowCount: report.alignments.length,
-      sheets: ['Summary', 'Solution Overview', 'Gap Analysis - All Characteristics', 'Survey Year Breakdown', 'Department Breakdown']
+      sheets: ['Summary', 'Solution Overview', 'Gap Analysis - All Characteristics', 'Survey Year Breakdown', 'Department Breakdown', 'Methodology & Data Sources']
     };
 
   } catch (e) {
@@ -1505,24 +1694,7 @@ function exportNeedAlignmentToSheet(options) {
   }
 }
 
-/**
- * Helper: Style header row
- */
-function styleHeaderRow_(sheet, colCount) {
-  var headerRange = sheet.getRange(1, 1, 1, colCount);
-  headerRange.setFontWeight('bold');
-  headerRange.setBackground('#4a5568');
-  headerRange.setFontColor('#ffffff');
-}
-
-/**
- * Helper: Auto-resize columns
- */
-function autoResizeColumns_(sheet, colCount) {
-  for (var i = 1; i <= colCount; i++) {
-    sheet.autoResizeColumn(i);
-  }
-}
+// Note: styleHeaderRow_ and autoResizeColumns_ are now in export-helpers.gs
 
 /**
  * Helper: Format avg % met value with reason if unavailable
@@ -1534,6 +1706,700 @@ function formatAvgMetValue_(stakeholderNeeds) {
     return 'N/A: ' + stakeholderNeeds.avgDegreeNeedMetReason;
   }
   return 'N/A';
+}
+
+// ============================================================================
+// STAKEHOLDER COVERAGE EXPORT
+// ============================================================================
+
+/**
+ * Export Stakeholder Coverage report to a new Google Sheet
+ * @param {Object} options - Report options
+ * @returns {Object} { url, fileName, sheetId }
+ */
+function exportStakeholderCoverageToSheet(options) {
+  options = options || {};
+
+  try {
+    var report = generateStakeholderCoverageReport(options);
+
+    var today = new Date();
+    var dateStr = Utilities.formatDate(today, Session.getScriptTimeZone(), 'yyyy-MM-dd_HHmm');
+    var fileName = 'StakeholderCoverage_' + dateStr;
+    var newSS = SpreadsheetApp.create(fileName);
+
+    // Get source URLs
+    var contactsSheetUrl = '';
+    var solutionsSheetUrl = '';
+    try {
+      var configSheetId = getConfigValue('SOLUTIONS_SHEET_ID');
+      if (configSheetId) {
+        solutionsSheetUrl = 'https://docs.google.com/spreadsheets/d/' + configSheetId;
+        contactsSheetUrl = solutionsSheetUrl; // Contacts in same spreadsheet
+      }
+    } catch (e) {}
+
+    // ========================================
+    // SHEET 1: By Department
+    // ========================================
+    var deptSheet = newSS.getActiveSheet();
+    deptSheet.setName('By Department');
+
+    var deptHeaders = ['Department', 'Contact Count', 'Solution Count', 'Solutions (top 10)', 'Survey Years'];
+    var deptData = [deptHeaders];
+
+    report.byDepartment.forEach(function(d) {
+      deptData.push([
+        d.department,
+        d.contactCount,
+        d.solutionCount,
+        d.solutions.join(', '),
+        d.surveyYears.join(', ')
+      ]);
+    });
+
+    deptSheet.getRange(1, 1, deptData.length, deptHeaders.length).setValues(deptData);
+    styleHeaderRow_(deptSheet, deptHeaders.length);
+    autoResizeColumns_(deptSheet, deptHeaders.length);
+
+    // ========================================
+    // SHEET 2: By Agency
+    // ========================================
+    var agencySheet = newSS.insertSheet('By Agency');
+
+    var agencyHeaders = ['Agency', 'Department', 'Contact Count', 'Solution Count'];
+    var agencyData = [agencyHeaders];
+
+    report.byAgency.forEach(function(a) {
+      agencyData.push([
+        a.agency,
+        a.department,
+        a.contactCount,
+        a.solutionCount
+      ]);
+    });
+
+    agencySheet.getRange(1, 1, agencyData.length, agencyHeaders.length).setValues(agencyData);
+    styleHeaderRow_(agencySheet, agencyHeaders.length);
+    autoResizeColumns_(agencySheet, agencyHeaders.length);
+
+    // ========================================
+    // SHEET 3: Solution Coverage
+    // ========================================
+    var covSheet = newSS.insertSheet('Solution Coverage');
+
+    var covHeaders = ['Solution', 'Cycle', 'Phase', 'Department Count', 'Contact Count', 'Departments'];
+    var covData = [covHeaders];
+
+    report.solutionCoverage.forEach(function(s) {
+      covData.push([
+        s.solution,
+        'C' + (s.cycle || '?'),
+        s.phase || '',
+        s.departments.length,
+        s.contactCount,
+        s.departments.join(', ')
+      ]);
+    });
+
+    covSheet.getRange(1, 1, covData.length, covHeaders.length).setValues(covData);
+    styleHeaderRow_(covSheet, covHeaders.length);
+    autoResizeColumns_(covSheet, covHeaders.length);
+
+    // ========================================
+    // SHEET 4: Coverage Gaps
+    // ========================================
+    var gapsSheet = newSS.insertSheet('Coverage Gaps');
+
+    var gapsHeaders = ['Solution', 'Cycle', 'Phase', 'Issue'];
+    var gapsData = [gapsHeaders];
+
+    report.coverageGaps.forEach(function(g) {
+      gapsData.push([
+        g.solution,
+        'C' + (g.cycle || '?'),
+        g.phase || '',
+        'No stakeholder contacts'
+      ]);
+    });
+
+    if (gapsData.length === 1) {
+      gapsData.push(['No coverage gaps found', '', '', '']);
+    }
+
+    gapsSheet.getRange(1, 1, gapsData.length, gapsHeaders.length).setValues(gapsData);
+    styleHeaderRow_(gapsSheet, gapsHeaders.length);
+    autoResizeColumns_(gapsSheet, gapsHeaders.length);
+
+    // ========================================
+    // SHEET 5: Methodology & Data Sources
+    // ========================================
+    var methodSheet = newSS.insertSheet('Methodology & Data Sources');
+
+    var methodData = [
+      ['METHODOLOGY & DATA SOURCES', ''],
+      ['', ''],
+      ['This document explains how the Stakeholder Coverage report is generated.', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['DATA SOURCES', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['1. MO-DB_Contacts', ''],
+      ['   Description:', 'Stakeholder contact records from surveys and engagement'],
+      ['   Source:', contactsSheetUrl || 'Contact MO team for access'],
+      ['', ''],
+      ['   Key Fields Used:', ''],
+      ['   - email: Unique contact identifier', ''],
+      ['   - department: Federal department', ''],
+      ['   - agency: Specific agency within department', ''],
+      ['   - solution: Solution they are associated with', ''],
+      ['   - role: Survey Submitter, Secondary SME, Primary SME', ''],
+      ['   - survey_year: Year of survey participation', ''],
+      ['', ''],
+      ['2. MO-DB_Solutions', ''],
+      ['   Description:', 'Master list of solutions'],
+      ['   Source:', solutionsSheetUrl || 'Contact MO team for access'],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['REPORT CALCULATIONS', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['By Department:', ''],
+      ['   Contact Count: Unique email addresses per department', ''],
+      ['   Solution Count: Unique solutions associated with department contacts', ''],
+      ['   Survey Years: Years when department contacts submitted surveys', ''],
+      ['', ''],
+      ['By Agency:', ''],
+      ['   Aggregated contact counts within each agency', ''],
+      ['', ''],
+      ['Solution Coverage:', ''],
+      ['   Department Count: How many departments have contacts for this solution', ''],
+      ['   Contact Count: Total stakeholders associated with solution', ''],
+      ['', ''],
+      ['Coverage Gaps:', ''],
+      ['   Solutions with zero contacts in MO-DB_Contacts', ''],
+      ['   These may need stakeholder engagement outreach', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['SUMMARY STATISTICS', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['Total Departments:', report.summary.totalDepartments],
+      ['Total Agencies:', report.summary.totalAgencies],
+      ['Total Solutions:', report.summary.totalSolutions],
+      ['Solutions with Coverage Gaps:', report.summary.solutionsWithGaps],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['SHEETS IN THIS WORKBOOK', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['1. By Department - Contacts and solutions per department', ''],
+      ['2. By Agency - Contact counts per agency', ''],
+      ['3. Solution Coverage - Department reach per solution', ''],
+      ['4. Coverage Gaps - Solutions needing stakeholder engagement', ''],
+      ['5. Methodology & Data Sources - This sheet', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['VERIFICATION', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['To verify any data in this report:', ''],
+      ['', ''],
+      ['1. Open MO-DB_Contacts (link above)', ''],
+      ['2. Filter by department or solution', ''],
+      ['3. Count unique emails to verify contact counts', ''],
+      ['', ''],
+      ['For questions, contact the MO team.', '']
+    ];
+
+    methodSheet.getRange(1, 1, methodData.length, 2).setValues(methodData);
+    methodSheet.getRange(1, 1).setFontWeight('bold').setFontSize(14);
+
+    if (contactsSheetUrl) {
+      methodSheet.getRange(11, 2).setFormula('=HYPERLINK("' + contactsSheetUrl + '", "Click to open MO-DB_Contacts")');
+    }
+    if (solutionsSheetUrl) {
+      methodSheet.getRange(23, 2).setFormula('=HYPERLINK("' + solutionsSheetUrl + '", "Click to open MO-DB_Solutions")');
+    }
+
+    methodSheet.setColumnWidth(1, 400);
+    methodSheet.setColumnWidth(2, 400);
+
+    newSS.setActiveSheet(deptSheet);
+    newSS.moveActiveSheet(1);
+
+    return {
+      url: newSS.getUrl(),
+      fileName: fileName,
+      sheetId: newSS.getId(),
+      sheets: ['By Department', 'By Agency', 'Solution Coverage', 'Coverage Gaps', 'Methodology & Data Sources']
+    };
+
+  } catch (e) {
+    Logger.log('Error exporting Stakeholder Coverage report: ' + e.message);
+    throw new Error('Failed to export report: ' + e.message);
+  }
+}
+
+// ============================================================================
+// ENGAGEMENT FUNNEL EXPORT
+// ============================================================================
+
+/**
+ * Export Engagement Funnel report to a new Google Sheet
+ * @param {Object} options - Report options
+ * @returns {Object} { url, fileName, sheetId }
+ */
+function exportEngagementFunnelToSheet(options) {
+  options = options || {};
+
+  try {
+    var report = generateEngagementFunnelReport(options);
+
+    var today = new Date();
+    var dateStr = Utilities.formatDate(today, Session.getScriptTimeZone(), 'yyyy-MM-dd_HHmm');
+    var fileName = 'EngagementFunnel_' + dateStr;
+    var newSS = SpreadsheetApp.create(fileName);
+
+    var contactsSheetUrl = '';
+    try {
+      var configSheetId = getConfigValue('SOLUTIONS_SHEET_ID');
+      if (configSheetId) {
+        contactsSheetUrl = 'https://docs.google.com/spreadsheets/d/' + configSheetId;
+      }
+    } catch (e) {}
+
+    // ========================================
+    // SHEET 1: Funnel Summary
+    // ========================================
+    var funnelSheet = newSS.getActiveSheet();
+    funnelSheet.setName('Funnel Summary');
+
+    var funnelHeaders = ['Stage', 'Count', 'Percentage'];
+    var funnelData = [funnelHeaders];
+
+    report.funnel.stages.forEach(function(s) {
+      funnelData.push([s.stage, s.count, s.percent + '%']);
+    });
+
+    funnelData.push(['', '', '']);
+    funnelData.push(['DETAILED BREAKDOWN', '', '']);
+    funnelData.push(['Survey Only (no SME role)', report.funnel.details.surveyOnly, '']);
+    funnelData.push(['Secondary SME', report.funnel.details.secondarySME, '']);
+    funnelData.push(['Primary SME', report.funnel.details.primarySME, '']);
+    funnelData.push(['Multi-Role (engaged multiple ways)', report.funnel.details.multiRole, '']);
+
+    funnelSheet.getRange(1, 1, funnelData.length, 3).setValues(funnelData);
+    styleHeaderRow_(funnelSheet, 3);
+    funnelSheet.getRange(5, 1).setFontWeight('bold');
+    autoResizeColumns_(funnelSheet, 3);
+
+    // ========================================
+    // SHEET 2: By Year
+    // ========================================
+    var yearSheet = newSS.insertSheet('By Year');
+
+    var yearHeaders = ['Year', 'Survey Submitters', 'SMEs', 'Primary SMEs'];
+    var yearData = [yearHeaders];
+
+    report.byYear.forEach(function(y) {
+      yearData.push([y.year, y.data.submitters, y.data.smes, y.data.primary]);
+    });
+
+    yearSheet.getRange(1, 1, yearData.length, yearHeaders.length).setValues(yearData);
+    styleHeaderRow_(yearSheet, yearHeaders.length);
+    autoResizeColumns_(yearSheet, yearHeaders.length);
+
+    // ========================================
+    // SHEET 3: Conversion Opportunities
+    // ========================================
+    var oppSheet = newSS.insertSheet('Conversion Opportunities');
+
+    var oppHeaders = ['Solution', 'Cycle', 'Phase', 'Survey Submitters', 'Issue'];
+    var oppData = [oppHeaders];
+
+    report.conversionOpportunities.forEach(function(o) {
+      oppData.push([
+        o.solution,
+        'C' + (o.cycle || '?'),
+        o.phase || '',
+        o.submitterCount,
+        'Has submitters but no Primary SME'
+      ]);
+    });
+
+    if (oppData.length === 1) {
+      oppData.push(['All solutions have Primary SMEs', '', '', '', '']);
+    }
+
+    oppSheet.getRange(1, 1, oppData.length, oppHeaders.length).setValues(oppData);
+    styleHeaderRow_(oppSheet, oppHeaders.length);
+    autoResizeColumns_(oppSheet, oppHeaders.length);
+
+    // ========================================
+    // SHEET 4: Top Engaged Stakeholders
+    // ========================================
+    var topSheet = newSS.insertSheet('Top Engaged');
+
+    var topHeaders = ['Name', 'Department', 'Roles', 'Solutions Count'];
+    var topData = [topHeaders];
+
+    report.topEngaged.forEach(function(t) {
+      topData.push([
+        t.name,
+        t.department || '',
+        t.roles.join(', '),
+        t.solutions
+      ]);
+    });
+
+    if (topData.length === 1) {
+      topData.push(['No multi-role stakeholders found', '', '', '']);
+    }
+
+    topSheet.getRange(1, 1, topData.length, topHeaders.length).setValues(topData);
+    styleHeaderRow_(topSheet, topHeaders.length);
+    autoResizeColumns_(topSheet, topHeaders.length);
+
+    // ========================================
+    // SHEET 5: Methodology & Data Sources
+    // ========================================
+    var methodSheet = newSS.insertSheet('Methodology & Data Sources');
+
+    var methodData = [
+      ['METHODOLOGY & DATA SOURCES', ''],
+      ['', ''],
+      ['This document explains how the Engagement Funnel report is generated.', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['DATA SOURCE', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['MO-DB_Contacts', ''],
+      ['   Description:', 'Stakeholder contact records with role assignments'],
+      ['   Source:', contactsSheetUrl || 'Contact MO team for access'],
+      ['', ''],
+      ['   Key Fields Used:', ''],
+      ['   - email: Unique stakeholder identifier', ''],
+      ['   - role: Survey Submitter, Secondary SME, Primary SME', ''],
+      ['   - solution: Associated solution', ''],
+      ['   - survey_year: Year of engagement', ''],
+      ['   - department, agency: Organization info', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['ENGAGEMENT FUNNEL STAGES', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['The funnel tracks stakeholder progression:', ''],
+      ['', ''],
+      ['1. Survey Submitters (Entry Point)', ''],
+      ['   - Stakeholders who completed a needs survey', ''],
+      ['   - First point of engagement with NASA ESD', ''],
+      ['', ''],
+      ['2. SME Engagement (Mid-Funnel)', ''],
+      ['   - Stakeholders who became Subject Matter Experts', ''],
+      ['   - Either Secondary SME or Primary SME role', ''],
+      ['   - Indicates deeper engagement with solution', ''],
+      ['', ''],
+      ['3. Primary SME (Conversion)', ''],
+      ['   - Highest engagement level', ''],
+      ['   - Key stakeholders for solution development', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['CALCULATIONS', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['Funnel Percentages:', ''],
+      ['   Survey Submitters = 100% (baseline)', ''],
+      ['   SME Engagement = (SMEs / Total Unique Stakeholders) × 100', ''],
+      ['   Primary SME = (Primary SMEs / Total Unique Stakeholders) × 100', ''],
+      ['', ''],
+      ['Conversion Opportunities:', ''],
+      ['   Solutions with survey submitters but no Primary SME', ''],
+      ['   These represent potential for deeper engagement', ''],
+      ['', ''],
+      ['Multi-Role Stakeholders:', ''],
+      ['   Contacts who hold multiple roles (e.g., Submitter + Primary SME)', ''],
+      ['   Indicates high engagement and potential champions', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['SHEETS IN THIS WORKBOOK', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['1. Funnel Summary - Stage counts and percentages', ''],
+      ['2. By Year - Engagement trends over time', ''],
+      ['3. Conversion Opportunities - Solutions needing Primary SMEs', ''],
+      ['4. Top Engaged - Multi-role stakeholder champions', ''],
+      ['5. Methodology & Data Sources - This sheet', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['VERIFICATION', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['To verify any data in this report:', ''],
+      ['', ''],
+      ['1. Open MO-DB_Contacts (link above)', ''],
+      ['2. Filter by role column (Survey Submitter, Secondary SME, Primary SME)', ''],
+      ['3. Count unique emails to verify stage counts', ''],
+      ['', ''],
+      ['For questions, contact the MO team.', '']
+    ];
+
+    methodSheet.getRange(1, 1, methodData.length, 2).setValues(methodData);
+    methodSheet.getRange(1, 1).setFontWeight('bold').setFontSize(14);
+
+    if (contactsSheetUrl) {
+      methodSheet.getRange(11, 2).setFormula('=HYPERLINK("' + contactsSheetUrl + '", "Click to open MO-DB_Contacts")');
+    }
+
+    methodSheet.setColumnWidth(1, 400);
+    methodSheet.setColumnWidth(2, 400);
+
+    newSS.setActiveSheet(funnelSheet);
+    newSS.moveActiveSheet(1);
+
+    return {
+      url: newSS.getUrl(),
+      fileName: fileName,
+      sheetId: newSS.getId(),
+      sheets: ['Funnel Summary', 'By Year', 'Conversion Opportunities', 'Top Engaged', 'Methodology & Data Sources']
+    };
+
+  } catch (e) {
+    Logger.log('Error exporting Engagement Funnel report: ' + e.message);
+    throw new Error('Failed to export report: ' + e.message);
+  }
+}
+
+// ============================================================================
+// DEPARTMENT REACH EXPORT
+// ============================================================================
+
+/**
+ * Export Department Reach report to a new Google Sheet
+ * @param {Object} options - Report options
+ * @returns {Object} { url, fileName, sheetId }
+ */
+function exportDepartmentReachToSheet(options) {
+  options = options || {};
+
+  try {
+    var report = generateDepartmentReachReport(options);
+
+    var today = new Date();
+    var dateStr = Utilities.formatDate(today, Session.getScriptTimeZone(), 'yyyy-MM-dd_HHmm');
+    var fileName = 'DepartmentReach_' + dateStr;
+    var newSS = SpreadsheetApp.create(fileName);
+
+    var contactsSheetUrl = '';
+    var solutionsSheetUrl = '';
+    try {
+      var configSheetId = getConfigValue('SOLUTIONS_SHEET_ID');
+      if (configSheetId) {
+        solutionsSheetUrl = 'https://docs.google.com/spreadsheets/d/' + configSheetId;
+        contactsSheetUrl = solutionsSheetUrl;
+      }
+    } catch (e) {}
+
+    // ========================================
+    // SHEET 1: By Solution
+    // ========================================
+    var solSheet = newSS.getActiveSheet();
+    solSheet.setName('By Solution');
+
+    var solHeaders = ['Solution', 'Cycle', 'Phase', 'Dept Count', 'Agency Count', 'Contact Count', 'Top Departments'];
+    var solData = [solHeaders];
+
+    report.bySolution.forEach(function(s) {
+      var topDepts = s.departments.map(function(d) { return d.department; }).join(', ');
+      solData.push([
+        s.solution,
+        s.cycle,
+        s.phase,
+        s.departmentCount,
+        s.agencyCount,
+        s.totalContacts,
+        topDepts
+      ]);
+    });
+
+    solSheet.getRange(1, 1, solData.length, solHeaders.length).setValues(solData);
+    styleHeaderRow_(solSheet, solHeaders.length);
+    autoResizeColumns_(solSheet, solHeaders.length);
+
+    // ========================================
+    // SHEET 2: By Department
+    // ========================================
+    var deptSheet = newSS.insertSheet('By Department');
+
+    var deptHeaders = ['Department', 'Solution Count', 'Contact Count', 'Solutions'];
+    var deptData = [deptHeaders];
+
+    report.byDepartment.forEach(function(d) {
+      deptData.push([
+        d.department,
+        d.solutionCount,
+        d.contactCount,
+        d.solutions.slice(0, 10).join(', ')
+      ]);
+    });
+
+    deptSheet.getRange(1, 1, deptData.length, deptHeaders.length).setValues(deptData);
+    styleHeaderRow_(deptSheet, deptHeaders.length);
+    autoResizeColumns_(deptSheet, deptHeaders.length);
+
+    // ========================================
+    // SHEET 3: Broadest Reach
+    // ========================================
+    var broadSheet = newSS.insertSheet('Broadest Reach');
+
+    var broadHeaders = ['Solution', 'Cycle', 'Phase', 'Department Count', 'Agency Count'];
+    var broadData = [broadHeaders];
+
+    report.broadestReach.forEach(function(s) {
+      broadData.push([s.solution, s.cycle, s.phase, s.departmentCount, s.agencyCount]);
+    });
+
+    broadSheet.getRange(1, 1, broadData.length, broadHeaders.length).setValues(broadData);
+    styleHeaderRow_(broadSheet, broadHeaders.length);
+    autoResizeColumns_(broadSheet, broadHeaders.length);
+
+    // ========================================
+    // SHEET 4: Narrowest Reach
+    // ========================================
+    var narrowSheet = newSS.insertSheet('Narrowest Reach');
+
+    var narrowHeaders = ['Solution', 'Cycle', 'Phase', 'Department Count', 'Contact Count'];
+    var narrowData = [narrowHeaders];
+
+    report.narrowestReach.forEach(function(s) {
+      narrowData.push([s.solution, s.cycle, s.phase, s.departmentCount, s.totalContacts]);
+    });
+
+    narrowSheet.getRange(1, 1, narrowData.length, narrowHeaders.length).setValues(narrowData);
+    styleHeaderRow_(narrowSheet, narrowHeaders.length);
+    autoResizeColumns_(narrowSheet, narrowHeaders.length);
+
+    // ========================================
+    // SHEET 5: Methodology & Data Sources
+    // ========================================
+    var methodSheet = newSS.insertSheet('Methodology & Data Sources');
+
+    var methodData = [
+      ['METHODOLOGY & DATA SOURCES', ''],
+      ['', ''],
+      ['This document explains how the Department Reach report is generated.', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['DATA SOURCES', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['1. MO-DB_Contacts', ''],
+      ['   Description:', 'Stakeholder contacts with department/agency info'],
+      ['   Source:', contactsSheetUrl || 'Contact MO team for access'],
+      ['', ''],
+      ['   Key Fields Used:', ''],
+      ['   - solution: Which solution the contact is associated with', ''],
+      ['   - department: Federal department', ''],
+      ['   - agency: Specific agency', ''],
+      ['   - email: Unique contact identifier', ''],
+      ['', ''],
+      ['2. MO-DB_Solutions', ''],
+      ['   Description:', 'Master solution list'],
+      ['   Source:', solutionsSheetUrl || 'Contact MO team for access'],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['REPORT PURPOSE', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['This report shows which federal departments are engaged with each solution.', ''],
+      ['Useful for:', ''],
+      ['   - Communications planning (targeting messaging)', ''],
+      ['   - Identifying cross-department collaboration opportunities', ''],
+      ['   - Finding solutions with narrow vs broad reach', ''],
+      ['   - Stakeholder engagement strategy', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['CALCULATIONS', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['Department Count:', ''],
+      ['   Number of unique departments with contacts for that solution', ''],
+      ['', ''],
+      ['Agency Count:', ''],
+      ['   Number of unique agencies with contacts for that solution', ''],
+      ['', ''],
+      ['Contact Count:', ''],
+      ['   Total stakeholder contacts associated with solution', ''],
+      ['', ''],
+      ['Broadest Reach:', ''],
+      ['   Top 10 solutions by department count', ''],
+      ['   These solutions have the widest federal engagement', ''],
+      ['', ''],
+      ['Narrowest Reach:', ''],
+      ['   Bottom 10 solutions (with at least 1 contact) by department count', ''],
+      ['   May indicate need for broader outreach', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['SUMMARY STATISTICS', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['Total Solutions:', report.summary.totalSolutions],
+      ['Solutions with Stakeholder Reach:', report.summary.solutionsWithReach],
+      ['Total Departments Engaged:', report.summary.totalDepartments],
+      ['Avg Departments per Solution:', report.summary.averageDeptPerSolution],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['SHEETS IN THIS WORKBOOK', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['1. By Solution - Department reach for each solution', ''],
+      ['2. By Department - Solutions per department', ''],
+      ['3. Broadest Reach - Top 10 solutions by department count', ''],
+      ['4. Narrowest Reach - Solutions with limited department engagement', ''],
+      ['5. Methodology & Data Sources - This sheet', ''],
+      ['', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['VERIFICATION', ''],
+      ['═══════════════════════════════════════════════════════════════════════', ''],
+      ['', ''],
+      ['To verify any data in this report:', ''],
+      ['', ''],
+      ['1. Open MO-DB_Contacts (link above)', ''],
+      ['2. Filter by solution name', ''],
+      ['3. Count unique departments in filtered results', ''],
+      ['', ''],
+      ['For questions, contact the MO team.', '']
+    ];
+
+    methodSheet.getRange(1, 1, methodData.length, 2).setValues(methodData);
+    methodSheet.getRange(1, 1).setFontWeight('bold').setFontSize(14);
+
+    if (contactsSheetUrl) {
+      methodSheet.getRange(11, 2).setFormula('=HYPERLINK("' + contactsSheetUrl + '", "Click to open MO-DB_Contacts")');
+    }
+    if (solutionsSheetUrl) {
+      methodSheet.getRange(22, 2).setFormula('=HYPERLINK("' + solutionsSheetUrl + '", "Click to open MO-DB_Solutions")');
+    }
+
+    methodSheet.setColumnWidth(1, 400);
+    methodSheet.setColumnWidth(2, 400);
+
+    newSS.setActiveSheet(solSheet);
+    newSS.moveActiveSheet(1);
+
+    return {
+      url: newSS.getUrl(),
+      fileName: fileName,
+      sheetId: newSS.getId(),
+      sheets: ['By Solution', 'By Department', 'Broadest Reach', 'Narrowest Reach', 'Methodology & Data Sources']
+    };
+
+  } catch (e) {
+    Logger.log('Error exporting Department Reach report: ' + e.message);
+    throw new Error('Failed to export report: ' + e.message);
+  }
 }
 
 /**
