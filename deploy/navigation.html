@@ -76,12 +76,6 @@
 
   <!-- Right side actions -->
   <div class="nav-actions">
-    <button type="button" class="nav-icon-btn" onclick="syncData()" title="Sync Data">
-      <span class="material-icons">refresh</span>
-    </button>
-    <button type="button" class="nav-icon-btn" onclick="showSearch()" title="Search">
-      <span class="material-icons">search</span>
-    </button>
     <button type="button" class="nav-tab nav-about-btn <?= activePage === 'about' ? 'active' : '' ?>"
             data-page="about"
             onclick="navigateTo('about')"
@@ -91,13 +85,3 @@
     </button>
   </div>
 </nav>
-
-<script>
-  function syncData() {
-    alert('Sync functionality coming soon');
-  }
-
-  function showSearch() {
-    alert('Search functionality coming soon');
-  }
-</script>
