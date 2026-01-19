@@ -234,7 +234,11 @@ button {
   margin: 0 auto;
 }
 
-/* Loading State */
+/* ========================================================================
+   LOADING STATES - Standardized across all pages
+   ======================================================================== */
+
+/* Page-level loading state */
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -242,8 +246,15 @@ button {
   justify-content: center;
   padding: var(--space-xxl);
   color: var(--color-text-secondary);
+  min-height: 200px;
 }
 
+.loading-state p {
+  margin: 0;
+  font-size: var(--font-sm);
+}
+
+/* Standard spinner - 32px for page-level loading */
 .loading-spinner {
   width: 32px;
   height: 32px;
@@ -254,8 +265,116 @@ button {
   margin-bottom: var(--space-md);
 }
 
+/* Alias for backward compatibility */
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Small spinner - 16px for buttons and inline */
+.loading-spinner-sm,
+.spinner-sm {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+
+/* Button loading state */
+.btn.loading {
+  pointer-events: none;
+  opacity: 0.8;
+  position: relative;
+}
+
+.btn.loading .btn-text {
+  opacity: 0;
+}
+
+.btn.loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Inline loading (for cards, tables, etc.) */
+.loading-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+}
+
+/* Skeleton loading animation */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-border) 25%, var(--color-surface) 50%, var(--color-border) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-text {
+  height: 1em;
+  margin-bottom: var(--space-xs);
+}
+
+.skeleton-text:last-child {
+  width: 70%;
+}
+
+.skeleton-card {
+  height: 120px;
+  border-radius: var(--radius-md);
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Success/error feedback toast */
+.toast {
+  position: fixed;
+  bottom: var(--space-lg);
+  right: var(--space-lg);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  color: white;
+  font-size: var(--font-sm);
+  font-weight: 500;
+  z-index: 1000;
+  animation: toast-in 0.3s ease-out;
+}
+
+.toast.success {
+  background: var(--color-success);
+}
+
+.toast.error {
+  background: var(--color-danger);
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Page Placeholder */

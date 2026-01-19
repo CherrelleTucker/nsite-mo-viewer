@@ -1284,18 +1284,7 @@
   .btn-secondary:hover { background: var(--color-border-light); }
   .btn-sm { padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-xs); }
 
-  /* Loading & Empty States */
-  .loading-state { text-align: center; padding: var(--space-lg); color: var(--color-text-muted); }
-  .loading-spinner {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    border: 2px solid var(--color-border);
-    border-top-color: var(--color-comms);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  /* Empty State (loading states now in global styles.html) */
   .empty-state { text-align: center; padding: var(--space-lg); color: var(--color-text-muted); }
   .empty-state svg { width: 48px; height: 48px; margin-bottom: var(--space-sm); opacity: 0.5; }
 

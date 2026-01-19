@@ -309,11 +309,58 @@
     }
 
     // ========================================================================
+    // UI UTILITIES
+    // ========================================================================
+
+    /**
+     * Show a toast notification
+     * @param {string} message - Message to display
+     * @param {string} type - 'success' or 'error'
+     * @param {number} duration - Time in ms before auto-hide (default 3000)
+     */
+    function showToast(message, type, duration) {
+      type = type || 'success';
+      duration = duration || 3000;
+
+      // Remove any existing toasts
+      var existing = document.querySelector('.toast');
+      if (existing) existing.remove();
+
+      var toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      setTimeout(function() {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(20px)';
+        toast.style.transition = 'all 0.3s ease-out';
+        setTimeout(function() { toast.remove(); }, 300);
+      }, duration);
+    }
+
+    /**
+     * Set button loading state
+     * @param {HTMLElement} btn - Button element
+     * @param {boolean} loading - Whether to show loading state
+     */
+    function setButtonLoading(btn, loading) {
+      if (loading) {
+        btn.classList.add('loading');
+        btn.disabled = true;
+      } else {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    }
+
+    // ========================================================================
     // ERROR HANDLING
     // ========================================================================
 
     function handleError(error) {
       console.error('Platform error:', error);
+      showToast('An error occurred: ' + (error.message || error), 'error');
     }
   </script>
 </body>
