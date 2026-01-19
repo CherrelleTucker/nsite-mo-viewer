@@ -156,8 +156,8 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Engagement Logging
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| SEP-008 | Log Engagement button no loading state | P0 | [ ] | Can cause duplicate submissions |
-| SEP-009 | Logged engagements NOT clickable | P0 | [ ] | No drill-down to details |
+| SEP-008 | Log Engagement button no loading state | P0 | [x] | **FIXED** - button disables + spinner while saving |
+| SEP-009 | Logged engagements NOT clickable | P0 | [x] | **FIXED** - click shows details in alert |
 | SEP-010 | No engagement detail modal exists | P1 | [ ] | ~4 hours to implement |
 | SEP-011 | No edit/delete functionality for engagements | P2 | [ ] | Feature request |
 | SEP-012 | Participant emails not validated | P2 | [ ] | Should validate format |
@@ -198,8 +198,8 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Critical Bugs
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| COMM-001 | `createEvent()` not exposed in outreach-api.gs | P0 | [ ] | Blocks event discovery "Add" button |
-| COMM-002 | Malformed JS in messages view failure handler (line 2188-2189) | P0 | [ ] | Messages view error handling broken |
+| COMM-001 | `createEvent()` not exposed in outreach-api.gs | P0 | [x] | **FIXED** - added to library + deploy wrappers |
+| COMM-002 | Malformed JS in messages view failure handler (line 2188-2189) | P0 | [x] | **FIXED** - corrected indentation |
 | COMM-003 | Admin priority parsing bug - doesn't trim spaces | P1 | [ ] | Stories may not appear in priority cards |
 
 ### Story Management
@@ -276,7 +276,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Critical Bugs
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| QU-001 | Silent failure when tab not found - returns success response | P0 | [ ] | Data loss risk - user thinks update saved but it wasn't |
+| QU-001 | Silent failure when tab not found - returns success response | P0 | [x] | **FIXED** - now throws error to trigger failure handler |
 | QU-002 | No server-side double-submission prevention | P1 | [ ] | Client-side flag only; race conditions possible |
 | QU-003 | Error object validation missing - may show "Error: undefined" | P1 | [ ] | Assumes error has .message property |
 
@@ -584,6 +584,7 @@ These bugs may be data issues, not code issues:
 
 | Date | Change |
 |------|--------|
+| 2026-01-19 | **FIXED 5 P0 bugs**: QU-001, SEP-008, SEP-009, COMM-001, COMM-002 |
 | 2026-01-19 | Added user observations: Schedule, Actions, Team, About (+10 bugs) |
 | 2026-01-19 | **NEW P0**: TEAM-022 - MoApi.getDirectingDocuments not a function |
 | 2026-01-19 | Added About section (9 bugs) - ALL PAGES NOW REVIEWED |

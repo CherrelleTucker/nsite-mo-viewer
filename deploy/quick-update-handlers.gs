@@ -167,10 +167,7 @@ function handleInternalPlanningInsert(docId, solutionName, types, updateText, us
 
     var tab = findTabByName(doc, tabName);
     if (!tab) {
-      return {
-        message: 'Could not find tab "' + tabName + '" for next Monday.',
-        link: { name: 'Internal Planning', url: docUrl }
-      };
+      throw new Error('Could not find tab "' + tabName + '" for next Monday. The document may not be set up yet. Please check: ' + docUrl);
     }
 
     var body = tab.asDocumentTab().getBody();

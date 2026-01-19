@@ -140,9 +140,11 @@ function getEventById(eventId) {
 }
 
 /**
- * Create a new event (internal - used by web search)
+ * Create a new event
+ * @param {Object} eventData - Event data object
+ * @returns {Object} The created event with generated event_id
  */
-function createEvent_(eventData) {
+function createEvent(eventData) {
   var sheet = getOutreachSheet_();
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 
@@ -506,7 +508,7 @@ function addDiscoveredEvent(eventData) {
   eventData.status = 'potential';
   eventData.created_by = 'web_search';
 
-  return createEvent_(eventData);
+  return createEvent(eventData);
 }
 
 /**

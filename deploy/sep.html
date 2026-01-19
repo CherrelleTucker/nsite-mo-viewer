@@ -282,7 +282,7 @@
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" onclick="SEP.closeModal('engagementModal')">Cancel</button>
-          <button type="submit" class="btn btn-primary">Log Engagement</button>
+          <button type="submit" class="btn btn-primary" id="engSubmitBtn">Log Engagement</button>
         </div>
       </form>
     </div>
@@ -1161,9 +1161,9 @@ return;
     };
 
     var html = '';
-    state.engagements.slice(0, 8).forEach(function(e) {
+    state.engagements.slice(0, 8).forEach(function(e, index) {
       var icon = iconMap[e.activity_type] || 'message-circle';
-      html += '<div class="engagement-item">';
+      html += '<div class="engagement-item" style="cursor: pointer;" onclick="SEP.showEngagementDetail(' + index + ')">';
       html += '<div class="engagement-icon"><span class="material-icons">' + icon + '</span></div>';
       html += '<div class="engagement-info">';
       html += '<div class="engagement-subject">' + escapeHtml(e.subject || 'No subject') + '</div>';
@@ -1172,6 +1172,25 @@ return;
     });
 
     container.innerHTML = html;
+  }
+
+  function showEngagementDetail(index) {
+    var e = state.engagements[index];
+    if (!e) return;
+
+    var details = 'ENGAGEMENT DETAILS\n\n';
+    details += 'Date: ' + (e.date || 'Not specified') + '\n';
+    details += 'Type: ' + (e.activity_type || 'Unknown') + '\n';
+    details += 'Direction: ' + (e.direction || 'Not specified') + '\n';
+    details += 'Subject: ' + (e.subject || 'No subject') + '\n';
+    details += 'Participants: ' + (e.participants || 'Not specified') + '\n';
+    details += 'Touchpoint: ' + (e.touchpoint_reference || 'Not specified') + '\n';
+    if (e.follow_up_date) {
+      details += 'Follow-up Date: ' + e.follow_up_date + '\n';
+    }
+    details += '\nSummary:\n' + (e.summary || 'No summary provided');
+
+    alert(details);
 }
 
   function setView(view) {
@@ -1281,6 +1300,11 @@ return;
   function submitEngagement(event) {
     event.preventDefault();
 
+    var submitBtn = document.getElementById('engSubmitBtn');
+    var originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="material-icons" style="font-size: 16px; animation: spin 1s linear infinite;">refresh</span> Saving...';
+
     var engagement = {
       date: document.getElementById('engDate').value,
       activity_type: document.getElementById('engActivityType').value,
@@ -1294,11 +1318,15 @@ return;
 
     google.script.run
       .withSuccessHandler(function(result) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
         closeModal('engagementModal');
         loadRecentEngagements();
         alert('Engagement logged successfully!');
       })
       .withFailureHandler(function(error) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
         alert('Failed to log engagement: ' + error);
       })
       .createEngagement(engagement);
@@ -1345,6 +1373,7 @@ return;
     showLogEngagementModal: showLogEngagementModal,
     logEngagementFor: logEngagementFor,
     submitEngagement: submitEngagement,
+    showEngagementDetail: showEngagementDetail,
     closeModal: closeModal
   };
 })();

@@ -26,6 +26,10 @@ function deleteEvent(eventId) {
   return MoApi.deleteEvent(eventId);
 }
 
+function createEvent(eventData) {
+  return MoApi.createEvent(eventData);
+}
+
 // Query Functions
 function getEventsByStatus(status) {
   return MoApi.getEventsByStatus(status);
