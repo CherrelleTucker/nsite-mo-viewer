@@ -1401,7 +1401,18 @@ var Implementation = (function() {
 
     document.getElementById('statDAAC').textContent = daacCount + '/' + total;
     document.getElementById('statDeepDives').textContent = 'TBD';
-    document.getElementById('statActions').textContent = 'TBD';
+
+    // Load open actions count
+    google.script.run
+      .withSuccessHandler(function(actions) {
+        var count = (actions && actions.length) ? actions.length : 0;
+        document.getElementById('statActions').textContent = count;
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load actions:', error);
+        document.getElementById('statActions').textContent = '--';
+      })
+      .getOpenActions();
 
     // Load stakeholder stats from contacts database
     google.script.run
@@ -1684,7 +1695,16 @@ return;
     html += '<div class="detail-section">';
     html += '<div class="detail-section-title">Per-Solution Tracking</div>';
     html += '<div class="detail-row"><span class="detail-label">DAAC Assignment</span><span class="detail-value">' + escapeHtml(sol.daac_assignment || 'TBD') + '</span></div>';
-    html += '<div class="detail-row"><span class="detail-label">Stakeholder List</span><span class="detail-value">' + (sol.stakeholder_list ? 'Linked' : 'Not linked') + '</span></div>';
+    // Stakeholder List - if URL, make clickable; if truthy, show as linked
+    var stakeholderValue = 'Not linked';
+    if (sol.stakeholder_list) {
+      if (sol.stakeholder_list.indexOf('http') === 0) {
+        stakeholderValue = '<a href="' + escapeAttr(sol.stakeholder_list) + '" target="_blank" style="color: var(--color-primary);">View List</a>';
+      } else {
+        stakeholderValue = 'Linked';
+      }
+    }
+    html += '<div class="detail-row"><span class="detail-label">Stakeholder List</span><span class="detail-value">' + stakeholderValue + '</span></div>';
     html += '</div>';
 
     html += '</div>';
@@ -2011,6 +2031,16 @@ return;
     var div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  function escapeAttr(text) {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   function showError(message) {

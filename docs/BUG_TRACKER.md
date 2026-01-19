@@ -102,14 +102,14 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Stats Panel
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| IMPL-001 | Action Items shows "TBD" - hardcoded, never calls API | P1 | [ ] | `getOpenActions()` API exists but not wired up |
+| IMPL-001 | Action Items shows "TBD" - hardcoded, never calls API | P1 | [x] | **FIXED** - Now calls getOpenActions() and displays count |
 | IMPL-002 | Deep Dives shows "TBD" - no data source defined | P2 | [ ] | Need to clarify what this should show |
 
 ### Solution Cards
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
 | IMPL-003 | Solution_id visible on cards (should be hidden - internal use) | P2 | [ ] | Quick fix - remove from render |
-| IMPL-004 | Stakeholder Lists says "Linked" but doesn't link to contacts | P1 | [ ] | Should link to filtered contacts page |
+| IMPL-004 | Stakeholder Lists says "Linked" but doesn't link to contacts | P1 | [x] | **FIXED** - If URL, shows clickable "View List" link |
 
 ### Detail Modal - Links
 | ID | Issue | Priority | Status | Notes |
@@ -206,8 +206,8 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
 | COMM-004 | No loading state during form submit (double-click risk) | P1 | [x] | **FIXED** - Button shows "Saving..." and is disabled during submit |
-| COMM-005 | Solution name conversion may fail for multi-word names | P1 | [ ] | "OPERA DSWx" → "opera_dswx" may not match DB |
-| COMM-006 | No validation on solution names - accepts any text | P1 | [ ] | Should autocomplete/validate against DB |
+| COMM-005 | Solution name conversion may fail for multi-word names | P1 | [x] | **FIXED** - Removed conversion, uses names directly as identifiers |
+| COMM-006 | No validation on solution names - accepts any text | P1 | [x] | **FIXED** - Added datalist with autocomplete suggestions |
 | COMM-007 | Form state not fully cleared after submit | P2 | [ ] | Old data may flash briefly |
 | COMM-008 | Search only checks title + solution_names, not all fields | P2 | [ ] | Users expect full-text search |
 | COMM-025 | URL fields too strict - require https:// prefix | P2 | [ ] | Should auto-add protocol if missing |
@@ -591,6 +591,9 @@ These bugs may be data issues, not code issues:
 
 | Date | Change |
 |------|--------|
+| 2026-01-19 | **FIXED COMM-005/006**: Solution name validation with autocomplete datalist |
+| 2026-01-19 | **FIXED IMPL-001**: Action Items stat now calls getOpenActions() API |
+| 2026-01-19 | **FIXED IMPL-004**: Stakeholder List shows clickable link if URL provided |
 | 2026-01-19 | **FIXED**: Add Event form missing date fields - added Start Date and End Date inputs, year derived from start_date |
 | 2026-01-19 | **FIXED TEAM-022**: Library redeployed, Documents view working |
 | 2026-01-19 | **FIXED 3 security bugs**: QU-006 (input sanitization), TEAM-017, TEAM-018 (XSS) |

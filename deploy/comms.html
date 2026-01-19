@@ -615,7 +615,37 @@
         </div>
         <div class="form-group">
           <label>Solutions (comma-separated)</label>
-          <input type="text" id="storySolutions" placeholder="HLS, OPERA DSWx, VLM">
+          <input type="text" id="storySolutions" placeholder="HLS, OPERA DSWx, VLM" list="solutionsList">
+          <datalist id="solutionsList">
+            <option value="3D Topographic Mapping">
+            <option value="ADMG">
+            <option value="Air Quality">
+            <option value="DCD">
+            <option value="Evapotranspiration (ET)">
+            <option value="FIRMS-2G">
+            <option value="GABAN">
+            <option value="GACR">
+            <option value="GCC">
+            <option value="HLS">
+            <option value="HLS 10-m">
+            <option value="HLS-LL">
+            <option value="HLS-VI">
+            <option value="ICESat-2 - Lake Ice/Freeboard">
+            <option value="Internet of Animals">
+            <option value="LST Products">
+            <option value="MWOW">
+            <option value="NISAR Downlink">
+            <option value="NISAR SM">
+            <option value="OPERA">
+            <option value="Pandora">
+            <option value="PBL">
+            <option value="Remote Sensing Training">
+            <option value="TEMPO Enhanced">
+            <option value="TEMPO NRT">
+            <option value="VLM">
+            <option value="Walk on">
+            <option value="Water Quality">
+          </datalist>
         </div>
         <div class="form-group">
           <label>Admin Priorities (check all that apply)</label>
@@ -2480,9 +2510,13 @@ return;
 
     var storyId = document.getElementById('editStoryId').value;
     var solutionNames = document.getElementById('storySolutions').value;
-    var solutionIds = solutionNames.split(',').map(function(n) {
-      return n.trim().toLowerCase().replace(/\s+/g, '_');
-    }).join(', ');
+    // Clean up solution names - trim whitespace, remove empty entries
+    var cleanedNames = solutionNames.split(',')
+      .map(function(n) { return n.trim(); })
+      .filter(function(n) { return n.length > 0; });
+    solutionNames = cleanedNames.join(', ');
+    // Use cleaned names as IDs (no conversion needed - names are the identifiers)
+    var solutionIds = cleanedNames.join(', ');
 
     // Collect admin priorities from checkboxes
     var adminPriorities = [];
