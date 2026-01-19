@@ -294,136 +294,39 @@ function findTabByName(doc, tabName) {
 }
 
 /**
- * Find or create a tab by copying from template
+ * Find a tab or provide helpful error if not found
+ * Note: Google Apps Script doesn't support creating tabs programmatically.
+ * Users must manually duplicate the Template tab for new weeks.
+ *
  * @param {Document} doc - The document
- * @param {string} tabName - Name for the new tab (e.g., "01_20")
- * @returns {Tab} The found or created tab
+ * @param {string} tabName - Name of the tab to find (e.g., "01_20")
+ * @returns {Tab} The found tab
+ * @throws {Error} If tab not found, with instructions to create it
  */
 function findOrCreateTabFromTemplate(doc, tabName) {
-  // First check if tab already exists
   var existingTab = findTabByName(doc, tabName);
   if (existingTab) {
     return existingTab;
   }
 
-  // Look for template tab
-  var templateTab = findTabByName(doc, 'Template');
-  if (!templateTab) {
-    // Try alternate template names
-    templateTab = findTabByName(doc, 'TEMPLATE');
-    if (!templateTab) {
-      templateTab = findTabByName(doc, '_Template');
-    }
+  // Tab doesn't exist - provide helpful error
+  var hasTemplate = findTabByName(doc, 'Template') ||
+                    findTabByName(doc, 'TEMPLATE') ||
+                    findTabByName(doc, '_Template');
+
+  var errorMsg = 'Tab "' + tabName + '" not found in the document.\n\n';
+
+  if (hasTemplate) {
+    errorMsg += 'To create this tab:\n';
+    errorMsg += '1. Open the document\n';
+    errorMsg += '2. Right-click the "Template" tab\n';
+    errorMsg += '3. Select "Duplicate"\n';
+    errorMsg += '4. Rename the new tab to "' + tabName + '"';
+  } else {
+    errorMsg += 'No Template tab found. Please create a tab named "' + tabName + '" in the document.';
   }
 
-  if (!templateTab) {
-    throw new Error('No template tab found. Please create a tab named "Template" in the document with the desired structure.');
-  }
-
-  // Create new tab from template
-  // Note: Google Apps Script doesn't have a direct "copy tab" method
-  // We need to create a new tab and copy content
-  var newTab = doc.addTab();
-  newTab.setTitle(tabName);
-
-  // Copy content from template to new tab
-  var templateBody = templateTab.asDocumentTab().getBody();
-  var newBody = newTab.asDocumentTab().getBody();
-
-  // Clear default content and copy from template
-  newBody.clear();
-
-  // Copy each element from template
-  var numChildren = templateBody.getNumChildren();
-  for (var i = 0; i < numChildren; i++) {
-    var element = templateBody.getChild(i);
-    var elementType = element.getType();
-
-    if (elementType === DocumentApp.ElementType.PARAGRAPH) {
-      var para = element.asParagraph();
-      var newPara = newBody.appendParagraph(para.getText());
-      copyTextStyles(para, newPara);
-    } else if (elementType === DocumentApp.ElementType.TABLE) {
-      copyTable(element.asTable(), newBody);
-    } else if (elementType === DocumentApp.ElementType.LIST_ITEM) {
-      var listItem = element.asListItem();
-      var newItem = newBody.appendListItem(listItem.getText());
-      newItem.setNestingLevel(listItem.getNestingLevel());
-      newItem.setGlyphType(listItem.getGlyphType());
-    }
-  }
-
-  Logger.log('Created new tab "' + tabName + '" from template');
-  return newTab;
-}
-
-/**
- * Copy a table from source to destination body
- */
-function copyTable(sourceTable, destBody) {
-  var numRows = sourceTable.getNumRows();
-  var numCols = sourceTable.getRow(0).getNumCells();
-
-  var newTable = destBody.appendTable();
-
-  for (var r = 0; r < numRows; r++) {
-    var sourceRow = sourceTable.getRow(r);
-    var newRow = (r === 0) ? newTable.getRow(0) : newTable.appendTableRow();
-
-    for (var c = 0; c < sourceRow.getNumCells(); c++) {
-      var sourceCell = sourceRow.getCell(c);
-      var newCell = (c === 0 && r === 0) ? newRow.getCell(0) :
-                    (r === 0) ? newRow.appendTableCell() :
-                    (c < newRow.getNumCells()) ? newRow.getCell(c) : newRow.appendTableCell();
-
-      // Clear and copy cell content
-      newCell.clear();
-      copyCellContent(sourceCell, newCell);
-    }
-  }
-
-  return newTable;
-}
-
-/**
- * Copy cell content including nested lists
- */
-function copyCellContent(sourceCell, destCell) {
-  var numChildren = sourceCell.getNumChildren();
-
-  for (var i = 0; i < numChildren; i++) {
-    var child = sourceCell.getChild(i);
-    var childType = child.getType();
-
-    if (childType === DocumentApp.ElementType.PARAGRAPH) {
-      if (i === 0 && destCell.getNumChildren() > 0) {
-        // First paragraph - edit existing
-        var existingPara = destCell.getChild(0);
-        if (existingPara.getType() === DocumentApp.ElementType.PARAGRAPH) {
-          existingPara.asParagraph().setText(child.asParagraph().getText());
-          continue;
-        }
-      }
-      destCell.appendParagraph(child.asParagraph().getText());
-    } else if (childType === DocumentApp.ElementType.LIST_ITEM) {
-      var listItem = child.asListItem();
-      var newItem = destCell.appendListItem(listItem.getText());
-      newItem.setNestingLevel(listItem.getNestingLevel());
-      newItem.setGlyphType(listItem.getGlyphType());
-    }
-  }
-}
-
-/**
- * Copy basic text styles from source to destination paragraph
- */
-function copyTextStyles(sourcePara, destPara) {
-  try {
-    destPara.setHeading(sourcePara.getHeading());
-    destPara.setAlignment(sourcePara.getAlignment());
-  } catch (e) {
-    // Ignore style copy errors
-  }
+  throw new Error(errorMsg);
 }
 
 function formatUpdateText(types, text) {
