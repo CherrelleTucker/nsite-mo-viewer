@@ -291,6 +291,88 @@ function getPageHTML(pageName) {
 }
 
 // ============================================================================
+// GLOBAL SEARCH
+// ============================================================================
+
+/**
+ * Search across solutions, contacts, and actions
+ * @param {string} query - Search query (minimum 2 characters)
+ * @returns {Object} Results grouped by type: {solutions: [], contacts: [], actions: []}
+ */
+function globalSearch(query) {
+  if (!query || query.length < 2) {
+    return { solutions: [], contacts: [], actions: [] };
+  }
+
+  var results = {
+    solutions: [],
+    contacts: [],
+    actions: []
+  };
+
+  var queryLower = query.toLowerCase();
+  var maxResults = 5; // Limit per category
+
+  try {
+    // Search Solutions
+    var solutions = MoApi.getAllSolutions();
+    if (solutions && solutions.length > 0) {
+      results.solutions = solutions.filter(function(sol) {
+        var searchText = [
+          sol.solution_name || '',
+          sol.short_name || '',
+          sol.description || '',
+          sol.solution_group || '',
+          sol.alternate_names || ''
+        ].join(' ').toLowerCase();
+        return searchText.indexOf(queryLower) !== -1;
+      }).slice(0, maxResults);
+    }
+  } catch (e) {
+    Logger.log('Error searching solutions: ' + e.message);
+  }
+
+  try {
+    // Search Contacts
+    var contacts = MoApi.getAllContacts();
+    if (contacts && contacts.length > 0) {
+      results.contacts = contacts.filter(function(contact) {
+        var searchText = [
+          contact.first_name || '',
+          contact.last_name || '',
+          contact.full_name || '',
+          contact.email || '',
+          contact.organization || ''
+        ].join(' ').toLowerCase();
+        return searchText.indexOf(queryLower) !== -1;
+      }).slice(0, maxResults);
+    }
+  } catch (e) {
+    Logger.log('Error searching contacts: ' + e.message);
+  }
+
+  try {
+    // Search Actions
+    var actions = MoApi.getAllActions();
+    if (actions && actions.length > 0) {
+      results.actions = actions.filter(function(action) {
+        var searchText = [
+          action.task || '',
+          action.assigned_to || '',
+          action.notes || '',
+          action.solution || ''
+        ].join(' ').toLowerCase();
+        return searchText.indexOf(queryLower) !== -1;
+      }).slice(0, maxResults);
+    }
+  } catch (e) {
+    Logger.log('Error searching actions: ' + e.message);
+  }
+
+  return results;
+}
+
+// ============================================================================
 // CONFIGURATION HELPERS
 // ============================================================================
 

@@ -27,9 +27,29 @@
       </h1>
     </div>
     <div class="header-right">
+      <button class="btn-icon search-trigger" onclick="openGlobalSearch()" title="Search (Ctrl+K)">
+        <span class="material-icons">search</span>
+      </button>
       <span class="date-display" id="dateDisplay"></span>
     </div>
   </header>
+
+  <!-- Global Search Modal -->
+  <div class="search-modal-overlay" id="searchModal" onclick="closeGlobalSearch(event)">
+    <div class="search-modal" onclick="event.stopPropagation()">
+      <div class="search-input-wrapper">
+        <span class="material-icons">search</span>
+        <input type="text" id="globalSearchInput" placeholder="Search solutions, contacts, actions..."
+               onkeyup="handleSearchInput(event)" autocomplete="off">
+        <kbd class="search-shortcut">Esc</kbd>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">
+          <p>Start typing to search across all data</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Navigation -->
   <?!= include('navigation'); ?>
@@ -353,6 +373,166 @@
         btn.disabled = false;
       }
     }
+
+    // ========================================================================
+    // GLOBAL SEARCH
+    // ========================================================================
+
+    var searchDebounceTimer = null;
+
+    function openGlobalSearch() {
+      document.getElementById('searchModal').classList.add('active');
+      document.getElementById('globalSearchInput').focus();
+      document.getElementById('searchResults').innerHTML =
+        '<div class="search-hint"><p>Start typing to search across all data</p></div>';
+    }
+
+    function closeGlobalSearch(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('searchModal').classList.remove('active');
+      document.getElementById('globalSearchInput').value = '';
+    }
+
+    function handleSearchInput(event) {
+      // Close on Escape
+      if (event.key === 'Escape') {
+        closeGlobalSearch();
+        return;
+      }
+
+      var query = event.target.value.trim();
+
+      // Clear previous timer
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+      }
+
+      // Show hint if empty
+      if (!query) {
+        document.getElementById('searchResults').innerHTML =
+          '<div class="search-hint"><p>Start typing to search across all data</p></div>';
+        return;
+      }
+
+      // Require at least 2 characters
+      if (query.length < 2) {
+        document.getElementById('searchResults').innerHTML =
+          '<div class="search-hint"><p>Type at least 2 characters to search</p></div>';
+        return;
+      }
+
+      // Show loading
+      document.getElementById('searchResults').innerHTML =
+        '<div class="search-loading"><span class="loading-spinner"></span></div>';
+
+      // Debounce search
+      searchDebounceTimer = setTimeout(function() {
+        performGlobalSearch(query);
+      }, 300);
+    }
+
+    function performGlobalSearch(query) {
+      google.script.run
+        .withSuccessHandler(function(results) {
+          renderSearchResults(results, query);
+        })
+        .withFailureHandler(function(error) {
+          document.getElementById('searchResults').innerHTML =
+            '<div class="search-no-results"><p>Search failed. Please try again.</p></div>';
+          console.error('Search error:', error);
+        })
+        .globalSearch(query);
+    }
+
+    function renderSearchResults(results, query) {
+      var container = document.getElementById('searchResults');
+
+      if (!results || (results.solutions.length === 0 && results.contacts.length === 0 && results.actions.length === 0)) {
+        container.innerHTML = '<div class="search-no-results"><p>No results found for "' + escapeHtml(query) + '"</p></div>';
+        return;
+      }
+
+      var html = '';
+
+      // Solutions
+      if (results.solutions && results.solutions.length > 0) {
+        html += '<div class="search-group">';
+        html += '<div class="search-group-header">Solutions (' + results.solutions.length + ')</div>';
+        results.solutions.forEach(function(sol) {
+          html += '<div class="search-result" onclick="goToSearchResult(\'implementation\', \'' + escapeHtml(sol.solution_id || '') + '\')">';
+          html += '<span class="material-icons">storage</span>';
+          html += '<div class="search-result-content">';
+          html += '<div class="search-result-title">' + escapeHtml(sol.short_name || sol.solution_name) + '</div>';
+          html += '<div class="search-result-subtitle">' + escapeHtml(sol.lifecycle_phase || '') + ' · ' + escapeHtml(sol.solution_group || '') + '</div>';
+          html += '</div>';
+          html += '<span class="material-icons search-result-action">chevron_right</span>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      // Contacts
+      if (results.contacts && results.contacts.length > 0) {
+        html += '<div class="search-group">';
+        html += '<div class="search-group-header">Contacts (' + results.contacts.length + ')</div>';
+        results.contacts.forEach(function(contact) {
+          html += '<div class="search-result" onclick="goToSearchResult(\'contacts\', \'' + escapeHtml(contact.email || '') + '\')">';
+          html += '<span class="material-icons">person</span>';
+          html += '<div class="search-result-content">';
+          html += '<div class="search-result-title">' + escapeHtml(contact.full_name || contact.first_name + ' ' + contact.last_name) + '</div>';
+          html += '<div class="search-result-subtitle">' + escapeHtml(contact.organization || '') + '</div>';
+          html += '</div>';
+          html += '<span class="material-icons search-result-action">chevron_right</span>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      // Actions
+      if (results.actions && results.actions.length > 0) {
+        html += '<div class="search-group">';
+        html += '<div class="search-group-header">Actions (' + results.actions.length + ')</div>';
+        results.actions.forEach(function(action) {
+          html += '<div class="search-result" onclick="goToSearchResult(\'actions\', \'' + escapeHtml(action.action_id || '') + '\')">';
+          html += '<span class="material-icons">check_circle</span>';
+          html += '<div class="search-result-content">';
+          html += '<div class="search-result-title">' + escapeHtml((action.task || '').substring(0, 60)) + '</div>';
+          html += '<div class="search-result-subtitle">' + escapeHtml(action.assigned_to || '') + ' · ' + escapeHtml(action.status || '') + '</div>';
+          html += '</div>';
+          html += '<span class="material-icons search-result-action">chevron_right</span>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
+    }
+
+    function goToSearchResult(page, id) {
+      closeGlobalSearch();
+      // Navigate to page - the page will need to handle highlighting/scrolling to the item
+      navigateTo(page);
+      // Store search result ID for the page to use
+      if (id) {
+        sessionStorage.setItem('searchResultId', id);
+        sessionStorage.setItem('searchResultPage', page);
+      }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      var div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Keyboard shortcut: Ctrl+K or Cmd+K to open search
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        openGlobalSearch();
+      }
+    });
 
     // ========================================================================
     // ERROR HANDLING
