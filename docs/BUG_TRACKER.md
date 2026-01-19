@@ -240,7 +240,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Coverage View
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| COMM-033 | "undefined" shown when no previous story | P1 | [ ] | Should say "No story previously written" |
+| COMM-033 | "undefined" shown when no previous story | P1 | [x] | **FIXED** - Changed !== null to != null to catch both null and undefined |
 | COMM-034 | Scrolling issues - content cuts off or continues out of frame | P2 | [ ] | Layout/overflow problem |
 
 ### Messages View
@@ -325,13 +325,13 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Security & Data Integrity
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| CON-001 | escapeAttr() insufficient - only escapes quotes, not other HTML chars | P1 | [ ] | Potential XSS via email with special chars |
+| CON-001 | escapeAttr() insufficient - only escapes quotes, not other HTML chars | P1 | [x] | **FIXED** - escapeAttr() now escapes &, <, >, ", ' in contacts.html, sep.html, comms.html |
 | CON-002 | Email case normalization missing - could cause duplicate contacts | P1 | [ ] | "John@nasa.gov" vs "john@nasa.gov" not deduped |
 
 ### Data Loading
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| CON-003 | Race condition: Multi-Solution stat calculated from allContacts before it's populated | P1 | [ ] | loadStats() runs before loadContacts() completes |
+| CON-003 | Race condition: Multi-Solution stat calculated from allContacts before it's populated | P1 | [x] | **FIXED** - updateMultiSolutionStat() now called from loadContacts() success handler |
 | CON-004 | No refresh indicator - unclear when data was last updated | P3 | [ ] | Add "Last refreshed" timestamp |
 | CON-005 | Error handler just shows generic "Failed to load contacts" | P2 | [ ] | Should show actual error details |
 
@@ -414,14 +414,14 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Stats & Display
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| SCH-001 | Overdue stat always shows 0 | P1 | [ ] | `overdue` variable never incremented in updateStats() |
+| SCH-001 | Overdue stat always shows 0 | P1 | [x] | **FIXED** - updateStats() now counts based on m.status field |
 | SCH-002 | Stats cards not clickable | P2 | [ ] | Should filter view when clicked |
 | SCH-003 | Month headers look clickable but don't collapse | P2 | [ ] | CSS hover suggests collapsible |
 
 ### Export
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| SCH-004 | exportToCSV function called but not defined | P1 | [ ] | Export button will throw error |
+| SCH-004 | exportToCSV function called but not defined | P1 | [x] | **FIXED** - Added exportToCSV() function with proper CSV generation |
 
 ### UI/UX
 | ID | Issue | Priority | Status | Notes |

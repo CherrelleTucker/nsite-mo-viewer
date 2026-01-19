@@ -500,20 +500,17 @@ var Schedule = (function() {
   }
 
   function updateStats() {
-    var today = new Date();
-    today.setHours(0, 0, 0, 0);
-    var ninetyDaysOut = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
-    var yearStart = new Date(today.getFullYear(), 0, 1);
-
     var upcoming = 0, overdue = 0, completed = 0, total = 0;
 
     state.milestones.forEach(function(m) {
       if (!m.dateObj) return;
       total++;
 
-      if (m.dateObj < today) {
+      if (m.status === 'completed') {
         completed++;
-      } else if (m.dateObj <= ninetyDaysOut) {
+      } else if (m.status === 'overdue') {
+        overdue++;
+      } else if (m.status === 'upcoming' || m.status === 'today') {
         upcoming++;
       }
     });
@@ -786,16 +783,42 @@ var Schedule = (function() {
     container.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>' + message + '</p></div>';
   }
 
+  function exportToCSV(data, columns, filename) {
+    if (!data || data.length === 0) {
+      alert('No data to export');
+      return;
+    }
+
+    // Build CSV header
+    var csv = columns.map(function(col) { return '"' + col.label + '"'; }).join(',') + '\n';
+
+    // Build CSV rows
+    data.forEach(function(row) {
+      var values = columns.map(function(col) {
+        var val = row[col.key];
+        if (val === null || val === undefined) val = '';
+        // Escape quotes and wrap in quotes
+        return '"' + String(val).replace(/"/g, '""') + '"';
+      });
+      csv += values.join(',') + '\n';
+    });
+
+    // Download
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename + '_' + new Date().toISOString().slice(0, 10) + '.csv';
+    link.click();
+  }
+
   function exportData() {
     // Export milestones to CSV
     var columns = [
-      { key: 'solutionName', label: 'Solution' },
-      { key: 'shortName', label: 'Short Name' },
+      { key: 'solution_name', label: 'Solution' },
       { key: 'type', label: 'Milestone Type' },
       { key: 'label', label: 'Label' },
-      { key: 'date', label: 'Date' },
+      { key: 'dateFormatted', label: 'Date' },
       { key: 'status', label: 'Status' },
-      { key: 'phase', label: 'Lifecycle Phase' },
       { key: 'cycle', label: 'Selection Cycle' }
     ];
 

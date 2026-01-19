@@ -599,6 +599,7 @@ var Contacts = (function() {
         state.allContacts = contacts || [];
         extractFilters();
         applyFilters();
+        updateMultiSolutionStat();
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load contacts:', error);
@@ -614,18 +615,19 @@ var Contacts = (function() {
           document.getElementById('statTotalContacts').textContent = stats.unique_contacts || 0;
           document.getElementById('statDepartments').textContent = stats.departments_count || 0;
           document.getElementById('statSolutions').textContent = stats.solutions_count || 0;
-
-          // Count multi-solution contacts
-          var multiCount = state.allContacts.filter(function(c) {
-            return c.solutions_count > 1;
-          }).length;
-          document.getElementById('statTopEngaged').textContent = multiCount || '--';
         }
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load stats:', error);
       })
       .getContactStats();
+  }
+
+  function updateMultiSolutionStat() {
+    var multiCount = state.allContacts.filter(function(c) {
+      return c.solutions_count > 1;
+    }).length;
+    document.getElementById('statTopEngaged').textContent = multiCount || '--';
   }
 
   function extractFilters() {
@@ -1003,7 +1005,13 @@ renderPagination();
   }
 
   function escapeAttr(text) {
-    return (text || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   function showError(message) {

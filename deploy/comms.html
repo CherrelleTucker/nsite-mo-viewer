@@ -2008,8 +2008,8 @@ return;
 
     // Sort by days_since_story descending (worst first)
     allSolutions.sort(function(a, b) {
-      var aVal = a.days_since_story !== null ? a.days_since_story : 9999;
-      var bVal = b.days_since_story !== null ? b.days_since_story : 9999;
+      var aVal = a.days_since_story != null ? a.days_since_story : 9999;
+      var bVal = b.days_since_story != null ? b.days_since_story : 9999;
       return bVal - aVal;
     });
 
@@ -2033,7 +2033,7 @@ return;
       html += '<td>' + (sol.total_stories || 0) + '</td>';
       html += '<td>' + (sol.recent_stories || 0) + '</td>';
       html += '<td>' + (sol.last_story_date ? formatDate(sol.last_story_date) : '--') + '</td>';
-      html += '<td>' + (sol.days_since_story !== null ? sol.days_since_story : '--') + '</td>';
+      html += '<td>' + (sol.days_since_story != null ? sol.days_since_story : '--') + '</td>';
       html += '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>';
       html += '<td><button class="btn btn-sm btn-secondary" onclick="COMMS.suggestStory(\'' + escapeAttr(sol.solution_name) + '\')">+ Story</button></td>';
       html += '</tr>';
@@ -3078,7 +3078,13 @@ return;
   }
 
   function escapeAttr(text) {
-    return (text || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   function showPipelineError(message) {
