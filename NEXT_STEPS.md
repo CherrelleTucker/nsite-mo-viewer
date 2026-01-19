@@ -212,7 +212,7 @@
   - See `docs/SPA_NAVIGATION.md` for full technical documentation
 
 ### Implementation-NSITE
-- [ ] Add loading states for async operations
+- [x] ~~Add loading states for async operations~~ - Standardized in styles.html (2026-01-18)
 - [ ] Implement actual export functionality (CSV download)
 
 ### Contacts Directory
@@ -221,7 +221,8 @@
 - [ ] Add contact merge for duplicates
 
 ### Platform
-- [ ] Add global search functionality
+- [x] ~~Add global search functionality~~ - Ctrl+K to search (2026-01-18)
+- [x] ~~Standardize loading states~~ - Consolidated CSS + utilities (2026-01-18)
 - [ ] Add help documentation/tour
 - [ ] Add Glossary shared resource
 

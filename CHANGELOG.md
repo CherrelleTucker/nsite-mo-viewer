@@ -82,6 +82,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **setFaviconUrl()** - Used HtmlService API method in Code.gs (the key fix)
 - **Multiple link formats** - icon, shortcut icon, apple-touch-icon for browser compatibility
 
+**Platform Improvements** (UX Polish)
+- **Global Search** - Search across solutions, contacts, and actions
+  - Keyboard shortcut: `Ctrl+K` (or `Cmd+K` on Mac)
+  - Results grouped by type with click-to-navigate
+  - Debounced input for performance
+- **Standardized Loading States** - Consolidated all loading CSS in styles.html
+  - `.loading-spinner` (32px) for page-level loading
+  - `.loading-spinner-sm` (16px) for buttons
+  - `.btn.loading` state with automatic spinner
+  - `.skeleton` shimmer animation for placeholders
+- **Toast Notifications** - `showToast(message, type)` utility for success/error feedback
+- **Button Loading** - `setButtonLoading(btn, loading)` utility
+
 **Database Count: 13 Total**
 - Needs, Actions, Agencies, Availability, Contacts, Engagements, Glossary, Meetings, Milestones, Outreach, Solutions, Stories, Updates
 
