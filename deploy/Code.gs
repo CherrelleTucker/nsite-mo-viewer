@@ -33,6 +33,7 @@ var CONFIG = {
 var CONFIG_KEYS = {
   // Access Control
   ACCESS_FILE_ID: 'ACCESS_FILE_ID',  // Drive file used for access control (editors = approved users)
+  ACCESS_SHEET_ID: 'ACCESS_SHEET_ID',  // MO-DB_Access spreadsheet for email whitelist
 
   // Source Document IDs (Agendas)
   INTERNAL_AGENDA_ID: 'INTERNAL_AGENDA_ID',
@@ -165,14 +166,55 @@ var DEFAULT_PAGE = 'implementation';
  * @returns {HtmlOutput} Rendered HTML page
  */
 function doGet(e) {
-  // Access control is handled by deployment settings:
-  // - Execute as: Me
-  // - Who has access: Anyone within NASA.gov Workspace
-
-  var page = e.parameter.page || DEFAULT_PAGE;
-
   // Favicon URL (hosted on GitHub)
   var faviconUrl = 'https://raw.githubusercontent.com/CherrelleTucker/nsite-mo-viewer/main/favicon.png';
+
+  // Debug endpoint - check access status without blocking
+  // Usage: ?page=access-check
+  if (e.parameter.page === 'access-check') {
+    var userEmail = Session.getEffectiveUser().getEmail();
+    var accessSheetId = getConfigValue('ACCESS_SHEET_ID');
+    var hasAccess = accessSheetId ? validateUserAccess(userEmail, accessSheetId) : 'NOT_CONFIGURED';
+
+    var html = '<html><head><style>' +
+      'body { font-family: -apple-system, sans-serif; padding: 40px; background: #f5f5f5; }' +
+      '.card { background: white; border-radius: 12px; padding: 30px; max-width: 500px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }' +
+      'h1 { color: #0B3D91; margin-bottom: 20px; }' +
+      '.row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }' +
+      '.label { color: #666; }' +
+      '.value { font-weight: 600; font-family: monospace; }' +
+      '.granted { color: #2e7d32; }' +
+      '.denied { color: #c62828; }' +
+      '.warning { color: #f57c00; }' +
+      '</style></head><body><div class="card">' +
+      '<h1>Access Control Check</h1>' +
+      '<div class="row"><span class="label">Your Email:</span><span class="value">' + userEmail + '</span></div>' +
+      '<div class="row"><span class="label">Access Sheet ID:</span><span class="value">' + (accessSheetId || '<span class="warning">NOT CONFIGURED</span>') + '</span></div>' +
+      '<div class="row"><span class="label">Access Status:</span><span class="value ' + (hasAccess === true ? 'granted' : hasAccess === false ? 'denied' : 'warning') + '">' +
+      (hasAccess === true ? 'GRANTED' : hasAccess === false ? 'DENIED' : 'NOT ENFORCED') + '</span></div>' +
+      '</div></body></html>';
+
+    return HtmlService.createHtmlOutput(html)
+      .setTitle('Access Check | MO-Viewer')
+      .setFaviconUrl(faviconUrl);
+  }
+
+  // Access control - check if user is in MO-DB_Access spreadsheet
+  var accessSheetId = getConfigValue('ACCESS_SHEET_ID');
+  if (accessSheetId) {
+    var userEmail = Session.getEffectiveUser().getEmail();
+    var hasAccess = validateUserAccess(userEmail, accessSheetId);
+
+    if (!hasAccess) {
+      Logger.log('Access denied for: ' + userEmail);
+      return HtmlService.createHtmlOutputFromFile('access-denied')
+        .setTitle('Access Denied | MO-Viewer')
+        .setFaviconUrl(faviconUrl)
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    }
+  }
+
+  var page = e.parameter.page || DEFAULT_PAGE;
 
   // Special routes (not in PAGES)
   if (page === 'test') {

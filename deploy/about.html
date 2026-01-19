@@ -527,31 +527,31 @@
       <p>NSITE MO Viewer is a Google Apps Script web application hosted within the <strong>OSDI Google Workspace</strong> environment. All data remains within Google's infrastructure and is subject to NASA OSDI security policies.</p>
 
       <h4>Access Control Method</h4>
-      <p>Access is restricted to <strong>NASA.gov Google Workspace accounts</strong> through Google's deployment settings.</p>
+      <p>MO-Viewer uses <strong>two-layer access control</strong> to protect sensitive contact information:</p>
 
       <div class="access-details">
         <div class="access-item">
-          <span class="material-icons">lock</span>
+          <span class="material-icons">public</span>
           <div>
-            <strong>Deployment Settings</strong>
-            <span>Execute as: <em>Me</em> (owner) — app runs with owner permissions.<br>
-            Who has access: <em>Anyone within NASA.gov Workspace</em></span>
+            <strong>Layer 1: NASA Domain Restriction</strong>
+            <span>Google deployment settings restrict access to <em>Anyone within NASA.gov Workspace</em>. Non-NASA accounts see Google's "Unable to open file" error.</span>
           </div>
         </div>
         <div class="access-item">
-          <span class="material-icons">group</span>
+          <span class="material-icons">checklist</span>
           <div>
-            <strong>User Access</strong>
-            <span>Any user with a NASA.gov Google account can access the app. External accounts are blocked by Google.</span>
+            <strong>Layer 2: Approved Users Whitelist</strong>
+            <span>NASA users must also be listed in the <em>MO-DB_Access</em> spreadsheet. Unlisted NASA users see an "Access Denied" page with instructions to request access.</span>
           </div>
         </div>
       </div>
 
-      <h4>How to Access</h4>
+      <h4>How to Request Access</h4>
       <ol>
-        <li>Sign in to your NASA.gov Google account</li>
-        <li>Navigate to the NSITE MO Viewer URL</li>
-        <li>If prompted, authorize with your NASA.gov account</li>
+        <li>Visit the MO-Viewer URL with your NASA.gov account</li>
+        <li>If not authorized, you'll see the Access Denied page showing your email</li>
+        <li>Contact the NSITE MO team lead to request access</li>
+        <li>Once your email is added to MO-DB_Access, refresh the page</li>
       </ol>
 
       <div class="access-details">
@@ -579,7 +579,18 @@
           <li>Execute as: <em>Me</em></li>
           <li>Who has access: <em>Anyone within NASA.gov</em></li>
         </ol>
-        <p style="margin-top: 8px;">No per-user sharing required. All NASA.gov Workspace users can access automatically.</p>
+        <p style="margin-top: 12px;"><strong>Managing user access:</strong></p>
+        <ol>
+          <li>Open the <strong>MO-DB_Access</strong> spreadsheet</li>
+          <li>Add or remove email addresses in the <em>access_email</em> column</li>
+          <li>Changes take effect immediately (no deployment needed)</li>
+        </ol>
+        <p style="margin-top: 12px;"><strong>Configuration required:</strong></p>
+        <ul>
+          <li><code>ACCESS_SHEET_ID</code> must be set in MO-DB_Config to the MO-DB_Access spreadsheet ID</li>
+          <li>If not configured, access control is disabled and all NASA users can access</li>
+        </ul>
+        <p style="margin-top: 12px;"><strong>Debug endpoint:</strong> <code>?page=access-check</code> — shows current user's access status without blocking.</p>
       </div>
     </div>
   </section>

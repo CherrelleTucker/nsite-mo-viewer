@@ -65,6 +65,31 @@ This is required because the Google Apps Script project is separate from the git
 | `deploy/index.html` | Page routing conditionals |
 | `deploy/navigation.html` | Navigation tabs |
 | `deploy/about.html` | Platform documentation (KEEP UPDATED) |
+| `deploy/access-denied.html` | Shown to unauthorized users |
+
+## Access Control
+
+MO-Viewer uses two-layer access control:
+
+### Layer 1: Google Deployment Settings
+- **Execute as**: Me (owner)
+- **Who has access**: Anyone within NASA.gov
+- Non-NASA accounts see Google's "Unable to open file" error
+
+### Layer 2: MO-DB_Access Whitelist
+- Users must be listed in the `MO-DB_Access` spreadsheet
+- Unlisted NASA users see `access-denied.html`
+- Configured via `ACCESS_SHEET_ID` in MO-DB_Config
+
+### Key Functions (in Code.gs)
+- `validateUserAccess(email, sheetId)` - Checks if email is in whitelist
+- `getCurrentUser()` - Returns current user's email
+- `?page=access-check` - Debug endpoint to test access status
+
+### Managing Access
+1. Open MO-DB_Access spreadsheet
+2. Add/remove emails in the `access_email` column
+3. Changes take effect immediately (no deployment needed)
 
 ## Documentation
 

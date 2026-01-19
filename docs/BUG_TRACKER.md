@@ -622,6 +622,7 @@ Before MO-Viewer can be packaged for other organizations, a comprehensive testin
 
 | Date | Change |
 |------|--------|
+| 2026-01-19 | **SECURITY**: Implemented two-layer access control (NASA domain + MO-DB_Access whitelist) |
 | 2026-01-19 | **DOCS**: Created TESTING_STRATEGY.md - comprehensive testing plan for portability |
 | 2026-01-19 | **FIXED**: Stakeholder List now links to Contacts page filtered by solution |
 | 2026-01-19 | **FIXED COMM-005/006**: Solution name validation with autocomplete datalist |
