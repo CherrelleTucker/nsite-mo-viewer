@@ -277,8 +277,8 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
 | QU-001 | Silent failure when tab not found - returns success response | P0 | [x] | **FIXED** - now shows friendly error: "Next week's agenda (MM_DD) not yet created." Future: replace Doc-based agendas with MO-Viewer agendas |
-| QU-002 | No server-side double-submission prevention | P1 | [ ] | Client-side flag only; race conditions possible |
-| QU-003 | Error object validation missing - may show "Error: undefined" | P1 | [ ] | Assumes error has .message property |
+| QU-002 | No server-side double-submission prevention | P1 | [x] | **FIXED** - acquireSubmissionLock() uses CacheService with 30s TTL |
+| QU-003 | Error object validation missing - may show "Error: undefined" | P1 | [x] | **FIXED** - getErrorMessage() helper handles all error types |
 
 ### Form & Validation
 | ID | Issue | Priority | Status | Notes |
@@ -286,7 +286,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | QU-004 | No character limit on update text | P2 | [ ] | Could submit extremely long updates |
 | QU-005 | Solution list hardcoded in JS (28 items) | P2 | [ ] | Database fallback exists but not used |
 | QU-006 | No input sanitization before document insertion | P1 | [x] | **FIXED** - sanitizeInput() removes control chars, limits length to 2000 |
-| QU-007 | Solution matching uses indexOf (partial matches) | P1 | [ ] | "HLS" could match "HLS-LL", "HLS-VI", etc. |
+| QU-007 | Solution matching uses indexOf (partial matches) | P1 | [x] | **FIXED** - solutionNamesMatch() requires exact match or word boundary; also fixed insertion to place updates first |
 
 ### UI/Styling
 | ID | Issue | Priority | Status | Notes |

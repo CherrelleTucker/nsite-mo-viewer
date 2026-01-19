@@ -81,6 +81,11 @@ function submitSolutionUpdate(meetingTypes, solutionName, types, updateText) {
       throw new Error(authCheck.message);
     }
 
+    // Prevent double submissions server-side
+    if (!acquireSubmissionLock(authCheck.email, solutionName, updateText)) {
+      throw new Error('Duplicate submission detected. Please wait a moment before resubmitting.');
+    }
+
     var meetingTypesArray = Array.isArray(meetingTypes) ? meetingTypes : [meetingTypes];
 
     if (meetingTypesArray.length === 0) {
@@ -107,7 +112,7 @@ function submitSolutionUpdate(meetingTypes, solutionName, types, updateText) {
       } catch (error) {
         var config = MEETING_TYPES[meetingType];
         var meetingName = config ? config.name : meetingType;
-        errors.push(meetingName + ': ' + error.message);
+        errors.push(meetingName + ': ' + getErrorMessage(error));
         Logger.log('Error submitting to ' + meetingName + ': ' + error);
       }
     }
@@ -129,7 +134,7 @@ function submitSolutionUpdate(meetingTypes, solutionName, types, updateText) {
 
   } catch (error) {
     Logger.log('Error in submitSolutionUpdate: ' + error);
-    throw new Error('Failed to submit update: ' + error.message);
+    throw new Error('Failed to submit update: ' + getErrorMessage(error));
   }
 }
 
@@ -186,21 +191,8 @@ function handleInternalPlanningInsert(docId, solutionName, types, updateText, us
     var solutionNestingLevel = solutionItem.getNestingLevel();
     var targetNestingLevel = solutionNestingLevel + 1;
 
-    var numChildren = cell.getNumChildren();
-    var lastNestedIndex = solutionIndex;
-
-    for (var i = solutionIndex + 1; i < numChildren; i++) {
-      var child = cell.getChild(i);
-      if (child.getType() === DocumentApp.ElementType.LIST_ITEM) {
-        var listItem = child.asListItem();
-        var itemNestingLevel = listItem.getNestingLevel();
-
-        if (itemNestingLevel <= solutionNestingLevel) break;
-        if (itemNestingLevel === targetNestingLevel) lastNestedIndex = i;
-      }
-    }
-
-    var insertIndex = lastNestedIndex + 1;
+    // Insert immediately after the solution heading (first position)
+    var insertIndex = solutionIndex + 1;
     var newListItem = cell.insertListItem(insertIndex, '\uD83C\uDD95' + formattedUpdate);
     newListItem.setNestingLevel(targetNestingLevel);
     newListItem.setGlyphType(DocumentApp.GlyphType.HOLLOW_BULLET);
@@ -213,7 +205,7 @@ function handleInternalPlanningInsert(docId, solutionName, types, updateText, us
 
   } catch (error) {
     Logger.log('Error in handleInternalPlanningInsert: ' + error);
-    throw new Error('Failed to submit to Internal Planning: ' + error.message);
+    throw new Error('Failed to submit to Internal Planning: ' + getErrorMessage(error));
   }
 }
 
@@ -251,7 +243,7 @@ function handleSEPStrategyInsert(docId, solutionName, types, updateText, userEma
 
   } catch (error) {
     Logger.log('Error in handleSEPStrategyInsert: ' + error);
-    throw new Error('Failed to submit to SEP Strategy: ' + error.message);
+    throw new Error('Failed to submit to SEP Strategy: ' + getErrorMessage(error));
   }
 }
 
@@ -330,6 +322,41 @@ function sanitizeInput(text) {
   return sanitized.trim();
 }
 
+function getErrorMessage(error) {
+  if (!error) return 'An unexpected error occurred';
+  if (typeof error === 'string') return error;
+  if (error.message) return error.message;
+  if (typeof error === 'object') {
+    try {
+      return JSON.stringify(error);
+    } catch (e) {
+      return String(error);
+    }
+  }
+  return String(error);
+}
+
+/**
+ * Creates a submission lock to prevent double submissions
+ * Returns true if lock acquired, false if duplicate submission detected
+ */
+function acquireSubmissionLock(email, solutionName, updateText) {
+  var cache = CacheService.getUserCache();
+  // Create a unique key from email, solution, and first 50 chars of update text
+  var lockKey = 'qu_lock_' + email + '_' + solutionName + '_' + updateText.substring(0, 50);
+
+  // Check if this exact submission was made in the last 30 seconds
+  var existing = cache.get(lockKey);
+  if (existing) {
+    Logger.log('Duplicate submission blocked for: ' + email + ' / ' + solutionName);
+    return false;
+  }
+
+  // Set lock for 30 seconds to prevent rapid duplicates
+  cache.put(lockKey, 'locked', 30);
+  return true;
+}
+
 function formatUpdateText(types, text) {
   var sanitizedText = sanitizeInput(text);
   var prefixes = [];
@@ -369,11 +396,40 @@ function findWalkOnCell(body) {
   return null;
 }
 
+/**
+ * Check if two solution names match (exact or close match)
+ * Avoids partial matches like "HLS" matching "HLS-LL"
+ */
+function solutionNamesMatch(docText, searchText) {
+  var doc = docText.toLowerCase().trim();
+  var search = searchText.toLowerCase().trim();
+
+  // Exact match
+  if (doc === search) return true;
+
+  // Document text starts with search text and next char is space or (
+  if (doc.indexOf(search) === 0) {
+    var nextChar = doc.charAt(search.length);
+    if (nextChar === '' || nextChar === ' ' || nextChar === '(') {
+      return true;
+    }
+  }
+
+  // Search text starts with document text (doc is shorter)
+  if (search.indexOf(doc) === 0) {
+    var nextChar = search.charAt(doc.length);
+    if (nextChar === '' || nextChar === ' ' || nextChar === '(') {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function findSolutionInTable(body, solutionName) {
   var tables = body.getTables();
   // Get the exact heading to search for
   var searchHeading = getDocumentHeading(solutionName);
-  var searchLower = searchHeading.toLowerCase();
 
   for (var t = 0; t < tables.length; t++) {
     var table = tables[t];
@@ -393,9 +449,8 @@ function findSolutionInTable(body, solutionName) {
             var childText = child.asListItem().getText().trim();
             if (childText) {
               // Clean up zero-width chars and compare
-              var cleanText = childText.replace(/[\u200B-\u200D\uFEFF]/g, '').toLowerCase();
-              if (cleanText.indexOf(searchLower) !== -1 ||
-                  searchLower.indexOf(cleanText) !== -1) {
+              var cleanText = childText.replace(/[\u200B-\u200D\uFEFF]/g, '');
+              if (solutionNamesMatch(cleanText, searchHeading)) {
                 return { cell: cell, solutionChildIndex: i };
               }
             }
@@ -472,7 +527,6 @@ function findSectionByHeading(body, headingText) {
 function findSolutionInSEPSection(body, solutionName, sectionStartIndex) {
   // Get the exact heading to search for
   var searchHeading = getDocumentHeading(solutionName);
-  var searchLower = searchHeading.toLowerCase();
   var numChildren = body.getNumChildren();
 
   var majorSections = [
@@ -494,10 +548,9 @@ function findSolutionInSEPSection(body, solutionName, sectionStartIndex) {
       if (!text) continue;
 
       var heading = para.getHeading();
-      var cleanText = text.replace(/[\u200B-\u200D\uFEFF]/g, '').toLowerCase();
+      var cleanText = text.replace(/[\u200B-\u200D\uFEFF]/g, '');
 
-      if (cleanText.indexOf(searchLower) !== -1 ||
-          searchLower.indexOf(cleanText) !== -1) {
+      if (solutionNamesMatch(cleanText, searchHeading)) {
         return { element: para, index: i };
       }
 
@@ -517,10 +570,9 @@ function findSolutionInSEPSection(body, solutionName, sectionStartIndex) {
 
       if (!text) continue;
 
-      var cleanText = text.replace(/[\u200B-\u200D\uFEFF]/g, '').toLowerCase();
+      var cleanText = text.replace(/[\u200B-\u200D\uFEFF]/g, '');
 
-      if (cleanText.indexOf(searchLower) !== -1 ||
-          searchLower.indexOf(cleanText) !== -1) {
+      if (solutionNamesMatch(cleanText, searchHeading)) {
         return { element: listItem, index: i };
       }
     }

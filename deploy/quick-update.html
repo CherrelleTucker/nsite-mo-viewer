@@ -466,7 +466,22 @@
       this.submitting = false;
       document.getElementById('qu-loading').style.display = 'none';
       document.getElementById('qu-form-container').style.display = 'block';
-      this.showError('Error: ' + error.message);
+
+      var errorMessage = 'An unexpected error occurred';
+      if (error) {
+        if (typeof error === 'string') {
+          errorMessage = error;
+        } else if (error.message) {
+          errorMessage = error.message;
+        } else if (typeof error === 'object') {
+          try {
+            errorMessage = JSON.stringify(error);
+          } catch (e) {
+            errorMessage = String(error);
+          }
+        }
+      }
+      this.showError('Error: ' + errorMessage);
     },
 
     showError: function(message) {
