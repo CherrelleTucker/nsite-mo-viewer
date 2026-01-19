@@ -77,7 +77,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Directing Documents
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| TEAM-022 | MoApi.getDirectingDocuments is not a function | P0 | [ ] | **CRITICAL** - breaks Documents view entirely |
+| TEAM-022 | MoApi.getDirectingDocuments is not a function | P0 | [x] | **FIXED** - library redeployed; icons off-center noted for future |
 
 ### Database/Data Issues
 | ID | Issue | Priority | Status | Notes |
@@ -584,6 +584,11 @@ These bugs may be data issues, not code issues:
 
 | Date | Change |
 |------|--------|
+| 2026-01-19 | **FIXED TEAM-022**: Library redeployed, Documents view working |
+| 2026-01-19 | **FIXED 3 security bugs**: QU-006 (input sanitization), TEAM-017, TEAM-018 (XSS) |
+| 2026-01-19 | **IMPROVED**: Weekly schedule meeting chips now scroll to details instead of popup |
+| 2026-01-19 | **IMPROVED**: Replaced Feather icons with Material icons in team.html |
+| 2026-01-19 | **DOCS**: Added Design System section to CLAUDE.md (Material icons, not Feather) |
 | 2026-01-19 | **FIXED 5 P0 bugs**: QU-001, SEP-008, SEP-009, COMM-001, COMM-002 |
 | 2026-01-19 | Added user observations: Schedule, Actions, Team, About (+10 bugs) |
 | 2026-01-19 | **NEW P0**: TEAM-022 - MoApi.getDirectingDocuments not a function |
