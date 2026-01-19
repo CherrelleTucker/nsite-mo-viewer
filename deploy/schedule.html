@@ -604,7 +604,7 @@ var Schedule = (function() {
 
     if (state.filteredMilestones.length === 0) {
       container.innerHTML = '<div class="empty-state"><span class="material-icons">calendar_today</span><p>No milestones match your filters</p></div>';
-return;
+      return;
     }
 
     var byMonth = {};
@@ -643,7 +643,7 @@ return;
     });
 
     container.innerHTML = html;
-}
+  }
 
   function renderGantt() {
     var container = document.getElementById('ganttChart');
@@ -655,7 +655,7 @@ return;
 
     if (state.filteredSolutions.length === 0) {
       container.innerHTML = '<div class="empty-state"><span class="material-icons">bar_chart</span><p>No solutions with multiple milestones match your filters</p></div>';
-return;
+      return;
     }
 
     // Build Gantt data
@@ -731,7 +731,7 @@ return;
 
     if (rows.length === 0) {
       container.innerHTML = '<div class="empty-state"><span class="material-icons">bar_chart</span><p>No phase data available for selected solutions</p></div>';
-return;
+      return;
     }
 
     data.addRows(rows);
