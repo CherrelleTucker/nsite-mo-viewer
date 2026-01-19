@@ -1900,7 +1900,7 @@
      */
     function exportCurrentReport() {
       if (!previewData) {
-        showToast('No report data to export. Please preview a report first.', 'error');
+        showNotification('No report data to export. Please preview a report first.', 'error');
         return;
       }
 
@@ -1993,7 +1993,7 @@
           break;
 
         default:
-          showToast('Export not available for this report type', 'error');
+          showNotification('Export not available for this report type', 'error');
           return;
       }
 
@@ -2027,7 +2027,7 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showToast('Exported ' + rows.length + ' rows to ' + filename + '.csv', 'success');
+      console.log('Exported ' + rows.length + ' rows to ' + filename + '.csv');
     }
 
     // Initialize on load
