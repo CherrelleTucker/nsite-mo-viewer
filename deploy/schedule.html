@@ -787,7 +787,22 @@ return;
 }
 
   function exportData() {
-    alert('Export functionality coming soon.');
+    // Export milestones to CSV
+    var columns = [
+      { key: 'solutionName', label: 'Solution' },
+      { key: 'shortName', label: 'Short Name' },
+      { key: 'type', label: 'Milestone Type' },
+      { key: 'label', label: 'Label' },
+      { key: 'date', label: 'Date' },
+      { key: 'status', label: 'Status' },
+      { key: 'phase', label: 'Lifecycle Phase' },
+      { key: 'cycle', label: 'Selection Cycle' }
+    ];
+
+    var dataToExport = state.filteredMilestones && state.filteredMilestones.length > 0
+      ? state.filteredMilestones
+      : state.milestones;
+    exportToCSV(dataToExport, columns, 'milestones_export');
   }
 
   return {

@@ -537,6 +537,52 @@
     });
 
     // ========================================================================
+    // CSV EXPORT UTILITY
+    // ========================================================================
+
+    /**
+     * Export data to CSV file
+     * @param {Array} data - Array of objects to export
+     * @param {Array} columns - Column definitions [{key: 'field', label: 'Header'}]
+     * @param {string} filename - Output filename (without .csv)
+     */
+    function exportToCSV(data, columns, filename) {
+      if (!data || data.length === 0) {
+        showToast('No data to export', 'error');
+        return;
+      }
+
+      // Build header row
+      var csv = columns.map(function(col) {
+        return '"' + col.label + '"';
+      }).join(',') + '\n';
+
+      // Build data rows
+      data.forEach(function(row) {
+        var values = columns.map(function(col) {
+          var val = row[col.key];
+          if (val === null || val === undefined) val = '';
+          // Escape quotes and wrap in quotes
+          return '"' + String(val).replace(/"/g, '""') + '"';
+        });
+        csv += values.join(',') + '\n';
+      });
+
+      // Download
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showToast('Exported ' + data.length + ' rows to ' + filename + '.csv', 'success');
+    }
+
+    // ========================================================================
     // ERROR HANDLING
     // ========================================================================
 

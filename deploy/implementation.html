@@ -1964,7 +1964,24 @@ return;
   }
 
   function syncSolutions() { loadSolutions(); }
-  function exportData() { alert('Export functionality coming soon.'); }
+
+  function exportData() {
+    // Export filtered solutions to CSV
+    var columns = [
+      { key: 'short_name', label: 'Short Name' },
+      { key: 'solution_name', label: 'Solution Name' },
+      { key: 'lifecycle_phase', label: 'Lifecycle Phase' },
+      { key: 'solution_group', label: 'Solution Group' },
+      { key: 'daac_assignment', label: 'DAAC Assignment' },
+      { key: 'program_executive', label: 'Program Executive' },
+      { key: 'solution_manager', label: 'Solution Manager' },
+      { key: 'selection_cycle', label: 'Selection Cycle' },
+      { key: 'description', label: 'Description' }
+    ];
+
+    var dataToExport = state.filteredSolutions.length > 0 ? state.filteredSolutions : state.solutions;
+    exportToCSV(dataToExport, columns, 'solutions_export');
+  }
 
   function getCycleYear(cycle) {
     var years = { '1': '2016', '2': '2018', '3': '2020', '4': '2022', '5': '2024', '6': '2026' };
