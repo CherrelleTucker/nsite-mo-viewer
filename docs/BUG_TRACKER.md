@@ -258,6 +258,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 |----|-------|----------|--------|-------|
 | COMM-017 | ESC key doesn't close modals | P2 | [ ] | Standard expected behavior |
 | COMM-018 | Click on modal content may still close modal | P3 | [ ] | stopPropagation issue |
+| COMM-035 | Story/Event modals lack sufficient detail | P2 | [ ] | Consider adding more fields, history, related items |
 
 ### Missing Features
 | ID | Issue | Priority | Status | Notes |
@@ -343,6 +344,11 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | CON-008 | Search doesn't search by role or solutions | P2 | [ ] | Only searches name, email, dept, agency, org |
 | CON-009 | Stats cards not clickable | P2 | [ ] | Should filter by category (e.g., click Multi-Solution to filter) |
 
+### Contact Card Display
+| ID | Issue | Priority | Status | Notes |
+|----|-------|----------|--------|-------|
+| CON-023 | Redundant email display on contact cards | P2 | [ ] | Shows both clickable email and email icon with "Email" label |
+
 ### Contact Detail Modal
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
@@ -415,6 +421,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
 | SCH-001 | Overdue stat always shows 0 | P1 | [x] | **FIXED** - updateStats() now counts based on m.status field |
+| SCH-005 | No "overdue" status ever assigned to milestones | P2 | [ ] | Past dates default to "completed"; need completed flag or logic change to identify overdue |
 | SCH-002 | Stats cards not clickable | P2 | [ ] | Should filter view when clicked |
 | SCH-003 | Month headers look clickable but don't collapse | P2 | [ ] | CSS hover suggests collapsible |
 

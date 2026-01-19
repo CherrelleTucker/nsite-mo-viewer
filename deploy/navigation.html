@@ -34,44 +34,51 @@
   <div class="nav-secondary">
     <button type="button" class="nav-tab <?= activePage === 'quick-update' ? 'active' : '' ?>"
             data-page="quick-update"
-            onclick="navigateTo('quick-update')">
+            onclick="navigateTo('quick-update')"
+            title="Submit updates to meeting agendas">
       <span class="material-icons">edit</span>
       <span class="nav-label">Quick Update</span>
     </button>
 
     <button type="button" class="nav-tab <?= activePage === 'contacts' ? 'active' : '' ?>"
             data-page="contacts"
-            onclick="navigateTo('contacts')">
+            onclick="navigateTo('contacts')"
+            title="Browse solution contacts directory">
       <span class="material-icons">menu_book</span>
       <span class="nav-label">Contacts</span>
     </button>
 
     <button type="button" class="nav-tab <?= activePage === 'reports' ? 'active' : '' ?>"
             data-page="reports"
-            onclick="navigateTo('reports')">
+            onclick="navigateTo('reports')"
+            title="Generate and view reports">
       <span class="material-icons">description</span>
       <span class="nav-label">Reports</span>
     </button>
 
     <button type="button" class="nav-tab <?= activePage === 'schedule' ? 'active' : '' ?>"
             data-page="schedule"
-            onclick="navigateTo('schedule')">
+            onclick="navigateTo('schedule')"
+            title="View solution milestones timeline">
       <span class="material-icons">calendar_today</span>
       <span class="nav-label">Schedule</span>
     </button>
 
     <button type="button" class="nav-tab <?= activePage === 'actions' ? 'active' : '' ?>"
             data-page="actions"
-            onclick="navigateTo('actions')">
+            onclick="navigateTo('actions')"
+            title="Track action items">
       <span class="material-icons">check_box</span>
       <span class="nav-label">Actions</span>
     </button>
-    <button type="button" class="nav-tab <?= activePage === 'team' ? 'active' : '' ?>"       
-              data-page="team"
-              onclick="navigateTo('team')">
-        <span class="material-icons">how_to_reg</span>
-        <span class="nav-label">Team</span>
-      </button>
+
+    <button type="button" class="nav-tab <?= activePage === 'team' ? 'active' : '' ?>"
+            data-page="team"
+            onclick="navigateTo('team')"
+            title="Team availability and meetings">
+      <span class="material-icons">how_to_reg</span>
+      <span class="nav-label">Team</span>
+    </button>
   </div>
 
   <!-- Right side actions -->
