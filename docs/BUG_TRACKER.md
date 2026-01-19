@@ -276,7 +276,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Critical Bugs
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| QU-001 | Silent failure when tab not found - returns success response | P0 | [x] | **FIXED** - now shows clear error with instructions to duplicate Template tab (GAS API limitation: can't create tabs programmatically) |
+| QU-001 | Silent failure when tab not found - returns success response | P0 | [x] | **FIXED** - now shows friendly error: "Next week's agenda (MM_DD) not yet created." Future: replace Doc-based agendas with MO-Viewer agendas |
 | QU-002 | No server-side double-submission prevention | P1 | [ ] | Client-side flag only; race conditions possible |
 | QU-003 | Error object validation missing - may show "Error: undefined" | P1 | [ ] | Assumes error has .message property |
 

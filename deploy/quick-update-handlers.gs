@@ -165,7 +165,7 @@ function handleInternalPlanningInsert(docId, solutionName, types, updateText, us
     var nextMonday = getNextMondayDate();
     var tabName = formatDateForTab(nextMonday);
 
-    var tab = findOrCreateTabFromTemplate(doc, tabName);
+    var tab = findTabOrError(doc, tabName);
 
     var body = tab.asDocumentTab().getBody();
 
@@ -294,39 +294,19 @@ function findTabByName(doc, tabName) {
 }
 
 /**
- * Find a tab or provide helpful error if not found
- * Note: Google Apps Script doesn't support creating tabs programmatically.
- * Users must manually duplicate the Template tab for new weeks.
- *
+ * Find a tab by name, or throw user-friendly error if not found
  * @param {Document} doc - The document
  * @param {string} tabName - Name of the tab to find (e.g., "01_20")
  * @returns {Tab} The found tab
- * @throws {Error} If tab not found, with instructions to create it
+ * @throws {Error} If tab not found
  */
-function findOrCreateTabFromTemplate(doc, tabName) {
+function findTabOrError(doc, tabName) {
   var existingTab = findTabByName(doc, tabName);
   if (existingTab) {
     return existingTab;
   }
 
-  // Tab doesn't exist - provide helpful error
-  var hasTemplate = findTabByName(doc, 'Template') ||
-                    findTabByName(doc, 'TEMPLATE') ||
-                    findTabByName(doc, '_Template');
-
-  var errorMsg = 'Tab "' + tabName + '" not found in the document.\n\n';
-
-  if (hasTemplate) {
-    errorMsg += 'To create this tab:\n';
-    errorMsg += '1. Open the document\n';
-    errorMsg += '2. Right-click the "Template" tab\n';
-    errorMsg += '3. Select "Duplicate"\n';
-    errorMsg += '4. Rename the new tab to "' + tabName + '"';
-  } else {
-    errorMsg += 'No Template tab found. Please create a tab named "' + tabName + '" in the document.';
-  }
-
-  throw new Error(errorMsg);
+  throw new Error("Next week's agenda (" + tabName + ") not yet created.");
 }
 
 function formatUpdateText(types, text) {
