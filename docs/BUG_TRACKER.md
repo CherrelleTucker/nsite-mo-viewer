@@ -198,7 +198,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Critical Bugs
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| COMM-001 | `createEvent()` not exposed in outreach-api.gs | P0 | [x] | **FIXED** - added to library + deploy wrappers |
+| COMM-001 | Discover Events feature removed; replaced with Add Event | P0 | [x] | **FIXED** - removed rejected feature, added manual Add Event form |
 | COMM-002 | Malformed JS in messages view failure handler (line 2188-2189) | P0 | [x] | **FIXED** - corrected indentation |
 | COMM-003 | Admin priority parsing bug - doesn't trim spaces | P1 | [ ] | Stories may not appear in priority cards |
 
@@ -276,7 +276,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Critical Bugs
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| QU-001 | Silent failure when tab not found - returns success response | P0 | [x] | **FIXED** - now throws error to trigger failure handler |
+| QU-001 | Silent failure when tab not found - returns success response | P0 | [x] | **FIXED** - now creates tab from Template if not found |
 | QU-002 | No server-side double-submission prevention | P1 | [ ] | Client-side flag only; race conditions possible |
 | QU-003 | Error object validation missing - may show "Error: undefined" | P1 | [ ] | Assumes error has .message property |
 

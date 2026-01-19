@@ -470,9 +470,9 @@
               <option value="confirmed">Confirmed</option>
               <option value="attended">Attended</option>
             </select>
-            <button class="btn btn-secondary" onclick="COMMS.showDiscoverEventsModal()">
-              <span class="material-icons">search</span>
-              Discover Events
+            <button class="btn btn-primary" onclick="COMMS.showAddEventModal()">
+              <span class="material-icons">add</span>
+              Add Event
             </button>
           </div>
         </div>
@@ -677,27 +677,53 @@
   </div>
 </div>
 
-<!-- Discover Events Modal -->
-<div class="modal-overlay" id="discoverEventsModal" onclick="COMMS.closeModal('discoverEventsModal', event)">
-  <div class="modal-content modal-lg" onclick="event.stopPropagation()">
+<!-- Add Event Modal -->
+<div class="modal-overlay" id="addEventModal" onclick="COMMS.closeModal('addEventModal', event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Discover Events</h2>
-      <button class="modal-close" onclick="COMMS.closeModal('discoverEventsModal')">&times;</button>
+      <h2 class="modal-title">Add New Event</h2>
+      <button class="modal-close" onclick="COMMS.closeModal('addEventModal')">&times;</button>
     </div>
     <div class="modal-body">
-      <p style="margin-bottom: var(--space-md); color: var(--color-text-secondary);">
-        Search for conferences and events that align with our priorities. Discovered events are marked as "potential" for review.
-      </p>
-      <div class="discover-search">
+      <form id="addEventForm" onsubmit="COMMS.submitNewEvent(event)">
+        <div class="form-group">
+          <label>Event Name *</label>
+          <input type="text" id="newEventName" required placeholder="e.g., AGU Fall Meeting 2026">
+        </div>
         <div class="form-row">
-          <div class="form-group" style="flex: 2;">
-            <label>Search Topic</label>
-            <input type="text" id="discoverSearchTopic" placeholder="e.g., agriculture remote sensing, water resources GIS">
+          <div class="form-group">
+            <label>Event Type</label>
+            <select id="newEventType">
+              <option value="conference">Conference</option>
+              <option value="workshop">Workshop</option>
+              <option value="webinar">Webinar</option>
+              <option value="meeting">Meeting</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="newEventStatus">
+              <option value="potential">Potential</option>
+              <option value="researching">Researching</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="declined">Declined</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Year</label>
+            <select id="newEventYear">
+              <option value="2025">2025</option>
+              <option value="2026" selected>2026</option>
+              <option value="2027">2027</option>
+            </select>
           </div>
           <div class="form-group">
             <label>Sector</label>
-            <select id="discoverSector">
-              <option value="">Any Sector</option>
+            <select id="newEventSector">
+              <option value="">-- Select Sector --</option>
               <option value="Agriculture">Agriculture</option>
               <option value="Water Resources">Water Resources</option>
               <option value="Disasters">Disasters</option>
@@ -709,19 +735,19 @@
             </select>
           </div>
         </div>
-        <div class="form-actions" style="justify-content: flex-start;">
-          <button type="button" class="btn btn-primary" onclick="COMMS.performEventSearch()">
-            <span class="material-icons">search</span>
-            Search
-          </button>
+        <div class="form-group">
+          <label>Event URL</label>
+          <input type="url" id="newEventUrl" placeholder="https://...">
         </div>
-      </div>
-      <div class="discover-results" id="discoverResults">
-        <div class="empty-state">
-          <span class="material-icons">explore</span>
-          <p>Enter a topic or select a sector to discover events</p>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="newEventNotes" rows="3" placeholder="Any additional details..."></textarea>
         </div>
-      </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="COMMS.closeModal('addEventModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Event</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -2976,94 +3002,50 @@ return;
       .updateEventStatus(eventId, newStatus);
   }
 
-  function showDiscoverEventsModal() {
-    document.getElementById('discoverSearchTopic').value = '';
-    document.getElementById('discoverSector').value = '';
-    document.getElementById('discoverResults').innerHTML =
-      '<div class="empty-state"><span class="material-icons">explore</span><p>Enter a topic or select a sector to discover events</p></div>';
-    document.getElementById('discoverEventsModal').classList.add('active');
-}
+  function showAddEventModal() {
+    document.getElementById('addEventForm').reset();
+    document.getElementById('newEventYear').value = '2026';
+    document.getElementById('addEventModal').classList.add('active');
+  }
 
-  function performEventSearch() {
-    var topic = document.getElementById('discoverSearchTopic').value.trim();
-    var sector = document.getElementById('discoverSector').value;
+  function submitNewEvent(e) {
+    e.preventDefault();
 
-    if (!topic && !sector) {
-      alert('Please enter a search topic or select a sector');
+    var name = document.getElementById('newEventName').value.trim();
+    if (!name) {
+      alert('Please enter an event name');
       return;
     }
 
-    var resultsContainer = document.getElementById('discoverResults');
-    resultsContainer.innerHTML = '<div class="loading-state"><span class="loading-spinner"></span><p>Searching for events...</p></div>';
-
-    if (sector && !topic) {
-      google.script.run
-        .withSuccessHandler(function(results) {
-          renderDiscoverResults(results);
-        })
-        .withFailureHandler(function(error) {
-          resultsContainer.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>Search failed: ' + escapeHtml(error) + '</p></div>';
-})
-        .discoverEventsBySector(sector);
-    } else {
-      google.script.run
-        .withSuccessHandler(function(results) {
-          renderDiscoverResults(results);
-        })
-        .withFailureHandler(function(error) {
-          resultsContainer.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>Search failed: ' + escapeHtml(error) + '</p></div>';
-})
-        .discoverEvents(topic, 10);
-    }
-  }
-
-  function renderDiscoverResults(results) {
-    var container = document.getElementById('discoverResults');
-
-    if (!results || results.length === 0) {
-      container.innerHTML = '<div class="empty-state"><span class="material-icons">inbox</span><p>No events found. Try a different search term.</p></div>';
-return;
-    }
-
-    var html = '<div class="discover-results-list">';
-    results.forEach(function(r) {
-      html += '<div class="discover-result-item">';
-      html += '<div class="result-info">';
-      html += '<div class="result-title">' + escapeHtml(r.title || r.name) + '</div>';
-      if (r.description) {
-        html += '<div class="result-desc">' + escapeHtml(r.description.substring(0, 150)) + (r.description.length > 150 ? '...' : '') + '</div>';
-      }
-      if (r.url) {
-        html += '<div class="result-url"><a href="' + escapeHtml(r.url) + '" target="_blank">' + escapeHtml(r.url.substring(0, 50)) + '</a></div>';
-      }
-      html += '</div>';
-      html += '<button class="btn btn-sm btn-primary" onclick="COMMS.addDiscoveredEvent(\'' + escapeAttr(r.title || r.name) + '\', \'' + escapeAttr(r.url || '') + '\')">+ Add</button>';
-      html += '</div>';
-    });
-    html += '</div>';
-
-    container.innerHTML = html;
-}
-
-  function addDiscoveredEvent(name, url) {
     var eventData = {
       name: name,
-      event_type: 'conference',
-      status: 'potential',
-      source: 'web_search',
-      event_url: url,
-      year: 2026,
-      notes: 'Discovered via web search'
+      event_type: document.getElementById('newEventType').value,
+      status: document.getElementById('newEventStatus').value,
+      year: parseInt(document.getElementById('newEventYear').value),
+      priority_sector: document.getElementById('newEventSector').value || null,
+      event_url: document.getElementById('newEventUrl').value.trim() || null,
+      notes: document.getElementById('newEventNotes').value.trim() || null,
+      source: 'manual_entry'
     };
+
+    var submitBtn = document.querySelector('#addEventForm button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Adding...';
 
     google.script.run
       .withSuccessHandler(function(result) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Add Event';
         if (result && result.event_id) {
-          alert('Event added as potential: ' + name);
+          closeModal('addEventModal');
           loadEvents();
+        } else {
+          alert('Event created but no ID returned');
         }
       })
       .withFailureHandler(function(error) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Add Event';
         alert('Failed to add event: ' + error);
       })
       .createEvent(eventData);
@@ -3119,9 +3101,8 @@ return;
     filterEvents: filterEvents,
     showEventDetail: showEventDetail,
     updateEventStatus: updateEventStatus,
-    showDiscoverEventsModal: showDiscoverEventsModal,
-    performEventSearch: performEventSearch,
-    addDiscoveredEvent: addDiscoveredEvent,
+    showAddEventModal: showAddEventModal,
+    submitNewEvent: submitNewEvent,
     // Key Messages functions
     searchMessages: searchMessages
   };
