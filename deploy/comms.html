@@ -3012,8 +3012,8 @@ return;
 }
 
   function updateEventStatus(eventId, newStatus) {
-    // Disable all status buttons and show loading
-    var buttons = document.querySelectorAll('#eventModal .btn');
+    // Disable all status buttons (modal and card) and show loading
+    var buttons = document.querySelectorAll('#eventModal .btn, .event-card-actions .btn');
     buttons.forEach(function(btn) {
       btn.disabled = true;
       if (btn.textContent.indexOf('Confirm') !== -1 ||
