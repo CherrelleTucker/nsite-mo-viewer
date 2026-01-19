@@ -713,13 +713,15 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Year</label>
-            <select id="newEventYear">
-              <option value="2025">2025</option>
-              <option value="2026" selected>2026</option>
-              <option value="2027">2027</option>
-            </select>
+            <label>Start Date</label>
+            <input type="date" id="newEventStartDate">
           </div>
+          <div class="form-group">
+            <label>End Date</label>
+            <input type="date" id="newEventEndDate">
+          </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label>Sector</label>
             <select id="newEventSector">
@@ -3048,7 +3050,6 @@ return;
 
   function showAddEventModal() {
     document.getElementById('addEventForm').reset();
-    document.getElementById('newEventYear').value = '2026';
     document.getElementById('addEventModal').classList.add('active');
   }
 
@@ -3061,7 +3062,11 @@ return;
       return;
     }
 
-    var year = parseInt(document.getElementById('newEventYear').value);
+    var startDate = document.getElementById('newEventStartDate').value || null;
+    var endDate = document.getElementById('newEventEndDate').value || null;
+
+    // Derive year from start_date, fallback to current year
+    var year = startDate ? new Date(startDate).getFullYear() : new Date().getFullYear();
 
     // Check for duplicate event (same name and year)
     var duplicate = state.events.find(function(evt) {
@@ -3077,6 +3082,8 @@ return;
       event_type: document.getElementById('newEventType').value,
       status: document.getElementById('newEventStatus').value,
       year: year,
+      start_date: startDate,
+      end_date: endDate,
       priority_sector: document.getElementById('newEventSector').value || null,
       event_url: document.getElementById('newEventUrl').value.trim() || null,
       notes: document.getElementById('newEventNotes').value.trim() || null,

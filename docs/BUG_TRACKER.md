@@ -591,6 +591,7 @@ These bugs may be data issues, not code issues:
 
 | Date | Change |
 |------|--------|
+| 2026-01-19 | **FIXED**: Add Event form missing date fields - added Start Date and End Date inputs, year derived from start_date |
 | 2026-01-19 | **FIXED TEAM-022**: Library redeployed, Documents view working |
 | 2026-01-19 | **FIXED 3 security bugs**: QU-006 (input sanitization), TEAM-017, TEAM-018 (XSS) |
 | 2026-01-19 | **IMPROVED**: Weekly schedule meeting chips now scroll to details instead of popup |
