@@ -3012,12 +3012,35 @@ return;
 }
 
   function updateEventStatus(eventId, newStatus) {
+    // Disable all status buttons and show loading
+    var buttons = document.querySelectorAll('#eventModal .btn');
+    buttons.forEach(function(btn) {
+      btn.disabled = true;
+      if (btn.textContent.indexOf('Confirm') !== -1 ||
+          btn.textContent.indexOf('Decline') !== -1 ||
+          btn.textContent.indexOf('Cancel') !== -1 ||
+          btn.textContent.indexOf('Attended') !== -1) {
+        btn.dataset.originalText = btn.textContent;
+        btn.textContent = 'Updating...';
+      }
+    });
+
     google.script.run
       .withSuccessHandler(function(result) {
         closeModal('eventModal');
         loadEvents();
+        // Show brief success notification
+        var statusNames = { confirmed: 'confirmed', cancelled: 'declined', attended: 'marked as attended' };
+        alert('Event ' + (statusNames[newStatus] || 'updated') + ' successfully!');
       })
       .withFailureHandler(function(error) {
+        // Re-enable buttons
+        buttons.forEach(function(btn) {
+          btn.disabled = false;
+          if (btn.dataset.originalText) {
+            btn.textContent = btn.dataset.originalText;
+          }
+        });
         alert('Failed to update event status: ' + error);
       })
       .updateEventStatus(eventId, newStatus);
@@ -3038,11 +3061,22 @@ return;
       return;
     }
 
+    var year = parseInt(document.getElementById('newEventYear').value);
+
+    // Check for duplicate event (same name and year)
+    var duplicate = state.events.find(function(evt) {
+      return evt.name && evt.name.toLowerCase() === name.toLowerCase() && evt.year === year;
+    });
+    if (duplicate) {
+      alert('An event with this name already exists for ' + year + '. Please use a different name or edit the existing event.');
+      return;
+    }
+
     var eventData = {
       name: name,
       event_type: document.getElementById('newEventType').value,
       status: document.getElementById('newEventStatus').value,
-      year: parseInt(document.getElementById('newEventYear').value),
+      year: year,
       priority_sector: document.getElementById('newEventSector').value || null,
       event_url: document.getElementById('newEventUrl').value.trim() || null,
       notes: document.getElementById('newEventNotes').value.trim() || null,

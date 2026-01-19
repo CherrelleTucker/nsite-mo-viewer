@@ -906,9 +906,13 @@ var SEP = (function() {
       if (contacts.length === 0) {
         container.innerHTML = '<div class="empty-state" style="padding: var(--space-md);"><p style="font-size: var(--font-size-xs);">No contacts</p></div>';
       } else {
-        container.innerHTML = contacts.slice(0, 20).map(function(c) {
+        var html = contacts.slice(0, 20).map(function(c) {
           return renderPipelineCard(c);
         }).join('');
+        if (contacts.length > 20) {
+          html += '<div class="pipeline-overflow" style="text-align: center; padding: var(--space-sm); font-size: var(--font-size-xs); color: var(--color-text-muted);">+' + (contacts.length - 20) + ' more contacts</div>';
+        }
+        container.innerHTML = html;
       }
     });
 }

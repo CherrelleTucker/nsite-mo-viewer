@@ -148,7 +148,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | SEP-001 | Agency browser initial window too wide (fixed 350px) | P1 | [x] | **FIXED** - Changed to minmax(280px, 400px) |
 | SEP-002 | Text in agency browser hard to read (font-size-sm) | P1 | [x] | **FIXED** - Changed to font-size-base |
 | SEP-003 | Agency browser duplicates Agencies view | P3 | [x] | **FIXED** - Removed from Pipeline view |
-| SEP-004 | Pipeline columns max 20 contacts with NO indicator | P1 | [ ] | Add count badge or "View All" link |
+| SEP-004 | Pipeline columns max 20 contacts with NO indicator | P1 | [x] | **FIXED** - Shows "+X more contacts" when over 20 |
 | SEP-005 | Column overflow hidden - no scroll indicator | P2 | [ ] | Add visual feedback |
 | SEP-006 | No drag-and-drop between touchpoint columns | P3 | [ ] | Feature request - complex |
 | SEP-007 | Stats cards not clickable (should filter view) | P2 | [ ] | UX improvement |
@@ -229,11 +229,11 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Events View
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| COMM-013 | No duplicate event prevention when adding discovered events | P1 | [ ] | Same event can be added multiple times |
+| COMM-013 | No duplicate event prevention when adding discovered events | P1 | [x] | **FIXED** - Checks for same name+year before creating |
 | COMM-014 | Location truncated to 25 chars without hover tooltip | P3 | [ ] | Full location only in modal |
 | COMM-028 | Remove "Discover Events" feature | P2 | [ ] | Not scalable, adds setup complexity for other projects |
-| COMM-029 | Confirm/Decline attendance buttons don't work | P1 | [ ] | No visible effect when clicked |
-| COMM-030 | Event status buttons need loading icons | P1 | [ ] | No feedback during action |
+| COMM-029 | Confirm/Decline attendance buttons don't work | P1 | [x] | **FIXED** - Added success alert and feedback |
+| COMM-030 | Event status buttons need loading icons | P1 | [x] | **FIXED** - Shows "Updating..." and disables buttons |
 | COMM-031 | Unclear what happens when event is declined | P2 | [ ] | Where does it go? Can status be changed back? |
 | COMM-032 | No storage for event artifacts | P3 | [ ] | Future: links to presentations, videos, memos |
 
