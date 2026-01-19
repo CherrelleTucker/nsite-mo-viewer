@@ -1493,7 +1493,7 @@
         }
 
         var html = dayMeetings.map(function(m) {
-          return '<div class="meeting-chip" onclick="Team.showMeetingDetail(\'' + Team.escapeHtml(m.meeting_id) + '\')">' +
+          return '<div class="meeting-chip" onclick="Team.scrollToMeeting(\'' + Team.escapeHtml(m.meeting_id) + '\')">' +
             '<span class="meeting-time">' + Team.escapeHtml(m.time || 'TBD') + '</span>' +
             '<span class="meeting-name">' + Team.escapeHtml(m.name) + '</span>' +
           '</div>';
@@ -1550,6 +1550,25 @@
     toggleMeetingRow: function(meetingId) {
       var row = document.getElementById('meeting-' + meetingId);
       row.classList.toggle('expanded');
+    },
+
+    scrollToMeeting: function(meetingId) {
+      var row = document.getElementById('meeting-' + meetingId);
+      if (!row) return;
+
+      // Expand the row if not already expanded
+      if (!row.classList.contains('expanded')) {
+        row.classList.add('expanded');
+      }
+
+      // Scroll to the row with offset for header
+      row.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Brief highlight effect
+      row.style.backgroundColor = 'var(--color-team-light, #e3f2fd)';
+      setTimeout(function() {
+        row.style.backgroundColor = '';
+      }, 1500);
     },
 
     filterMeetings: function() {

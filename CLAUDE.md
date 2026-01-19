@@ -32,6 +32,23 @@ This is required because the Google Apps Script project is separate from the git
 - Use descriptive commit messages summarizing changes
 - Push to remote after committing unless user specifies otherwise
 
+## Design System
+
+### Icons
+- **Use Material Icons** - NOT Feather icons
+- Syntax: `<span class="material-icons">icon_name</span>`
+- Icon names use underscores (e.g., `calendar_today`, `chevron_right`)
+- Reference: https://fonts.google.com/icons
+
+### CSS Variables
+- Colors, spacing, and typography defined in `shared-styles.html`
+- Page-specific accent colors (e.g., `--color-comms`, `--color-sep`)
+
+### Components
+- Modals use `.modal-overlay` and `.modal-content` classes
+- Buttons: `.btn`, `.btn-primary`, `.btn-secondary`
+- Cards: `.stat-card`, `.content-card`
+
 ## Project Structure
 
 - `deploy/` - Files to copy to Google Apps Script Web App
