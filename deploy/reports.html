@@ -2000,12 +2000,7 @@
       // Check size and warn if large
       var totalCells = rows.length * headers.length;
       if (rows.length > 500 || totalCells > 5000) {
-        var proceed = confirm(
-          'Large Export Warning\n\n' +
-          'This report contains ' + rows.length + ' rows.\n' +
-          'Export may take a moment to generate.\n\n' +
-          'Continue with export?'
-        );
+        var proceed = confirm('Large Export: ' + rows.length + ' rows. Continue?');
         if (!proceed) return;
       }
 
