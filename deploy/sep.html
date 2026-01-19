@@ -135,21 +135,6 @@
 
       <!-- Bottom Panels: Agency Browser + Engagement Log -->
       <div class="bottom-panels">
-        <!-- Agency Browser (mini) -->
-        <div class="panel agency-panel">
-          <div class="panel-header">
-            <h3>Agency Browser</h3>
-            <button class="btn btn-sm btn-secondary" onclick="SEP.setView('agencies')">
-              <span class="material-icons">fullscreen</span>
-            </button>
-          </div>
-          <div class="panel-content" id="agencyBrowserMini">
-            <div class="loading-state">
-              <span class="loading-spinner"></span>
-            </div>
-          </div>
-        </div>
-
         <!-- Recent Engagements -->
         <div class="panel engagement-panel">
           <div class="panel-header">
@@ -867,14 +852,10 @@ var SEP = (function() {
     google.script.run
       .withSuccessHandler(function(hierarchy) {
         state.agencyHierarchy = hierarchy || [];
-        renderAgencyBrowserMini();
         renderAgencyTree();
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load agencies:', error);
-        // Show fallback if agencies not configured
-        document.getElementById('agencyBrowserMini').innerHTML =
-          '<div class="empty-state"><p>Agencies not configured yet</p></div>';
       })
       .getAgencyHierarchy();
   }
@@ -969,31 +950,6 @@ var SEP = (function() {
     html += '<span>Last: ' + lastText + '</span>';
     if (dateText) html += '<span class="' + dateClass + '">' + dateText + '</span>';
     html += '</div>';
-    html += '</div>';
-    return html;
-  }
-
-  function renderAgencyBrowserMini() {
-    var container = document.getElementById('agencyBrowserMini');
-    if (!state.agencyHierarchy || state.agencyHierarchy.length === 0) {
-      container.innerHTML = '<div class="empty-state"><p>No agencies configured</p></div>';
-      return;
-    }
-
-    var html = '';
-    state.agencyHierarchy.slice(0, 8).forEach(function(agency) {
-      html += renderAgencyItemMini(agency);
-    });
-    container.innerHTML = html;
-}
-
-  function renderAgencyItemMini(agency) {
-    var childCount = agency.children ? agency.children.length : 0;
-    var html = '<div class="agency-item" onclick="SEP.selectAgency(\'' + escapeAttr(agency.agency_id) + '\')">';
-    html += '<span class="agency-name">' + escapeHtml(agency.name || agency.abbreviation || 'Unknown') + '</span>';
-    if (childCount > 0) {
-      html += '<span class="agency-count">' + childCount + '</span>';
-    }
     html += '</div>';
     return html;
   }

@@ -147,7 +147,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 |----|-------|----------|--------|-------|
 | SEP-001 | Agency browser initial window too wide (fixed 350px) | P1 | [x] | **FIXED** - Changed to minmax(280px, 400px) |
 | SEP-002 | Text in agency browser hard to read (font-size-sm) | P1 | [x] | **FIXED** - Changed to font-size-base |
-| SEP-003 | Agency browser duplicates Agencies view | P3 | [ ] | Consider removing from Pipeline |
+| SEP-003 | Agency browser duplicates Agencies view | P3 | [x] | **FIXED** - Removed from Pipeline view |
 | SEP-004 | Pipeline columns max 20 contacts with NO indicator | P1 | [ ] | Add count badge or "View All" link |
 | SEP-005 | Column overflow hidden - no scroll indicator | P2 | [ ] | Add visual feedback |
 | SEP-006 | No drag-and-drop between touchpoint columns | P3 | [ ] | Feature request - complex |
