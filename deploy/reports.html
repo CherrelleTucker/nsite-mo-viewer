@@ -299,6 +299,9 @@
     <div class="preview-header">
       <h3 id="previewTitle">Report Preview</h3>
       <div class="preview-actions">
+        <button class="btn btn-sm btn-secondary" onclick="Reports.exportCurrentReport()">
+          <span class="material-icons">download</span> Export CSV
+        </button>
         <button class="btn btn-sm btn-icon" onclick="Reports.closePreview()">
           <span class="material-icons">close</span>
         </button>
@@ -1891,6 +1894,147 @@
         .getAllSolutions();
     }
 
+    /**
+     * Export current report to CSV
+     * Shows warning for large datasets before proceeding
+     */
+    function exportCurrentReport() {
+      if (!previewData) {
+        showToast('No report data to export. Please preview a report first.', 'error');
+        return;
+      }
+
+      var rows = [];
+      var headers = [];
+      var filename = 'report';
+
+      // Build export data based on report type
+      switch (currentReportType) {
+        case 'quadChart':
+          filename = 'quad-chart';
+          headers = ['Quadrant', 'Solution', 'Detail'];
+          var q = previewData.quadrants;
+          q.updates.items.forEach(function(item) {
+            rows.push(['Updates', item.solution, item.cycle + ' ' + item.phase]);
+          });
+          q.milestones.items.forEach(function(item) {
+            rows.push(['Milestones', item.solution, item.milestone + ' - ' + item.date]);
+          });
+          q.actions.items.forEach(function(item) {
+            rows.push(['Actions', item.solution, item.action]);
+          });
+          q.decisions.items.forEach(function(item) {
+            rows.push(['Decisions', item.solution, item.decisions.map(function(d) { return d.type; }).join(', ')]);
+          });
+          break;
+
+        case 'detailedReport':
+          filename = 'detailed-milestones';
+          headers = previewData.headers || [];
+          rows = previewData.rows || [];
+          break;
+
+        case 'needAlignment':
+          filename = 'need-alignment';
+          headers = ['Solution', 'Alignment Score', 'Degree Need Met', 'Resolution Match', 'Frequency Match', 'Coverage Match', 'Gaps'];
+          if (previewData.alignments) {
+            previewData.alignments.forEach(function(a) {
+              rows.push([
+                a.solution_name,
+                a.score + '%',
+                a.degreeNeedMet + '/40',
+                a.resolutionMatch + '/20',
+                a.frequencyMatch + '/20',
+                a.coverageMatch + '/20',
+                (a.gaps || []).join('; ')
+              ]);
+            });
+          }
+          break;
+
+        case 'stakeholderCoverage':
+          filename = 'stakeholder-coverage';
+          headers = ['Solution', 'Contacts', 'Departments'];
+          if (previewData.solutions) {
+            previewData.solutions.forEach(function(s) {
+              rows.push([s.name, s.contactCount, s.departments.join(', ')]);
+            });
+          }
+          break;
+
+        case 'engagementFunnel':
+          filename = 'engagement-funnel';
+          headers = ['Stage', 'Count', 'Percentage'];
+          if (previewData.stages) {
+            previewData.stages.forEach(function(s) {
+              rows.push([s.name, s.count, s.percentage + '%']);
+            });
+          }
+          break;
+
+        case 'departmentReach':
+          filename = 'department-reach';
+          headers = ['Department', 'Solutions', 'Contacts'];
+          if (previewData.departments) {
+            previewData.departments.forEach(function(d) {
+              rows.push([d.name, d.solutionCount, d.contactCount]);
+            });
+          }
+          break;
+
+        case 'historicalUpdates':
+          filename = 'historical-updates';
+          headers = ['Date', 'Solution', 'Update', 'Source'];
+          if (previewData.updates) {
+            previewData.updates.forEach(function(u) {
+              rows.push([u.meeting_date, u.solution, u.update_text, u.source_document]);
+            });
+          }
+          break;
+
+        default:
+          showToast('Export not available for this report type', 'error');
+          return;
+      }
+
+      // Check size and warn if large
+      var totalCells = rows.length * headers.length;
+      if (rows.length > 500 || totalCells > 5000) {
+        var proceed = confirm(
+          'Large Export Warning\n\n' +
+          'This report contains ' + rows.length + ' rows.\n' +
+          'Export may take a moment to generate.\n\n' +
+          'Continue with export?'
+        );
+        if (!proceed) return;
+      }
+
+      // Generate CSV
+      var csv = headers.map(function(h) {
+        return '"' + String(h).replace(/"/g, '""') + '"';
+      }).join(',') + '\n';
+
+      rows.forEach(function(row) {
+        var values = row.map(function(val) {
+          if (val === null || val === undefined) val = '';
+          return '"' + String(val).replace(/"/g, '""') + '"';
+        });
+        csv += values.join(',') + '\n';
+      });
+
+      // Download
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename + '-' + new Date().toISOString().split('T')[0] + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Exported ' + rows.length + ' rows to ' + filename + '.csv', 'success');
+    }
+
     // Initialize on load
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', loadUpdatesReportSolutions);
@@ -1911,7 +2055,8 @@
       previewHistoricalUpdates: previewHistoricalUpdates,
       closePreview: closePreview,
       toggleOptions: toggleOptions,
-      showGapAnalysis: showGapAnalysis
+      showGapAnalysis: showGapAnalysis,
+      exportCurrentReport: exportCurrentReport
     };
   })();
 
