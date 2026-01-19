@@ -213,7 +213,7 @@
 
 ### Implementation-NSITE
 - [x] ~~Add loading states for async operations~~ - Standardized in styles.html (2026-01-18)
-- [ ] Implement actual export functionality (CSV download)
+- [x] ~~Implement actual export functionality (CSV download)~~ - exportToCSV utility (2026-01-18)
 
 ### Contacts Directory
 - [ ] Add inline editing capability
