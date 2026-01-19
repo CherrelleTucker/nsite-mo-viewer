@@ -60,8 +60,8 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
 | TEAM-016 | "Out This Week" stat shows anyone currently OOO | P2 | [ ] | Doesn't filter to just this week |
-| TEAM-017 | Meeting names in weekly grid not HTML escaped | P2 | [ ] | XSS risk |
-| TEAM-018 | Purpose field in meeting list not escaped | P2 | [ ] | XSS risk |
+| TEAM-017 | Meeting names in weekly grid not HTML escaped | P2 | [x] | **FIXED** - added escapeHtml() and safeUrl() helpers |
+| TEAM-018 | Purpose field in meeting list not escaped | P2 | [x] | **FIXED** - all meeting fields now escaped |
 
 ### Missing Features
 | ID | Issue | Priority | Status | Notes |
@@ -285,7 +285,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 |----|-------|----------|--------|-------|
 | QU-004 | No character limit on update text | P2 | [ ] | Could submit extremely long updates |
 | QU-005 | Solution list hardcoded in JS (28 items) | P2 | [ ] | Database fallback exists but not used |
-| QU-006 | No input sanitization before document insertion | P1 | [ ] | Special characters could corrupt document |
+| QU-006 | No input sanitization before document insertion | P1 | [x] | **FIXED** - sanitizeInput() removes control chars, limits length to 2000 |
 | QU-007 | Solution matching uses indexOf (partial matches) | P1 | [ ] | "HLS" could match "HLS-LL", "HLS-VI", etc. |
 
 ### UI/Styling

@@ -309,13 +309,35 @@ function findTabOrError(doc, tabName) {
   throw new Error("Next week's agenda (" + tabName + ") not yet created.");
 }
 
+/**
+ * Sanitize user input before inserting into document
+ * Removes control characters and limits length
+ */
+function sanitizeInput(text) {
+  if (!text) return '';
+
+  // Remove control characters (except newlines/tabs which might be intentional)
+  var sanitized = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
+  // Remove zero-width characters that could cause issues
+  sanitized = sanitized.replace(/[\u200B-\u200D\uFEFF\u2060]/g, '');
+
+  // Limit length to prevent abuse (2000 chars should be plenty for an update)
+  if (sanitized.length > 2000) {
+    sanitized = sanitized.substring(0, 2000) + '...';
+  }
+
+  return sanitized.trim();
+}
+
 function formatUpdateText(types, text) {
+  var sanitizedText = sanitizeInput(text);
   var prefixes = [];
   if (types.indexOf('milestone') !== -1) prefixes.push('Milestone');
   if (types.indexOf('action') !== -1) prefixes.push('Action');
 
-  if (prefixes.length === 0) return text;
-  return prefixes.join(', ') + ': ' + text;
+  if (prefixes.length === 0) return sanitizedText;
+  return prefixes.join(', ') + ': ' + sanitizedText;
 }
 
 function normalizeSolutionName(text) {
