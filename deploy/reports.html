@@ -10,6 +10,27 @@
     </div>
   </div>
 
+  <!-- Report View Panel (shows at top when viewing a report) -->
+  <div class="preview-panel" id="previewPanel" style="display: none;">
+    <div class="preview-header">
+      <h3 id="previewTitle">Report</h3>
+      <div class="preview-actions">
+        <button class="btn btn-sm btn-secondary" onclick="Reports.exportPreview()">
+          <span class="material-icons">download</span> Export Data
+        </button>
+        <button class="btn btn-sm btn-icon" onclick="Reports.closePreview()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+    </div>
+    <div class="preview-content" id="previewContent">
+      <!-- Dynamic content -->
+    </div>
+    <div class="preview-footer">
+      <span class="preview-meta" id="previewMeta"></span>
+    </div>
+  </div>
+
   <!-- Report Cards -->
   <div class="report-cards">
     <!-- Quad Chart -->
@@ -61,7 +82,7 @@
         </details>
       </div>
       <div class="report-card-actions">
-        <button class="btn btn-secondary btn-sm" onclick="Reports.previewQuadChart()"><span class="material-icons">visibility</span> Preview</button>
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewQuadChart()"><span class="material-icons">visibility</span> View</button>
       </div>
     </div>
 
@@ -96,7 +117,7 @@
         </details>
       </div>
       <div class="report-card-actions">
-        <button class="btn btn-secondary btn-sm" onclick="Reports.previewDetailedReport()"><span class="material-icons">visibility</span> Preview</button>
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewDetailedReport()"><span class="material-icons">visibility</span> View</button>
       </div>
     </div>
 
@@ -148,7 +169,7 @@
         </details>
       </div>
       <div class="report-card-actions">
-        <button class="btn btn-secondary btn-sm" onclick="Reports.previewHistoricalUpdates()"><span class="material-icons">visibility</span> Preview</button>
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewHistoricalUpdates()"><span class="material-icons">visibility</span> View</button>
       </div>
     </div>
 
@@ -184,7 +205,7 @@
         </details>
       </div>
       <div class="report-card-actions">
-        <button class="btn btn-secondary btn-sm" onclick="Reports.previewNeedAlignment()"><span class="material-icons">visibility</span> Preview</button>
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewNeedAlignment()"><span class="material-icons">visibility</span> View</button>
       </div>
     </div>
 
@@ -218,7 +239,7 @@
         </details>
       </div>
       <div class="report-card-actions">
-        <button class="btn btn-secondary btn-sm" onclick="Reports.previewStakeholderCoverage()"><span class="material-icons">visibility</span> Preview</button>
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewStakeholderCoverage()"><span class="material-icons">visibility</span> View</button>
       </div>
     </div>
 
@@ -254,7 +275,7 @@
         </details>
       </div>
       <div class="report-card-actions">
-        <button class="btn btn-secondary btn-sm" onclick="Reports.previewEngagementFunnel()"><span class="material-icons">visibility</span> Preview</button>
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewEngagementFunnel()"><span class="material-icons">visibility</span> View</button>
       </div>
     </div>
 
@@ -289,29 +310,8 @@
         </details>
       </div>
       <div class="report-card-actions">
-        <button class="btn btn-secondary btn-sm" onclick="Reports.previewDepartmentReach()"><span class="material-icons">visibility</span> Preview</button>
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewDepartmentReach()"><span class="material-icons">visibility</span> View</button>
       </div>
-    </div>
-  </div>
-
-  <!-- Preview Panel -->
-  <div class="preview-panel" id="previewPanel" style="display: none;">
-    <div class="preview-header">
-      <h3 id="previewTitle">Report Preview</h3>
-      <div class="preview-actions">
-        <button class="btn btn-sm btn-secondary" onclick="Reports.exportPreview()">
-          <span class="material-icons">download</span> CSV
-        </button>
-        <button class="btn btn-sm btn-icon" onclick="Reports.closePreview()">
-          <span class="material-icons">close</span>
-        </button>
-      </div>
-    </div>
-    <div class="preview-content" id="previewContent">
-      <!-- Dynamic content -->
-    </div>
-    <div class="preview-footer">
-      <span class="preview-meta" id="previewMeta"></span>
     </div>
   </div>
 
