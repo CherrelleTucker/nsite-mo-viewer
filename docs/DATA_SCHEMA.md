@@ -1,6 +1,6 @@
 # MO-Viewer Data Schema
 
-**Version:** 1.1.0
+**Version:** 1.2.0
 **Date:** 2026-01-18
 **Reference:** [ARCHITECTURE.md](../ARCHITECTURE.md)
 
@@ -102,6 +102,15 @@ Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across li
 | `f2i_memo` | STRING/DATE | No | F2I Decision Gate Memo status. |
 | `orr_memo` | STRING/DATE | No | ORR Decision Gate Memo status. |
 | `closeout_memo` | STRING/DATE | No | Closeout Decision Gate Memo status. |
+| | | | |
+| **Key Messages Columns** | | | |
+| `key_messages` | STRING | No | Core messaging points for communications |
+| `focus_type` | STRING | No | Primary focus area (e.g., "Climate", "Disasters", "Agriculture") |
+| `industry_connections` | STRING | No | Industry partners and connections |
+| `scientific_advancement` | STRING | No | Key scientific contributions |
+| `agency_use_impact` | STRING | No | How agencies use this solution and its impact |
+| `public_comms_links` | STRING | No | Links to public communications (press releases, etc.) |
+| | | | |
 | `last_updated` | DATE | Yes | Last update timestamp |
 | `created_at` | DATE | Yes | Record creation timestamp |
 

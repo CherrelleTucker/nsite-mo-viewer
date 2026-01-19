@@ -233,10 +233,9 @@ function getQuadrantActions_(defaultOnly) {
 
   return {
     title: 'Open Action Items',
-    subtitle: 'Extracted from status notes',
+    subtitle: 'From MO-DB_Actions',
     items: items,
-    count: items.length,
-    note: 'Action tracking database coming soon'
+    count: items.length
   };
 }
 
