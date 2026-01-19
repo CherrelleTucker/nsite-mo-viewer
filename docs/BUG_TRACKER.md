@@ -33,7 +33,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
 | TEAM-001 | Type should be checkboxes at top (office-wide vs personal) | P2 | [ ] | UX improvement per user |
-| TEAM-002 | Display bug: MLK holiday shows "Holiday Holiday undefined NaN - Jan 18" | P1 | [ ] | Date formatting issue |
+| TEAM-002 | Display bug: MLK holiday shows "Holiday Holiday undefined NaN - Jan 18" | P1 | [x] | **FIXED** - Added parseDate() for date format handling |
 | TEAM-003 | Date validation missing - can set end before start | P2 | [ ] | Should validate dates |
 | TEAM-004 | No delete functionality for availability entries | P2 | [ ] | Can only add |
 | TEAM-005 | No edit functionality for availability entries | P2 | [ ] | Can only add |
@@ -52,7 +52,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
 | TEAM-012 | Save Meeting button has no loading state | P2 | [ ] | Unlike availability modal |
-| TEAM-013 | Edit Meeting button in detail modal doesn't work | P1 | [ ] | editMeeting() function not defined |
+| TEAM-013 | Edit Meeting button in detail modal doesn't work | P1 | [x] | **FIXED** - Added editMeeting() function and currentMeetingId tracking |
 | TEAM-014 | No delete functionality for meetings | P2 | [ ] | Can only add |
 | TEAM-015 | Meeting time field is free text | P3 | [ ] | Should be time picker |
 
@@ -145,8 +145,8 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Pipeline View
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| SEP-001 | Agency browser initial window too wide (fixed 350px) | P1 | [ ] | Should be responsive: `minmax(280px, 400px)` |
-| SEP-002 | Text in agency browser hard to read (font-size-sm) | P1 | [ ] | Increase font size |
+| SEP-001 | Agency browser initial window too wide (fixed 350px) | P1 | [x] | **FIXED** - Changed to minmax(280px, 400px) |
+| SEP-002 | Text in agency browser hard to read (font-size-sm) | P1 | [x] | **FIXED** - Changed to font-size-base |
 | SEP-003 | Agency browser duplicates Agencies view | P3 | [ ] | Consider removing from Pipeline |
 | SEP-004 | Pipeline columns max 20 contacts with NO indicator | P1 | [ ] | Add count badge or "View All" link |
 | SEP-005 | Column overflow hidden - no scroll indicator | P2 | [ ] | Add visual feedback |
@@ -200,12 +200,12 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 |----|-------|----------|--------|-------|
 | COMM-001 | Discover Events feature removed; replaced with Add Event | P0 | [x] | **FIXED** - removed rejected feature, added manual Add Event form |
 | COMM-002 | Malformed JS in messages view failure handler (line 2188-2189) | P0 | [x] | **FIXED** - corrected indentation |
-| COMM-003 | Admin priority parsing bug - doesn't trim spaces | P1 | [ ] | Stories may not appear in priority cards |
+| COMM-003 | Admin priority parsing bug - doesn't trim spaces | P1 | [x] | **FIXED** - Added toLowerCase() and improved matching logic |
 
 ### Story Management
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| COMM-004 | No loading state during form submit (double-click risk) | P1 | [ ] | Same pattern as SEP-008 |
+| COMM-004 | No loading state during form submit (double-click risk) | P1 | [x] | **FIXED** - Button shows "Saving..." and is disabled during submit |
 | COMM-005 | Solution name conversion may fail for multi-word names | P1 | [ ] | "OPERA DSWx" → "opera_dswx" may not match DB |
 | COMM-006 | No validation on solution names - accepts any text | P1 | [ ] | Should autocomplete/validate against DB |
 | COMM-007 | Form state not fully cleared after submit | P2 | [ ] | Old data may flash briefly |
@@ -298,7 +298,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### User Feedback
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| QU-008 | No timeout for loading state - form stays hidden if server hangs | P1 | [ ] | Add timeout with error message |
+| QU-008 | No timeout for loading state - form stays hidden if server hangs | P1 | [x] | **FIXED** - 60-second timeout shows error and restores form |
 | QU-009 | Success message auto-hides after 8 sec (too fast for links) | P2 | [ ] | Increase to 12 sec or add close button |
 | QU-010 | Error message auto-hides after 5 sec (too fast to read) | P2 | [ ] | Add close button, don't auto-hide |
 | QU-011 | No progress indicator (which meeting is being updated) | P2 | [ ] | Just shows generic spinner |
@@ -327,7 +327,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
 | CON-001 | escapeAttr() insufficient - only escapes quotes, not other HTML chars | P1 | [x] | **FIXED** - escapeAttr() now escapes &, <, >, ", ' in contacts.html, sep.html, comms.html |
-| CON-002 | Email case normalization missing - could cause duplicate contacts | P1 | [ ] | "John@nasa.gov" vs "john@nasa.gov" not deduped |
+| CON-002 | Email case normalization missing - could cause duplicate contacts | P1 | [x] | **FIXED** - Emails normalized to lowercase on load and lookup |
 
 ### Data Loading
 | ID | Issue | Priority | Status | Notes |

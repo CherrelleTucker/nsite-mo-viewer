@@ -506,7 +506,7 @@
     transition: transform var(--transition-fast);
   }
   .agency-toggle.expanded { transform: rotate(90deg); }
-  .agency-name { flex: 1; font-size: var(--font-size-sm); }
+  .agency-name { flex: 1; font-size: var(--font-size-base); }
   .agency-count {
     font-size: var(--font-size-xs);
     color: var(--color-text-muted);
@@ -544,7 +544,7 @@
   /* Agencies View */
   .agencies-layout {
     display: grid;
-    grid-template-columns: 350px 1fr;
+    grid-template-columns: minmax(280px, 400px) 1fr;
     gap: var(--space-md);
     height: calc(100vh - 280px);
   }

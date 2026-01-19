@@ -596,7 +596,11 @@ var Contacts = (function() {
   function loadContacts() {
     google.script.run
       .withSuccessHandler(function(contacts) {
-        state.allContacts = contacts || [];
+        // Normalize emails to lowercase for consistent comparison
+        state.allContacts = (contacts || []).map(function(c) {
+          if (c.email) c.email = c.email.toLowerCase().trim();
+          return c;
+        });
         extractFilters();
         applyFilters();
         updateMultiSolutionStat();
@@ -853,7 +857,8 @@ renderPagination();
   }
 
   function showDetail(email) {
-    var contact = state.allContacts.find(function(c) { return c.email === email; });
+    var normalizedEmail = (email || '').toLowerCase().trim();
+    var contact = state.allContacts.find(function(c) { return c.email === normalizedEmail; });
     if (!contact) return;
 
     document.getElementById('modalContactName').textContent =

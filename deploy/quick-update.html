@@ -308,6 +308,7 @@
   var QuickUpdate = {
     initialized: false,
     submitting: false,
+    submitTimeout: null,
     solutions: [
       'Walk on',
       '3D Topographic Mapping',
@@ -408,6 +409,14 @@
       document.getElementById('qu-form-container').style.display = 'none';
       document.getElementById('qu-loading').style.display = 'block';
 
+      // Set timeout for server response (60 seconds)
+      var self = this;
+      this.submitTimeout = setTimeout(function() {
+        if (self.submitting) {
+          self.onError({ message: 'Request timed out. Please check your network connection and try again.' });
+        }
+      }, 60000);
+
       google.script.run
         .withSuccessHandler(this.onSuccess.bind(this))
         .withFailureHandler(this.onError.bind(this))
@@ -415,6 +424,7 @@
     },
 
     onSuccess: function(response) {
+      if (this.submitTimeout) clearTimeout(this.submitTimeout);
       this.submitting = false;
       document.getElementById('qu-loading').style.display = 'none';
       document.getElementById('qu-form-container').style.display = 'block';
@@ -463,6 +473,7 @@
     },
 
     onError: function(error) {
+      if (this.submitTimeout) clearTimeout(this.submitTimeout);
       this.submitting = false;
       document.getElementById('qu-loading').style.display = 'none';
       document.getElementById('qu-form-container').style.display = 'block';
