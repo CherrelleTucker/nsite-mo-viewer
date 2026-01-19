@@ -2116,16 +2116,22 @@ return;
 
     // Categorize stories by priority
     state.stories.forEach(function(story) {
-      var priorities = story.admin_priorities ? story.admin_priorities.split(',').map(function(p) { return p.trim(); }) : [];
+      var priorities = story.admin_priorities ? story.admin_priorities.split(',').map(function(p) { return p.trim().toLowerCase(); }) : [];
 
       if (priorities.length === 0) {
         priorityCounts.untagged.push(story);
       } else {
+        var matchedAny = false;
         priorities.forEach(function(p) {
           if (priorityCounts[p]) {
             priorityCounts[p].push(story);
+            matchedAny = true;
           }
         });
+        // If priorities were set but none matched known keys, add to untagged
+        if (!matchedAny) {
+          priorityCounts.untagged.push(story);
+        }
       }
     });
 

@@ -282,11 +282,11 @@
   </div>
 </div>
 
-<!-- Add Meeting Modal -->
+<!-- Add/Edit Meeting Modal -->
 <div class="modal" id="addMeetingModal">
   <div class="modal-content">
     <div class="modal-header">
-      <h3>Add Meeting</h3>
+      <h3 id="meetingModalTitle">Add Meeting</h3>
       <button class="modal-close" onclick="Team.closeModal('addMeetingModal')">&times;</button>
     </div>
     <div class="modal-body">
@@ -1215,6 +1215,7 @@
     meetings: [],
     availability: [],
     currentView: 'overview',
+    currentMeetingId: null,  // Track meeting being edited
 
     // Security: HTML escape to prevent XSS
     escapeHtml: function(text) {
@@ -1399,8 +1400,17 @@
     // Format date to human-friendly format (e.g., "Jan 15" or "Jan 15 - 20" or "Jan 15 - Feb 2")
     formatDateRange: function(startDateStr, endDateStr) {
       var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      var start = new Date(startDateStr + 'T00:00:00');
-      var end = new Date(endDateStr + 'T00:00:00');
+
+      // Handle missing dates
+      if (!startDateStr) return 'Date TBD';
+
+      // Try to parse the date - handle various formats
+      var start = this.parseDate(startDateStr);
+      var end = endDateStr ? this.parseDate(endDateStr) : start;
+
+      // Check for invalid dates
+      if (isNaN(start.getTime())) return 'Invalid date';
+      if (isNaN(end.getTime())) end = start;
 
       var startMonth = months[start.getMonth()];
       var startDay = start.getDate();
@@ -1408,7 +1418,7 @@
       var endDay = end.getDate();
 
       // Same day
-      if (startDateStr === endDateStr) {
+      if (start.getTime() === end.getTime()) {
         return startMonth + ' ' + startDay;
       }
 
@@ -1419,6 +1429,28 @@
 
       // Different months
       return startMonth + ' ' + startDay + ' - ' + endMonth + ' ' + endDay;
+    },
+
+    // Parse date from various formats
+    parseDate: function(dateStr) {
+      if (!dateStr) return new Date(NaN);
+
+      // If it's already a Date object
+      if (dateStr instanceof Date) return dateStr;
+
+      // Try ISO format first (YYYY-MM-DD)
+      if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+        return new Date(dateStr.substring(0, 10) + 'T00:00:00');
+      }
+
+      // Try MM/DD/YYYY format
+      var mdyMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (mdyMatch) {
+        return new Date(mdyMatch[3], parseInt(mdyMatch[1]) - 1, parseInt(mdyMatch[2]));
+      }
+
+      // Fallback: let JavaScript try to parse it
+      return new Date(dateStr);
     },
 
     renderAvailability: function() {
@@ -1642,6 +1674,8 @@
     },
 
     showAddMeetingModal: function() {
+      this.currentMeetingId = null;  // Clear for new meeting
+      document.getElementById('meetingModalTitle').textContent = 'Add Meeting';
       document.getElementById('meetingForm').reset();
       document.getElementById('addMeetingModal').classList.add('show');
     },
@@ -1650,9 +1684,40 @@
       var meeting = this.meetings.find(function(m) { return m.meeting_id === meetingId; });
       if (!meeting) return;
 
+      this.currentMeetingId = meetingId;
       document.getElementById('meetingDetailTitle').textContent = meeting.name;
       // Populate body...
       document.getElementById('meetingDetailModal').classList.add('show');
+    },
+
+    editMeeting: function() {
+      if (!this.currentMeetingId) return;
+
+      var meeting = this.meetings.find(function(m) { return m.meeting_id === Team.currentMeetingId; });
+      if (!meeting) return;
+
+      // Close detail modal
+      this.closeModal('meetingDetailModal');
+
+      // Populate form with meeting data
+      document.getElementById('meetingName').value = meeting.name || '';
+      document.getElementById('meetingCategory').value = meeting.category || 'MO';
+      document.getElementById('meetingType').value = meeting.type || 'Planning';
+      document.getElementById('meetingCadence').value = meeting.cadence || 'Weekly';
+      document.getElementById('meetingDay').value = meeting.day_of_week || '';
+      document.getElementById('meetingTime').value = meeting.time || '';
+      document.getElementById('meetingDuration').value = meeting.duration_minutes || 60;
+      document.getElementById('meetingPurpose').value = meeting.purpose || '';
+      document.getElementById('meetingLink').value = meeting.online_link || '';
+      document.getElementById('meetingDriveFolder').value = meeting.drive_folder_url || '';
+      document.getElementById('meetingAgendaUrl').value = meeting.agenda_url || '';
+      document.getElementById('meetingNotesUrl').value = meeting.notes_url || '';
+      document.getElementById('meetingSlidesUrl').value = meeting.slides_url || '';
+      document.getElementById('meetingRecordingUrl').value = meeting.recording_url || '';
+
+      // Open edit modal
+      document.getElementById('meetingModalTitle').textContent = 'Edit Meeting';
+      document.getElementById('addMeetingModal').classList.add('show');
     },
 
     showMemberDetail: function(contactId) {
@@ -1807,13 +1872,25 @@
         recording_url: document.getElementById('meetingRecordingUrl').value
       };
 
-      google.script.run
-        .withSuccessHandler(function() {
-          Team.closeModal('addMeetingModal');
-          Team.loadData();
-        })
-        .withFailureHandler(handleError)
-        .addMeeting(data);
+      var successHandler = function() {
+        Team.closeModal('addMeetingModal');
+        Team.currentMeetingId = null;
+        Team.loadData();
+      };
+
+      if (this.currentMeetingId) {
+        // Update existing meeting
+        google.script.run
+          .withSuccessHandler(successHandler)
+          .withFailureHandler(handleError)
+          .updateMeeting(this.currentMeetingId, data);
+      } else {
+        // Add new meeting
+        google.script.run
+          .withSuccessHandler(successHandler)
+          .withFailureHandler(handleError)
+          .addMeeting(data);
+      }
     },
 
   };
