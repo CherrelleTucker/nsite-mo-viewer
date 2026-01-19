@@ -569,6 +569,37 @@ These bugs may be data issues, not code issues:
 
 ---
 
+## Future Development
+
+### Testing Suite (Pre-Portability Requirement)
+
+Before MO-Viewer can be packaged for other organizations, a comprehensive testing suite is needed.
+
+**Full strategy documented in**: `docs/TESTING_STRATEGY.md`
+
+| Phase | Scope | Priority | Status |
+|-------|-------|----------|--------|
+| Phase 1 | In-GAS config & schema validation | P0 | Planned |
+| Phase 2 | Jest tests + API contract tests | P1 | Planned |
+| Phase 3 | Playwright E2E tests | P2 | Planned |
+
+**Phase 1 Deliverables**:
+- [ ] `deploy/test-runner.gs` - Test execution framework
+- [ ] `deploy/test-config.gs` - CONFIG property validation
+- [ ] `deploy/test-schema.gs` - Database schema validation
+- [ ] `docs/DEPLOYMENT_CHECKLIST.md` - Manual setup verification
+
+### Major Feature Requests
+
+| Feature | Description | Effort | Status |
+|---------|-------------|--------|--------|
+| SEP-010 | Engagement detail modal | ~4 hours | Backlog |
+| SEP-018 | Update touchpoint from UI | Large | Backlog |
+| Drag-and-drop | Kanban-style column drag | Large | Backlog |
+| Bulk actions | Multi-select for batch operations | Medium | Backlog |
+
+---
+
 ## Summary by Section
 
 | Section | P0 | P1 | P2 | P3 | Total |
@@ -591,6 +622,8 @@ These bugs may be data issues, not code issues:
 
 | Date | Change |
 |------|--------|
+| 2026-01-19 | **DOCS**: Created TESTING_STRATEGY.md - comprehensive testing plan for portability |
+| 2026-01-19 | **FIXED**: Stakeholder List now links to Contacts page filtered by solution |
 | 2026-01-19 | **FIXED COMM-005/006**: Solution name validation with autocomplete datalist |
 | 2026-01-19 | **FIXED IMPL-001**: Action Items stat now calls getOpenActions() API |
 | 2026-01-19 | **FIXED IMPL-004**: Stakeholder List shows clickable link if URL provided |

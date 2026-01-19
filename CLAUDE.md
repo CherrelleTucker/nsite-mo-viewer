@@ -65,3 +65,29 @@ This is required because the Google Apps Script project is separate from the git
 | `deploy/index.html` | Page routing conditionals |
 | `deploy/navigation.html` | Navigation tabs |
 | `deploy/about.html` | Platform documentation (KEEP UPDATED) |
+
+## Documentation
+
+| Document | Purpose |
+|----------|---------|
+| `docs/BUG_TRACKER.md` | Known bugs and improvement tracking |
+| `docs/TESTING_STRATEGY.md` | Testing approach for portability |
+| `docs/SCHEMA_REFINEMENT.md` | Database schema documentation |
+
+## Testing (Planned)
+
+See `docs/TESTING_STRATEGY.md` for the full testing plan.
+
+**Summary**: The project needs a testing suite before it can be packaged for other organizations.
+
+**Recommended Approach**:
+1. **Phase 1**: In-GAS configuration and schema validation tests
+2. **Phase 2**: Jest tests for pure JavaScript logic + API contract tests
+3. **Phase 3**: Playwright E2E tests for critical user flows
+
+**Test Files** (when implemented):
+- `deploy/test-runner.gs` - Test execution framework
+- `deploy/test-config.gs` - Configuration validation
+- `deploy/test-schema.gs` - Database schema validation
+- `tests/local/` - Jest tests for extracted JS
+- `tests/e2e/` - Playwright browser tests
