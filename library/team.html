@@ -1218,18 +1218,19 @@
 
     // Security: HTML escape to prevent XSS
     escapeHtml: function(text) {
-      if (!text) return '';
+      if (text === null || text === undefined) return '';
+      var str = String(text);
       var div = document.createElement('div');
-      div.textContent = text;
+      div.textContent = str;
       return div.innerHTML;
     },
 
     // Security: Validate URL (must be http/https)
     safeUrl: function(url) {
-      if (!url) return '';
+      if (!url || typeof url !== 'string') return '';
       var trimmed = url.trim();
       if (trimmed.match(/^https?:\/\//i)) {
-        return this.escapeHtml(trimmed);
+        return Team.escapeHtml(trimmed);
       }
       return '';
     },
