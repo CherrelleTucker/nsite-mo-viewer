@@ -382,20 +382,23 @@ button {
    ======================================================================== */
 
 .search-trigger {
-  background: transparent;
-  border: none;
-  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
   cursor: pointer;
-  padding: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: var(--space-xs);
+  font-size: var(--font-sm);
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .search-trigger:hover {
-  background: var(--color-surface-alt);
-  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .search-modal-overlay {
@@ -459,14 +462,26 @@ button {
   color: var(--color-text-muted);
 }
 
-.search-shortcut {
-  background: var(--color-surface-alt);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 2px 6px;
-  font-size: var(--font-xs);
+.search-close-btn {
+  background: transparent;
+  border: none;
   color: var(--color-text-muted);
-  font-family: inherit;
+  cursor: pointer;
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.search-close-btn:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+.search-close-btn .material-icons {
+  font-size: 20px;
 }
 
 .search-results {

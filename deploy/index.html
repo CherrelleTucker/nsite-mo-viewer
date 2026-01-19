@@ -41,7 +41,9 @@
         <span class="material-icons">search</span>
         <input type="text" id="globalSearchInput" placeholder="Search solutions, contacts, actions..."
                onkeyup="handleSearchInput(event)" autocomplete="off">
-        <kbd class="search-shortcut">Esc</kbd>
+        <button class="search-close-btn" onclick="closeGlobalSearch()" title="Close (Esc)">
+          <span class="material-icons">close</span>
+        </button>
       </div>
       <div class="search-results" id="searchResults">
         <div class="search-hint">
