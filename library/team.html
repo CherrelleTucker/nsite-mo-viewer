@@ -10,20 +10,20 @@
     <div class="page-actions">
       <div class="view-toggle">
         <button class="view-btn active" data-view="overview" onclick="Team.setView('overview')">
-          <span data-feather="grid"></span>
+          <span class="material-icons">apps</span>
           <span>Overview</span>
         </button>
         <button class="view-btn" data-view="meetings" onclick="Team.setView('meetings')">
-          <span data-feather="calendar"></span>
+          <span class="material-icons">calendar_today</span>
           <span>Meetings</span>
         </button>
         <button class="view-btn" data-view="documents" onclick="Team.setView('documents')">
-          <span data-feather="file-text"></span>
+          <span class="material-icons">description</span>
           <span>Documents</span>
         </button>
       </div>
       <button class="btn btn-primary" id="addEntryBtn" onclick="Team.showAddModal()">
-        <span data-feather="plus"></span>
+        <span class="material-icons">add</span>
         <span id="addEntryLabel">Add Availability</span>
       </button>
     </div>
@@ -32,28 +32,28 @@
   <!-- Stats Row -->
   <div class="stats-row">
     <div class="stat-card">
-      <div class="stat-icon"><span data-feather="users"></span></div>
+      <div class="stat-icon"><span class="material-icons">group</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statTeamMembers">--</span>
         <span class="stat-label">Team Members</span>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><span data-feather="calendar"></span></div>
+      <div class="stat-icon"><span class="material-icons">calendar_today</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statMeetingsThisWeek">--</span>
         <span class="stat-label">Meetings This Week</span>
       </div>
     </div>
     <div class="stat-card stat-warning">
-      <div class="stat-icon"><span data-feather="user-x"></span></div>
+      <div class="stat-icon"><span class="material-icons">person_off</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statOutThisWeek">--</span>
         <span class="stat-label">Out This Week</span>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon"><span data-feather="file-text"></span></div>
+      <div class="stat-icon"><span class="material-icons">description</span></div>
       <div class="stat-info">
         <span class="stat-value" id="statDocuments">--</span>
         <span class="stat-label">Directing Docs</span>
@@ -96,7 +96,7 @@
           <div class="section-header">
             <h2>Office Availability</h2>
             <button class="btn btn-sm btn-secondary" onclick="Team.showAddAvailabilityModal()">
-              <span data-feather="plus"></span>
+              <span class="material-icons">add</span>
               Add
             </button>
           </div>
@@ -167,7 +167,7 @@
           <div class="section-header">
             <h2>All Meetings</h2>
             <button class="btn btn-sm btn-primary" onclick="Team.showAddMeetingModal()">
-              <span data-feather="plus"></span>
+              <span class="material-icons">add</span>
               Add Meeting
             </button>
           </div>
@@ -429,19 +429,19 @@
         </div>
         <div class="member-detail-info">
           <div class="member-info-row">
-            <span class="info-icon" data-feather="mail"></span>
+            <span class="info-icon material-icons">email</span>
             <a id="memberDetailEmail" href="#" class="member-email">--</a>
           </div>
           <div class="member-info-row">
-            <span class="info-icon" data-feather="users"></span>
+            <span class="info-icon material-icons">group</span>
             <span id="memberDetailTeam">--</span>
           </div>
           <div class="member-info-row" id="memberDetailPhoneRow" style="display:none;">
-            <span class="info-icon" data-feather="phone"></span>
+            <span class="info-icon material-icons">phone</span>
             <span id="memberDetailPhone">--</span>
           </div>
           <div class="member-info-row" id="memberDetailOrgRow" style="display:none;">
-            <span class="info-icon" data-feather="briefcase"></span>
+            <span class="info-icon material-icons">work</span>
             <span id="memberDetailOrg">--</span>
           </div>
         </div>
@@ -1515,7 +1515,7 @@
 
         return '<div class="meeting-row" id="meeting-' + safeId + '">' +
           '<div class="meeting-row-header" onclick="Team.toggleMeetingRow(\'' + safeId + '\')">' +
-            '<span class="expand-icon" data-feather="chevron-right"></span>' +
+            '<span class="expand-icon material-icons">chevron_right</span>' +
             '<span class="meeting-name-col" style="flex:1;font-weight:600;">' + Team.escapeHtml(m.name) + '</span>' +
             '<span class="category-badge ' + Team.escapeHtml(m.category) + '">' + Team.escapeHtml(m.category) + '</span>' +
             '<span class="type-badge">' + Team.escapeHtml(m.type) + '</span>' +
@@ -1523,9 +1523,9 @@
           '</div>' +
           '<div class="meeting-row-details">' +
             '<div class="meeting-meta">' +
-              '<div class="meeting-meta-item"><span data-feather="clock"></span>' + Team.escapeHtml(m.day_of_week || 'TBD') + ' ' + Team.escapeHtml(m.time || '') + '</div>' +
-              '<div class="meeting-meta-item"><span data-feather="repeat"></span>' + Team.escapeHtml(m.cadence || '') + '</div>' +
-              '<div class="meeting-meta-item"><span data-feather="clock"></span>' + Team.escapeHtml(m.duration_minutes || 60) + ' min</div>' +
+              '<div class="meeting-meta-item"><span class="material-icons">schedule</span>' + Team.escapeHtml(m.day_of_week || 'TBD') + ' ' + Team.escapeHtml(m.time || '') + '</div>' +
+              '<div class="meeting-meta-item"><span class="material-icons">repeat</span>' + Team.escapeHtml(m.cadence || '') + '</div>' +
+              '<div class="meeting-meta-item"><span class="material-icons">schedule</span>' + Team.escapeHtml(m.duration_minutes || 60) + ' min</div>' +
             '</div>' +
             '<p><strong>Purpose:</strong> ' + Team.escapeHtml(m.purpose || 'Not specified') + '</p>' +
             (onlineLink ? '<p><a href="' + onlineLink + '" target="_blank">Join Online</a></p>' : '') +
@@ -1533,10 +1533,10 @@
             '<div class="artifacts-section">' +
               '<h4>Resources</h4>' +
               '<div class="artifacts-list">' +
-                (agendaUrl ? '<div class="artifact-item"><span data-feather="file-text"></span><a href="' + agendaUrl + '" target="_blank">Agenda</a></div>' : '') +
-                (notesUrl ? '<div class="artifact-item"><span data-feather="edit-3"></span><a href="' + notesUrl + '" target="_blank">Notes</a></div>' : '') +
-                (slidesUrl ? '<div class="artifact-item"><span data-feather="monitor"></span><a href="' + slidesUrl + '" target="_blank">Slides</a></div>' : '') +
-                (recordingUrl ? '<div class="artifact-item"><span data-feather="video"></span><a href="' + recordingUrl + '" target="_blank">Recording</a></div>' : '') +
+                (agendaUrl ? '<div class="artifact-item"><span class="material-icons">description</span><a href="' + agendaUrl + '" target="_blank">Agenda</a></div>' : '') +
+                (notesUrl ? '<div class="artifact-item"><span class="material-icons">edit</span><a href="' + notesUrl + '" target="_blank">Notes</a></div>' : '') +
+                (slidesUrl ? '<div class="artifact-item"><span class="material-icons">slideshow</span><a href="' + slidesUrl + '" target="_blank">Slides</a></div>' : '') +
+                (recordingUrl ? '<div class="artifact-item"><span class="material-icons">videocam</span><a href="' + recordingUrl + '" target="_blank">Recording</a></div>' : '') +
                 (!agendaUrl && !notesUrl && !slidesUrl && !recordingUrl ? '<p class="text-muted text-sm">No resources linked yet</p>' : '') +
               '</div>' +
             '</div>' +
@@ -1545,13 +1545,11 @@
       }).join('');
 
       listContainer.innerHTML = html;
-      feather.replace();
     },
 
     toggleMeetingRow: function(meetingId) {
       var row = document.getElementById('meeting-' + meetingId);
       row.classList.toggle('expanded');
-      feather.replace();
     },
 
     filterMeetings: function() {
@@ -1701,9 +1699,6 @@
         }).join('');
         availListEl.innerHTML = availHtml;
       }
-
-      // Re-initialize feather icons in modal
-      feather.replace();
 
       document.getElementById('memberDetailModal').classList.add('show');
     },
