@@ -602,6 +602,22 @@ var Contacts = (function() {
           return c;
         });
         extractFilters();
+
+        // Check for pre-set solution filter from Implementation page
+        var presetSolution = sessionStorage.getItem('contactsSolutionFilter');
+        if (presetSolution) {
+          sessionStorage.removeItem('contactsSolutionFilter');
+          // Set the solution filter dropdown
+          var solSelect = document.getElementById('filterSolution');
+          // Find matching option (case-insensitive)
+          for (var i = 0; i < solSelect.options.length; i++) {
+            if (solSelect.options[i].value.toLowerCase() === presetSolution.toLowerCase()) {
+              solSelect.value = solSelect.options[i].value;
+              break;
+            }
+          }
+        }
+
         applyFilters();
         updateMultiSolutionStat();
       })
