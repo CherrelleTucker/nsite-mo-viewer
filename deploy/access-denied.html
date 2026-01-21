@@ -243,13 +243,20 @@
       </div>
 
       <div class="steps">
-        <h3>To Request Access:</h3>
-        <ol>
-          <li>Contact your NSITE MO team lead or the application administrator</li>
-          <li>Provide the email address shown above</li>
-          <li>Once approved, your email will be added to the access list</li>
-          <li>Refresh this page to access MO-Viewer</li>
-        </ol>
+        <h3>Request Access:</h3>
+        <div id="requestForm">
+          <p style="margin-bottom: 12px; font-size: 14px; color: #555;">Click below to send an access request to the administrator.</p>
+          <textarea id="requestReason" placeholder="Reason for access (optional)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 12px; font-family: inherit; resize: vertical; min-height: 60px;"></textarea>
+          <button id="requestBtn" onclick="submitAccessRequest()" style="width: 100%; padding: 12px; background: #0B3D91; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">
+            Request Access
+          </button>
+        </div>
+        <div id="requestSuccess" style="display: none; padding: 16px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; color: #155724;">
+          <strong>Request Sent!</strong><br>
+          The administrator has been notified. You'll receive an email once your access is approved.
+        </div>
+        <div id="requestError" style="display: none; padding: 16px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 6px; color: #721c24;">
+        </div>
       </div>
     </div>
 
@@ -269,15 +276,62 @@
   </div>
 
   <script>
-    // Display current user's email
-    google.script.run
-      .withSuccessHandler(function(user) {
-        document.getElementById('userEmail').textContent = user.email || 'Unknown';
-      })
-      .withFailureHandler(function() {
-        document.getElementById('userEmail').textContent = 'Unable to retrieve';
-      })
-      .getCurrentUser();
+    var userEmail = null;
+
+    // Get email from URL parameter
+    function getUrlParam(name) {
+      var url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+
+    // Display the email from URL parameter
+    userEmail = getUrlParam('email');
+    if (userEmail) {
+      document.getElementById('userEmail').textContent = decodeURIComponent(userEmail);
+    } else {
+      document.getElementById('userEmail').textContent = 'Unknown';
+    }
+
+    function submitAccessRequest() {
+      var reason = document.getElementById('requestReason').value;
+      var btn = document.getElementById('requestBtn');
+
+      if (!userEmail) {
+        var errorDiv = document.getElementById('requestError');
+        errorDiv.textContent = 'Email address not available. Please go back and sign in again.';
+        errorDiv.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          document.getElementById('requestForm').style.display = 'none';
+          if (result.manualRequest) {
+            // Show manual instructions if email couldn't be sent
+            document.getElementById('requestSuccess').innerHTML =
+              '<strong>Request Logged</strong><br>' +
+              'Your request has been recorded. Please also contact the administrator directly:<br><br>' +
+              '<strong>Email:</strong> ' + result.adminEmail + '<br>' +
+              '<strong>Include:</strong> Your email (' + userEmail + ') and reason for access.';
+          } else {
+            document.getElementById('requestSuccess').innerHTML =
+              '<strong>Request Sent!</strong><br>' +
+              'The administrator has been notified. You\'ll receive an email once your access is approved.';
+          }
+          document.getElementById('requestSuccess').style.display = 'block';
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.textContent = 'Request Access';
+          var errorDiv = document.getElementById('requestError');
+          errorDiv.textContent = 'Failed to send request: ' + (error.message || error);
+          errorDiv.style.display = 'block';
+        })
+        .submitAccessRequest(userEmail, reason);
+    }
   </script>
 </body>
 </html>

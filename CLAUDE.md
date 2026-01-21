@@ -61,35 +61,88 @@ This is required because the Google Apps Script project is separate from the git
 
 | File | Purpose |
 |------|---------|
-| `deploy/Code.gs` | Main routing, config, PAGES validation |
-| `deploy/index.html` | Page routing conditionals |
+| `deploy/Code.gs` | Main routing, config, session management, access control |
+| `deploy/index.html` | Page routing conditionals, SPA navigation |
 | `deploy/navigation.html` | Navigation tabs |
 | `deploy/about.html` | Platform documentation (KEEP UPDATED) |
-| `deploy/access-denied.html` | Shown to unauthorized users |
+| `deploy/auth-landing.html` | Sign-in page (email + passphrase form) |
+| `deploy/access-denied.html` | Shown to unauthorized users, includes Request Access |
 
 ## Access Control
 
-MO-Viewer uses two-layer access control:
+MO-Viewer uses **passphrase + whitelist authentication** to support mixed account types (NASA.gov and personal Google accounts).
 
-### Layer 1: Google Deployment Settings
-- **Execute as**: Me (owner)
-- **Who has access**: Anyone within NASA.gov
-- Non-NASA accounts see Google's "Unable to open file" error
+### How It Works
 
-### Layer 2: MO-DB_Access Whitelist
-- Users must be listed in the `MO-DB_Access` spreadsheet
-- Unlisted NASA users see `access-denied.html`
-- Configured via `ACCESS_SHEET_ID` in MO-DB_Config
+1. User visits MO-Viewer → sees sign-in page
+2. User enters email + team passphrase
+3. Server verifies passphrase matches `SITE_PASSPHRASE` in config
+4. Server checks if email is in `MO-DB_Access` whitelist
+5. If both pass → creates session token (6-hour expiry) → redirects to app
+6. Session token is passed in URL and verified on each page load
+
+### Configuration Required (MO-DB_Config)
+
+| Key | Purpose |
+|-----|---------|
+| `SITE_PASSPHRASE` | Shared team passphrase (case-sensitive) |
+| `ACCESS_SHEET_ID` | ID of MO-DB_Access spreadsheet |
+| `ADMIN_EMAIL` | Email for access request notifications |
+
+### Deployment Settings
+
+- **Execute as**: Me (script owner)
+- **Who has access**: Anyone with Google account
 
 ### Key Functions (in Code.gs)
-- `validateUserAccess(email, sheetId)` - Checks if email is in whitelist
-- `getCurrentUser()` - Returns current user's email
-- `?page=access-check` - Debug endpoint to test access status
+
+| Function | Purpose |
+|----------|---------|
+| `verifyPassphraseAccess(email, passphrase)` | Main auth function - verifies passphrase and whitelist |
+| `createSessionToken(email)` | Creates UUID token, stores in ScriptCache (6hr) |
+| `verifySessionToken(token)` | Validates token and re-checks whitelist |
+| `validateUserAccess(email, sheetId)` | Checks if email exists in whitelist |
+| `submitAccessRequest(email, reason)` | Logs access request (attempts email if MailApp available) |
 
 ### Managing Access
+
+**Adding users:**
 1. Open MO-DB_Access spreadsheet
-2. Add/remove emails in the `access_email` column
-3. Changes take effect immediately (no deployment needed)
+2. Add email to `access_email` column
+3. Share the passphrase with the user (via Slack, email, etc.)
+4. Changes take effect immediately
+
+**Changing passphrase:**
+1. Update `SITE_PASSPHRASE` in MO-DB_Config
+2. Notify team of new passphrase
+3. Existing sessions continue working until they expire (6 hours)
+
+### Why This Approach?
+
+**Approaches that DON'T work with Google Apps Script:**
+
+| Approach | Why It Fails |
+|----------|--------------|
+| `Session.getActiveUser()` | Returns empty for external users when deployed as "Execute as: Me" |
+| `Session.getEffectiveUser()` | Returns script owner's email, not visitor's |
+| `ScriptApp.getOAuthToken()` | Returns owner's token when "Execute as: Me" |
+| Google Identity Services | Blocked - GAS serves HTML from `googleusercontent.com` subdomains which Google forbids as OAuth origins |
+| Deploy as "User accessing" | Requires app verification for sensitive scopes; users need access to all underlying sheets |
+
+**The passphrase approach works because:**
+- User self-identifies by entering their email
+- Passphrase prevents unauthorized access (only team members know it)
+- Whitelist provides granular control over who can access
+- Session tokens (ScriptCache) provide proper per-user isolation
+- No OAuth, no Google Cloud project, no app verification needed
+
+### Session Management Details
+
+- Sessions stored in `ScriptCache` (not `UserProperties` - that's shared when "Execute as: Me")
+- Token format: UUID stored as `session_{token}` → `{email, created}`
+- Expiry: 6 hours (21600 seconds)
+- On each page load, token is re-verified and whitelist is re-checked
+- Sessions are isolated per-user (different users get different tokens)
 
 ## Documentation
 

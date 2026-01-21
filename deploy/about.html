@@ -76,7 +76,7 @@
           <div class="tech-card">
             <span class="material-icons">security</span>
             <span class="tech-name">Auth</span>
-            <span class="tech-value">Google OAuth</span>
+            <span class="tech-value">Passphrase + Whitelist</span>
           </div>
         </div>
       </div>
@@ -161,6 +161,11 @@
           <div class="db-name">MO-DB_Config</div>
           <div class="db-count">System</div>
           <div class="db-desc">Platform configuration and sheet IDs</div>
+        </div>
+        <div class="db-card">
+          <div class="db-name">MO-DB_Access</div>
+          <div class="db-count">Access Control</div>
+          <div class="db-desc">Approved user email whitelist</div>
         </div>
       </div>
     </div>
@@ -527,31 +532,38 @@
       <p>NSITE MO Viewer is a Google Apps Script web application hosted within the <strong>OSDI Google Workspace</strong> environment. All data remains within Google's infrastructure and is subject to NASA OSDI security policies.</p>
 
       <h4>Access Control Method</h4>
-      <p>MO-Viewer uses <strong>two-layer access control</strong> to protect sensitive contact information:</p>
+      <p>MO-Viewer uses <strong>passphrase + whitelist authentication</strong> to support team members with mixed account types (NASA.gov and personal Google accounts):</p>
 
       <div class="access-details">
         <div class="access-item">
-          <span class="material-icons">public</span>
+          <span class="material-icons">vpn_key</span>
           <div>
-            <strong>Layer 1: NASA Domain Restriction</strong>
-            <span>Google deployment settings restrict access to <em>Anyone within NASA.gov Workspace</em>. Non-NASA accounts see Google's "Unable to open file" error.</span>
+            <strong>Layer 1: Team Passphrase</strong>
+            <span>Users must know the shared team passphrase to sign in. This is distributed to authorized team members out-of-band (email, Slack, etc.).</span>
           </div>
         </div>
         <div class="access-item">
           <span class="material-icons">checklist</span>
           <div>
-            <strong>Layer 2: Approved Users Whitelist</strong>
-            <span>NASA users must also be listed in the <em>MO-DB_Access</em> spreadsheet. Unlisted NASA users see an "Access Denied" page with instructions to request access.</span>
+            <strong>Layer 2: Email Whitelist</strong>
+            <span>Users must also be listed in the <em>MO-DB_Access</em> spreadsheet. Both passphrase AND whitelist are required for access.</span>
+          </div>
+        </div>
+        <div class="access-item">
+          <span class="material-icons">timer</span>
+          <div>
+            <strong>Session Management</strong>
+            <span>Authenticated sessions last 6 hours. After expiry, users must sign in again.</span>
           </div>
         </div>
       </div>
 
-      <h4>How to Request Access</h4>
+      <h4>How to Get Access</h4>
       <ol>
-        <li>Visit the MO-Viewer URL with your NASA.gov account</li>
-        <li>If not authorized, you'll see the Access Denied page showing your email</li>
         <li>Contact the NSITE MO team lead to request access</li>
-        <li>Once your email is added to MO-DB_Access, refresh the page</li>
+        <li>Your email will be added to MO-DB_Access</li>
+        <li>You'll receive the team passphrase</li>
+        <li>Visit MO-Viewer, enter your email and passphrase to sign in</li>
       </ol>
 
       <div class="access-details">
@@ -559,7 +571,7 @@
           <span class="material-icons">security</span>
           <div>
             <strong>Authentication</strong>
-            <span>Google OAuth 2.0 — users must sign in with their Google account</span>
+            <span>Email + Passphrase — no Google OAuth required, works with any Google account</span>
           </div>
         </div>
         <div class="access-item">
@@ -577,20 +589,43 @@
         <ol>
           <li>In Apps Script: <strong>Deploy → Manage deployments → Edit</strong></li>
           <li>Execute as: <em>Me</em></li>
-          <li>Who has access: <em>Anyone within NASA.gov</em></li>
+          <li>Who has access: <em>Anyone with Google account</em></li>
         </ol>
+        <p style="margin-top: 12px;"><strong>Configuration required (MO-DB_Config):</strong></p>
+        <ul>
+          <li><code>SITE_PASSPHRASE</code> — shared team passphrase (case-sensitive)</li>
+          <li><code>ACCESS_SHEET_ID</code> — ID of the MO-DB_Access spreadsheet</li>
+          <li><code>ADMIN_EMAIL</code> — email for access request notifications</li>
+        </ul>
         <p style="margin-top: 12px;"><strong>Managing user access:</strong></p>
         <ol>
           <li>Open the <strong>MO-DB_Access</strong> spreadsheet</li>
           <li>Add or remove email addresses in the <em>access_email</em> column</li>
           <li>Changes take effect immediately (no deployment needed)</li>
+          <li>Share the passphrase with new users via Slack/email</li>
         </ol>
-        <p style="margin-top: 12px;"><strong>Configuration required:</strong></p>
-        <ul>
-          <li><code>ACCESS_SHEET_ID</code> must be set in MO-DB_Config to the MO-DB_Access spreadsheet ID</li>
-          <li>If not configured, access control is disabled and all NASA users can access</li>
+        <p style="margin-top: 12px;"><strong>Changing the passphrase:</strong></p>
+        <ol>
+          <li>Update <code>SITE_PASSPHRASE</code> in MO-DB_Config</li>
+          <li>Notify all team members of the new passphrase</li>
+          <li>Existing sessions continue until they expire (6 hours)</li>
+        </ol>
+      </div>
+
+      <h4>Technical Notes</h4>
+      <div class="admin-note">
+        <p><strong>Why passphrase authentication?</strong></p>
+        <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+          Google Apps Script has limitations that prevent standard OAuth-based user identification when deployed as "Execute as: Me":
+        </p>
+        <ul style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+          <li><code>Session.getActiveUser()</code> returns empty for external users</li>
+          <li><code>Session.getEffectiveUser()</code> returns the script owner, not the visitor</li>
+          <li>Google Identity Services is blocked because GAS serves HTML from sandboxed googleusercontent.com subdomains</li>
         </ul>
-        <p style="margin-top: 12px;"><strong>Debug endpoint:</strong> <code>?page=access-check</code> — shows current user's access status without blocking.</p>
+        <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+          The passphrase approach lets users self-identify while the passphrase prevents unauthorized access. Sessions are stored in ScriptCache with unique tokens per user.
+        </p>
       </div>
     </div>
   </section>
@@ -604,11 +639,11 @@
     <div class="version-info">
       <div class="version-item">
         <span class="version-label">Version</span>
-        <span class="version-value">1.3.0</span>
+        <span class="version-value">1.4.0</span>
       </div>
       <div class="version-item">
         <span class="version-label">Updated</span>
-        <span class="version-value">January 18, 2026</span>
+        <span class="version-value">January 20, 2026</span>
       </div>
       <div class="version-item">
         <span class="version-label">Repository</span>

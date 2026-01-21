@@ -34,6 +34,7 @@ var CONFIG_KEYS = {
   // Access Control
   ACCESS_FILE_ID: 'ACCESS_FILE_ID',  // Drive file used for access control (editors = approved users)
   ACCESS_SHEET_ID: 'ACCESS_SHEET_ID',  // MO-DB_Access spreadsheet for email whitelist
+  SITE_PASSPHRASE: 'SITE_PASSPHRASE',  // Shared passphrase for team access
 
   // Source Document IDs (Agendas)
   INTERNAL_AGENDA_ID: 'INTERNAL_AGENDA_ID',
@@ -168,13 +169,16 @@ var DEFAULT_PAGE = 'implementation';
 function doGet(e) {
   // Favicon URL (hosted on GitHub)
   var faviconUrl = 'https://raw.githubusercontent.com/CherrelleTucker/nsite-mo-viewer/main/favicon.png';
+  var page = e.parameter.page || DEFAULT_PAGE;
 
   // Debug endpoint - check access status without blocking
   // Usage: ?page=access-check
-  if (e.parameter.page === 'access-check') {
-    var userEmail = Session.getEffectiveUser().getEmail();
+  if (page === 'access-check') {
+    var storedEmail = getStoredUserEmail();
+    var activeEmail = Session.getActiveUser().getEmail();
     var accessSheetId = getConfigValue('ACCESS_SHEET_ID');
-    var hasAccess = accessSheetId ? validateUserAccess(userEmail, accessSheetId) : 'NOT_CONFIGURED';
+    var displayEmail = storedEmail || activeEmail || '(not available)';
+    var hasAccess = accessSheetId ? validateUserAccess(displayEmail, accessSheetId) : 'NOT_CONFIGURED';
 
     var html = '<html><head><style>' +
       'body { font-family: -apple-system, sans-serif; padding: 40px; background: #f5f5f5; }' +
@@ -182,14 +186,15 @@ function doGet(e) {
       'h1 { color: #0B3D91; margin-bottom: 20px; }' +
       '.row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }' +
       '.label { color: #666; }' +
-      '.value { font-weight: 600; font-family: monospace; }' +
+      '.value { font-weight: 600; font-family: monospace; word-break: break-all; }' +
       '.granted { color: #2e7d32; }' +
       '.denied { color: #c62828; }' +
       '.warning { color: #f57c00; }' +
       '</style></head><body><div class="card">' +
       '<h1>Access Control Check</h1>' +
-      '<div class="row"><span class="label">Your Email:</span><span class="value">' + userEmail + '</span></div>' +
-      '<div class="row"><span class="label">Access Sheet ID:</span><span class="value">' + (accessSheetId || '<span class="warning">NOT CONFIGURED</span>') + '</span></div>' +
+      '<div class="row"><span class="label">Stored Email:</span><span class="value">' + (storedEmail || '<span class="warning">none</span>') + '</span></div>' +
+      '<div class="row"><span class="label">Active Email:</span><span class="value">' + (activeEmail || '<span class="warning">none</span>') + '</span></div>' +
+      '<div class="row"><span class="label">Access Sheet ID:</span><span class="value">' + (accessSheetId ? accessSheetId.substring(0,20) + '...' : '<span class="warning">NOT CONFIGURED</span>') + '</span></div>' +
       '<div class="row"><span class="label">Access Status:</span><span class="value ' + (hasAccess === true ? 'granted' : hasAccess === false ? 'denied' : 'warning') + '">' +
       (hasAccess === true ? 'GRANTED' : hasAccess === false ? 'DENIED' : 'NOT ENFORCED') + '</span></div>' +
       '</div></body></html>';
@@ -199,22 +204,42 @@ function doGet(e) {
       .setFaviconUrl(faviconUrl);
   }
 
-  // Access control - check if user is in MO-DB_Access spreadsheet
-  var accessSheetId = getConfigValue('ACCESS_SHEET_ID');
-  if (accessSheetId) {
-    var userEmail = Session.getEffectiveUser().getEmail();
-    var hasAccess = validateUserAccess(userEmail, accessSheetId);
+  // Allow access-denied page to be shown directly
+  if (page === 'access-denied') {
+    return HtmlService.createHtmlOutputFromFile('access-denied')
+      .setTitle('Access Denied | MO-Viewer')
+      .setFaviconUrl(faviconUrl)
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
 
-    if (!hasAccess) {
-      Logger.log('Access denied for: ' + userEmail);
-      return HtmlService.createHtmlOutputFromFile('access-denied')
-        .setTitle('Access Denied | MO-Viewer')
+  // Check if access control is enabled
+  var accessSheetId = getConfigValue('ACCESS_SHEET_ID');
+  var sitePassphrase = getConfigValue('SITE_PASSPHRASE');
+
+  if (accessSheetId || sitePassphrase) {
+    // Access control is enabled - check for valid session
+    var sessionToken = e.parameter.session;
+
+    if (sessionToken) {
+      // Verify the session token
+      var sessionStatus = verifySessionToken(sessionToken);
+
+      if (!sessionStatus.valid) {
+        // Invalid or expired session - show sign-in page
+        return HtmlService.createHtmlOutputFromFile('auth-landing')
+          .setTitle('Sign In | MO-Viewer')
+          .setFaviconUrl(faviconUrl)
+          .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+      }
+      // Valid session - continue to app (session token will be preserved in navigation)
+    } else {
+      // No session token - show sign-in page
+      return HtmlService.createHtmlOutputFromFile('auth-landing')
+        .setTitle('Sign In | MO-Viewer')
         .setFaviconUrl(faviconUrl)
         .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
     }
   }
-
-  var page = e.parameter.page || DEFAULT_PAGE;
 
   // Special routes (not in PAGES)
   if (page === 'test') {
@@ -610,7 +635,7 @@ function getWhitelist() {
  * Check if current user is authorized
  */
 function checkAuthorization() {
-  var userEmail = Session.getEffectiveUser().getEmail().toLowerCase().trim();
+  var userEmail = Session.getActiveUser().getEmail().toLowerCase().trim();
   var whitelist = getWhitelist().map(function(e) { return e.toLowerCase().trim(); });
   var isAuthorized = whitelist.indexOf(userEmail) !== -1;
 
@@ -634,11 +659,295 @@ function checkAuthorization() {
  * Get current user info for display
  */
 function getCurrentUser() {
-  var email = Session.getEffectiveUser().getEmail();
+  var email = Session.getActiveUser().getEmail();
   return {
     email: email,
-    isAdmin: email.toLowerCase() === getAdminEmail().toLowerCase()
+    isAdmin: email && email.toLowerCase() === getAdminEmail().toLowerCase()
   };
+}
+
+/**
+ * Verify passphrase and email for access
+ * User provides their email and a shared team passphrase
+ *
+ * @param {string} email - User's email address
+ * @param {string} passphrase - Team passphrase
+ * @returns {Object} Result with authorized status and redirect URL
+ */
+function verifyPassphraseAccess(email, passphrase) {
+  var scriptUrl = ScriptApp.getService().getUrl();
+
+  // Normalize email
+  email = (email || '').toLowerCase().trim();
+
+  if (!email) {
+    return {
+      authorized: false,
+      message: 'Please enter your email address.'
+    };
+  }
+
+  if (!passphrase) {
+    return {
+      authorized: false,
+      message: 'Please enter the team passphrase.'
+    };
+  }
+
+  // Get the configured passphrase
+  var configuredPassphrase = getConfigValue('SITE_PASSPHRASE');
+
+  if (!configuredPassphrase) {
+    Logger.log('SITE_PASSPHRASE not configured in MO-DB_Config');
+    return {
+      authorized: false,
+      message: 'Access control not configured. Contact administrator.'
+    };
+  }
+
+  // Verify passphrase (case-sensitive)
+  if (passphrase !== configuredPassphrase) {
+    Logger.log('Invalid passphrase attempt for: ' + email);
+    return {
+      authorized: false,
+      message: 'Invalid passphrase. Contact your team lead for the correct passphrase.'
+    };
+  }
+
+  // Passphrase correct - now check if email is in whitelist
+  var accessSheetId = getConfigValue('ACCESS_SHEET_ID');
+
+  if (!accessSheetId) {
+    // No whitelist configured - passphrase alone grants access
+    Logger.log('No ACCESS_SHEET_ID configured, granting access with passphrase only: ' + email);
+    var token = createSessionToken(email);
+    return {
+      authorized: true,
+      email: email,
+      sessionToken: token,
+      redirectUrl: scriptUrl + '?page=implementation&session=' + token
+    };
+  }
+
+  // Check whitelist
+  var hasAccess = validateUserAccess(email, accessSheetId);
+
+  if (hasAccess) {
+    Logger.log('Access granted for: ' + email);
+    var token = createSessionToken(email);
+    return {
+      authorized: true,
+      email: email,
+      sessionToken: token,
+      redirectUrl: scriptUrl + '?page=implementation&session=' + token
+    };
+  } else {
+    Logger.log('Email not in whitelist: ' + email);
+    return {
+      authorized: false,
+      email: email,
+      message: 'Your email is not on the approved access list. Contact administrator to request access.',
+      accessDeniedUrl: scriptUrl + '?page=access-denied&email=' + encodeURIComponent(email)
+    };
+  }
+}
+
+/**
+ * Generate a session token for authenticated user
+ * Stores token -> email mapping in ScriptCache
+ *
+ * @param {string} email - User's email
+ * @returns {string} Session token
+ */
+function createSessionToken(email) {
+  var token = Utilities.getUuid();
+  var cache = CacheService.getScriptCache();
+
+  // Store for 6 hours (21600 seconds)
+  cache.put('session_' + token, JSON.stringify({
+    email: email,
+    created: Date.now()
+  }), 21600);
+
+  return token;
+}
+
+/**
+ * Verify a session token and return the associated email
+ *
+ * @param {string} token - Session token
+ * @returns {Object} {valid: boolean, email: string|null}
+ */
+function verifySessionToken(token) {
+  if (!token) {
+    return { valid: false, email: null };
+  }
+
+  var cache = CacheService.getScriptCache();
+  var data = cache.get('session_' + token);
+
+  if (!data) {
+    return { valid: false, email: null };
+  }
+
+  try {
+    var session = JSON.parse(data);
+
+    // Re-verify email is still in whitelist
+    var accessSheetId = getConfigValue('ACCESS_SHEET_ID');
+    if (accessSheetId && !validateUserAccess(session.email, accessSheetId)) {
+      // Email removed from whitelist - invalidate session
+      cache.remove('session_' + token);
+      return { valid: false, email: null };
+    }
+
+    return { valid: true, email: session.email };
+  } catch (e) {
+    return { valid: false, email: null };
+  }
+}
+
+/**
+ * Invalidate a session token (logout)
+ */
+function invalidateSession(token) {
+  if (token) {
+    var cache = CacheService.getScriptCache();
+    cache.remove('session_' + token);
+  }
+}
+
+/**
+ * Authorize user and check access - fallback method
+ * Uses Session methods (works for same-domain users)
+ */
+function authorizeAndCheckAccess() {
+  var email = null;
+  var scriptUrl = ScriptApp.getService().getUrl();
+
+  // Method 1: Try getActiveUser() - works for same-domain users
+  email = Session.getActiveUser().getEmail();
+
+  // Method 2: Try getEffectiveUser as fallback (returns owner when "Execute as: Me")
+  if (!email) {
+    email = Session.getEffectiveUser().getEmail();
+    // Note: This returns the script owner's email, not the visitor's
+    // Only use this as a last resort for same-domain debugging
+  }
+
+  if (!email) {
+    return {
+      authorized: false,
+      email: null,
+      message: 'Could not retrieve email. Please use the Google Sign-In button.'
+    };
+  }
+
+  // Check if user is in whitelist
+  var accessSheetId = getConfigValue('ACCESS_SHEET_ID');
+  var hasAccess = accessSheetId ? validateUserAccess(email, accessSheetId) : true;
+
+  if (hasAccess) {
+    // Store authorization in user properties to remember they've authed
+    var userProps = PropertiesService.getUserProperties();
+    userProps.setProperty('MO_VIEWER_AUTHORIZED', 'true');
+    userProps.setProperty('MO_VIEWER_EMAIL', email);
+
+    return {
+      authorized: true,
+      email: email,
+      redirectUrl: scriptUrl + '?page=implementation&auth=complete'
+    };
+  } else {
+    // Store email so access-denied page can show it
+    var userProps = PropertiesService.getUserProperties();
+    userProps.setProperty('MO_VIEWER_EMAIL', email);
+
+    return {
+      authorized: false,
+      email: email,
+      accessDeniedUrl: scriptUrl + '?page=access-denied'
+    };
+  }
+}
+
+/**
+ * Get stored user email from properties (after OAuth)
+ */
+function getStoredUserEmail() {
+  var userProps = PropertiesService.getUserProperties();
+  return userProps.getProperty('MO_VIEWER_EMAIL') || null;
+}
+
+/**
+ * Check if user has completed OAuth authorization
+ */
+function isUserAuthorized() {
+  var userProps = PropertiesService.getUserProperties();
+  var authorized = userProps.getProperty('MO_VIEWER_AUTHORIZED') === 'true';
+  var email = userProps.getProperty('MO_VIEWER_EMAIL');
+
+  if (!authorized || !email) {
+    return { authorized: false, email: null };
+  }
+
+  // Re-check whitelist in case access was revoked
+  var accessSheetId = getConfigValue('ACCESS_SHEET_ID');
+  var hasAccess = accessSheetId ? validateUserAccess(email, accessSheetId) : true;
+
+  return {
+    authorized: hasAccess,
+    email: email
+  };
+}
+
+/**
+ * Submit an access request - logs request and attempts to send email
+ */
+function submitAccessRequest(email, reason) {
+  var adminEmail = getAdminEmail();
+
+  if (!email) {
+    throw new Error('No email provided');
+  }
+
+  // Log the request
+  Logger.log('Access request from: ' + email + ', Reason: ' + (reason || 'No reason provided'));
+
+  // Try to send email, but don't fail if MailApp isn't available
+  var emailSent = false;
+  try {
+    var subject = 'MO-Viewer Access Request: ' + email;
+    var body = 'A new access request has been submitted for MO-Viewer.\n\n' +
+               'Requester Email: ' + email + '\n' +
+               'Reason: ' + (reason || 'No reason provided') + '\n\n' +
+               'To grant access:\n' +
+               '1. Open the MO-DB_Access spreadsheet\n' +
+               '2. Add "' + email + '" to the access_email column\n\n' +
+               'The user will be able to access MO-Viewer immediately after being added.';
+
+    MailApp.sendEmail({
+      to: adminEmail,
+      subject: subject,
+      body: body
+    });
+
+    emailSent = true;
+    Logger.log('Access request email sent for: ' + email);
+  } catch (e) {
+    Logger.log('Could not send email (MailApp not available): ' + e);
+  }
+
+  if (emailSent) {
+    return { success: true, manualRequest: false };
+  } else {
+    // Return admin contact info for manual follow-up
+    return {
+      success: true,
+      manualRequest: true,
+      adminEmail: adminEmail
+    };
+  }
 }
 
 // ============================================================================
@@ -698,3 +1007,4 @@ function initializePlatform() {
 
   Logger.log('Platform initialized. Admin: ' + adminEmail);
 }
+
