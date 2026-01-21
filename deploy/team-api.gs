@@ -18,15 +18,8 @@ function getInternalTeamStats() {
   return MoApi.getInternalTeamStats();
 }
 
-// Team Profiles (About Me)
-function getTeamProfiles() {
-  return MoApi.getTeamProfiles();
-}
-
-function getProfileByName(firstName, lastName) {
-  return MoApi.getProfileByName(firstName, lastName);
-}
-
+// Team Profiles (About Me) - profile fields are now in MO-DB_Contacts
+// getInternalTeam() includes profile fields directly
 function getInternalTeamWithProfiles() {
   return MoApi.getInternalTeamWithProfiles();
 }

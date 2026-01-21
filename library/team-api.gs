@@ -56,6 +56,9 @@ function getInternalTeam() {
       var isInternal = row[colMap['is_internal']];
 
       if (isInternal === true || isInternal === 'TRUE' || isInternal === 1) {
+        // Check if profile fields exist
+        var hasProfile = !!(row[colMap['education']] || row[colMap['hobbies']] || row[colMap['goals']]);
+
         results.push({
           contact_id: row[colMap['contact_id']] || '',
           first_name: row[colMap['first_name']] || '',
@@ -64,7 +67,17 @@ function getInternalTeam() {
           internal_title: row[colMap['internal_title']] || '',
           internal_team: row[colMap['internal_team']] || '',
           supervisor: row[colMap['supervisor']] || '',
-          active: row[colMap['active']] !== false
+          active: row[colMap['active']] !== false,
+          // Profile fields (About Me) - read directly from contacts
+          has_profile: hasProfile,
+          education: row[colMap['education']] || '',
+          job_duties: row[colMap['job_duties']] || '',
+          professional_skills: row[colMap['professional_skills']] || '',
+          non_work_skills: row[colMap['non_work_skills']] || '',
+          hobbies: row[colMap['hobbies']] || '',
+          goals: row[colMap['goals']] || '',
+          relax: row[colMap['relax']] || '',
+          early_job: row[colMap['early_job']] || ''
         });
       }
     }
@@ -119,125 +132,17 @@ function getInternalTeamStats() {
 // ============================================================================
 // TEAM PROFILES (About Me data)
 // ============================================================================
+// Profile fields are now stored directly in MO-DB_Contacts:
+// education, job_duties, professional_skills, non_work_skills, hobbies, goals, relax, early_job
+// These fields are read by getInternalTeam() above.
 
 /**
- * Cache for team profile data
- */
-var _profilesCache = null;
-
-/**
- * Get the Profiles sheet
- * @private
- */
-function getProfilesSheet_() {
-  var sheetId = getConfigValue('PROFILES_SHEET_ID');
-  if (!sheetId) {
-    return null; // Profiles are optional
-  }
-  var ss = SpreadsheetApp.openById(sheetId);
-  return ss.getSheets()[0];
-}
-
-/**
- * Load all team profiles
- * @private
- */
-function loadAllProfiles_() {
-  if (_profilesCache !== null) {
-    return _profilesCache;
-  }
-
-  try {
-    var sheet = getProfilesSheet_();
-    if (!sheet) return [];
-
-    var data = sheet.getDataRange().getValues();
-    if (data.length < 2) return [];
-
-    var headers = data[0];
-    var results = [];
-
-    for (var i = 1; i < data.length; i++) {
-      var row = data[i];
-      var obj = {};
-      headers.forEach(function(h, j) {
-        obj[h] = row[j];
-      });
-      results.push(obj);
-    }
-
-    _profilesCache = results;
-    return results;
-  } catch (e) {
-    Logger.log('Error in loadAllProfiles_: ' + e);
-    return [];
-  }
-}
-
-/**
- * Get all team profiles
- * @returns {Array} Array of profile objects
- */
-function getTeamProfiles() {
-  var profiles = loadAllProfiles_();
-  return JSON.parse(JSON.stringify(profiles));
-}
-
-/**
- * Get profile by name (first + last)
- * @param {string} firstName - First name
- * @param {string} lastName - Last name
- * @returns {Object} Profile object or null
- */
-function getProfileByName(firstName, lastName) {
-  var profiles = loadAllProfiles_();
-  var firstLower = (firstName || '').toLowerCase().trim();
-  var lastLower = (lastName || '').toLowerCase().trim();
-
-  var found = profiles.find(function(p) {
-    return (p.first_name || '').toLowerCase().trim() === firstLower &&
-           (p.last_name || '').toLowerCase().trim() === lastLower;
-  });
-
-  return found ? JSON.parse(JSON.stringify(found)) : null;
-}
-
-/**
- * Get internal team members with their profiles merged
+ * Get internal team members with profiles
+ * Alias for getInternalTeam() - profiles are now included directly from contacts
  * @returns {Array} Array of team member objects with profile data
  */
 function getInternalTeamWithProfiles() {
-  var team = getInternalTeam();
-  var profiles = loadAllProfiles_();
-
-  // Create a lookup map for profiles by name
-  var profileMap = {};
-  profiles.forEach(function(p) {
-    var key = ((p.first_name || '') + '_' + (p.last_name || '')).toLowerCase().trim();
-    profileMap[key] = p;
-  });
-
-  // Merge profile data into team members
-  team.forEach(function(member) {
-    var key = ((member.first_name || '') + '_' + (member.last_name || '')).toLowerCase().trim();
-    var profile = profileMap[key];
-
-    if (profile) {
-      member.has_profile = true;
-      member.education = profile.education || '';
-      member.job_duties = profile.job_duties || '';
-      member.professional_skills = profile.professional_skills || '';
-      member.non_work_skills = profile.non_work_skills || '';
-      member.hobbies = profile.hobbies || '';
-      member.goals = profile.goals || '';
-      member.relax = profile.relax || '';
-      member.early_job = profile.early_job || '';
-    } else {
-      member.has_profile = false;
-    }
-  });
-
-  return team;
+  return getInternalTeam();
 }
 
 // ============================================================================
