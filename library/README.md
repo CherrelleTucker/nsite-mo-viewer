@@ -16,6 +16,11 @@ The NSITE-MO-Viewer project uses thin wrapper files that delegate to this librar
 | `agencies-api.gs` | MO-DB_Agencies hierarchy and queries |
 | `updates-api.gs` | MO-DB_Updates queries (solution updates) |
 | `engagements-api.gs` | MO-DB_Engagements logging and queries |
+| `team-api.gs` | Team members, availability, meetings, glossary, directing documents |
+| `actions-api.gs` | Action tracking with bi-directional agenda sync |
+| `milestones-api.gs` | Milestone tracking for Implementation-NSITE |
+| `outreach-api.gs` | Event/outreach tracking |
+| `stories-api.gs` | Communications story pipeline |
 
 ## Setup
 
@@ -111,9 +116,84 @@ getRecentUpdates(days)        // Recent across all solutions
 getUpdatesStats()             // Statistics
 ```
 
+### team-api.gs
+
+```javascript
+// Internal Team
+getInternalTeam()             // Get all internal team members
+getInternalTeamByTeam(name)   // Filter by team name
+getInternalTeamStats()        // Team counts by group
+
+// Availability
+getAvailability()             // Get all availability entries
+getAvailabilityByContact(name)// Filter by contact
+getUpcomingAvailability(days) // Next N days (default 30)
+addAvailability(data)         // Add new entry
+deleteAvailability(id)        // Remove entry
+
+// Meetings
+getAllMeetings()              // Get all meetings
+getMeetingsByDay(day)         // Filter by day of week
+getMeetingsByCategory(cat)    // Filter by category
+getActiveMeetings()           // Active meetings only
+getWeeklySchedule()           // Grouped by day of week
+addMeeting(data)              // Add new meeting
+updateMeeting(id, updates)    // Update existing meeting
+
+// Glossary
+getGlossaryTerms()            // Get all terms
+searchGlossary(query)         // Search terms
+
+// Directing Documents
+getDirectingDocuments()       // Get all configured docs with URLs
+getDirectingDocumentsByCategory() // Grouped by category
+getDirectingDocumentsCount()  // Count of configured docs
+```
+
+### actions-api.gs
+
+```javascript
+getAllActions()               // Get all actions
+getActionById(id)             // Get single action
+getOpenActions()              // Open actions only
+addAction(data)               // Create new action
+updateActionStatus(id, status)// Update status
+```
+
+### milestones-api.gs
+
+```javascript
+getAllMilestones()            // Get all milestones
+getMilestonesBySolution(id)   // Filter by solution
+getUpcomingMilestones(days)   // Upcoming milestones
+getMilestoneStats()           // Statistics
+```
+
+### outreach-api.gs
+
+```javascript
+getAllEvents()                // Get all events
+getEventById(id)              // Get single event
+getUpcomingEvents(days)       // Upcoming events
+createEvent(data)             // Create new event
+updateEventStatus(id, status) // Update attendance status
+```
+
+### stories-api.gs
+
+```javascript
+getAllStories()               // Get all stories
+getStoriesByStatus(status)    // Filter by pipeline status
+getStoriesBySolution(names)   // Filter by solution
+addStory(data)                // Create new story
+updateStory(id, updates)      // Update existing story
+```
+
 ## MO-DB_Config Required Keys
 
 The library reads these keys from MO-DB_Config:
+
+### Database Sheet IDs
 
 | Key | Database |
 |-----|----------|
@@ -122,9 +202,40 @@ The library reads these keys from MO-DB_Config:
 | `AGENCIES_SHEET_ID` | MO-DB_Agencies |
 | `ENGAGEMENTS_SHEET_ID` | MO-DB_Engagements |
 | `UPDATES_SHEET_ID` | MO-DB_Updates |
+| `AVAILABILITY_SHEET_ID` | MO-DB_Availability |
+| `MEETINGS_SHEET_ID` | MO-DB_Meetings |
+| `GLOSSARY_SHEET_ID` | MO-DB_Glossary |
+| `ACTIONS_SHEET_ID` | MO-DB_Actions |
+| `MILESTONES_SHEET_ID` | MO-DB_Milestones |
+| `OUTREACH_SHEET_ID` | MO-DB_Outreach |
+| `STORIES_SHEET_ID` | MO-DB_Stories |
+
+### Directing Document IDs
+
+| Key | Document |
+|-----|----------|
+| `MO_PROJECT_PLAN_DOC_ID` | MO Project Plan |
+| `HQ_PROJECT_PLAN_DOC_ID` | HQ Project Plan |
+| `SOLUTION_REQUIREMENTS_EXPECTATIONS_DOC_ID` | Solution Requirements & Expectations |
+| `SEP_PLAN_DOC_ID` | SEP Plan |
+| `SEP_BLUEPRINT_DOC_ID` | SEP Blueprint |
+| `CODESIGN_PIPELINE_DOC_ID` | CoDesign Pipeline |
+| `COMMS_PLAN_DOC_ID` | Communications Plan |
+| `STYLE_GUIDE_DOC_ID` | Style Guide |
+| `HIGHLIGHTER_BLURBS_DOC_ID` | Highlighter Blurbs |
+| `WEBPAGE_LOG_DOC_ID` | Webpage Log |
+| `ASSESSEMENT_PROCESS_DOC_ID` | Assessment Process |
+| `ASSESSEMENT_CHEATSHEET_DOC_ID` | Assessment Cheatsheet |
+| `MO_RISK_REGISTER_DOC_ID` | MO Risk Register |
+| `RISK_REGISTER_DOC_ID` | Risk Register |
+| `INFO_MANAGEMENT_PLAN_DOC_ID` | Information Management Plan |
+| `AUDIT_LOG_DOC_ID` | Audit Log |
 
 ## Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.0.0 | 2026-01-20 | V2 Release - complete platform with auth, 9 pages, 13 databases |
+| 1.2.0 | 2026-01-18 | Added actions-api.gs, milestones-api.gs, outreach-api.gs, stories-api.gs |
+| 1.1.0 | 2026-01-18 | Added team-api.gs with directing documents, availability, meetings, glossary |
 | 1.0.0 | 2026-01-17 | Initial library extraction from MO-Viewer |

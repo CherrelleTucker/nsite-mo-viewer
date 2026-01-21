@@ -15,6 +15,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0] - 2026-01-20
+
+### V2 Release - Complete Platform with Authentication
+
+**This release marks the completion of V2**, a fully functional unified dashboard with:
+- 9 viewer pages (Implementation, SEP, Actions, Comms, Team, Contacts, Reports, Schedule, Quick Update)
+- 13 databases
+- Passphrase + whitelist authentication
+- MO-APIs shared library architecture
+- All P0 bugs resolved
+
+V3 will focus on feature enhancements based on stakeholder feedback.
+
+### Added - Passphrase + Whitelist Authentication
+
+**Access Control System** (NEW)
+- **Passphrase authentication** - Shared team passphrase replaces domain-only restriction
+- **Email whitelist** - MO-DB_Access spreadsheet controls who can access
+- **Session tokens** - 6-hour sessions stored in ScriptCache (isolated per user)
+- **Sign-in page** (`auth-landing.html`) - Email + passphrase form
+- **Access denied page** (`access-denied.html`) - Shows user email, Request Access button
+- **Request Access feature** - Users can request access (logged for admin review)
+
+**Why This Approach?**
+- Supports mixed account types (NASA.gov and personal Google accounts)
+- Works around Google Apps Script limitations:
+  - `Session.getActiveUser()` returns empty for external users with "Execute as: Me"
+  - Google Identity Services blocked from googleusercontent.com subdomains
+- No OAuth, no Google Cloud project, no app verification needed
+
+**New Config Keys (MO-DB_Config)**:
+- `SITE_PASSPHRASE` - Shared team passphrase (case-sensitive)
+- `ACCESS_SHEET_ID` - ID of MO-DB_Access whitelist spreadsheet
+- `ADMIN_EMAIL` - Email for access request notifications
+
+**New Functions (Code.gs)**:
+- `verifyPassphraseAccess(email, passphrase)` - Main auth function
+- `createSessionToken(email)` - Creates UUID token in ScriptCache
+- `verifySessionToken(token)` - Validates token and re-checks whitelist
+- `validateUserAccess(email, sheetId)` - Checks whitelist
+- `submitAccessRequest(email, reason)` - Logs access requests
+
+### Fixed
+- **All P0 bugs resolved** - TEAM-022, SEP-008, SEP-009, COMM-001, COMM-002, QU-001
+
+### Changed
+- **CLAUDE.md** - Added comprehensive Access Control documentation
+- **about.html** - Updated to document authentication system
+
+---
+
 ## [1.3.0] - 2026-01-18
 
 ### Added - Comms-NSITE, Database Consolidation & Report Exports

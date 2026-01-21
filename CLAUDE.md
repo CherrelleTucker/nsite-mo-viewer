@@ -11,7 +11,7 @@ The About page documents:
 - How data is stored and transformed
 - Update mechanisms and frequency
 
-When modifying any viewer page (Implementation-NSITE, SEP-NSITE, Actions-NSITE, Contacts, Reports, Schedule, Quick Update):
+When modifying any viewer page (Implementation-NSITE, SEP-NSITE, Actions-NSITE, Comms-NSITE, Team-NSITE, Contacts, Reports, Schedule, Quick Update):
 1. Update the corresponding section in `deploy/about.html`
 2. If adding a new data source, update the Databases section
 3. If changing data flow, update the data flow diagram for that page
@@ -51,11 +51,30 @@ This is required because the Google Apps Script project is separate from the git
 
 ## Project Structure
 
-- `deploy/` - Files to copy to Google Apps Script Web App
+- `deploy/` - Files to copy to Google Apps Script Web App (NSITE-MO-Viewer project)
+- `library/` - Source files for MO-APIs Library (separate Apps Script project)
 - `scripts/` - Python import/processing scripts
 - `database-files/` - Local Excel/CSV database files
 - `docs/` - Documentation
 - `.claude/` - Claude-specific reference files
+
+## MO-APIs Library Architecture
+
+The project uses a **thin wrapper pattern**:
+
+1. **library/*.gs** - Full implementations in a standalone Apps Script Library (identifier: `MoApi`)
+2. **deploy/*-api.gs** - Thin wrappers that delegate to the library: `function X() { return MoApi.X(); }`
+
+When updating API functions:
+1. Update the implementation in `library/*.gs`
+2. Copy to MO-APIs Library project in Apps Script
+3. If adding new functions, add thin wrapper to `deploy/*-api.gs`
+4. Copy to NSITE-MO-Viewer project in Apps Script
+
+**Library files:**
+- config-helpers.gs, solutions-api.gs, contacts-api.gs, agencies-api.gs
+- updates-api.gs, engagements-api.gs, team-api.gs, actions-api.gs
+- milestones-api.gs, outreach-api.gs, stories-api.gs
 
 ## Key Files
 
