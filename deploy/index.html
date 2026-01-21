@@ -111,8 +111,19 @@
       activePage: '<?= activePage ?>',
       baseUrl: '<?= ScriptApp.getService().getUrl() ?>',
       config: null,
-      user: null
+      user: null,
+      sessionToken: null  // Will be populated from URL on load
     };
+
+    // Extract session token from URL on initial load
+    // This preserves the session across SPA navigation
+    (function() {
+      var urlParams = new URLSearchParams(window.location.search);
+      var token = urlParams.get('session');
+      if (token) {
+        Platform.sessionToken = token;
+      }
+    })();
 
     // ========================================================================
     // INITIALIZATION
@@ -169,7 +180,12 @@
       showLoadingState(page);
 
       // Update browser URL and history (no page reload)
-      google.script.history.push(null, {page: page});
+      // IMPORTANT: Include session token to preserve authentication across navigation
+      var historyParams = {page: page};
+      if (Platform.sessionToken) {
+        historyParams.session = Platform.sessionToken;
+      }
+      google.script.history.push(null, historyParams);
 
       // Load page content dynamically
       loadPageContent(page);
@@ -283,6 +299,11 @@
       var page = (e.location && e.location.parameter && e.location.parameter.page)
         ? e.location.parameter.page
         : 'implementation';
+
+      // Preserve session token from history state if available
+      if (e.location && e.location.parameter && e.location.parameter.session) {
+        Platform.sessionToken = e.location.parameter.session;
+      }
 
       console.log('History change, loading:', page);
 

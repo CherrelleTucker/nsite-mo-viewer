@@ -231,6 +231,66 @@
     .status-message.show {
       display: block;
     }
+
+    /* Success state after login */
+    .success-container {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #4caf50, #2e7d32);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .success-icon .material-icons {
+      font-size: 48px;
+      color: white;
+    }
+
+    .success-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2e7d32;
+      margin-bottom: 8px;
+    }
+
+    .success-text {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .continue-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #0B3D91, #00A3E0);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(11, 61, 145, 0.3);
+    }
+
+    .continue-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(11, 61, 145, 0.4);
+    }
+
+    .continue-btn .material-icons {
+      font-size: 20px;
+    }
   </style>
 </head>
 <body>
@@ -306,8 +366,11 @@
       google.script.run
         .withSuccessHandler(function(result) {
           if (result.authorized) {
-            showStatus('Access granted! Redirecting...');
-            window.top.location.href = result.redirectUrl;
+            // Show success with a clickable link/button
+            // IMPORTANT: We can't do window.top.location.href in this callback because
+            // the iframe sandbox requires user activation (gesture) for top navigation.
+            // The async callback no longer has user activation, so we show a link instead.
+            showContinueLink(result.redirectUrl);
           } else {
             showError(result.message || 'Access denied. Check your email and passphrase.');
             resetButton();
@@ -318,6 +381,36 @@
           resetButton();
         })
         .verifyPassphraseAccess(email, passphrase);
+    }
+
+    function showContinueLink(redirectUrl) {
+      // Hide the form and show a success message with clickable link
+      var form = document.getElementById('signInForm');
+      var cardBody = form.parentElement;
+
+      // Replace form content with success message and continue link
+      form.style.display = 'none';
+
+      // Create success container
+      var successDiv = document.createElement('div');
+      successDiv.className = 'success-container';
+      successDiv.innerHTML =
+        '<div class="success-icon">' +
+          '<span class="material-icons">check_circle</span>' +
+        '</div>' +
+        '<h2 class="success-title">Access Granted!</h2>' +
+        '<p class="success-text">Click below to continue to MO-Viewer</p>' +
+        '<a href="' + redirectUrl + '" target="_top" class="continue-btn">' +
+          '<span class="material-icons">arrow_forward</span>' +
+          'Continue to Dashboard' +
+        '</a>';
+
+      // Insert before the security note
+      var securityNote = cardBody.querySelector('.security-note');
+      if (securityNote) {
+        securityNote.style.display = 'none';
+      }
+      cardBody.appendChild(successDiv);
     }
 
     function showError(message) {

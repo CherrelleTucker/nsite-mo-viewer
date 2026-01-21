@@ -556,6 +556,13 @@
             <span>Authenticated sessions last 6 hours. After expiry, users must sign in again.</span>
           </div>
         </div>
+        <div class="access-item">
+          <span class="material-icons">sync</span>
+          <div>
+            <strong>Session Persistence</strong>
+            <span>Session tokens are preserved during SPA navigation and browser history changes. Users stay logged in when navigating between pages or using back/forward buttons.</span>
+          </div>
+        </div>
       </div>
 
       <h4>How to Get Access</h4>
@@ -626,6 +633,14 @@
         <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
           The passphrase approach lets users self-identify while the passphrase prevents unauthorized access. Sessions are stored in ScriptCache with unique tokens per user.
         </p>
+        <p style="margin-top: 12px;"><strong>Iframe sandbox navigation:</strong></p>
+        <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+          Google Apps Script web apps run in a sandboxed iframe with <code>allow-top-navigation-by-user-activation</code>. This means programmatic redirects (like <code>window.top.location.href</code>) only work when triggered directly by a user gesture (click). After login verification completes asynchronously, we display a "Continue to Dashboard" button instead of auto-redirecting, since the async callback no longer has user activation.
+        </p>
+        <p style="margin-top: 12px;"><strong>SPA session persistence:</strong></p>
+        <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+          Session tokens are extracted from the URL on page load and stored in <code>Platform.sessionToken</code>. During SPA navigation, the token is included in <code>google.script.history.push()</code> calls so it persists in the browser history. This prevents users from being logged out when navigating between pages or using back/forward buttons.
+        </p>
       </div>
     </div>
   </section>
@@ -643,7 +658,7 @@
       </div>
       <div class="version-item">
         <span class="version-label">Updated</span>
-        <span class="version-value">January 20, 2026</span>
+        <span class="version-value">January 21, 2026</span>
       </div>
       <div class="version-item">
         <span class="version-label">Repository</span>
