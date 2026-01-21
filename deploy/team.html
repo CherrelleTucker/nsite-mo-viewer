@@ -413,7 +413,7 @@
 
 <!-- Team Member Detail Modal -->
 <div class="modal" id="memberDetailModal">
-  <div class="modal-content modal-sm">
+  <div class="modal-content modal-lg">
     <div class="modal-header">
       <h3 id="memberDetailTitle">Team Member</h3>
       <button class="modal-close" onclick="Team.closeModal('memberDetailModal')">&times;</button>
@@ -445,6 +445,54 @@
             <span id="memberDetailOrg">--</span>
           </div>
         </div>
+
+        <!-- About Me Profile Section -->
+        <div class="member-profile-section" id="memberProfileSection" style="display:none;">
+          <h4 class="profile-section-header"><span class="material-icons">person</span> About Me</h4>
+
+          <div class="profile-grid">
+            <div class="profile-item" id="profileEducationItem">
+              <div class="profile-label"><span class="material-icons">school</span> Education</div>
+              <div class="profile-value" id="memberDetailEducation">--</div>
+            </div>
+
+            <div class="profile-item" id="profileDutiesItem">
+              <div class="profile-label"><span class="material-icons">work</span> What I Do</div>
+              <div class="profile-value" id="memberDetailDuties">--</div>
+            </div>
+
+            <div class="profile-item" id="profileSkillsItem">
+              <div class="profile-label"><span class="material-icons">psychology</span> Professional Skills</div>
+              <div class="profile-value" id="memberDetailSkills">--</div>
+            </div>
+
+            <div class="profile-item" id="profileNonWorkSkillsItem">
+              <div class="profile-label"><span class="material-icons">handyman</span> Non-Work Skills</div>
+              <div class="profile-value" id="memberDetailNonWorkSkills">--</div>
+            </div>
+
+            <div class="profile-item" id="profileHobbiesItem">
+              <div class="profile-label"><span class="material-icons">sports_tennis</span> Hobbies</div>
+              <div class="profile-value" id="memberDetailHobbies">--</div>
+            </div>
+
+            <div class="profile-item" id="profileGoalsItem">
+              <div class="profile-label"><span class="material-icons">flag</span> Goals</div>
+              <div class="profile-value" id="memberDetailGoals">--</div>
+            </div>
+
+            <div class="profile-item" id="profileRelaxItem">
+              <div class="profile-label"><span class="material-icons">self_improvement</span> How I Relax</div>
+              <div class="profile-value" id="memberDetailRelax">--</div>
+            </div>
+
+            <div class="profile-item" id="profileEarlyJobItem">
+              <div class="profile-label"><span class="material-icons">history</span> First Job</div>
+              <div class="profile-value" id="memberDetailEarlyJob">--</div>
+            </div>
+          </div>
+        </div>
+
         <div class="member-availability-section">
           <h4>Current Availability</h4>
           <div id="memberAvailabilityList" class="member-availability-list">
@@ -1188,6 +1236,85 @@
     margin-top: var(--space-xs);
   }
 
+  /* Profile badge on team cards */
+  .team-card {
+    position: relative;
+  }
+  .team-card.has-profile {
+    border-color: rgba(46, 125, 50, 0.3);
+  }
+  .team-card.has-profile:hover {
+    border-color: #2e7d32;
+  }
+  .profile-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .profile-badge .material-icons {
+    font-size: 14px;
+    color: white;
+  }
+
+  /* Profile section in modal */
+  .member-profile-section {
+    margin: var(--space-lg) 0;
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--color-border-light);
+  }
+  .profile-section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--font-size-md);
+    color: #2e7d32;
+    margin-bottom: var(--space-md);
+  }
+  .profile-section-header .material-icons {
+    font-size: 20px;
+  }
+  .profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+  }
+  .profile-item {
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    padding: var(--space-sm) var(--space-md);
+  }
+  .profile-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-xs);
+  }
+  .profile-label .material-icons {
+    font-size: 14px;
+  }
+  .profile-value {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 768px) {
+    .profile-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
   /* Form Styles - matching SEP pattern */
   .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-md); }
   .form-group { margin-bottom: var(--space-md); }
@@ -1251,7 +1378,7 @@
     },
 
     loadData: function() {
-      // Load team members
+      // Load team members with profiles
       google.script.run
         .withSuccessHandler(function(data) {
           Team.members = data || [];
@@ -1260,7 +1387,7 @@
           Team.populatePersonSelect();
         })
         .withFailureHandler(handleError)
-        .getInternalTeam();
+        .getInternalTeamWithProfiles();
 
       // Load meetings
       google.script.run
@@ -1375,8 +1502,10 @@
       var html = this.members.map(function(member) {
         var initials = (member.first_name || '').charAt(0) + (member.last_name || '').charAt(0);
         var teamClass = (member.internal_team || '').replace(/\s+/g, '');
+        var profileIndicator = member.has_profile ? '<span class="profile-badge" title="View About Me"><span class="material-icons">person</span></span>' : '';
 
-        return '<div class="team-card" onclick="Team.showMemberDetail(\'' + member.contact_id + '\')">' +
+        return '<div class="team-card' + (member.has_profile ? ' has-profile' : '') + '" onclick="Team.showMemberDetail(\'' + member.contact_id + '\')">' +
+          profileIndicator +
           '<div class="avatar">' + initials.toUpperCase() + '</div>' +
           '<div class="name">' + (member.first_name || '') + ' ' + (member.last_name || '') + '</div>' +
           '<div class="title">' + (member.internal_title || '') + '</div>' +
@@ -1745,6 +1874,35 @@
         orgRow.style.display = '';
       } else {
         orgRow.style.display = 'none';
+      }
+
+      // Profile section (About Me)
+      var profileSection = document.getElementById('memberProfileSection');
+      if (member.has_profile) {
+        profileSection.style.display = '';
+
+        // Helper to set profile field and show/hide its container
+        function setProfileField(elementId, itemId, value) {
+          var el = document.getElementById(elementId);
+          var item = document.getElementById(itemId);
+          if (value && value.trim()) {
+            el.textContent = value;
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        }
+
+        setProfileField('memberDetailEducation', 'profileEducationItem', member.education);
+        setProfileField('memberDetailDuties', 'profileDutiesItem', member.job_duties);
+        setProfileField('memberDetailSkills', 'profileSkillsItem', member.professional_skills);
+        setProfileField('memberDetailNonWorkSkills', 'profileNonWorkSkillsItem', member.non_work_skills);
+        setProfileField('memberDetailHobbies', 'profileHobbiesItem', member.hobbies);
+        setProfileField('memberDetailGoals', 'profileGoalsItem', member.goals);
+        setProfileField('memberDetailRelax', 'profileRelaxItem', member.relax);
+        setProfileField('memberDetailEarlyJob', 'profileEarlyJobItem', member.early_job);
+      } else {
+        profileSection.style.display = 'none';
       }
 
       // Build availability list for this member

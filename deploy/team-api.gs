@@ -18,6 +18,19 @@ function getInternalTeamStats() {
   return MoApi.getInternalTeamStats();
 }
 
+// Team Profiles (About Me)
+function getTeamProfiles() {
+  return MoApi.getTeamProfiles();
+}
+
+function getProfileByName(firstName, lastName) {
+  return MoApi.getProfileByName(firstName, lastName);
+}
+
+function getInternalTeamWithProfiles() {
+  return MoApi.getInternalTeamWithProfiles();
+}
+
 // Availability
 function getAvailability() {
   return MoApi.getAvailability();
