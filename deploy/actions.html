@@ -136,7 +136,10 @@
         <div class="form-row">
           <div class="form-group">
             <label for="add-assigned">Assigned To *</label>
-            <input type="text" id="add-assigned" required placeholder="Name">
+            <input type="text" id="add-assigned" list="team-members-list" required placeholder="Select or type name">
+            <datalist id="team-members-list">
+              <!-- Populated by JavaScript -->
+            </datalist>
           </div>
           <div class="form-group">
             <label for="add-category">Source</label>
@@ -752,6 +755,65 @@
   border-color: #10b981;
 }
 
+/* Reassign Form */
+.assignee-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-reassign {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #94a3b8;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.btn-reassign:hover {
+  background: #f1f5f9;
+  color: #4f46e5;
+}
+
+.btn-reassign .material-icons {
+  font-size: 16px;
+}
+
+.reassign-form {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.reassign-form input[type="text"] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.reassign-form input[type="text"]:focus {
+  outline: none;
+  border-color: #4f46e5;
+}
+
+.reassign-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  justify-content: flex-end;
+}
+
+.btn-sm {
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+}
 
 .btn-primary, .btn-secondary {
   padding: 10px 20px;
@@ -950,11 +1012,46 @@ var ActionsModule = (function() {
     currentView: 'assignee',
     currentFilter: 'open',
     currentAction: null,
-    collapsedAssignees: {}
+    collapsedAssignees: {},
+    teamMembers: []
   };
 
   function init() {
+    loadTeamMembers();
     loadData();
+  }
+
+  function loadTeamMembers() {
+    google.script.run
+      .withSuccessHandler(function(members) {
+        state.teamMembers = members || [];
+        populateTeamMembersList();
+      })
+      .withFailureHandler(function(err) {
+        console.log('Could not load team members:', err);
+        state.teamMembers = [];
+      })
+      .getTeamMembersForAssignment();
+  }
+
+  function populateTeamMembersList() {
+    var datalist = document.getElementById('team-members-list');
+    if (!datalist) return;
+
+    datalist.innerHTML = '';
+    state.teamMembers.forEach(function(member) {
+      var option = document.createElement('option');
+      option.value = member.name;
+      option.dataset.email = member.email;
+      datalist.appendChild(option);
+    });
+  }
+
+  function getTeamMemberEmail(name) {
+    var member = state.teamMembers.find(function(m) {
+      return m.name.toLowerCase() === name.toLowerCase();
+    });
+    return member ? member.email : null;
   }
 
   function loadData() {
@@ -1236,8 +1333,41 @@ var ActionsModule = (function() {
     // Task field
     addDetailField(container, 'Task', escapeHtml(action.task || '-'));
 
-    // Assigned To field
-    addDetailField(container, 'Assigned To', escapeHtml(action.assigned_to || 'Unassigned'));
+    // Assigned To field with reassign dropdown
+    var assigneeDiv = document.createElement('div');
+    assigneeDiv.className = 'value assignee-field';
+    assigneeDiv.innerHTML = '\x3cspan class="current-assignee">' + escapeHtml(action.assigned_to || 'Unassigned') + '\x3c/span>' +
+      '\x3cbutton class="btn-reassign" onclick="ActionsModule.showReassign()" title="Reassign">' +
+      '\x3cspan class="material-icons">edit\x3c/span>\x3c/button>';
+    addDetailFieldElement(container, 'Assigned To', assigneeDiv, true);
+
+    // Hidden reassign form (shown when clicking edit)
+    var reassignDiv = document.createElement('div');
+    reassignDiv.id = 'reassign-form';
+    reassignDiv.className = 'reassign-form';
+    reassignDiv.style.display = 'none';
+    reassignDiv.innerHTML = '\x3cdiv class="form-row">' +
+      '\x3cinput type="text" id="reassign-input" list="drawer-team-list" placeholder="Select team member">' +
+      '\x3cdatalist id="drawer-team-list">\x3c/datalist>' +
+      '\x3c/div>' +
+      '\x3cdiv class="form-row" style="margin-top:8px;">' +
+      '\x3clabel style="display:flex;align-items:center;gap:6px;font-size:12px;color:#64748b;">' +
+      '\x3cinput type="checkbox" id="notify-assignee" checked> Send action to Slack\x3c/label>' +
+      '\x3c/div>' +
+      '\x3cdiv class="reassign-buttons">' +
+      '\x3cbutton class="btn-secondary btn-sm" onclick="ActionsModule.cancelReassign()">Cancel\x3c/button>' +
+      '\x3cbutton class="btn-primary btn-sm" id="reassign-btn" onclick="ActionsModule.confirmReassign()">Reassign\x3c/button>' +
+      '\x3c/div>';
+    container.appendChild(reassignDiv);
+
+    // Populate the drawer's team member datalist
+    var drawerDatalist = reassignDiv.querySelector('#drawer-team-list');
+    state.teamMembers.forEach(function(member) {
+      var opt = document.createElement('option');
+      opt.value = member.name;
+      opt.dataset.email = member.email;
+      drawerDatalist.appendChild(opt);
+    });
 
     // Status field
     addDetailField(container, 'Status', formatStatus(status));
@@ -1271,10 +1401,39 @@ var ActionsModule = (function() {
     }
     addDetailFieldElement(container, 'Source', sourceDiv, true);
 
-    // Notes field
+    // Notes section with editable textarea
+    var notesField = document.createElement('div');
+    notesField.className = 'detail-field notes-section';
+    var notesLabel = document.createElement('label');
+    notesLabel.textContent = 'Notes';
+    notesField.appendChild(notesLabel);
+
+    // Show existing notes if any
     if (action.notes) {
-      addDetailField(container, 'Notes', escapeHtml(action.notes));
+      var existingNotes = document.createElement('div');
+      existingNotes.className = 'existing-notes';
+      existingNotes.style.cssText = 'white-space:pre-wrap;font-size:12px;color:#64748b;margin-bottom:8px;padding:8px;background:#f8fafc;border-radius:4px;max-height:150px;overflow-y:auto;';
+      existingNotes.textContent = action.notes;
+      notesField.appendChild(existingNotes);
     }
+
+    // Add note input
+    var noteInput = document.createElement('textarea');
+    noteInput.id = 'add-note-input';
+    noteInput.placeholder = 'Add a note...';
+    noteInput.rows = 2;
+    noteInput.style.cssText = 'width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:4px;font-size:13px;resize:vertical;';
+    notesField.appendChild(noteInput);
+
+    // Add note button
+    var addNoteBtn = document.createElement('button');
+    addNoteBtn.className = 'btn-primary btn-sm';
+    addNoteBtn.textContent = 'Add Note';
+    addNoteBtn.style.marginTop = '8px';
+    addNoteBtn.onclick = function() { ActionsModule.addNote(); };
+    notesField.appendChild(addNoteBtn);
+
+    container.appendChild(notesField);
 
     // Status buttons
     var btnsDiv = document.createElement('div');
@@ -1371,6 +1530,53 @@ var ActionsModule = (function() {
         alert('Failed to update: ' + err);
       })
       .updateActionStatus(state.currentAction.action_id, newStatus);
+  }
+
+  function addNote() {
+    if (!state.currentAction) return;
+
+    var noteInput = document.getElementById('add-note-input');
+    var noteText = noteInput.value.trim();
+    if (!noteText) {
+      alert('Please enter a note');
+      return;
+    }
+
+    // Disable button while saving
+    var btn = noteInput.nextElementSibling;
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    // Format note with timestamp
+    var timestamp = new Date().toLocaleString();
+    var formattedNote = '[' + timestamp + '] ' + noteText;
+
+    google.script.run
+      .withSuccessHandler(function(success) {
+        if (success) {
+          // Update local state
+          var currentNotes = state.currentAction.notes || '';
+          state.currentAction.notes = currentNotes ? currentNotes + '\n\n' + formattedNote : formattedNote;
+
+          // Update UI - refresh the drawer
+          noteInput.value = '';
+          btn.disabled = false;
+          btn.textContent = 'Add Note';
+
+          // Refresh drawer to show new note
+          showActionDetail(state.currentAction);
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Add Note';
+          alert('Failed to save note');
+        }
+      })
+      .withFailureHandler(function(err) {
+        btn.disabled = false;
+        btn.textContent = 'Add Note';
+        alert('Failed to save note: ' + err);
+      })
+      .appendToActionNotes(state.currentAction.action_id, formattedNote);
   }
 
   function normalizeStatus(status) {
@@ -1475,6 +1681,77 @@ var ActionsModule = (function() {
     return false;
   }
 
+  // Reassign functions
+  function showReassign() {
+    var form = document.getElementById('reassign-form');
+    if (form) {
+      form.style.display = 'block';
+      document.getElementById('reassign-input').value = '';
+      document.getElementById('reassign-input').focus();
+    }
+  }
+
+  function cancelReassign() {
+    var form = document.getElementById('reassign-form');
+    if (form) {
+      form.style.display = 'none';
+    }
+  }
+
+  function confirmReassign() {
+    if (!state.currentAction) return;
+
+    var newAssignee = document.getElementById('reassign-input').value.trim();
+    if (!newAssignee) {
+      alert('Please select or enter a team member name');
+      return;
+    }
+
+    var sendNotify = document.getElementById('notify-assignee').checked;
+    var email = getTeamMemberEmail(newAssignee);
+
+    var btn = document.getElementById('reassign-btn');
+    btn.disabled = true;
+    btn.textContent = 'Reassigning...';
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success) {
+          btn.textContent = 'Done!';
+          btn.style.background = '#10b981';
+
+          // Update local state
+          state.currentAction.assigned_to = newAssignee;
+
+          setTimeout(function() {
+            cancelReassign();
+            btn.disabled = false;
+            btn.textContent = 'Reassign';
+            btn.style.background = '';
+
+            // Update the displayed assignee
+            var assigneeSpan = document.querySelector('.current-assignee');
+            if (assigneeSpan) {
+              assigneeSpan.textContent = newAssignee;
+            }
+
+            // Refresh the main view
+            refreshData();
+          }, 600);
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Reassign';
+          alert(result.message || 'Failed to reassign');
+        }
+      })
+      .withFailureHandler(function(err) {
+        btn.disabled = false;
+        btn.textContent = 'Reassign';
+        alert('Failed to reassign: ' + err);
+      })
+      .assignAction(state.currentAction.action_id, newAssignee, email, sendNotify);
+  }
+
   return {
     init: init,
     refreshData: refreshData,
@@ -1486,7 +1763,11 @@ var ActionsModule = (function() {
     updateStatus: updateStatus,
     showAddModal: showAddModal,
     closeAddModal: closeAddModal,
-    submitAction: submitAction
+    submitAction: submitAction,
+    showReassign: showReassign,
+    cancelReassign: cancelReassign,
+    confirmReassign: confirmReassign,
+    addNote: addNote
   };
 })();
 

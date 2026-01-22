@@ -1,0 +1,49 @@
+# MO-Viewer Slack App Manifest
+# =============================
+# Upload this file at: https://api.slack.com/apps → Create New App → From an app manifest
+#
+# IMPORTANT: Before uploading, replace YOUR_APPS_SCRIPT_WEB_APP_URL with your actual
+# deployed Apps Script web app URL. You'll get this URL after deploying slack-bot.gs
+# as a web app in Google Apps Script.
+#
+# Example URL format: https://script.google.com/macros/s/AKfycb.../exec
+
+display_information:
+  name: MO-Viewer Actions
+  description: Manage your MO-Viewer action items from Slack
+  background_color: "#2c5282"
+  long_description: |
+    The MO-Viewer Actions bot helps you stay on top of your assigned action items.
+
+    Features:
+    - Get notified when actions are assigned to you
+    - View your open actions with /actions
+    - Mark actions as done directly from Slack
+    - See all your actions (including completed) with /actions all
+
+features:
+  bot_user:
+    display_name: MO-Viewer
+    always_online: true
+  slash_commands:
+    - command: /actions
+      url: YOUR_APPS_SCRIPT_WEB_APP_URL
+      description: View and manage your MO-Viewer action items
+      usage_hint: "[list | all | done ACT_ID | help]"
+      should_escape: false
+
+oauth_config:
+  scopes:
+    bot:
+      - chat:write
+      - users:read
+      - users:read.email
+      - commands
+
+settings:
+  interactivity:
+    is_enabled: true
+    request_url: YOUR_APPS_SCRIPT_WEB_APP_URL
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false

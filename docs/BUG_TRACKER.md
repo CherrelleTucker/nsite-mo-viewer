@@ -1,7 +1,7 @@
 # MO-Viewer Bug Tracker & UI Improvements
 
 **Created:** 2026-01-19
-**Last Updated:** 2026-01-21
+**Last Updated:** 2026-01-22
 
 This document tracks all known bugs, UI issues, and improvement opportunities across the MO-Viewer platform.
 
@@ -477,8 +477,11 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | ACT-008 | No delete functionality | P2 | [ ] | Can't remove actions |
 | ACT-009 | No edit functionality | P2 | [ ] | Can only update status, not task text |
 | ACT-010 | Long solution names break filter dropdown | P3 | [ ] | No text truncation |
-| ACT-011 | Need ability to add notes to selected action | P2 | [ ] | User request |
+| ACT-011 | Need ability to add notes to selected action | P2 | [x] | **DONE** - Notes section in drawer with Add Note button |
 | ACT-012 | Done column gets too long - need pagination | P2 | [ ] | Show 10 items, then "see next 10" |
+| ACT-013 | Assignee dropdown to assign actions to team members | P2 | [x] | **DONE** - Dropdown populated from MO-DB_Contacts (is_internal=Y) |
+| ACT-014 | Email notification when action is assigned | P2 | [x] | **DONE** - Fallback if Slack not configured |
+| ACT-015 | Slack bot integration for action notifications | P1 | [x] | **DONE** - DM on assign, Mark Done & Add Update buttons in Slack |
 
 ---
 
@@ -659,3 +662,8 @@ Before MO-Viewer can be packaged for other organizations, a comprehensive testin
 | 2026-01-19 | Added Quick Update section (19 bugs) |
 | 2026-01-19 | Added Contacts section (22 bugs including security findings) |
 | 2026-01-19 | Initial bug tracker created from team review session |
+| 2026-01-22 | **FIXED ACT-011**: Added Notes section to action drawer with Add Note functionality |
+| 2026-01-22 | **FIXED ACT-015**: Slack bot integration - DMs on assignment, Mark Done/Add Update buttons |
+| 2026-01-22 | **NEW**: Slack app manifest file for easy setup (`deploy/slack-app-manifest.yaml`) |
+| 2026-01-22 | **IMPROVED**: Token caching for faster Slack API responses |
+| 2026-01-22 | **IMPROVED**: First-name matching for action assignments (consistent with existing data) |

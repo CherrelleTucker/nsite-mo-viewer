@@ -86,3 +86,16 @@ function getUniqueCategories() {
 function getUniqueSolutions() {
   return MoApi.getUniqueSolutions();
 }
+
+// Team Assignment
+function getTeamMembersForAssignment() {
+  return MoApi.getTeamMembersForAssignment();
+}
+
+function assignAction(actionId, assigneeName, assigneeEmail, sendNotification) {
+  return MoApi.assignAction(actionId, assigneeName, assigneeEmail, sendNotification);
+}
+
+function appendToActionNotes(actionId, noteText) {
+  return MoApi.appendToActionNotes(actionId, noteText);
+}

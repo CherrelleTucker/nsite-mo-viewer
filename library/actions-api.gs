@@ -353,6 +353,26 @@ function createAction(actionData) {
     sheet.appendRow(newRow);
     clearActionsCache();
 
+    // Send Slack notification if assigned to someone
+    var assignee = actionData.assigned_to || '';
+    if (assignee) {
+      try {
+        var slackUserId = getSlackUserIdForMember_(assignee);
+        if (slackUserId) {
+          var action = {
+            action_id: actionId,
+            task: actionData.task || '',
+            solution: actionData.solution || actionData.category || '',
+            due_date: actionData.due_date || ''
+          };
+          sendSlackAssignmentNotification_(action, assignee, slackUserId, null);
+        }
+      } catch (notifyError) {
+        Logger.log('Error sending Slack notification for new action: ' + notifyError);
+        // Don't fail action creation if notification fails
+      }
+    }
+
     return actionId;
   } catch (error) {
     Logger.log('Error in createAction: ' + error);
@@ -406,6 +426,53 @@ function updateAction(actionId, updates) {
   } catch (error) {
     Logger.log('Error in updateAction: ' + error);
     throw new Error('Failed to update action: ' + error.message);
+  }
+}
+
+/**
+ * Fast append to action notes - reads only the specific row
+ * @param {string} actionId - Action ID
+ * @param {string} noteText - Text to append
+ * @returns {boolean} Success status
+ */
+function appendToActionNotes(actionId, noteText) {
+  try {
+    var sheet = getDatabaseSheet('Actions');
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+
+    var idCol = headers.indexOf('action_id');
+    var notesCol = headers.indexOf('notes');
+    var updatedAtCol = headers.indexOf('updated_at');
+
+    if (idCol === -1 || notesCol === -1) {
+      throw new Error('Required columns not found');
+    }
+
+    // Find the row
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][idCol] === actionId) {
+        var rowIndex = i + 1;
+        var currentNotes = data[i][notesCol] || '';
+        var updatedNotes = currentNotes ? currentNotes + '\n\n' + noteText : noteText;
+
+        // Update notes
+        sheet.getRange(rowIndex, notesCol + 1).setValue(updatedNotes);
+
+        // Update timestamp
+        if (updatedAtCol !== -1) {
+          sheet.getRange(rowIndex, updatedAtCol + 1).setValue(new Date().toISOString());
+        }
+
+        clearActionsCache();
+        return true;
+      }
+    }
+
+    return false;
+  } catch (error) {
+    Logger.log('Error in appendToActionNotes: ' + error);
+    return false;
   }
 }
 
@@ -662,4 +729,308 @@ function getUniqueSolutions() {
   });
 
   return Object.keys(solutions).sort();
+}
+
+// ============================================================================
+// TEAM MEMBER FUNCTIONS (for assignment dropdown)
+// ============================================================================
+
+/**
+ * Get internal team members for assignment dropdown
+ * @returns {Array} Array of {name, email} objects
+ */
+function getTeamMembersForAssignment() {
+  try {
+    var contacts = getAllContacts();
+    var teamMembers = contacts.filter(function(c) {
+      // Check for various is_internal formats: 'Y', 'true', '1', true
+      var isInternal = c.is_internal === 'Y' || c.is_internal === 'true' ||
+                       c.is_internal === '1' || c.is_internal === true;
+      return isInternal && c.active !== 'N';
+    });
+
+    // Deduplicate by email and build name/email pairs
+    var seen = {};
+    var result = [];
+
+    teamMembers.forEach(function(c) {
+      var firstName = (c.first_name || '').trim();
+      var email = (c.email || '').toLowerCase().trim();
+      // Deduplicate by first name (since actions use first names only)
+      if (firstName && !seen[firstName.toLowerCase()]) {
+        seen[firstName.toLowerCase()] = true;
+        result.push({
+          name: firstName,
+          email: email
+        });
+      }
+    });
+
+    // Sort by name
+    result.sort(function(a, b) {
+      return a.name.localeCompare(b.name);
+    });
+
+    return result;
+  } catch (e) {
+    Logger.log('Error getting team members: ' + e);
+    return [];
+  }
+}
+
+/**
+ * Assign an action to a team member and optionally notify them
+ * @param {string} actionId - Action ID
+ * @param {string} assigneeName - Name of person to assign to
+ * @param {string} assigneeEmail - Email of person (optional, for email fallback)
+ * @param {boolean} sendNotification - Whether to send notification
+ * @returns {Object} {success: boolean, message: string, notificationSent: boolean, notificationType: string}
+ */
+function assignAction(actionId, assigneeName, assigneeEmail, sendNotification) {
+  try {
+    // Get the action first
+    var action = getActionById(actionId);
+    if (!action) {
+      return { success: false, message: 'Action not found' };
+    }
+
+    var previousAssignee = action.assigned_to || 'Unassigned';
+
+    // Update the action
+    var updated = updateAction(actionId, { assigned_to: assigneeName });
+    if (!updated) {
+      return { success: false, message: 'Failed to update action' };
+    }
+
+    var notificationSent = false;
+    var notificationType = 'none';
+
+    // Send notification if requested
+    if (sendNotification) {
+      // Try Slack first
+      var slackUserId = getSlackUserIdForMember_(assigneeName);
+      if (slackUserId) {
+        try {
+          var slackSent = sendSlackAssignmentNotification_(action, assigneeName, slackUserId, previousAssignee);
+          if (slackSent) {
+            notificationSent = true;
+            notificationType = 'slack';
+          }
+        } catch (slackErr) {
+          Logger.log('Slack notification failed: ' + slackErr);
+        }
+      }
+
+      // Fall back to email if Slack didn't work and email is provided
+      if (!notificationSent && assigneeEmail) {
+        try {
+          sendAssignmentNotification_(action, assigneeName, assigneeEmail, previousAssignee);
+          notificationSent = true;
+          notificationType = 'email';
+        } catch (emailErr) {
+          Logger.log('Email notification failed: ' + emailErr);
+        }
+      }
+    }
+
+    var message = 'Action assigned to ' + assigneeName;
+    if (sendNotification) {
+      if (notificationSent) {
+        message += ' (notified via ' + notificationType + ')';
+      } else {
+        message += ' (notification could not be sent)';
+      }
+    }
+
+    return {
+      success: true,
+      message: message,
+      notificationSent: notificationSent,
+      notificationType: notificationType
+    };
+  } catch (e) {
+    Logger.log('Error in assignAction: ' + e);
+    return { success: false, message: 'Error: ' + e.message };
+  }
+}
+
+/**
+ * Send Slack DM notification for action assignment
+ * @param {Object} action - The action object
+ * @param {string} assigneeName - Name of new assignee
+ * @param {string} slackUserId - Slack user ID of assignee
+ * @param {string} previousAssignee - Previous assignee name
+ * @returns {boolean} Success status
+ */
+function sendSlackAssignmentNotification_(action, assigneeName, slackUserId, previousAssignee) {
+  var token = getConfigValue('SLACK_BOT_TOKEN');
+  if (!token) {
+    Logger.log('SLACK_BOT_TOKEN not configured');
+    return false;
+  }
+
+  var taskPreview = (action.task || '').substring(0, 150);
+  if (action.task && action.task.length > 150) taskPreview += '...';
+
+  // Build Slack message with blocks for rich formatting
+  var blocks = [
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: '*An action item has been assigned to you:*'
+      }
+    },
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: '> ' + taskPreview
+      }
+    },
+    {
+      type: 'context',
+      elements: []
+    }
+  ];
+
+  // Add context elements
+  var contextElements = blocks[2].elements;
+  if (action.solution) {
+    contextElements.push({ type: 'mrkdwn', text: '*Solution:* ' + action.solution });
+  }
+  if (action.due_date) {
+    contextElements.push({ type: 'mrkdwn', text: '*Due:* ' + action.due_date });
+  }
+  if (previousAssignee && previousAssignee !== 'Unassigned') {
+    contextElements.push({ type: 'mrkdwn', text: '_Previously:_ ' + previousAssignee });
+  }
+
+  // Add action buttons
+  blocks.push({
+    type: 'actions',
+    elements: [
+      {
+        type: 'button',
+        text: { type: 'plain_text', text: 'Mark Done', emoji: true },
+        style: 'primary',
+        action_id: 'action_done',
+        value: action.action_id
+      },
+      {
+        type: 'button',
+        text: { type: 'plain_text', text: 'Add Update', emoji: true },
+        action_id: 'add_update',
+        value: action.action_id
+      },
+      {
+        type: 'button',
+        text: { type: 'plain_text', text: 'View in MO-Viewer', emoji: true },
+        url: getConfigValue('APP_URL') || 'https://script.google.com/macros/s/...',
+        action_id: 'view_action'
+      }
+    ]
+  });
+
+  var payload = {
+    channel: slackUserId,
+    text: 'Action assigned: ' + taskPreview,  // Fallback text
+    blocks: blocks,
+    unfurl_links: false
+  };
+
+  try {
+    var response = UrlFetchApp.fetch('https://slack.com/api/chat.postMessage', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { 'Authorization': 'Bearer ' + token },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+
+    var result = JSON.parse(response.getContentText());
+    if (result.ok) {
+      Logger.log('Slack notification sent to ' + slackUserId);
+      return true;
+    } else {
+      Logger.log('Slack API error: ' + result.error);
+      return false;
+    }
+  } catch (e) {
+    Logger.log('Failed to send Slack notification: ' + e);
+    return false;
+  }
+}
+
+/**
+ * Get Slack user ID for a team member by name or email
+ * @param {string} nameOrEmail - Name or email to look up
+ * @returns {string|null} Slack user ID or null
+ */
+function getSlackUserIdForMember_(nameOrEmail) {
+  try {
+    var contacts = getAllContacts();
+    var searchTerm = (nameOrEmail || '').toLowerCase().trim();
+
+    var contact = contacts.find(function(c) {
+      // Check for various is_internal formats: 'Y', 'true', '1', true
+      var isInternal = c.is_internal === 'Y' || c.is_internal === 'true' ||
+                       c.is_internal === '1' || c.is_internal === true;
+      if (!isInternal) return false;
+
+      var firstName = (c.first_name || '').toLowerCase().trim();
+      var lastName = (c.last_name || '').toLowerCase().trim();
+      var fullName = [c.first_name, c.last_name].filter(Boolean).join(' ').toLowerCase().trim();
+      var email = (c.email || '').toLowerCase().trim();
+
+      // Match by first name, full name, or email
+      return firstName === searchTerm ||
+             fullName === searchTerm ||
+             email === searchTerm;
+    });
+
+    return contact ? (contact.slack_user_id || null) : null;
+  } catch (e) {
+    Logger.log('Error looking up Slack user ID: ' + e);
+    return null;
+  }
+}
+
+/**
+ * Send email notification for action assignment
+ * @private
+ */
+function sendAssignmentNotification_(action, assigneeName, assigneeEmail, previousAssignee) {
+  var subject = '[MO-Viewer] Action Item Assigned to You';
+
+  var taskPreview = (action.task || '').substring(0, 100);
+  if (action.task && action.task.length > 100) taskPreview += '...';
+
+  var body = 'Hi ' + assigneeName.split(' ')[0] + ',\n\n';
+  body += 'An action item has been assigned to you in MO-Viewer:\n\n';
+  body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+  body += 'TASK: ' + taskPreview + '\n';
+  body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+
+  if (action.solution) {
+    body += 'Solution: ' + action.solution + '\n';
+  }
+  if (action.due_date) {
+    body += 'Due Date: ' + action.due_date + '\n';
+  }
+  if (previousAssignee && previousAssignee !== 'Unassigned') {
+    body += 'Previously assigned to: ' + previousAssignee + '\n';
+  }
+
+  body += '\nView in MO-Viewer Actions page to update status.\n\n';
+  body += '---\n';
+  body += 'This is an automated notification from MO-Viewer.';
+
+  MailApp.sendEmail({
+    to: assigneeEmail,
+    subject: subject,
+    body: body
+  });
+
+  Logger.log('Assignment notification sent to: ' + assigneeEmail);
 }
