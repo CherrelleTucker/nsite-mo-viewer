@@ -35,15 +35,13 @@ When actions are assigned to team members, they can be notified through various 
 
 ### Slack App Setup Required
 
-1. Create Slack App at https://api.slack.com/apps
+1. Create Slack App at https://api.slack.com/apps (use `deploy/slack-app-manifest.yaml`)
 2. Enable these features:
    - **Bot Token Scopes:** `chat:write`, `users:read`, `users:read.email`
-   - **Slash Commands:** `/actions`
-   - **Interactivity:** For button clicks (optional)
+   - **Interactivity:** Point to MO-Slack-Bot web app URL
 
 3. Install to workspace and get:
    - Bot User OAuth Token (`xoxb-...`)
-   - Signing Secret (for verifying requests)
 
 ### MO-Viewer Configuration
 
@@ -52,7 +50,7 @@ Add to MO-DB_Config:
 | Key | Value | Description |
 |-----|-------|-------------|
 | `SLACK_BOT_TOKEN` | `xoxb-...` | Bot User OAuth Token |
-| `SLACK_SIGNING_SECRET` | `...` | For verifying Slack requests |
+| `APP_URL` | `https://script.google.com/.../exec?page=actions` | Link in Slack messages |
 
 ### Team Member Slack Mapping
 
@@ -100,53 +98,75 @@ Would require user authentication to know who is viewing.
 
 ---
 
-## Recommendation
+## Why Slack Over Email?
 
-For NSITE MO team: **Slack integration** is recommended because:
-- Team already uses Slack
-- Real-time notifications
-- Can interact without leaving Slack
-- Bot can provide quick status updates
+**For NSITE MO team, Slack was chosen as the primary notification method.**
+
+### Advantages of Slack
+
+| Factor | Slack | Email |
+|--------|-------|-------|
+| **Visibility** | DMs appear in sidebar, hard to miss | Can get buried in inbox |
+| **Actionable** | Buttons to Mark Done/Add Update directly | Must open MO-Viewer to take action |
+| **History** | Bot conversation = running task list | Scattered across inbox |
+| **Real-time** | Instant delivery | May be delayed by filters/batching |
+| **Team fit** | NSITE team already uses Slack daily | Mixed email providers |
+
+### Limitations of Email in Apps Script
+
+- Requires script owner to have `MailApp` permissions
+- Some Google Workspace configs block automated emails
+- No way to embed interactive buttons
+- Sender appears as script owner, not "MO-Viewer Bot"
+
+### For Other Organizations
+
+Choose based on your team's communication patterns:
+
+| If your team uses... | Recommended option |
+|---------------------|-------------------|
+| Slack | Slack integration (implemented) |
+| Microsoft Teams | Teams integration (not yet built) |
+| Email primarily | Email notifications (implemented, basic) |
+| Mixed/Unknown | Start with email, add Slack if needed |
+
+**Note:** The system tries Slack first, falls back to email if Slack user ID not configured.
 
 ---
 
 ## Implementation Notes
 
-### Slack API Calls from Apps Script
+### Architecture
 
-Google Apps Script can call Slack's API using `UrlFetchApp`:
-
-```javascript
-function sendSlackDM(slackUserId, message) {
-  var token = getConfigValue('SLACK_BOT_TOKEN');
-
-  var payload = {
-    channel: slackUserId,  // DM by user ID
-    text: message,
-    unfurl_links: false
-  };
-
-  var options = {
-    method: 'post',
-    contentType: 'application/json',
-    headers: {
-      'Authorization': 'Bearer ' + token
-    },
-    payload: JSON.stringify(payload)
-  };
-
-  var response = UrlFetchApp.fetch('https://slack.com/api/chat.postMessage', options);
-  return JSON.parse(response.getContentText());
-}
+```
+MO-Viewer (NSITE-MO-Viewer project)
+    │
+    ├── Creates/assigns action
+    │
+    └── Calls MoApi.assignAction() or MoApi.createAction()
+            │
+            ├── Looks up Slack user ID from MO-DB_Contacts
+            │
+            └── Sends DM via Slack API
+                    │
+                    └── User clicks button in Slack
+                            │
+                            └── MO-Slack-Bot (separate project, "Anyone" access)
+                                    │
+                                    └── Calls MoApi to update action
 ```
 
-### Slash Command Webhook
+### Why Two Apps Script Projects?
 
-For `/actions` command, Slack sends a POST request to a URL you specify.
+The Slack bot requires "Anyone" web app access (no Google authentication) so Slack's servers can POST to it. The main MO-Viewer project uses "Anyone with Google account" for security.
 
-Options for receiving this in Apps Script:
-1. **Web App endpoint** - Deploy as web app with `doPost(e)` handler
-2. **Separate Cloud Function** - If more control needed
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `library/actions-api.gs` | Slack notification functions, token lookup |
+| `deploy/slack-bot.gs` | Handles Slack button clicks, modal submissions |
+| `deploy/slack-app-manifest.yaml` | Slack app configuration |
 
 ---
 
