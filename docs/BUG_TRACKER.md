@@ -1,7 +1,7 @@
 # MO-Viewer Bug Tracker & UI Improvements
 
 **Created:** 2026-01-19
-**Last Updated:** 2026-01-19
+**Last Updated:** 2026-01-21
 
 This document tracks all known bugs, UI issues, and improvement opportunities across the MO-Viewer platform.
 
@@ -162,6 +162,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | SEP-011 | No edit/delete functionality for engagements | P2 | [ ] | Feature request |
 | SEP-012 | Participant emails not validated | P2 | [ ] | Should validate format |
 | SEP-013 | No "View All" link for recent engagements (max 8) | P2 | [ ] | Add link |
+| SEP-026 | Recent engagement icon broken/weird sizing | P2 | [ ] | Icon display issue in +Log Engagement modal |
 
 ### Agency Browser
 | ID | Issue | Priority | Status | Notes |
@@ -170,6 +171,8 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | SEP-015 | Agency selection lost when switching views | P2 | [ ] | Store in state |
 | SEP-016 | Long URLs truncate without proper overflow | P3 | [ ] | Add word-break |
 | SEP-017 | No engagement history on agency detail | P2 | [ ] | Feature request |
+| SEP-027 | No loading indicator when clicking hierarchy expand | P2 | [ ] | Add spinner during hierarchy load |
+| SEP-028 | Agency view doesn't link to contacts in database | P2 | [ ] | Add link to filtered Contacts page |
 
 ### Contact Detail
 | ID | Issue | Priority | Status | Notes |
@@ -247,11 +250,14 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
 | COMM-015 | Two async calls without coordinated loading state | P2 | [ ] | Summary + grid load independently |
+| COMM-038 | External mention search bar unnecessary in Messages view | P2 | [ ] | Remove or repurpose the filter |
 
 ### Priorities View
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
 | COMM-016 | Clicking untagged story auto-edits instead of showing detail | P2 | [ ] | Inconsistent with other cards |
+| COMM-036 | Story tagging with priorities not showing in priorities alignment | P1 | [ ] | Tagged stories don't appear in priority sections |
+| COMM-037 | Key messages visually clunky layout | P2 | [ ] | UI/UX polish needed |
 
 ### Modal Issues
 | ID | Issue | Priority | Status | Notes |
@@ -348,6 +354,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
 | CON-023 | Redundant email display on contact cards | P2 | [ ] | Shows both clickable email and email icon with "Email" label |
+| CON-024 | Solution field displays odd text like "Agencies recommended SNWG_commercial products…" | P2 | [ ] | Jamie Kibbler example - data formatting issue |
 
 ### Contact Detail Modal
 | ID | Issue | Priority | Status | Notes |
@@ -389,7 +396,9 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | RPT-011 | showNotification() just uses alert() for errors | P3 | [ ] | No toast notification system |
 | RPT-012 | Preview panel scroll doesn't reset between reports | P3 | [ ] | May start scrolled down |
 | RPT-013 | Error messages show raw technical errors | P2 | [ ] | Should be user-friendly |
-| RPT-019 | Quad Chart methodology table extends outside container | P2 | [ ] | Table overflows its bounds |
+| RPT-019 | Quad Chart methodology table extends outside container | P2 | [ ] | Table overflows its bounds; console shows available Reports methods |
+| RPT-020 | Need Alignment shows [object Object] instead of stakeholder counts | P1 | [ ] | Data not being rendered properly - shows "[object Object] (6)" |
+| RPT-021 | Export report feedback too quiet - unclear if it worked | P2 | [ ] | Need confirmation toast/message when export completes |
 
 ### Data/Integration Issues
 | ID | Issue | Priority | Status | Notes |
@@ -490,6 +499,11 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | ABT-006 | Nav links use javascript:void(0) | P3 | [ ] | Could break if JS disabled |
 | ABT-007 | Architecture diagram hard to read on mobile | P3 | [ ] | Pre tag doesn't scale |
 | ABT-008 | No changelog/version history section | P3 | [ ] | Users can't see recent changes |
+
+### JavaScript Errors
+| ID | Issue | Priority | Status | Notes |
+|----|-------|----------|--------|-------|
+| ABT-011 | populateSolutionFilter throws "Cannot set properties of null" | P1 | [ ] | Error in protected function - element not found when setting innerHTML |
 
 ### Accessibility
 | ID | Issue | Priority | Status | Notes |
