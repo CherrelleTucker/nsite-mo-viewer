@@ -103,7 +103,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
 | IMPL-001 | Action Items shows "TBD" - hardcoded, never calls API | P1 | [x] | **FIXED** - Now calls getOpenActions() and displays count |
-| IMPL-002 | Deep Dives shows "TBD" - no data source defined | P2 | [ ] | Need to clarify what this should show |
+| IMPL-002 | Deep Dives shows "TBD" - no data source defined | P2 | [x] | **FIXED** - Now counts solutions with `deep_dive_date` from MO-DB_Solutions |
 
 ### Solution Cards
 | ID | Issue | Priority | Status | Notes |

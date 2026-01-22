@@ -1393,14 +1393,16 @@ var Implementation = (function() {
   function updateTrackingStats() {
     // Calculate based on filtered solutions (current view)
     var daacCount = 0;
+    var deepDiveCount = 0;
     var total = state.filteredSolutions.length;
 
     state.filteredSolutions.forEach(function(sol) {
       if (sol.daac_assignment && sol.daac_assignment.trim()) daacCount++;
+      if (sol.deep_dive_date && String(sol.deep_dive_date).trim()) deepDiveCount++;
     });
 
     document.getElementById('statDAAC').textContent = daacCount + '/' + total;
-    document.getElementById('statDeepDives').textContent = 'TBD';
+    document.getElementById('statDeepDives').textContent = deepDiveCount + '/' + total;
 
     // Load open actions count
     google.script.run
