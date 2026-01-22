@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Implementation-NSITE**: Deep Dives stat now reads from `deep_dive_date` in MO-DB_Solutions (was hardcoded 'TBD')
+
 ### Planned
 - Automation & Sync (scheduled exports, email notifications)
 - External Mentions tracking for Comms-NSITE

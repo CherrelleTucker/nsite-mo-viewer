@@ -215,16 +215,20 @@ Before completing any task, verify:
 
 | Database | Sheet ID Config Key | Purpose |
 |----------|---------------------|---------|
-| MO-DB_Solutions | SOLUTIONS_SHEET_ID | Solution metadata |
-| MO-DB_Contacts | CONTACTS_SHEET_ID | Stakeholder contacts + internal team |
+| MO-DB_Solutions | SOLUTIONS_SHEET_ID | Solution metadata (includes deep_dive_date, deep_dive_url) |
+| MO-DB_Contacts | CONTACTS_SHEET_ID | Stakeholder contacts + internal team (includes profile fields) |
 | MO-DB_Agencies | AGENCIES_SHEET_ID | Organization hierarchy |
 | MO-DB_Engagements | ENGAGEMENTS_SHEET_ID | Interaction logging |
 | MO-DB_Needs | NEEDS_SHEET_ID | Survey responses |
-| MO-DB_Updates | UPDATES_SHEET_ID | Parsed updates |
+| MO-DB_Updates | UPDATES_SHEET_ID | Parsed updates from meeting notes |
 | MO-DB_Actions | ACTIONS_SHEET_ID | Action items |
+| MO-DB_Milestones | MILESTONES_SHEET_ID | Solution milestones (IPA, ICD, ATP, F2I, ORR, OPS, Closeout) |
+| MO-DB_Stories | STORIES_SHEET_ID | Communications story pipeline |
+| MO-DB_Outreach | OUTREACH_SHEET_ID | Outreach events and conferences |
 | MO-DB_Availability | AVAILABILITY_SHEET_ID | Team OOO calendar |
 | MO-DB_Meetings | MEETINGS_SHEET_ID | Recurring meetings |
 | MO-DB_Glossary | GLOSSARY_SHEET_ID | Terms and definitions |
+| MO-DB_Access | ACCESS_SHEET_ID | Email whitelist for authentication |
 | MO-DB_Config | (Script Property) | Configuration store |
 
 ---

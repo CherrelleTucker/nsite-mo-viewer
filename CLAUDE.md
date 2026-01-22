@@ -30,7 +30,8 @@ This is required because the Google Apps Script project is separate from the git
 
 - Include `Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>` in commit messages
 - Use descriptive commit messages summarizing changes
-- Push to remote after committing unless user specifies otherwise
+- **NEVER push to GitHub until user confirms the fix/feature is working**
+- Wait for explicit "push" instruction from user
 
 ## Design System
 
