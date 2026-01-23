@@ -100,19 +100,19 @@ function getAllUpdates(limit) {
 
 /**
  * Get updates for a specific solution
- * @param {string} solutionName - Solution name to filter by
+ * @param {string} solutionId - Solution ID (core_id) to filter by
  * @param {number} limit - Optional limit on results
  * @returns {Array} Updates for the solution
  */
-function getUpdatesBySolution(solutionName, limit) {
+function getUpdatesBySolution(solutionId, limit) {
   var updates = getAllUpdates();
-  var solutionLower = (solutionName || '').toLowerCase().trim();
+  var solutionLower = (solutionId || '').toLowerCase().trim();
 
   var filtered = updates.filter(function(update) {
-    var updateSolution = (update.solution || '').toLowerCase().trim();
-    return updateSolution === solutionLower ||
-           updateSolution.indexOf(solutionLower) !== -1 ||
-           solutionLower.indexOf(updateSolution) !== -1;
+    var updateSolutionId = (update.solution_id || '').toLowerCase().trim();
+    return updateSolutionId === solutionLower ||
+           updateSolutionId.indexOf(solutionLower) !== -1 ||
+           solutionLower.indexOf(updateSolutionId) !== -1;
   });
 
   if (limit) {
@@ -230,19 +230,19 @@ function getRecentUpdates(days, limit) {
 }
 
 /**
- * Get updates grouped by solution
- * @returns {Object} Map of solution name to updates array
+ * Get updates grouped by solution ID
+ * @returns {Object} Map of solution_id to updates array
  */
 function getUpdatesGroupedBySolution() {
   var updates = getAllUpdates();
   var grouped = {};
 
   updates.forEach(function(update) {
-    var solution = update.solution || 'Unknown';
-    if (!grouped[solution]) {
-      grouped[solution] = [];
+    var solutionId = update.solution_id || 'Unknown';
+    if (!grouped[solutionId]) {
+      grouped[solutionId] = [];
     }
-    grouped[solution].push(update);
+    grouped[solutionId].push(update);
   });
 
   return grouped;
@@ -278,9 +278,9 @@ function getUpdatesStats() {
       if (updateDate >= monthAgo) thisMonth++;
     }
 
-    // Count by solution
-    var solution = update.solution || 'Unknown';
-    solutions[solution] = (solutions[solution] || 0) + 1;
+    // Count by solution_id
+    var solutionId = update.solution_id || 'Unknown';
+    solutions[solutionId] = (solutions[solutionId] || 0) + 1;
 
     // Count by source
     var source = update.source_document || 'Unknown';

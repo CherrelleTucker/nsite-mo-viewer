@@ -698,7 +698,7 @@
         </div>
         <div class="form-group">
           <label>Notes</label>
-          <textarea id="storyNotes" rows="3" placeholder="Additional notes..."></textarea>
+          <textarea id="storyNotes" rows="3" maxlength="2000" placeholder="Additional notes..."></textarea>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" onclick="COMMS.closeModal('editStoryModal')">Cancel</button>
@@ -775,7 +775,7 @@
         </div>
         <div class="form-group">
           <label>Notes</label>
-          <textarea id="newEventNotes" rows="3" placeholder="Any additional details..."></textarea>
+          <textarea id="newEventNotes" rows="3" maxlength="2000" placeholder="Any additional details..."></textarea>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" onclick="COMMS.closeModal('addEventModal')">Cancel</button>
@@ -1797,7 +1797,6 @@ var COMMS = (function() {
   };
 
   function init() {
-    console.log('COMMS.init()');
     loadOverview();
     loadStories();
     loadOpportunities();
@@ -1933,8 +1932,8 @@ var COMMS = (function() {
     if (dateStr) html += '<span class="card-date">' + dateStr + '</span>';
     html += '</div>';
     html += '<div class="card-title">' + escapeHtml(story.title || 'Untitled') + '</div>';
-    if (story.solution_names) {
-      var solDisplay = story.solution_names.length > 30 ? story.solution_names.substring(0, 30) + '...' : story.solution_names;
+    if (story.solution_id) {
+      var solDisplay = story.solution_id.length > 30 ? story.solution_id.substring(0, 30) + '...' : story.solution_id;
       html += '<div class="card-solutions">' + escapeHtml(solDisplay) + '</div>';
     }
     html += '<div class="card-meta">';
@@ -2062,14 +2061,14 @@ return;
       }
 
       html += '<tr>';
-      html += '<td><strong>' + escapeHtml(sol.solution_name) + '</strong></td>';
-      html += '<td>' + escapeHtml(sol.phase || '--') + '</td>';
+      html += '<td><strong>' + escapeHtml(sol.core_official_name) + '</strong></td>';
+      html += '<td>' + escapeHtml(sol.admin_lifecycle_phase || '--') + '</td>';
       html += '<td>' + (sol.total_stories || 0) + '</td>';
       html += '<td>' + (sol.recent_stories || 0) + '</td>';
       html += '<td>' + (sol.last_story_date ? formatDate(sol.last_story_date) : '--') + '</td>';
       html += '<td>' + (sol.days_since_story != null ? sol.days_since_story : '--') + '</td>';
       html += '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>';
-      html += '<td><button class="btn btn-sm btn-secondary" onclick="COMMS.suggestStory(\'' + escapeAttr(sol.solution_name) + '\')">+ Story</button></td>';
+      html += '<td><button class="btn btn-sm btn-secondary" onclick="COMMS.suggestStory(\'' + escapeAttr(sol.core_official_name) + '\')">+ Story</button></td>';
       html += '</tr>';
     });
 
@@ -2085,7 +2084,7 @@ return;
       if (filters.search) {
         var searchLower = filters.search.toLowerCase();
         var titleMatch = s.title && s.title.toLowerCase().indexOf(searchLower) !== -1;
-        var solMatch = s.solution_names && s.solution_names.toLowerCase().indexOf(searchLower) !== -1;
+        var solMatch = s.solution_id && s.solution_id.toLowerCase().indexOf(searchLower) !== -1;
         if (!titleMatch && !solMatch) return false;
       }
       return true;
@@ -2183,7 +2182,7 @@ return;
         container.innerHTML = stories.map(function(story) {
           return '<div class="priority-story-item" onclick="COMMS.showStoryDetail(\'' + escapeAttr(story.story_id) + '\')">' +
             '<div class="priority-story-title">' + escapeHtml(story.title) + '</div>' +
-            '<div class="priority-story-meta">' + escapeHtml(story.solution_names || 'No solutions') + ' • ' + capitalizeFirst(story.status) + '</div>' +
+            '<div class="priority-story-meta">' + escapeHtml(story.solution_id || 'No solutions') + ' • ' + capitalizeFirst(story.status) + '</div>' +
             '</div>';
         }).join('');
       }
@@ -2265,24 +2264,24 @@ return;
     }
 
     var html = solutions.map(function(sol) {
-      var focusBadge = sol.focus_type ?
-        '<span class="focus-badge focus-' + sol.focus_type.toLowerCase().replace(/\s+/g, '-') + '">' + escapeHtml(sol.focus_type) + '</span>' : '';
+      var focusBadge = sol.comms_focus_type ?
+        '<span class="focus-badge focus-' + sol.comms_focus_type.toLowerCase().replace(/\s+/g, '-') + '">' + escapeHtml(sol.comms_focus_type) + '</span>' : '';
 
       return '<div class="message-card">' +
         '<div class="message-card-header">' +
-          '<h3 class="message-solution-name">' + escapeHtml(sol.solution_name || sol.solution_id) + '</h3>' +
+          '<h3 class="message-solution-name">' + escapeHtml(sol.core_official_name || sol.core_id) + '</h3>' +
           focusBadge +
         '</div>' +
         '<div class="message-card-body">' +
           '<div class="message-section">' +
             '<h4>Key Messages</h4>' +
-            '<p>' + escapeHtml(sol.key_messages || 'No key messages defined') + '</p>' +
+            '<p>' + escapeHtml(sol.comms_key_messages || 'No key messages defined') + '</p>' +
           '</div>' +
-          (sol.scientific_advancement ? '<div class="message-section"><h4>Scientific Advancement</h4><p>' + escapeHtml(sol.scientific_advancement) + '</p></div>' : '') +
-          (sol.agency_use_impact ? '<div class="message-section"><h4>Agency Use & Impact</h4><p>' + escapeHtml(sol.agency_use_impact) + '</p></div>' : '') +
-          (sol.industry_connections ? '<div class="message-section"><h4>Industry Connections</h4><p>' + escapeHtml(sol.industry_connections) + '</p></div>' : '') +
+          (sol.comms_science ? '<div class="message-section"><h4>Scientific Advancement</h4><p>' + escapeHtml(sol.comms_science) + '</p></div>' : '') +
+          (sol.comms_agency_impact ? '<div class="message-section"><h4>Agency Use & Impact</h4><p>' + escapeHtml(sol.comms_agency_impact) + '</p></div>' : '') +
+          (sol.comms_industry ? '<div class="message-section"><h4>Industry Connections</h4><p>' + escapeHtml(sol.comms_industry) + '</p></div>' : '') +
         '</div>' +
-        (sol.public_comms_links ? '<div class="message-card-footer"><a href="' + escapeAttr(sol.public_comms_links) + '" target="_blank" class="message-link"><span class="material-icons">open_in_new</span> View Public Page</a></div>' : '') +
+        (sol.comms_public_links ? '<div class="message-card-footer"><a href="' + escapeAttr(sol.comms_public_links) + '" target="_blank" class="message-link"><span class="material-icons">open_in_new</span> View Public Page</a></div>' : '') +
       '</div>';
     }).join('');
 
@@ -2300,13 +2299,13 @@ return;
 
     var filtered = messagesState.solutions.filter(function(sol) {
       var searchText = [
-        sol.solution_name,
-        sol.solution_id,
-        sol.key_messages,
-        sol.scientific_advancement,
-        sol.agency_use_impact,
-        sol.industry_connections,
-        sol.focus_type
+        sol.core_official_name,
+        sol.core_id,
+        sol.comms_key_messages,
+        sol.comms_science,
+        sol.comms_agency_impact,
+        sol.comms_industry,
+        sol.comms_focus_type
       ].join(' ').toLowerCase();
       return searchText.indexOf(query) !== -1;
     });
@@ -2362,9 +2361,9 @@ return;
     // Details grid
     html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-md);">';
 
-    if (story.solution_names) {
+    if (story.solution_id) {
       html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">SOLUTIONS</div>';
-      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(story.solution_names) + '</div></div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(story.solution_id) + '</div></div>';
     }
 
     if (story.channel) {
@@ -2488,7 +2487,7 @@ return;
     document.getElementById('storyChannel').value = story.channel || 'web';
     document.getElementById('storyOutlet').value = story.primary_outlet || '';
     document.getElementById('storyAuthor').value = story.author || '';
-    document.getElementById('storySolutions').value = story.solution_names || '';
+    document.getElementById('storySolutions').value = story.solution_id || '';
     document.getElementById('storyTargetDate').value = story.target_date ? story.target_date.split('T')[0] : '';
     document.getElementById('storyPublishDate').value = story.publish_date ? story.publish_date.split('T')[0] : '';
     document.getElementById('storySource').value = story.source || '';
@@ -2511,14 +2510,12 @@ return;
     event.preventDefault();
 
     var storyId = document.getElementById('editStoryId').value;
-    var solutionNames = document.getElementById('storySolutions').value;
-    // Clean up solution names - trim whitespace, remove empty entries
-    var cleanedNames = solutionNames.split(',')
+    var solutionInput = document.getElementById('storySolutions').value;
+    // Clean up solution IDs - trim whitespace, remove empty entries
+    var cleanedIds = solutionInput.split(',')
       .map(function(n) { return n.trim(); })
       .filter(function(n) { return n.length > 0; });
-    solutionNames = cleanedNames.join(', ');
-    // Use cleaned names as IDs (no conversion needed - names are the identifiers)
-    var solutionIds = cleanedNames.join(', ');
+    var solutionId = cleanedIds.join(', ');
 
     // Collect admin priorities from checkboxes
     var adminPriorities = [];
@@ -2535,8 +2532,7 @@ return;
       channel: document.getElementById('storyChannel').value,
       primary_outlet: document.getElementById('storyOutlet').value,
       author: document.getElementById('storyAuthor').value,
-      solution_names: solutionNames,
-      solution_ids: solutionIds,
+      solution_id: solutionId,
       admin_priorities: adminPriorities.join(', '),
       target_date: document.getElementById('storyTargetDate').value,
       publish_date: document.getElementById('storyPublishDate').value,
@@ -2980,9 +2976,9 @@ return;
       html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(event.sector) + '</div></div>';
     }
 
-    if (event.solution_names) {
+    if (event.solution_id) {
       html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">RELEVANT SOLUTIONS</div>';
-      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(event.solution_names) + '</div></div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(event.solution_id) + '</div></div>';
     }
 
     if (event.team_members) {

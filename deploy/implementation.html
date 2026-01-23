@@ -1066,20 +1066,17 @@ var Implementation = (function() {
    * Values: 'Y' or 'y' = show in default, anything else = don't show
    */
   function isActivelyManaged(sol) {
-    var value = (sol.show_in_default || '').toString().trim().toUpperCase();
+    var value = (sol.admin_default_in_dashboard || '').toString().trim().toUpperCase();
     return value === 'Y';
   }
 
   function init() {
-    console.log('Implementation.init() called');
     loadSolutions();
   }
 
   function loadSolutions() {
-    console.log('loadSolutions() starting...');
     google.script.run
       .withSuccessHandler(function(solutions) {
-        console.log('SUCCESS: Received solutions:', solutions ? solutions.length : 'null/undefined');
         state.solutions = solutions || [];
         extractFilters();
         updateStats();
@@ -1097,11 +1094,11 @@ var Implementation = (function() {
   function extractFilters() {
     var groups = {}, daacs = {};
     state.solutions.forEach(function(sol) {
-      if (sol.solution_group && sol.solution_group.trim()) {
-        groups[sol.solution_group.trim()] = true;
+      if (sol.core_group && sol.core_group.trim()) {
+        groups[sol.core_group.trim()] = true;
       }
-      if (sol.daac_assignment && sol.daac_assignment.trim()) {
-        daacs[sol.daac_assignment.trim()] = true;
+      if (sol.product_assigned_daac && sol.product_assigned_daac.trim()) {
+        daacs[sol.product_assigned_daac.trim()] = true;
       }
     });
     state.groups = Object.keys(groups).sort();
@@ -1137,20 +1134,28 @@ var Implementation = (function() {
   function populateSolutionPicker() {
     var activeList = document.getElementById('activePickerList');
     var otherList = document.getElementById('otherPickerList');
+
+    // Guard against SPA navigation - elements may not exist
+    if (!activeList || !otherList) {
+      // SPA navigation - elements no longer exist
+      return;
+    }
+
     activeList.innerHTML = '';
     otherList.innerHTML = '';
 
-    // Sort solutions by name
-    var sortedSolutions = state.solutions.slice().sort(function(a, b) {
-      return (a.name || a.solution_id).localeCompare(b.name || b.solution_id);
+    // Sort solutions by ID - filter out invalid entries first
+    var validSolutions = state.solutions.filter(function(s) { return s && s.core_id; });
+    var sortedSolutions = validSolutions.sort(function(a, b) {
+      return (a.core_id || '').localeCompare(b.core_id || '');
     });
 
     sortedSolutions.forEach(function(sol) {
       var isActive = isActivelyManaged(sol);
       var html = '<label class="picker-item">';
-      html += '<input type="checkbox" id="picker_' + sol.solution_id + '" onchange="Implementation.onSolutionToggle(\'' + sol.solution_id + '\')">';
-      html += '<span class="picker-item-label">' + escapeHtml(sol.name || sol.solution_id) + '</span>';
-      html += '<span class="picker-item-cycle">C' + sol.cycle + '</span>';
+      html += '<input type="checkbox" id="picker_' + sol.core_id + '" onchange="Implementation.onSolutionToggle(\'' + sol.core_id + '\')">';
+      html += '<span class="picker-item-label">' + escapeHtml((sol.core_id || '').toUpperCase()) + '</span>';
+      html += '<span class="picker-item-cycle">C' + sol.core_cycle + '</span>';
       html += '</label>';
 
       if (isActive) {
@@ -1183,11 +1188,11 @@ var Implementation = (function() {
   function selectActiveSolutions() {
     state.selectedSolutions = {};
     state.solutions.forEach(function(sol) {
-      var checkbox = document.getElementById('picker_' + sol.solution_id);
+      var checkbox = document.getElementById('picker_' + sol.core_id);
       if (checkbox) {
         var isActive = isActivelyManaged(sol);
         checkbox.checked = isActive;
-        state.selectedSolutions[sol.solution_id] = isActive;
+        state.selectedSolutions[sol.core_id] = isActive;
       }
     });
     updatePickerLabel();
@@ -1197,10 +1202,10 @@ var Implementation = (function() {
   function selectAllSolutions() {
     state.selectedSolutions = {};
     state.solutions.forEach(function(sol) {
-      var checkbox = document.getElementById('picker_' + sol.solution_id);
+      var checkbox = document.getElementById('picker_' + sol.core_id);
       if (checkbox) {
         checkbox.checked = true;
-        state.selectedSolutions[sol.solution_id] = true;
+        state.selectedSolutions[sol.core_id] = true;
       }
     });
     updatePickerLabel();
@@ -1210,7 +1215,7 @@ var Implementation = (function() {
   function clearSolutionSelection() {
     state.selectedSolutions = {};
     state.solutions.forEach(function(sol) {
-      var checkbox = document.getElementById('picker_' + sol.solution_id);
+      var checkbox = document.getElementById('picker_' + sol.core_id);
       if (checkbox) {
         checkbox.checked = false;
       }
@@ -1235,40 +1240,60 @@ var Implementation = (function() {
   }
 
   function updateStats() {
+    // Guard against SPA navigation - elements may not exist
+    var statTotal = document.getElementById('statTotalSolutions');
+    var statOp = document.getElementById('statOperational');
+    var statImpl = document.getElementById('statImplementation');
+    var statForm = document.getElementById('statFormulation');
+    if (!statTotal || !statOp || !statImpl || !statForm) {
+      // SPA navigation - elements no longer exist
+      return;
+    }
+
     // Calculate stats based on filtered solutions (current view)
     var total = state.filteredSolutions.length;
     var operational = 0, implementation = 0, formulation = 0;
 
     state.filteredSolutions.forEach(function(sol) {
-      var phase = (sol.phase || '').toLowerCase();
+      var phase = (sol.admin_lifecycle_phase || '').toLowerCase();
       if (phase.indexOf('operational') !== -1 || phase.indexOf('production') !== -1) operational++;
       else if (phase.indexOf('implementation') !== -1) implementation++;
       else if (phase.indexOf('formulation') !== -1) formulation++;
     });
 
-    document.getElementById('statTotalSolutions').textContent = total;
-    document.getElementById('statOperational').textContent = operational;
-    document.getElementById('statImplementation').textContent = implementation;
-    document.getElementById('statFormulation').textContent = formulation;
+    statTotal.textContent = total;
+    statOp.textContent = operational;
+    statImpl.textContent = implementation;
+    statForm.textContent = formulation;
   }
 
   function updateMilestones() {
+    // Guard against SPA navigation - elements may not exist
+    var countATP = document.getElementById('countATP');
+    var countF2I = document.getElementById('countF2I');
+    var countORR = document.getElementById('countORR');
+    var countCloseout = document.getElementById('countCloseout');
+    if (!countATP || !countF2I || !countORR || !countCloseout) {
+      // SPA navigation - elements no longer exist
+      return;
+    }
+
     // Count completed milestones from solution data (date in the past = completed)
     var today = new Date();
     today.setHours(0, 0, 0, 0);
     var counts = { ATP: 0, F2I: 0, ORR: 0, Closeout: 0 };
 
     state.filteredSolutions.forEach(function(sol) {
-      if (isDateCompleted(sol.atp_date, today)) counts.ATP++;
-      if (isDateCompleted(sol.f2i_date, today)) counts.F2I++;
-      if (isDateCompleted(sol.orr_date, today)) counts.ORR++;
-      if (isDateCompleted(sol.closeout_date, today)) counts.Closeout++;
+      if (isDateCompleted(sol.milestone_atp_date, today)) counts.ATP++;
+      if (isDateCompleted(sol.milestone_f2i_date, today)) counts.F2I++;
+      if (isDateCompleted(sol.milestone_orr_date, today)) counts.ORR++;
+      if (isDateCompleted(sol.milestone_closeout_date, today)) counts.Closeout++;
     });
 
-    document.getElementById('countATP').textContent = counts.ATP;
-    document.getElementById('countF2I').textContent = counts.F2I;
-    document.getElementById('countORR').textContent = counts.ORR;
-    document.getElementById('countCloseout').textContent = counts.Closeout;
+    countATP.textContent = counts.ATP;
+    countF2I.textContent = counts.F2I;
+    countORR.textContent = counts.ORR;
+    countCloseout.textContent = counts.Closeout;
   }
 
   function isDateCompleted(dateVal, today) {
@@ -1296,37 +1321,32 @@ var Implementation = (function() {
   }
 
   function getDocStatus(val) {
+    // In schema v2, status is derived from URL presence
+    // Has URL = complete, no URL = not_started
     if (!val) return 'not_started';
-    var str = String(val).trim().toLowerCase();
-    if (!str || str === 'nan') return 'not_started';
-    // Check if it's a date (completed)
-    var d = parseDate(val);
-    if (d) return 'complete';
-    // Check for in_work variations
-    if (str.indexOf('in_work') !== -1 || str.indexOf('in work') !== -1 || str.indexOf('in-work') !== -1) {
-      return 'in_work';
-    }
-    // Any other text = in progress
-    if (str.length > 0) return 'in_work';
-    return 'not_started';
+    var str = String(val).trim();
+    if (!str || str === 'nan' || str === 'NaN') return 'not_started';
+    // Any URL or value = complete
+    return 'complete';
   }
 
   function updateDocuments() {
     // Count document statuses across filtered solutions
+    // In schema v2, status is derived from URL presence: complete or not_started (no in_work)
     var docs = {
-      project_plan: { complete: 0, in_work: 0, not_started: 0 },
-      science_sow: { complete: 0, in_work: 0, not_started: 0 },
-      ipa: { complete: 0, in_work: 0, not_started: 0 },
-      icd: { complete: 0, in_work: 0, not_started: 0 },
-      tta: { complete: 0, in_work: 0, not_started: 0 }
+      project_plan: { complete: 0, not_started: 0 },
+      science_sow: { complete: 0, not_started: 0 },
+      ipa: { complete: 0, not_started: 0 },
+      icd: { complete: 0, not_started: 0 },
+      tta: { complete: 0, not_started: 0 }
     };
 
     state.filteredSolutions.forEach(function(sol) {
-      var ppStatus = getDocStatus(sol.project_plan);
-      var sowStatus = getDocStatus(sol.science_sow);
-      var ipaStatus = getDocStatus(sol.ipa);
-      var icdStatus = getDocStatus(sol.icd);
-      var ttaStatus = getDocStatus(sol.tta);
+      var ppStatus = getDocStatus(sol.docs_project_plan);
+      var sowStatus = getDocStatus(sol.docs_science_sow);
+      var ipaStatus = getDocStatus(sol.docs_ipa);
+      var icdStatus = getDocStatus(sol.docs_icd);
+      var ttaStatus = getDocStatus(sol.docs_tta);
 
       docs.project_plan[ppStatus]++;
       docs.science_sow[sowStatus]++;
@@ -1347,21 +1367,22 @@ var Implementation = (function() {
     var el = document.getElementById(elementId);
     if (!el) return;
 
-    var total = counts.complete + counts.in_work + counts.not_started;
+    // In schema v2, status is derived from URL presence: complete or not_started (no in_work)
+    var total = counts.complete + counts.not_started;
     if (total === 0) {
       el.textContent = '--';
       el.className = 'doc-status';
       return;
     }
 
-    // Show as "complete / in_work"
-    el.textContent = counts.complete + ' / ' + counts.in_work;
+    // Show as "complete / total"
+    el.textContent = counts.complete + ' / ' + total;
 
-    // Color based on majority status
-    if (counts.in_work > 0) {
-      el.className = 'doc-status status-in-work';
-    } else if (counts.complete > 0) {
+    // Color based on completion status
+    if (counts.complete > 0 && counts.complete === total) {
       el.className = 'doc-status status-complete';
+    } else if (counts.complete > 0) {
+      el.className = 'doc-status status-partial';
     } else {
       el.className = 'doc-status status-not-started';
     }
@@ -1373,12 +1394,9 @@ var Implementation = (function() {
     var statusClass = '';
 
     if (status === 'complete') {
-      var d = parseDate(value);
-      statusText = d ? formatDateDisplay(value) : 'Complete';
+      // In schema v2, we have URLs not dates, so just show "Complete"
+      statusText = 'Complete';
       statusClass = 'doc-badge-complete';
-    } else if (status === 'in_work') {
-      statusText = 'In Progress';
-      statusClass = 'doc-badge-in-work';
     } else {
       statusText = '--';
       statusClass = 'doc-badge-not-started';
@@ -1391,43 +1409,57 @@ var Implementation = (function() {
   }
 
   function updateTrackingStats() {
+    // Guard against SPA navigation - elements may not exist
+    var statDAAC = document.getElementById('statDAAC');
+    var statDeepDives = document.getElementById('statDeepDives');
+    if (!statDAAC || !statDeepDives) {
+      // SPA navigation - elements no longer exist
+      return;
+    }
+
     // Calculate based on filtered solutions (current view)
     var daacCount = 0;
     var deepDiveCount = 0;
     var total = state.filteredSolutions.length;
 
     state.filteredSolutions.forEach(function(sol) {
-      if (sol.daac_assignment && sol.daac_assignment.trim()) daacCount++;
-      if (sol.deep_dive_date && String(sol.deep_dive_date).trim()) deepDiveCount++;
+      if (sol.product_assigned_daac && sol.product_assigned_daac.trim()) daacCount++;
+      if (sol.milestone_deep_dive_date && String(sol.milestone_deep_dive_date).trim()) deepDiveCount++;
     });
 
-    document.getElementById('statDAAC').textContent = daacCount + '/' + total;
-    document.getElementById('statDeepDives').textContent = deepDiveCount + '/' + total;
+    statDAAC.textContent = daacCount + '/' + total;
+    statDeepDives.textContent = deepDiveCount + '/' + total;
 
     // Load open actions count
     google.script.run
       .withSuccessHandler(function(actions) {
+        var el = document.getElementById('statActions');
+        if (!el) return; // Guard for SPA navigation
         var count = (actions && actions.length) ? actions.length : 0;
-        document.getElementById('statActions').textContent = count;
+        el.textContent = count;
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load actions:', error);
-        document.getElementById('statActions').textContent = '--';
+        var el = document.getElementById('statActions');
+        if (el) el.textContent = '--';
       })
       .getOpenActions();
 
     // Load stakeholder stats from contacts database
     google.script.run
       .withSuccessHandler(function(stats) {
+        var el = document.getElementById('statStakeholders');
+        if (!el) return; // Guard for SPA navigation
         if (stats) {
-          document.getElementById('statStakeholders').textContent = stats.unique_contacts || 0;
+          el.textContent = stats.unique_contacts || 0;
         } else {
-          document.getElementById('statStakeholders').textContent = '0';
+          el.textContent = '0';
         }
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load contact stats:', error);
-        document.getElementById('statStakeholders').textContent = '--';
+        var el = document.getElementById('statStakeholders');
+        if (el) el.textContent = '--';
       })
       .getContactStats();
   }
@@ -1441,13 +1473,13 @@ var Implementation = (function() {
 
     state.filteredSolutions = state.solutions.filter(function(sol) {
       // Solution picker filter - only show selected solutions
-      if (!state.selectedSolutions[sol.solution_id]) return false;
-      if (cycleFilter && String(sol.cycle) !== cycleFilter) return false;
-      if (phaseFilter && sol.phase !== phaseFilter) return false;
-      if (groupFilter && sol.solution_group !== groupFilter) return false;
-      if (daacFilter && sol.daac_assignment !== daacFilter) return false;
+      if (!state.selectedSolutions[sol.core_id]) return false;
+      if (cycleFilter && String(sol.core_cycle) !== cycleFilter) return false;
+      if (phaseFilter && sol.admin_lifecycle_phase !== phaseFilter) return false;
+      if (groupFilter && sol.core_group !== groupFilter) return false;
+      if (daacFilter && sol.product_assigned_daac !== daacFilter) return false;
       if (searchFilter) {
-        var searchable = [sol.solution_id, sol.name, sol.full_title, sol.solution_lead, sol.solution_group, sol.purpose_mission, sol.daac_assignment].join(' ').toLowerCase();
+        var searchable = [sol.core_id, sol.core_id, sol.core_official_name, sol.team_lead, sol.core_group, sol.earthdata_purpose, sol.product_assigned_daac].join(' ').toLowerCase();
         if (searchable.indexOf(searchFilter) === -1) return false;
       }
       return true;
@@ -1478,7 +1510,7 @@ return;
 
     var byCycle = {};
     state.filteredSolutions.forEach(function(sol) {
-      var cycle = sol.cycle || 'Unknown';
+      var cycle = sol.core_cycle || 'Unknown';
       if (!byCycle[cycle]) byCycle[cycle] = [];
       byCycle[cycle].push(sol);
     });
@@ -1508,39 +1540,37 @@ return;
 }
 
   function renderSolutionCard(sol) {
-    var phaseClass = getPhaseClass(sol.phase);
+    var phaseClass = getPhaseClass(sol.admin_lifecycle_phase);
     var cardClass = 'solution-card ' + phaseClass;
-    var statusSummary = truncateText(sol.status_summary, 120);
+    var statusSummary = truncateText(sol.earthdata_status_summary, 120);
 
     var html = '<div class="' + cardClass + '">';
 
     // Header
     html += '<div class="solution-card-header"><div>';
-    html += '<div class="solution-name" onclick="Implementation.showDetail(\'' + sol.solution_id + '\')">' + escapeHtml(sol.name || sol.solution_id) + '</div>';
-    html += '<div class="solution-id">' + escapeHtml(sol.solution_id) + '</div>';
+    html += '<div class="solution-name" onclick="Implementation.showDetail(\'' + sol.core_id + '\')">' + escapeHtml((sol.core_id || '').toUpperCase()) + '</div>';
     html += '</div><div class="solution-badges">';
-    html += '<span class="phase-badge ' + phaseClass + '">' + escapeHtml(sol.phase || 'Unknown') + '</span>';
+    html += '<span class="phase-badge ' + phaseClass + '">' + escapeHtml(sol.admin_lifecycle_phase || 'Unknown') + '</span>';
     html += '</div></div>';
 
     // Meta info
     html += '<div class="solution-meta">';
-    if (sol.solution_group) html += '<span class="solution-meta-item"><span class="material-icons">folder</span>' + escapeHtml(sol.solution_group) + '</span>';
-    if (sol.funded_by_ison === 'Y') html += '<span class="solution-meta-item"><span class="material-icons">attach_money</span>ISON</span>';
+    if (sol.funding_type === 'Y') html += '<span class="solution-meta-item"><span class="material-icons">attach_money</span>ISON</span>';
     html += '</div>';
 
     // Lead
-    if (sol.solution_lead) {
-      html += '<div class="solution-lead"><strong>Lead:</strong> ' + escapeHtml(sol.solution_lead);
-      if (sol.solution_lead_affiliation) html += ' <span style="opacity:0.7">(' + escapeHtml(truncateText(sol.solution_lead_affiliation, 30)) + ')</span>';
+    if (sol.team_lead) {
+      html += '<div class="solution-lead"><strong>Lead:</strong> ' + escapeHtml(sol.team_lead);
+      if (sol.team_lead_affiliation) html += ' <span style="opacity:0.7">(' + escapeHtml(truncateText(sol.team_lead_affiliation, 30)) + ')</span>';
       html += '</div>';
     }
 
     // Tracking tags
     html += '<div class="solution-tracking">';
-    if (sol.daac_assignment) html += '<span class="tracking-tag tag-daac"><span class="material-icons">storage</span>' + escapeHtml(sol.daac_assignment) + '</span>';
-    if (sol.phase && sol.phase.toLowerCase().indexOf('operational') !== -1) {
+    if (sol.product_assigned_daac) html += '<span class="tracking-tag tag-daac"><span class="material-icons">storage</span>' + escapeHtml(sol.product_assigned_daac) + '</span>';
+    if (sol.admin_lifecycle_phase && sol.admin_lifecycle_phase.toLowerCase().indexOf('operational') !== -1) {
       html += '<span class="tracking-tag tag-milestone"><span class="material-icons">check_circle</span>OPS</span>';
-    } else if (sol.phase && sol.phase.toLowerCase().indexOf('implementation') !== -1) {
+    } else if (sol.admin_lifecycle_phase && sol.admin_lifecycle_phase.toLowerCase().indexOf('implementation') !== -1) {
       html += '<span class="tracking-tag tag-milestone"><span class="material-icons">play_circle</span>F2I</span>';
     }
     html += '</div>';
@@ -1550,10 +1580,10 @@ return;
 
     // Actions
     html += '<div class="solution-actions">';
-    if (sol.drive_folder_url) html += '<a href="' + escapeHtml(sol.drive_folder_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">folder</span>Drive</a>';
-    if (sol.snwg_solution_page_url) html += '<a href="' + escapeHtml(sol.snwg_solution_page_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">open_in_new</span>Earthdata</a>';
-    if (sol.project_plan_url) html += '<a href="' + escapeHtml(sol.project_plan_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">description</span>Plan</a>';
-    html += '<button class="solution-action-btn" onclick="Implementation.showDetail(\'' + sol.solution_id + '\')"><span class="material-icons">info</span>Details</button>';
+    if (sol.admin_drive_folder) html += '<a href="' + escapeHtml(sol.admin_drive_folder) + '" target="_blank" class="solution-action-btn"><span class="material-icons">folder</span>Drive</a>';
+    if (sol.earthdata_solution_page_url) html += '<a href="' + escapeHtml(sol.earthdata_solution_page_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">open_in_new</span>Earthdata</a>';
+    if (sol.docs_project_plan) html += '<a href="' + escapeHtml(sol.docs_project_plan) + '" target="_blank" class="solution-action-btn"><span class="material-icons">description</span>Plan</a>';
+    html += '<button class="solution-action-btn" onclick="Implementation.showDetail(\'' + sol.core_id + '\')"><span class="material-icons">info</span>Details</button>';
     html += '</div></div>';
 
     return html;
@@ -1576,10 +1606,10 @@ return;
   }
 
   function showDetail(solutionId) {
-    var sol = state.solutions.find(function(s) { return s.solution_id === solutionId; });
+    var sol = state.solutions.find(function(s) { return s.core_id === solutionId; });
     if (!sol) return;
 
-    document.getElementById('modalTitle').textContent = sol.name || sol.solution_id;
+    document.getElementById('modalTitle').textContent = (sol.core_id || '').toUpperCase();
 
     // Show loading state first
     document.getElementById('modalBody').innerHTML = '<div style="text-align:center;padding:40px;"><span class="loading-spinner"></span><p>Loading details...</p></div>';
@@ -1609,7 +1639,7 @@ return;
         loadState.stakeholders = null;
         checkAndRender();
       })
-      .getSolutionStakeholderSummary(sol.name || sol.full_title);
+      .getSolutionStakeholderSummary(sol.core_id || sol.core_official_name);
 
     // Load updates data
     google.script.run
@@ -1622,7 +1652,7 @@ return;
         loadState.updates = null;
         checkAndRender();
       })
-      .getUpdatesForSolutionCard(sol.name || sol.full_title);
+      .getUpdatesForSolutionCard(sol.core_id || sol.core_official_name);
   }
 
   function buildMilestoneData(sol) {
@@ -1630,30 +1660,30 @@ return;
     var completed = 0, planned = 0;
 
     // ATP
-    if (sol.atp_date) {
-      var status = getMilestoneStatus(sol.atp_date);
-      milestones.push({ type: 'ATP DG', date: formatDateDisplay(sol.atp_date), status: status });
+    if (sol.milestone_atp_date) {
+      var status = getMilestoneStatus(sol.milestone_atp_date);
+      milestones.push({ type: 'ATP DG', date: formatDateDisplay(sol.milestone_atp_date), status: status });
       if (status === 'completed') completed++; else if (status === 'planned') planned++;
     }
 
     // F2I
-    if (sol.f2i_date) {
-      var status = getMilestoneStatus(sol.f2i_date);
-      milestones.push({ type: 'F2I DG', date: formatDateDisplay(sol.f2i_date), status: status });
+    if (sol.milestone_f2i_date) {
+      var status = getMilestoneStatus(sol.milestone_f2i_date);
+      milestones.push({ type: 'F2I DG', date: formatDateDisplay(sol.milestone_f2i_date), status: status });
       if (status === 'completed') completed++; else if (status === 'planned') planned++;
     }
 
     // ORR
-    if (sol.orr_date) {
-      var status = getMilestoneStatus(sol.orr_date);
-      milestones.push({ type: 'ORR', date: formatDateDisplay(sol.orr_date), status: status });
+    if (sol.milestone_orr_date) {
+      var status = getMilestoneStatus(sol.milestone_orr_date);
+      milestones.push({ type: 'ORR', date: formatDateDisplay(sol.milestone_orr_date), status: status });
       if (status === 'completed') completed++; else if (status === 'planned') planned++;
     }
 
     // Closeout
-    if (sol.closeout_date) {
-      var status = getMilestoneStatus(sol.closeout_date);
-      milestones.push({ type: 'Closeout DG', date: formatDateDisplay(sol.closeout_date), status: status });
+    if (sol.milestone_closeout_date) {
+      var status = getMilestoneStatus(sol.milestone_closeout_date);
+      milestones.push({ type: 'Closeout DG', date: formatDateDisplay(sol.milestone_closeout_date), status: status });
       if (status === 'completed') completed++; else if (status === 'planned') planned++;
     }
 
@@ -1682,23 +1712,22 @@ return;
 
     html += '<div class="detail-section">';
     html += '<div class="detail-section-title">Identity</div>';
-    html += '<div class="detail-row"><span class="detail-label">Solution ID</span><span class="detail-value">' + escapeHtml(sol.solution_id) + '</span></div>';
-    html += '<div class="detail-row"><span class="detail-label">Full Title</span><span class="detail-value">' + escapeHtml(sol.full_title || '-') + '</span></div>';
-    html += '<div class="detail-row"><span class="detail-label">Group</span><span class="detail-value">' + escapeHtml(sol.solution_group || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Full Title</span><span class="detail-value">' + escapeHtml(sol.core_official_name || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Group</span><span class="detail-value">' + escapeHtml(sol.core_group || '-') + '</span></div>';
     html += '</div>';
 
     html += '<div class="detail-section">';
     html += '<div class="detail-section-title">Lifecycle</div>';
-    html += '<div class="detail-row"><span class="detail-label">Cycle</span><span class="detail-value">C' + sol.cycle + ' (' + getCycleYear(sol.cycle) + ')</span></div>';
-    html += '<div class="detail-row"><span class="detail-label">Phase</span><span class="detail-value">' + escapeHtml(sol.phase || '-') + '</span></div>';
-    html += '<div class="detail-row"><span class="detail-label">Funding</span><span class="detail-value">' + (sol.funded_by_ison === 'Y' ? 'ISON Funded' : sol.funding_status || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Cycle</span><span class="detail-value">C' + sol.core_cycle + ' (' + getCycleYear(sol.core_cycle) + ')</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Phase</span><span class="detail-value">' + escapeHtml(sol.admin_lifecycle_phase || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Funding</span><span class="detail-value">' + (sol.funding_type === 'Y' ? 'ISON Funded' : sol.funding_status || '-') + '</span></div>';
     html += '</div>';
 
     html += '<div class="detail-section">';
     html += '<div class="detail-section-title">Per-Solution Tracking</div>';
-    html += '<div class="detail-row"><span class="detail-label">DAAC Assignment</span><span class="detail-value">' + escapeHtml(sol.daac_assignment || 'TBD') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">DAAC Assignment</span><span class="detail-value">' + escapeHtml(sol.product_assigned_daac || 'TBD') + '</span></div>';
     // Stakeholder List - link to Contacts page filtered by solution
-    var solutionName = sol.name || sol.full_title || '';
+    var solutionName = sol.core_id || sol.core_official_name || '';
     var stakeholderValue = '<span onclick="Implementation.viewSolutionContacts(\'' + escapeAttr(solutionName) + '\')" style="color: var(--color-primary); cursor: pointer; text-decoration: underline;">View Contacts</span>';
     html += '<div class="detail-row"><span class="detail-label">Stakeholder List</span><span class="detail-value">' + stakeholderValue + '</span></div>';
     html += '</div>';
@@ -1710,19 +1739,19 @@ return;
 
     html += '<div class="detail-section">';
     html += '<div class="detail-section-title">Team</div>';
-    html += '<div class="detail-row"><span class="detail-label">Solution Lead</span><span class="detail-value">' + escapeHtml(sol.solution_lead || 'TBD') + '</span></div>';
-    html += '<div class="detail-row"><span class="detail-label">Affiliation</span><span class="detail-value">' + escapeHtml(sol.solution_lead_affiliation || '-') + '</span></div>';
-    html += '<div class="detail-row"><span class="detail-label">RA Representative</span><span class="detail-value">' + escapeHtml(sol.ra_representative || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Solution Lead</span><span class="detail-value">' + escapeHtml(sol.team_lead || 'TBD') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Affiliation</span><span class="detail-value">' + escapeHtml(sol.team_lead_affiliation || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">RA Representative</span><span class="detail-value">' + escapeHtml(sol.team_ra_rep || '-') + '</span></div>';
     html += '</div>';
 
     html += '<div class="detail-section">';
     html += '<div class="detail-section-title">Purpose</div>';
-    html += '<div class="detail-text">' + escapeHtml(sol.purpose_mission || 'No description available.') + '</div>';
+    html += '<div class="detail-text">' + escapeHtml(sol.earthdata_purpose || 'No description available.') + '</div>';
     html += '</div>';
 
     html += '<div class="detail-section">';
     html += '<div class="detail-section-title">Status Summary</div>';
-    var statusText = sol.status_summary || 'No status update.';
+    var statusText = sol.earthdata_status_summary || 'No status update.';
     var statusCharLimit = 300;
     if (statusText.length > statusCharLimit) {
       var truncatedStatus = statusText.substring(0, statusCharLimit).trim();
@@ -1751,27 +1780,27 @@ return;
     html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
     html += '<div class="detail-section-title">Documentation Links</div>';
     html += '<div style="display: flex; flex-wrap: wrap; gap: var(--space-sm);">';
-    if (sol.drive_folder_url) html += '<a href="' + escapeHtml(sol.drive_folder_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">folder</span>Drive Folder</a>';
-    if (sol.snwg_solution_page_url) html += '<a href="' + escapeHtml(sol.snwg_solution_page_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">public</span>Earthdata Page</a>';
-    if (sol.project_plan_url) html += '<a href="' + escapeHtml(sol.project_plan_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">description</span>Project Plan</a>';
-    if (sol.science_sow_url) html += '<a href="' + escapeHtml(sol.science_sow_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">insert_drive_file</span>Science SOW</a>';
-    if (sol.risk_register_url) html += '<a href="' + escapeHtml(sol.risk_register_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">warning</span>Risk Register</a>';
-    if (sol.data_product_table_url) html += '<a href="' + escapeHtml(sol.data_product_table_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">table_chart</span>Data Products</a>';
+    if (sol.admin_drive_folder) html += '<a href="' + escapeHtml(sol.admin_drive_folder) + '" target="_blank" class="solution-action-btn"><span class="material-icons">folder</span>Drive Folder</a>';
+    if (sol.earthdata_solution_page_url) html += '<a href="' + escapeHtml(sol.earthdata_solution_page_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">public</span>Earthdata Page</a>';
+    if (sol.docs_project_plan) html += '<a href="' + escapeHtml(sol.docs_project_plan) + '" target="_blank" class="solution-action-btn"><span class="material-icons">description</span>Project Plan</a>';
+    if (sol.docs_science_sow) html += '<a href="' + escapeHtml(sol.docs_science_sow) + '" target="_blank" class="solution-action-btn"><span class="material-icons">insert_drive_file</span>Science SOW</a>';
+    if (sol.docs_risk_register) html += '<a href="' + escapeHtml(sol.docs_risk_register) + '" target="_blank" class="solution-action-btn"><span class="material-icons">warning</span>Risk Register</a>';
+    if (sol.product_data_products) html += '<a href="' + escapeHtml(sol.product_data_products) + '" target="_blank" class="solution-action-btn"><span class="material-icons">table_chart</span>Data Products</a>';
     html += '</div></div>';
 
     // Document Status section
     html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
     html += '<div class="detail-section-title">Document Status</div>';
     html += '<div class="doc-status-grid">';
-    html += renderDocStatusRow('Project Plan', sol.project_plan);
-    html += renderDocStatusRow('Science SOW', sol.science_sow);
-    html += renderDocStatusRow('IPA', sol.ipa);
-    html += renderDocStatusRow('ICD', sol.icd);
-    html += renderDocStatusRow('TTA', sol.tta);
-    html += renderDocStatusRow('ATP Memo', sol.atp_memo);
-    html += renderDocStatusRow('F2I Memo', sol.f2i_memo);
-    html += renderDocStatusRow('ORR Memo', sol.orr_memo);
-    html += renderDocStatusRow('Closeout Memo', sol.closeout_memo);
+    html += renderDocStatusRow('Project Plan', sol.docs_project_plan);
+    html += renderDocStatusRow('Science SOW', sol.docs_science_sow);
+    html += renderDocStatusRow('IPA', sol.docs_ipa);
+    html += renderDocStatusRow('ICD', sol.docs_icd);
+    html += renderDocStatusRow('TTA', sol.docs_tta);
+    html += renderDocStatusRow('ATP Memo', sol.milestone_atp_memo_url);
+    html += renderDocStatusRow('F2I Memo', sol.milestone_f2i_memo_url);
+    html += renderDocStatusRow('ORR Memo', sol.milestone_orr_memo_url);
+    html += renderDocStatusRow('Closeout Memo', sol.milestone_closeout_memo_url);
     html += '</div></div>';
 
     // Milestones section

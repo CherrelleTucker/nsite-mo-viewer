@@ -209,7 +209,7 @@ function doGet(e) {
     return HtmlService.createHtmlOutputFromFile('access-denied')
       .setTitle('Access Denied | MO-Viewer')
       .setFaviconUrl(faviconUrl)
-      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT);
   }
 
   // Check if access control is enabled
@@ -229,7 +229,7 @@ function doGet(e) {
         return HtmlService.createHtmlOutputFromFile('auth-landing')
           .setTitle('Sign In | MO-Viewer')
           .setFaviconUrl(faviconUrl)
-          .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+          .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT);
       }
       // Valid session - continue to app (session token will be preserved in navigation)
     } else {
@@ -237,7 +237,7 @@ function doGet(e) {
       return HtmlService.createHtmlOutputFromFile('auth-landing')
         .setTitle('Sign In | MO-Viewer')
         .setFaviconUrl(faviconUrl)
-        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT);
     }
   }
 
@@ -246,7 +246,7 @@ function doGet(e) {
     return HtmlService.createHtmlOutputFromFile('test-frontend')
       .setTitle('Frontend Test')
       .setFaviconUrl(faviconUrl)
-      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT);
   }
 
   // Validate page exists
@@ -263,7 +263,7 @@ function doGet(e) {
     return template.evaluate()
       .setTitle('MO-Viewer | NSITE MO Dashboard')
       .setFaviconUrl(faviconUrl)
-      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT);
   } catch (error) {
     Logger.log('Error in doGet: ' + error);
     return HtmlService.createHtmlOutput(
@@ -386,11 +386,11 @@ function globalSearch(query) {
     if (solutions && solutions.length > 0) {
       results.solutions = solutions.filter(function(sol) {
         var searchText = [
-          sol.solution_name || '',
-          sol.short_name || '',
-          sol.description || '',
-          sol.solution_group || '',
-          sol.alternate_names || ''
+          sol.core_official_name || '',
+          sol.core_id || '',
+          sol.earthdata_purpose || '',
+          sol.core_group || '',
+          sol.core_alternate_names || ''
         ].join(' ').toLowerCase();
         return searchText.indexOf(queryLower) !== -1;
       }).slice(0, maxResults);
@@ -427,7 +427,7 @@ function globalSearch(query) {
           action.task || '',
           action.assigned_to || '',
           action.notes || '',
-          action.solution || ''
+          action.solution_id || ''
         ].join(' ').toLowerCase();
         return searchText.indexOf(queryLower) !== -1;
       }).slice(0, maxResults);
@@ -664,6 +664,77 @@ function getCurrentUser() {
     email: email,
     isAdmin: email && email.toLowerCase() === getAdminEmail().toLowerCase()
   };
+}
+
+/**
+ * Get current user's full info including name
+ * Looks up email in MO-DB_Contacts to get the user's name
+ * @returns {Object} User info with name, email, team
+ */
+function getCurrentUserInfo() {
+  var email = Session.getActiveUser().getEmail();
+  if (!email) {
+    email = Session.getEffectiveUser().getEmail();
+  }
+
+  var result = {
+    email: email || '',
+    name: '',
+    firstName: '',
+    lastName: '',
+    team: '',
+    isInternal: false
+  };
+
+  if (!email) return result;
+
+  // Try to find this user in MO-DB_Contacts
+  try {
+    var contacts = getInternalTeam();
+    var emailLower = email.toLowerCase();
+
+    for (var i = 0; i < contacts.length; i++) {
+      var contact = contacts[i];
+      if ((contact.email || '').toLowerCase() === emailLower) {
+        result.name = ((contact.first_name || '') + ' ' + (contact.last_name || '')).trim();
+        result.firstName = contact.first_name || '';
+        result.lastName = contact.last_name || '';
+        result.team = contact.internal_team || '';
+        result.isInternal = true;
+        return result;
+      }
+    }
+
+    // Not found in internal team - try general contacts
+    var allContacts = getAllContacts();
+    for (var j = 0; j < allContacts.length; j++) {
+      var c = allContacts[j];
+      if ((c.email || '').toLowerCase() === emailLower) {
+        result.name = ((c.first_name || '') + ' ' + (c.last_name || '')).trim();
+        result.firstName = c.first_name || '';
+        result.lastName = c.last_name || '';
+        return result;
+      }
+    }
+  } catch (e) {
+    Logger.log('Error looking up user info: ' + e);
+  }
+
+  // Fallback: use email prefix as name
+  if (!result.name && email) {
+    var emailPrefix = email.split('@')[0];
+    // Try to parse "first.last" format
+    if (emailPrefix.indexOf('.') !== -1) {
+      var parts = emailPrefix.split('.');
+      result.firstName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+      result.lastName = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
+      result.name = result.firstName + ' ' + result.lastName;
+    } else {
+      result.name = emailPrefix;
+    }
+  }
+
+  return result;
 }
 
 /**

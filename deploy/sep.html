@@ -243,8 +243,15 @@
           <input type="text" id="engParticipants" placeholder="email1@example.com, email2@example.com">
         </div>
         <div class="form-group">
+          <label>Solution</label>
+          <select id="engSolution">
+            <option value="">-- Select Solution --</option>
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+        <div class="form-group">
           <label>Summary</label>
-          <textarea id="engSummary" rows="3" placeholder="Brief summary of the engagement"></textarea>
+          <textarea id="engSummary" rows="3" maxlength="2000" placeholder="Brief summary of the engagement"></textarea>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -270,6 +277,19 @@
           <button type="submit" class="btn btn-primary" id="engSubmitBtn">Log Engagement</button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Engagement Detail Modal -->
+<div class="modal-overlay" id="engagementDetailModal" onclick="SEP.closeModal('engagementDetailModal', event)">
+  <div class="modal-content modal-sm" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Engagement Details</h2>
+      <button class="modal-close" onclick="SEP.closeModal('engagementDetailModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="engagementDetailContent">
+      <!-- Populated dynamically -->
     </div>
   </div>
 </div>
@@ -500,6 +520,42 @@
     border-radius: 10px;
   }
   .agency-children { padding-left: var(--space-lg); }
+
+  /* Engagement Detail Modal */
+  .modal-sm .modal-content { max-width: 500px; }
+  .engagement-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .engagement-detail-item {
+    padding: 8px 12px;
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+  }
+  .engagement-detail-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
+  }
+  .engagement-detail-value {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+  }
+  .engagement-detail-full {
+    grid-column: 1 / -1;
+  }
+  .engagement-summary-box {
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
 
   /* Recent Engagements */
   .engagement-item {
@@ -805,17 +861,49 @@ var SEP = (function() {
     agencies: [],
     agencyHierarchy: [],
     engagements: [],
+    solutions: [],
     currentView: 'pipeline',
     selectedAgency: null
   };
 
   function init() {
-    console.log('SEP.init()');
     setDefaultDate();
     loadOverview();
     loadContacts();
     loadAgencies();
     loadRecentEngagements();
+    loadSolutions();
+  }
+
+  function loadSolutions() {
+    google.script.run
+      .withSuccessHandler(function(solutions) {
+        state.solutions = (solutions || []).filter(function(s) { return s && s.core_id; });
+        populateSolutionDropdown();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load solutions:', error);
+      })
+      .getSolutions();
+  }
+
+  function populateSolutionDropdown() {
+    var select = document.getElementById('engSolution');
+    if (!select) return;
+
+    // Keep the default option
+    select.innerHTML = '<option value="">-- Select Solution --</option>';
+
+    var sorted = state.solutions.slice().sort(function(a, b) {
+      return (a.core_id || '').localeCompare(b.core_id || '');
+    });
+
+    sorted.forEach(function(sol) {
+      var opt = document.createElement('option');
+      opt.value = sol.core_id;
+      opt.textContent = sol.core_id.toUpperCase() + ' - ' + (sol.core_official_name || '');
+      select.appendChild(opt);
+    });
   }
 
   function setDefaultDate() {
@@ -1111,18 +1199,18 @@ return;
     }
 
     var iconMap = {
-      'Email': 'mail',
+      'Email': 'email',
       'Phone': 'phone',
-      'Meeting': 'users',
-      'Webinar': 'video',
-      'Conference': 'globe',
-      'Site Visit': 'map-pin',
-      'Training': 'book-open'
+      'Meeting': 'groups',
+      'Webinar': 'videocam',
+      'Conference': 'location_city',
+      'Site Visit': 'place',
+      'Training': 'school'
     };
 
     var html = '';
     state.engagements.slice(0, 8).forEach(function(e, index) {
-      var icon = iconMap[e.activity_type] || 'message-circle';
+      var icon = iconMap[e.activity_type] || 'event';
       html += '<div class="engagement-item" style="cursor: pointer;" onclick="SEP.showEngagementDetail(' + index + ')">';
       html += '<div class="engagement-icon"><span class="material-icons">' + icon + '</span></div>';
       html += '<div class="engagement-info">';
@@ -1138,20 +1226,44 @@ return;
     var e = state.engagements[index];
     if (!e) return;
 
-    var details = 'ENGAGEMENT DETAILS\n\n';
-    details += 'Date: ' + (e.date || 'Not specified') + '\n';
-    details += 'Type: ' + (e.activity_type || 'Unknown') + '\n';
-    details += 'Direction: ' + (e.direction || 'Not specified') + '\n';
-    details += 'Subject: ' + (e.subject || 'No subject') + '\n';
-    details += 'Participants: ' + (e.participants || 'Not specified') + '\n';
-    details += 'Touchpoint: ' + (e.touchpoint_reference || 'Not specified') + '\n';
-    if (e.follow_up_date) {
-      details += 'Follow-up Date: ' + e.follow_up_date + '\n';
-    }
-    details += '\nSummary:\n' + (e.summary || 'No summary provided');
+    var typeIcons = {
+      'Email': 'email',
+      'Phone': 'phone',
+      'Meeting': 'groups',
+      'Webinar': 'videocam',
+      'Conference': 'location_city',
+      'Site Visit': 'place',
+      'Training': 'school'
+    };
+    var icon = typeIcons[e.activity_type] || 'event';
 
-    alert(details);
-}
+    var html = '<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">';
+    html += '<div class="engagement-icon" style="width: 48px; height: 48px;"><span class="material-icons" style="font-size: 24px;">' + icon + '</span></div>';
+    html += '<div><div style="font-size: 16px; font-weight: 600;">' + escapeHtml(e.subject || 'No subject') + '</div>';
+    html += '<div style="color: var(--color-text-secondary); font-size: 13px;">' + escapeHtml(e.activity_type || 'Unknown') + '</div></div>';
+    html += '</div>';
+
+    html += '<div class="engagement-detail-grid">';
+    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Date</div><div class="engagement-detail-value">' + escapeHtml(e.date || '--') + '</div></div>';
+    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Direction</div><div class="engagement-detail-value">' + escapeHtml(e.direction || '--') + '</div></div>';
+    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Touchpoint</div><div class="engagement-detail-value">' + escapeHtml(e.touchpoint_reference || '--') + '</div></div>';
+    if (e.follow_up_date) {
+      html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Follow-up</div><div class="engagement-detail-value">' + escapeHtml(e.follow_up_date) + '</div></div>';
+    }
+    if (e.solution_ids) {
+      html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Solutions</div><div class="engagement-detail-value">' + escapeHtml(e.solution_ids) + '</div></div>';
+    }
+    html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Participants</div><div class="engagement-detail-value">' + escapeHtml(e.participants || '--') + '</div></div>';
+    html += '</div>';
+
+    if (e.summary) {
+      html += '<div class="engagement-detail-label" style="margin-bottom: 4px;">Summary</div>';
+      html += '<div class="engagement-summary-box">' + escapeHtml(e.summary) + '</div>';
+    }
+
+    document.getElementById('engagementDetailContent').innerHTML = html;
+    document.getElementById('engagementDetailModal').classList.add('active');
+  }
 
   function setView(view) {
     state.currentView = view;
@@ -1271,6 +1383,7 @@ return;
       direction: document.getElementById('engDirection').value,
       subject: document.getElementById('engSubject').value,
       participants: document.getElementById('engParticipants').value,
+      solution_ids: document.getElementById('engSolution').value,
       summary: document.getElementById('engSummary').value,
       touchpoint_reference: document.getElementById('engTouchpoint').value,
       follow_up_date: document.getElementById('engFollowUp').value

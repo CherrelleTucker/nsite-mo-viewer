@@ -1,7 +1,7 @@
 # MO-Viewer Bug Tracker & UI Improvements
 
 **Created:** 2026-01-19
-**Last Updated:** 2026-01-22
+**Last Updated:** 2026-01-23
 
 This document tracks all known bugs, UI issues, and improvement opportunities across the MO-Viewer platform.
 
@@ -82,7 +82,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Database/Data Issues
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| TEAM-023 | Availability DB format needs update | P1 | [ ] | Need holiday names, NASA/UAH/DevSeed columns, standardized dates |
+| TEAM-023 | Availability DB format needs update | P1 | [x] | **FIXED** - Added holiday_name, partners columns to MO-DB_Availability |
 | TEAM-024 | Date column has inconsistent format (mm/dd/yyyy hh:mm:ss) | P2 | [ ] | Script populates with timestamp instead of date |
 
 ### Meetings View Issues
@@ -117,16 +117,16 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | IMPL-005 | Solution Lead not clickable - should link to contact card | P2 | [ ] | Need to look up contact by name |
 | IMPL-006 | Affiliation not clickable - should link to org/contact info | P3 | [ ] | Lower priority |
 | IMPL-007 | RA Representative not clickable - should link to contact card | P2 | [ ] | Same as IMPL-005 |
-| IMPL-008 | "Purpose" field references wrong column | P1 | [ ] | Check if `purpose_mission` exists in DB |
-| IMPL-009 | Drive Folders URL doesn't work | P1 | [ ] | Check `drive_folder_url` in database |
-| IMPL-010 | Risk Register URL doesn't work | P1 | [ ] | Check `risk_register_url` in database |
-| IMPL-011 | Data Products URL doesn't work | P1 | [ ] | Check `data_product_table_url` in database |
+| IMPL-008 | "Purpose" field references wrong column | P1 | [x] | **FIXED** - Schema v2 uses `earthdata_purpose` |
+| IMPL-009 | Drive Folders URL doesn't work | P1 | [x] | **FIXED** - Schema v2 uses `admin_drive_folder` |
+| IMPL-010 | Risk Register URL doesn't work | P1 | [x] | **FIXED** - Schema v2 uses `docs_risk_register` |
+| IMPL-011 | Data Products URL doesn't work | P1 | [x] | **FIXED** - Schema v2 uses `product_data_products` |
 
 ### Detail Modal - Data
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| IMPL-012 | Milestones section shows no data | P1 | [ ] | Check if date columns exist in MO-DB_Solutions |
-| IMPL-013 | Document status logic flawed - any non-empty text = "In Work" | P2 | [ ] | Should be stricter parsing |
+| IMPL-012 | Milestones section shows no data | P1 | [x] | **FIXED** - Schema v2 uses `milestone_*` columns |
+| IMPL-013 | Document status logic flawed - any non-empty text = "In Work" | P2 | [x] | **FIXED** - Schema v2 derives status from URL presence (complete/not_started) |
 
 ### View Options
 | ID | Issue | Priority | Status | Notes |
@@ -506,7 +506,8 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### JavaScript Errors
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| ABT-011 | populateSolutionFilter throws "Cannot set properties of null" | P1 | [ ] | Error in protected function - element not found when setting innerHTML |
+| ABT-011 | populateSolutionFilter throws "Cannot set properties of null" | P1 | [x] | **FIXED** - Added null guard in actions.html:1078 |
+| ABT-012 | "Uncaught ns" error in GAS compiled JS (mae_html_user.js) | P3 | [ ] | Internal GAS error on page navigation; doesn't affect functionality |
 
 ### Accessibility
 | ID | Issue | Priority | Status | Notes |
@@ -516,7 +517,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Missing Features
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| ABT-010 | No "Back to Top" button | P2 | [ ] | Long page needs quick navigation |
+| ABT-010 | No "Back to Top" button | P2 | [x] | **FIXED** - Added floating button with smooth scroll |
 
 ---
 
@@ -574,15 +575,15 @@ These can be knocked out quickly:
 
 ## Database Checks Needed
 
-These bugs may be data issues, not code issues:
+~~These bugs were resolved by the Schema v2 migration (2026-01-22):~~
 
-| Bug ID | Column to Check | Database |
-|--------|-----------------|----------|
-| IMPL-008 | `purpose_mission` | MO-DB_Solutions |
-| IMPL-009 | `drive_folder_url` | MO-DB_Solutions |
-| IMPL-010 | `risk_register_url` | MO-DB_Solutions |
-| IMPL-011 | `data_product_table_url` | MO-DB_Solutions |
-| IMPL-012 | `atp_date`, `f2i_date`, `orr_date`, `closeout_date` | MO-DB_Solutions |
+| Bug ID | Old Column | New v2 Column | Status |
+|--------|------------|---------------|--------|
+| ~~IMPL-008~~ | `purpose_mission` | `earthdata_purpose` | FIXED |
+| ~~IMPL-009~~ | `drive_folder_url` | `admin_drive_folder` | FIXED |
+| ~~IMPL-010~~ | `risk_register_url` | `docs_risk_register` | FIXED |
+| ~~IMPL-011~~ | `data_product_table_url` | `product_data_products` | FIXED |
+| ~~IMPL-012~~ | `atp_date`, etc. | `milestone_atp_date`, etc. | FIXED |
 
 ---
 
@@ -667,3 +668,19 @@ Before MO-Viewer can be packaged for other organizations, a comprehensive testin
 | 2026-01-22 | **NEW**: Slack app manifest file for easy setup (`deploy/slack-app-manifest.yaml`) |
 | 2026-01-22 | **IMPROVED**: Token caching for faster Slack API responses |
 | 2026-01-22 | **IMPROVED**: First-name matching for action assignments (consistent with existing data) |
+| 2026-01-22 | **SCHEMA**: MO-DB_Solutions v2 migration - 64 columns with semantic prefixes (core_, admin_, team_, milestone_, docs_, comms_, earthdata_, product_, funding_) |
+| 2026-01-22 | **FIXED IMPL-008 to IMPL-013**: All Implementation detail modal issues resolved by schema v2 column mappings |
+| 2026-01-23 | **FIXED**: SPA navigation errors - Added DOM guards to implementation.html (updateStats, updateMilestones, updateTrackingStats) to prevent "Cannot set properties of null" errors when navigating away while async callbacks pending |
+| 2026-01-23 | **IMPROVED**: Meeting chips now display cadence for non-weekly meetings (e.g., "4th Monday") |
+| 2026-01-23 | **IMPROVED**: Meeting chip click scrolls to detail row with highlight animation |
+| 2026-01-23 | **DOCS**: Added Google Sheets database requirements to CLAUDE.md (Plain Text column formatting critical for time/date fields) |
+| 2026-01-23 | **DOCS**: Added MO-DB_Meetings schema documentation to CLAUDE.md |
+| 2026-01-23 | **SCHEMA**: Standardized solution foreign key columns to `solution_id` across all databases (was: solution_names, solution, etc.) |
+| 2026-01-23 | **SECURITY**: Added client_secret*.json patterns to .gitignore (credential leak prevention) |
+| 2026-01-23 | **SECURITY**: Fixed XSS vulnerability in access-denied.html - escaped adminEmail and userEmail in innerHTML |
+| 2026-01-23 | **SECURITY**: Fixed open redirect vulnerability in auth-landing.html - added URL validation for redirectUrl |
+| 2026-01-23 | **SECURITY**: Changed XFrameOptionsMode from ALLOWALL to SAMEORIGIN in Code.gs (clickjacking prevention) |
+| 2026-01-23 | **SECURITY**: Fixed empty error handler in reports.html:2048 |
+| 2026-01-23 | **SECURITY**: Added maxlength attributes to all textarea elements (DoS prevention) |
+| 2026-01-23 | **CLEANUP**: Deleted unused OAuth client_secret file (was for removed Discover Events feature in Comms) |
+| 2026-01-23 | **CLEANUP**: Removed all debug console.log statements from deploy/*.html (31 instances); converted error logs to console.error |

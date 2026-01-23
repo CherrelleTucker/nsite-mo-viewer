@@ -325,8 +325,8 @@ function createAction(actionData) {
           return actionData.source_url || '';
         case 'category':
           return actionData.category || 'MO';
-        case 'solution':
-          return actionData.solution || actionData.category || 'MO';
+        case 'solution_id':
+          return actionData.solution_id || actionData.category || 'MO';
         case 'status':
           return actionData.status || 'not_started';
         case 'assigned_to':
@@ -362,7 +362,7 @@ function createAction(actionData) {
           var action = {
             action_id: actionId,
             task: actionData.task || '',
-            solution: actionData.solution || actionData.category || '',
+            solution_id: actionData.solution_id || actionData.category || '',
             due_date: actionData.due_date || ''
           };
           sendSlackAssignmentNotification_(action, assignee, slackUserId, null);
@@ -714,17 +714,17 @@ function getUniqueCategories() {
 }
 
 /**
- * Get unique solutions for filters
- * @returns {Array} List of unique solutions
+ * Get unique solution IDs for filters
+ * @returns {Array} List of unique solution IDs
  */
 function getUniqueSolutions() {
   var actions = getAllActions();
   var solutions = {};
 
   actions.forEach(function(action) {
-    var solution = action.solution;
-    if (solution && solution.trim()) {
-      solutions[solution.trim()] = true;
+    var solutionId = action.solution_id;
+    if (solutionId && solutionId.trim()) {
+      solutions[solutionId.trim()] = true;
     }
   });
 
@@ -896,8 +896,8 @@ function sendSlackAssignmentNotification_(action, assigneeName, slackUserId, pre
 
   // Add context elements
   var contextElements = blocks[2].elements;
-  if (action.solution) {
-    contextElements.push({ type: 'mrkdwn', text: '*Solution:* ' + action.solution });
+  if (action.solution_id) {
+    contextElements.push({ type: 'mrkdwn', text: '*Solution:* ' + action.solution_id });
   }
   if (action.due_date) {
     contextElements.push({ type: 'mrkdwn', text: '*Due:* ' + action.due_date });
@@ -1012,8 +1012,8 @@ function sendAssignmentNotification_(action, assigneeName, assigneeEmail, previo
   body += 'TASK: ' + taskPreview + '\n';
   body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
 
-  if (action.solution) {
-    body += 'Solution: ' + action.solution + '\n';
+  if (action.solution_id) {
+    body += 'Solution: ' + action.solution_id + '\n';
   }
   if (action.due_date) {
     body += 'Due Date: ' + action.due_date + '\n';

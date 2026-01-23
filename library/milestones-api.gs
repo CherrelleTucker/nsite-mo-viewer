@@ -84,8 +84,7 @@ function getMilestonesBySolution(solutionId) {
   var searchTerm = String(solutionId).toLowerCase().trim();
   var milestones = loadAllMilestones_().filter(function(m) {
     var id = String(m.solution_id || '').toLowerCase();
-    var name = String(m.solution_name || '').toLowerCase();
-    return id.indexOf(searchTerm) !== -1 || name.indexOf(searchTerm) !== -1;
+    return id.indexOf(searchTerm) !== -1;
   });
 
   // Sort by phase order
@@ -410,7 +409,7 @@ function searchMilestones(query) {
 
   var milestones = loadAllMilestones_().filter(function(m) {
     var searchable = [
-      m.solution_id, m.solution_name, m.type, m.phase, m.notes
+      m.solution_id, m.type, m.phase, m.notes
     ].join(' ').toLowerCase();
     return searchable.indexOf(searchTerm) !== -1;
   });

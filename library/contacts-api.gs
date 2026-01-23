@@ -79,18 +79,36 @@ function getAllContacts(limit) {
 }
 
 /**
- * Get contacts by solution name
- * @param {string} solutionName - Full or partial solution name
+ * Get contacts by solution_id
+ * @param {string} solutionId - The solution_id to match
+ * @returns {Array} Matching contacts
+ */
+function getContactsBySolutionId(solutionId) {
+  var contacts = loadAllContacts_();
+  var idLower = solutionId.toLowerCase();
+  var results = contacts.filter(function(c) {
+    return c.solution_id_id && c.solution_id_id.toLowerCase() === idLower;
+  });
+  return JSON.parse(JSON.stringify(results));
+}
+
+/**
+ * Get contacts by solution name or solution_id
+ * @param {string} solutionName - Full or partial solution name, or solution_id
  * @param {boolean} exactMatch - If true, requires exact match
  * @returns {Array} Matching contacts
  */
-function getContactsBySolution(solutionName, exactMatch) {
+function getContactsBySolution(solutionId, exactMatch) {
   var contacts = loadAllContacts_();
+  var searchLower = solutionId.toLowerCase();
+
   var results = contacts.filter(function(c) {
+    // Match solution_id (core_id from Solutions DB)
+    if (!c.solution_id_id) return false;
     if (exactMatch) {
-      return c.solution === solutionName;
+      return c.solution_id_id.toLowerCase() === searchLower;
     }
-    return c.solution && c.solution.toLowerCase().indexOf(solutionName.toLowerCase()) !== -1;
+    return c.solution_id_id.toLowerCase().indexOf(searchLower) !== -1;
   });
   return JSON.parse(JSON.stringify(results));
 }
@@ -186,15 +204,15 @@ function getContactsBySurveyYear(year) {
 /**
  * Get contacts matching multiple criteria
  * @param {Object} criteria - Filter criteria
- *   {solution, role, department, agency, year, firstName, lastName}
+ *   {solution_id, role, department, agency, year, firstName, lastName}
  * @returns {Array} Matching contacts
  */
 function getContactsMultiFilter(criteria) {
   var contacts = loadAllContacts_();
 
   var results = contacts.filter(function(c) {
-    if (criteria.solution &&
-        (!c.solution || c.solution.toLowerCase().indexOf(criteria.solution.toLowerCase()) === -1)) {
+    if (criteria.solution_id &&
+        (!c.solution_id_id || c.solution_id_id.toLowerCase().indexOf(criteria.solution_id.toLowerCase()) === -1)) {
       return false;
     }
     if (criteria.role &&
@@ -256,8 +274,8 @@ function getUniqueContacts(contacts) {
     }
 
     var entry = emailMap[email];
-    if (c.solution && entry.solutions.indexOf(c.solution) === -1) {
-      entry.solutions.push(c.solution);
+    if (c.solution_id && entry.solutions.indexOf(c.solution_id) === -1) {
+      entry.solutions.push(c.solution_id);
     }
     if (c.role && entry.roles.indexOf(c.role) === -1) {
       entry.roles.push(c.role);
@@ -287,7 +305,7 @@ function getMailingList(solutionPattern) {
   var regex = new RegExp(solutionPattern, 'i');
 
   var filtered = contacts.filter(function(c) {
-    return c.solution && regex.test(c.solution);
+    return c.solution_id && regex.test(c.solution_id);
   });
 
   var unique = getUniqueContacts(filtered);
@@ -316,10 +334,10 @@ function getContactSolutions(email) {
 
   var solutions = {};
   contacts.forEach(function(c) {
-    var sol = c.solution;
+    var sol = c.solution_id;
     if (!solutions[sol]) {
       solutions[sol] = {
-        solution: sol,
+        solution_id: sol,
         roles: [],
         years: []
       };
@@ -353,7 +371,7 @@ function getContactsAcrossSolutions(solutionNames) {
 
   contacts.forEach(function(c) {
     solutionNames.forEach(function(sol) {
-      if (c.solution && c.solution.toLowerCase().indexOf(sol.toLowerCase()) !== -1) {
+      if (c.solution_id && c.solution_id.toLowerCase().indexOf(sol.toLowerCase()) !== -1) {
         if (solutionEmails[sol].indexOf(c.email) === -1) {
           solutionEmails[sol].push(c.email);
         }
@@ -390,14 +408,14 @@ function getContactsAcrossSolutions(solutionNames) {
  */
 function getRelatedContacts(email) {
   var myContacts = getContactsByEmail(email);
-  var mySolutions = myContacts.map(function(c) { return c.solution; });
+  var mySolutions = myContacts.map(function(c) { return c.solution_id; });
 
   var allContacts = loadAllContacts_();
   var relatedEmails = {};
 
   allContacts.forEach(function(c) {
     if (c.email === email) return; // Skip self
-    if (mySolutions.indexOf(c.solution) !== -1) {
+    if (mySolutions.indexOf(c.solution_id) !== -1) {
       if (!relatedEmails[c.email]) {
         relatedEmails[c.email] = {
           email: c.email,
@@ -406,8 +424,8 @@ function getRelatedContacts(email) {
           shared_solutions: []
         };
       }
-      if (relatedEmails[c.email].shared_solutions.indexOf(c.solution) === -1) {
-        relatedEmails[c.email].shared_solutions.push(c.solution);
+      if (relatedEmails[c.email].shared_solutions.indexOf(c.solution_id) === -1) {
+        relatedEmails[c.email].shared_solutions.push(c.solution_id);
       }
     }
   });
@@ -444,7 +462,7 @@ function getContactStats() {
 
   contacts.forEach(function(c) {
     if (c.email) uniqueEmails[c.email] = true;
-    if (c.solution) solutions[c.solution] = (solutions[c.solution] || 0) + 1;
+    if (c.solution_id) solutions[c.solution_id] = (solutions[c.solution_id] || 0) + 1;
     if (c.department) departments[c.department] = (departments[c.department] || 0) + 1;
     if (c.role) roles[c.role] = (roles[c.role] || 0) + 1;
     if (c.survey_year) years[c.survey_year] = (years[c.survey_year] || 0) + 1;
@@ -464,7 +482,7 @@ function getContactStats() {
     top_solutions: Object.keys(solutions)
       .sort(function(a, b) { return solutions[b] - solutions[a]; })
       .slice(0, 10)
-      .map(function(s) { return { solution: s, count: solutions[s] }; })
+      .map(function(s) { return { solution_id: s, count: solutions[s] }; })
   };
 }
 
@@ -493,26 +511,26 @@ function getStakeholderCountsBySolution() {
   var solutions = {};
 
   contacts.forEach(function(c) {
-    if (!c.solution) return;
-    if (!solutions[c.solution]) {
-      solutions[c.solution] = {
-        solution: c.solution,
+    if (!c.solution_id) return;
+    if (!solutions[c.solution_id]) {
+      solutions[c.solution_id] = {
+        solution_id: c.solution_id,
         total: 0,
         unique_emails: {},
         by_role: {}
       };
     }
-    solutions[c.solution].total++;
-    solutions[c.solution].unique_emails[c.email] = true;
+    solutions[c.solution_id].total++;
+    solutions[c.solution_id].unique_emails[c.email] = true;
     if (c.role) {
-      solutions[c.solution].by_role[c.role] = (solutions[c.solution].by_role[c.role] || 0) + 1;
+      solutions[c.solution_id].by_role[c.role] = (solutions[c.solution_id].by_role[c.role] || 0) + 1;
     }
   });
 
   return Object.keys(solutions).map(function(sol) {
     var s = solutions[sol];
     return {
-      solution: s.solution,
+      solution_id: s.solution_id,
       total_records: s.total,
       unique_contacts: Object.keys(s.unique_emails).length,
       by_role: s.by_role
@@ -540,8 +558,8 @@ function getDepartmentParticipation() {
       };
     }
     depts[c.department].unique_emails[c.email] = true;
-    if (c.solution) {
-      depts[c.department].solutions[c.solution] = true;
+    if (c.solution_id) {
+      depts[c.department].solutions[c.solution_id] = true;
     }
   });
 
@@ -562,11 +580,11 @@ function getDepartmentParticipation() {
 
 /**
  * Get stakeholder summary for a solution (for dashboard cards)
- * @param {string} solutionName - Solution name
+ * @param {string} solutionId - Solution ID (core_id)
  * @returns {Object} Summary stats and key contacts
  */
-function getSolutionStakeholderSummary(solutionName) {
-  var contacts = getContactsBySolution(solutionName, false);
+function getSolutionStakeholderSummary(solutionId) {
+  var contacts = getContactsBySolution(solutionId, false);
   var unique = getUniqueContacts(contacts);
 
   var byRole = {};
@@ -590,7 +608,7 @@ function getSolutionStakeholderSummary(solutionName) {
   });
 
   return {
-    solution: solutionName,
+    solution_id: solutionId,
     total_contacts: unique.length,
     by_role: byRole,
     primary_smes: primarySMEs.slice(0, 5),
@@ -945,8 +963,8 @@ function getSEPPipelineContacts() {
     }
 
     // Aggregate solutions
-    if (c.solution && emailMap[email].solutions.indexOf(c.solution) === -1) {
-      emailMap[email].solutions.push(c.solution);
+    if (c.solution_id && emailMap[email].solutions.indexOf(c.solution_id) === -1) {
+      emailMap[email].solutions.push(c.solution_id);
     }
   });
 

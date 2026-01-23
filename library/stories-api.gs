@@ -314,7 +314,7 @@ function getStoriesByContentType(contentType) {
 
 /**
  * Get stories by solution
- * @param {string} solutionId - Solution ID or name
+ * @param {string} solutionId - Solution ID (core_id from Solutions DB)
  * @returns {Array} Stories for this solution
  */
 function getStoriesBySolution(solutionId) {
@@ -322,17 +322,10 @@ function getStoriesBySolution(solutionId) {
   var searchLower = solutionId.toLowerCase();
 
   var results = stories.filter(function(s) {
-    if (s.solution_ids) {
-      var ids = s.solution_ids.split(',').map(function(id) { return id.trim().toLowerCase(); });
-      if (ids.indexOf(searchLower) !== -1) return true;
-    }
-    if (s.solution_names) {
-      var names = s.solution_names.split(',').map(function(n) { return n.trim().toLowerCase(); });
-      for (var i = 0; i < names.length; i++) {
-        if (names[i].indexOf(searchLower) !== -1) return true;
-      }
-    }
-    return false;
+    // Check solution_id field (single or comma-separated)
+    var solId = s.solution_id || '';
+    var ids = solId.split(',').map(function(id) { return id.trim().toLowerCase(); });
+    return ids.indexOf(searchLower) !== -1;
   });
 
   return JSON.parse(JSON.stringify(results));
@@ -431,20 +424,27 @@ function getCoverageAnalysis(days) {
     };
   });
 
-  // Process stories
+  // Process stories - now using solution_id field
   stories.forEach(function(s) {
-    if (!s.solution_names) return;
+    if (!s.solution_id) return;
 
-    var names = s.solution_names.split(',').map(function(n) { return n.trim(); });
+    var ids = s.solution_id.split(',').map(function(id) { return id.trim(); });
     var storyDate = s.publish_date || s.idea_date || s.created_at;
     var storyDateObj = storyDate ? new Date(storyDate) : null;
 
-    names.forEach(function(name) {
-      if (!solutionCoverage[name]) {
+    ids.forEach(function(solId) {
+      // Find solution name from master list by ID
+      var solName = solId;
+      var sol = allSolutions.find(function(s) { return s.core_id === solId; });
+      if (sol) {
+        solName = sol.core_official_name || sol.solution_name || solId;
+      }
+
+      if (!solutionCoverage[solName]) {
         // Solution from story not in master list
-        solutionCoverage[name] = {
-          solution_name: name,
-          solution_id: '',
+        solutionCoverage[solName] = {
+          solution_name: solName,
+          solution_id: solId,
           phase: '',
           total_stories: 0,
           recent_stories: 0,
@@ -453,17 +453,17 @@ function getCoverageAnalysis(days) {
         };
       }
 
-      solutionCoverage[name].total_stories++;
+      solutionCoverage[solName].total_stories++;
 
       if (storyDateObj && storyDateObj >= cutoff) {
-        solutionCoverage[name].recent_stories++;
+        solutionCoverage[solName].recent_stories++;
       }
 
       // Track most recent story
       if (storyDateObj) {
-        if (!solutionCoverage[name].last_story_date ||
-            storyDateObj > new Date(solutionCoverage[name].last_story_date)) {
-          solutionCoverage[name].last_story_date = storyDate;
+        if (!solutionCoverage[solName].last_story_date ||
+            storyDateObj > new Date(solutionCoverage[solName].last_story_date)) {
+          solutionCoverage[solName].last_story_date = storyDate;
         }
       }
     });
@@ -709,12 +709,12 @@ function getCommsStats() {
     }
   });
 
-  // Count unique solutions covered
+  // Count unique solutions covered (now using solution_id)
   var coveredSolutions = {};
   stories.forEach(function(s) {
-    if (s.solution_names) {
-      s.solution_names.split(',').forEach(function(name) {
-        coveredSolutions[name.trim()] = true;
+    if (s.solution_id) {
+      s.solution_id.split(',').forEach(function(id) {
+        coveredSolutions[id.trim()] = true;
       });
     }
   });
@@ -906,7 +906,7 @@ function updateStoryStatus(storyId, newStatus) {
 }
 
 /**
- * Search stories by title or notes
+ * Search stories by title, notes, or solution_id
  * @param {string} query - Search query
  * @returns {Array} Matching stories
  */
@@ -917,7 +917,7 @@ function searchStories(query) {
   var results = stories.filter(function(s) {
     return (s.title && s.title.toLowerCase().indexOf(queryLower) !== -1) ||
            (s.notes && s.notes.toLowerCase().indexOf(queryLower) !== -1) ||
-           (s.solution_names && s.solution_names.toLowerCase().indexOf(queryLower) !== -1);
+           (s.solution_id && s.solution_id.toLowerCase().indexOf(queryLower) !== -1);
   });
 
   return JSON.parse(JSON.stringify(results));
@@ -942,7 +942,7 @@ function getPipelineStoriesForUI() {
       title: s.title,
       content_type: s.content_type,
       status: s.status,
-      solution_names: s.solution_names,
+      solution_id: s.solution_id,
       channel: s.channel,
       author: s.author,
       target_date: s.target_date,

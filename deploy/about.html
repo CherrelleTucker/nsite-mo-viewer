@@ -95,7 +95,7 @@
         <div class="db-card">
           <div class="db-name">MO-DB_Solutions</div>
           <div class="db-count">~40 solutions</div>
-          <div class="db-desc">Solution metadata, milestones, key messages</div>
+          <div class="db-desc">Schema v2: 64 columns with semantic prefixes (core_, funding_, admin_, team_, earthdata_, comms_, product_, milestone_, docs_)</div>
         </div>
         <div class="db-card">
           <div class="db-name">MO-DB_Contacts</div>
@@ -150,7 +150,7 @@
         <div class="db-card">
           <div class="db-name">MO-DB_Meetings</div>
           <div class="db-count">Manual</div>
-          <div class="db-desc">Recurring meeting schedule</div>
+          <div class="db-desc">Recurring meeting schedule (day_of_week, time, cadence must be Plain Text format)</div>
         </div>
         <div class="db-card">
           <div class="db-name">MO-DB_Glossary</div>
@@ -194,7 +194,7 @@
           <div class="page-details">
             <div class="detail-group">
               <span class="detail-label">Data:</span>
-              <span>50+ columns per solution - identity, phase, team, milestones, deep_dive_date, key messages, docs</span>
+              <span>64 columns per solution (schema v2) - organized by semantic prefix: core_, admin_, team_, milestone_, docs_, comms_, earthdata_, product_, funding_</span>
             </div>
             <div class="detail-group">
               <span class="detail-label">Stats Panel:</span>
@@ -487,7 +487,7 @@
         </div>
         <div class="page-card-body">
           <div class="data-flow-mini">
-            <span class="flow-chip source">Contacts + Config</span>
+            <span class="flow-chip source">Contacts + Meetings + Config</span>
             <span class="flow-arrow">→</span>
             <span class="flow-chip output">Team dashboard</span>
           </div>
@@ -498,7 +498,11 @@
             </div>
             <div class="detail-group">
               <span class="detail-label">Views:</span>
-              <span>Overview (with profile badges), Meetings (weekly schedule), Documents (directing docs)</span>
+              <span>Overview (profiles + availability), Kudos, Meetings (weekly grid + detail list), Documents (directing docs)</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Meetings:</span>
+              <span>Weekly grid shows time and cadence (e.g., "4th Monday"); click to scroll to expandable detail row with category, type, description, and links</span>
             </div>
             <div class="detail-group">
               <span class="detail-label">Profiles:</span>
@@ -665,7 +669,7 @@
       </div>
       <div class="version-item">
         <span class="version-label">Updated</span>
-        <span class="version-value">January 21, 2026</span>
+        <span class="version-value">January 22, 2026</span>
       </div>
       <div class="version-item">
         <span class="version-label">Repository</span>
@@ -677,6 +681,11 @@
     </div>
   </section>
 </div>
+
+<!-- Back to Top Button -->
+<button class="back-to-top" id="backToTop" onclick="document.getElementById('overview').scrollIntoView({behavior:'smooth'})" title="Back to top">
+  <span class="material-icons">arrow_upward</span>
+</button>
 
 <style>
   /* Fallback values for CSS variables */
@@ -1196,6 +1205,36 @@
   .version-link svg {
     width: 16px;
     height: 16px;
+  }
+
+  /* Back to Top Button */
+  .back-to-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+    z-index: 100;
+  }
+
+  .back-to-top:hover {
+    background: #1a5a9e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+
+  .back-to-top .material-icons {
+    font-size: 24px;
   }
 </style>
 

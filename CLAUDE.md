@@ -164,6 +164,45 @@ MO-Viewer uses **passphrase + whitelist authentication** to support mixed accoun
 - On each page load, token is re-verified and whitelist is re-checked
 - Sessions are isolated per-user (different users get different tokens)
 
+## Google Sheets Database Requirements
+
+### Column Formatting (CRITICAL)
+
+**All columns containing text that will be displayed in the UI must be formatted as "Plain Text" in Google Sheets.**
+
+Why this matters:
+- Google Sheets auto-formats dates, times, and numbers
+- A time like `14:00` may be converted to a Date object, which renders incorrectly
+- The API passes values as-is; if Sheets converts them, the UI receives unexpected types
+
+**How to set Plain Text format:**
+1. Select the column(s)
+2. Format → Number → Plain Text
+3. Re-enter any values that were already auto-formatted
+
+**Columns that MUST be Plain Text:**
+| Database | Columns |
+|----------|---------|
+| MO-DB_Meetings | `time`, `day_of_week`, `cadence`, `name` |
+| MO-DB_Availability | `start_date`, `end_date` (if stored as strings) |
+| All databases | Any column with free-form text that might look like dates/numbers |
+
+### MO-DB_Meetings Schema
+
+| Column | Type | Expected Values | Notes |
+|--------|------|-----------------|-------|
+| `meeting_id` | Text | MTG_0001, etc. | Auto-generated on add |
+| `name` | Text | Meeting name | Displayed in UI |
+| `day_of_week` | Text | `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` | **Case-sensitive, exact match required** |
+| `time` | Text | `10:00 AM`, `14:00`, etc. | Displayed as-is, use Plain Text format |
+| `cadence` | Text | `Weekly`, `4th Monday`, `Biweekly`, `1st & 3rd Tuesday` | Recurrence pattern for display |
+| `is_active` | Boolean | `TRUE` / `FALSE` | Only active meetings display |
+| `category` | Text | `MO`, `Assessment`, `SEP`, `Comms`, etc. | For filtering/badges |
+| `type` | Text | `Internal`, `External`, etc. | Meeting type |
+| `description` | Text | Meeting description | Shown in detail modal |
+| `meeting_link` | URL | Teams/Zoom link | Clickable in detail modal |
+| `notes_link` | URL | Link to meeting notes | Clickable in detail modal |
+
 ## Documentation
 
 | Document | Purpose |

@@ -632,7 +632,7 @@ function getEventsForUI() {
       end_date: e.end_date,
       deadline: e.deadline,
       location: e.location,
-      solution_names: e.solution_names,
+      solution_id: e.solution_id,
       team_members: e.team_members,
       stakeholders: e.stakeholders,
       sector: e.sector,

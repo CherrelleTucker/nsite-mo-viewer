@@ -383,6 +383,34 @@
         .verifyPassphraseAccess(email, passphrase);
     }
 
+    // Security: Validate redirect URL to prevent open redirect attacks
+    function isValidRedirectUrl(url) {
+      if (!url) return false;
+      try {
+        var parsed = new URL(url);
+        // Only allow Google Apps Script domains
+        var validDomains = [
+          'script.google.com',
+          'script.googleusercontent.com'
+        ];
+        return validDomains.some(function(domain) {
+          return parsed.hostname === domain || parsed.hostname.endsWith('.' + domain);
+        });
+      } catch (e) {
+        return false;
+      }
+    }
+
+    // Security: Escape HTML attribute values
+    function escapeAttr(text) {
+      if (!text) return '';
+      return text.replace(/&/g, '&amp;')
+                 .replace(/"/g, '&quot;')
+                 .replace(/'/g, '&#39;')
+                 .replace(/</g, '&lt;')
+                 .replace(/>/g, '&gt;');
+    }
+
     function showContinueLink(redirectUrl) {
       // Hide the form and show a success message with clickable link
       var form = document.getElementById('signInForm');
@@ -390,6 +418,13 @@
 
       // Replace form content with success message and continue link
       form.style.display = 'none';
+
+      // Security: Validate redirect URL before using
+      if (!isValidRedirectUrl(redirectUrl)) {
+        showError('Invalid redirect URL. Please contact the administrator.');
+        form.style.display = 'block';
+        return;
+      }
 
       // Create success container
       var successDiv = document.createElement('div');
@@ -400,7 +435,7 @@
         '</div>' +
         '<h2 class="success-title">Access Granted!</h2>' +
         '<p class="success-text">Click below to continue to MO-Viewer</p>' +
-        '<a href="' + redirectUrl + '" target="_top" class="continue-btn">' +
+        '<a href="' + escapeAttr(redirectUrl) + '" target="_top" class="continue-btn">' +
           '<span class="material-icons">arrow_forward</span>' +
           'Continue to Dashboard' +
         '</a>';

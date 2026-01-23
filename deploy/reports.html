@@ -1056,10 +1056,7 @@
 
 <!-- Reports JavaScript -->
 <script>
-  console.log('Reports module loading...');
-
   var Reports = (function() {
-    console.log('Reports IIFE executing...');
     var previewData = null;
     var gapAnalysisData = null; // Store gap analysis alignments for dropdown
 
@@ -1392,10 +1389,8 @@
       // Simple alert for now - could be enhanced with toast notifications
       if (type === 'error') {
         alert('Error: ' + message);
-      } else {
-        console.log(message);
-        // Could show a toast notification here
       }
+      // Success notifications could be shown as toast notifications
     }
 
     /**
@@ -1523,25 +1518,29 @@
         var weightedScore = Math.round(a.alignmentScore * confidence / 100);
         // Show avg % met or reason why it's unavailable
         var avgMet;
-        if (a.stakeholderNeeds.avgDegreeNeedMet !== null) {
-          avgMet = a.stakeholderNeeds.avgDegreeNeedMet + '%';
+        var avgDegree = a.stakeholderNeeds.avgDegreeNeedMet;
+        if (avgDegree !== null && avgDegree !== undefined && !isNaN(avgDegree)) {
+          avgMet = avgDegree + '%';
         } else if (a.stakeholderNeeds.avgDegreeNeedMetReason) {
           avgMet = '<span title="' + escapeHtml(a.stakeholderNeeds.avgDegreeNeedMetReason) + '" style="cursor: help; color: var(--color-text-muted);">N/A*</span>';
         } else if (a.stakeholderNeeds.total === 0) {
-          avgMet = '<span style="color: var(--color-text-muted);">No data</span>';
+          avgMet = '<span style="color: var(--color-text-muted);">-</span>';
         } else {
-          avgMet = '-';
+          avgMet = '<span style="color: var(--color-text-muted);">N/A</span>';
         }
         var gapText = (a.gaps && a.gaps.length > 0) ? a.gaps.join('; ') : 'None identified';
         var statusColor = hasNeeds ? (a.alignmentScore >= 70 ? 'var(--color-success)' : (a.alignmentScore >= 40 ? 'var(--color-warning)' : 'var(--color-error)')) : 'var(--color-text-muted)';
         var confidenceClass = confidence >= 70 ? 'high' : (confidence >= 40 ? 'medium' : 'low');
 
+        // Use official name if available, fallback to solution ID
+        var displayName = a.officialName || a.solution;
+
         html += '<details class="alignment-row" style="margin-bottom: var(--space-xs); border: 1px solid var(--color-border-light); border-radius: var(--radius-sm);">';
         html += '<summary style="padding: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: var(--space-md);">';
-        html += '<span style="flex: 2;"><strong>' + escapeHtml(a.solution) + '</strong> <small style="color: var(--color-text-muted);">(' + escapeHtml(a.cycle) + ', ' + escapeHtml(a.phase) + ')</small></span>';
-        html += '<span style="flex: 1; text-align: center;">' + a.stakeholderNeeds.total + ' <small style="color: var(--color-text-muted);">(' + confidence + '% conf)</small></span>';
+        html += '<span style="flex: 2;"><strong>' + escapeHtml(displayName) + '</strong></span>';
+        html += '<span style="flex: 1; text-align: center;">' + a.stakeholderNeeds.total + ' responses</span>';
         html += '<span style="flex: 1; text-align: center;">' + avgMet + '</span>';
-        html += '<span style="flex: 1; text-align: center;"><span class="alignment-score ' + scoreClass + '">' + a.alignmentScore + '%</span> <small style="color: var(--color-text-muted);">→ ' + weightedScore + '%</small></span>';
+        html += '<span style="flex: 1; text-align: center;"><span class="alignment-score ' + scoreClass + '">' + a.alignmentScore + '%</span></span>';
         html += '</summary>';
 
         // Expanded content - gap analysis
@@ -1591,15 +1590,17 @@
             html += '<td style="padding: var(--space-xs);">' + (hasSolutionData ? escapeHtml(solValue) : '<span style="color: var(--color-text-muted);">Not specified</span>') + '</td>';
             html += '<td style="padding: var(--space-xs);">';
             if (hasStakeholderData) {
-              var valueCounts = {};
-              charData.forEach(function(v) {
-                var key = String(v || 'Not specified');
-                valueCounts[key] = (valueCounts[key] || 0) + 1;
+              // charData should be array of {name, count} objects from backend
+              var top3 = charData.slice(0, 3).map(function(item) {
+                // Handle various data formats
+                if (typeof item === 'string') return escapeHtml(item) + ' (1)';
+                if (!item) return 'Unknown (1)';
+                var name = item.name || item.value || item.label || JSON.stringify(item);
+                var count = item.count || 1;
+                return escapeHtml(String(name)) + ' (' + count + ')';
               });
-              var sorted = Object.keys(valueCounts).sort(function(x, y) { return valueCounts[y] - valueCounts[x]; });
-              var top3 = sorted.slice(0, 3).map(function(k) { return escapeHtml(k) + ' (' + valueCounts[k] + ')'; });
               html += top3.join(', ');
-              if (sorted.length > 3) html += ' <span style="color: var(--color-text-muted);">+' + (sorted.length - 3) + ' more</span>';
+              if (charData.length > 3) html += ' <span style="color: var(--color-text-muted);">+' + (charData.length - 3) + ' more</span>';
             } else {
               html += '<span style="color: var(--color-text-muted);">No data</span>';
             }
@@ -1701,16 +1702,14 @@
           html += '<td style="padding: var(--space-xs);">' + (hasSolutionData ? escapeHtml(solValue) : '<span style="color: var(--color-text-muted);">Not specified</span>') + '</td>';
           html += '<td style="padding: var(--space-xs);">';
           if (hasStakeholderData) {
-            // Aggregate and display top values
-            var valueCounts = {};
-            charData.forEach(function(v) {
-              var key = String(v || 'Not specified');
-              valueCounts[key] = (valueCounts[key] || 0) + 1;
+            // charData is already an array of {name, count} objects from backend formatAllValues_()
+            var top3 = charData.slice(0, 3).map(function(item) {
+              var name = (item && item.name) ? item.name : String(item || 'Not specified');
+              var count = (item && item.count) ? item.count : 1;
+              return escapeHtml(name) + ' (' + count + ')';
             });
-            var sorted = Object.keys(valueCounts).sort(function(x, y) { return valueCounts[y] - valueCounts[x]; });
-            var top3 = sorted.slice(0, 3).map(function(k) { return escapeHtml(k) + ' (' + valueCounts[k] + ')'; });
             html += top3.join(', ');
-            if (sorted.length > 3) html += ' <span style="color: var(--color-text-muted);">+' + (sorted.length - 3) + ' more</span>';
+            if (charData.length > 3) html += ' <span style="color: var(--color-text-muted);">+' + (charData.length - 3) + ' more</span>';
           } else {
             html += '<span style="color: var(--color-text-muted);">No data</span>';
           }
@@ -1995,7 +1994,7 @@
         if (updates.length === 0) return;
 
         html += '<div class="solution-updates-section">';
-        html += '<h3 class="solution-name">' + escapeHtml(sol.name) + '</h3>';
+        html += '<h3 class="solution-name">' + escapeHtml(sol.core_id) + '</h3>';
         html += '<span class="update-count">' + updates.length + ' updates</span>';
 
         html += '<table class="preview-table">';
@@ -2031,13 +2030,15 @@
           if (select && solutions) {
             solutions.forEach(function(sol) {
               var option = document.createElement('option');
-              option.value = sol.name || sol.solution_id;
-              option.textContent = sol.name || sol.solution_id;
+              option.value = sol.core_id;
+              option.textContent = sol.core_id;
               select.appendChild(option);
             });
           }
         })
-        .withFailureHandler(function() {})
+        .withFailureHandler(function(error) {
+          console.error('Failed to load solutions for reports:', error);
+        })
         .getAllSolutions();
     }
 
@@ -2049,7 +2050,6 @@
     }
 
     // Public API
-    console.log('Reports module initialized successfully');
     return {
       previewQuadChart: previewQuadChart,
       copyQuadChartText: copyQuadChartText,
@@ -2067,9 +2067,7 @@
   })();
 
   // Verify Reports loaded
-  if (typeof Reports !== 'undefined') {
-    console.log('Reports object available:', Object.keys(Reports));
-  } else {
+  if (typeof Reports === 'undefined') {
     console.error('ERROR: Reports object is undefined!');
   }
 </script>

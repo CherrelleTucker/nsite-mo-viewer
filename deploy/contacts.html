@@ -588,7 +588,6 @@ var Contacts = (function() {
   };
 
   function init() {
-    console.log('Contacts.init()');
     loadContacts();
     loadStats();
   }
@@ -668,6 +667,14 @@ var Contacts = (function() {
 
   function populateFilterDropdowns() {
     var deptSelect = document.getElementById('filterDepartment');
+    var solSelect = document.getElementById('filterSolution');
+
+    // Guard against SPA navigation - elements may not exist
+    if (!deptSelect || !solSelect) {
+      // SPA navigation - elements no longer exist
+      return;
+    }
+
     deptSelect.innerHTML = '<option value="">All Departments</option>';
     state.departments.forEach(function(d) {
       var opt = document.createElement('option');
@@ -676,7 +683,6 @@ var Contacts = (function() {
       deptSelect.appendChild(opt);
     });
 
-    var solSelect = document.getElementById('filterSolution');
     solSelect.innerHTML = '<option value="">All Solutions</option>';
     state.solutions.forEach(function(s) {
       var opt = document.createElement('option');

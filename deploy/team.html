@@ -13,6 +13,10 @@
           <span class="material-icons">grid_view</span>
           <span>Overview</span>
         </button>
+        <button class="view-btn" data-view="kudos" onclick="Team.setView('kudos')">
+          <span class="material-icons">celebration</span>
+          <span>Kudos</span>
+        </button>
         <button class="view-btn" data-view="meetings" onclick="Team.setView('meetings')">
           <span class="material-icons">calendar_today</span>
           <span>Meetings</span>
@@ -52,11 +56,11 @@
         <span class="stat-label">Out This Week</span>
       </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon"><span class="material-icons">description</span></div>
+    <div class="stat-card stat-kudos">
+      <div class="stat-icon"><span class="material-icons">favorite</span></div>
       <div class="stat-info">
-        <span class="stat-value" id="statDocuments">--</span>
-        <span class="stat-label">Directing Docs</span>
+        <span class="stat-value" id="statKudosMonth">--</span>
+        <span class="stat-label">Kudos This Month</span>
       </div>
     </div>
   </div>
@@ -108,6 +112,114 @@
         </div>
       </div>
     </div>
+
+    <!-- Kudos View -->
+    <div class="view-panel" id="kudosView">
+      <div class="kudos-layout">
+        <!-- Left: Give Kudos Card -->
+        <div class="kudos-give-section">
+          <div class="kudos-give-card">
+            <div class="kudos-give-header">
+              <span class="material-icons kudos-header-icon">celebration</span>
+              <div>
+                <h2>Give a Shoutout!</h2>
+                <p>Recognize a teammate for their awesome work</p>
+              </div>
+            </div>
+            <form id="kudosForm" onsubmit="return false;">
+              <div class="form-group">
+                <label>Who deserves some kudos?</label>
+                <select id="kudosRecipient" required>
+                  <option value="">Select teammate...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>What category?</label>
+                <div class="kudos-category-picker" id="kudosCategoryPicker">
+                  <button type="button" class="kudos-cat-btn" data-category="teamwork" onclick="Team.selectKudosCategory('teamwork')">
+                    <span class="material-icons">group</span>
+                    <span>Teamwork</span>
+                  </button>
+                  <button type="button" class="kudos-cat-btn" data-category="innovation" onclick="Team.selectKudosCategory('innovation')">
+                    <span class="material-icons">lightbulb</span>
+                    <span>Innovation</span>
+                  </button>
+                  <button type="button" class="kudos-cat-btn" data-category="above_and_beyond" onclick="Team.selectKudosCategory('above_and_beyond')">
+                    <span class="material-icons">star</span>
+                    <span>Above &amp; Beyond</span>
+                  </button>
+                  <button type="button" class="kudos-cat-btn" data-category="mentorship" onclick="Team.selectKudosCategory('mentorship')">
+                    <span class="material-icons">school</span>
+                    <span>Mentorship</span>
+                  </button>
+                  <button type="button" class="kudos-cat-btn" data-category="delivery" onclick="Team.selectKudosCategory('delivery')">
+                    <span class="material-icons">check_circle</span>
+                    <span>Delivery</span>
+                  </button>
+                </div>
+                <input type="hidden" id="kudosCategory" required>
+              </div>
+              <div class="form-group">
+                <label>Your message</label>
+                <textarea id="kudosMessage" rows="3" maxlength="280" placeholder="What did they do that was awesome?" required></textarea>
+                <div class="char-count"><span id="kudosCharCount">0</span>/280</div>
+              </div>
+              <div class="form-group kudos-slack-option" id="slackOptionGroup" style="display:none;">
+                <label class="checkbox-label kudos-slack-checkbox">
+                  <input type="checkbox" id="kudosPostToSlack" checked>
+                  <span class="material-icons slack-icon">tag</span>
+                  <span>Post to #odsi-kudos</span>
+                </label>
+              </div>
+              <button type="button" class="btn btn-kudos" onclick="Team.submitKudos()">
+                <span class="material-icons">send</span>
+                Send Kudos!
+              </button>
+            </form>
+          </div>
+
+          <!-- Kudos Stats -->
+          <div class="kudos-stats-card">
+            <h3><span class="material-icons">insights</span> Kudos Stats</h3>
+            <div class="kudos-mini-stats" id="kudosMiniStats">
+              <div class="kudos-mini-stat">
+                <span class="stat-num" id="kudosThisQuarter">--</span>
+                <span class="stat-desc">This Quarter</span>
+              </div>
+              <div class="kudos-mini-stat">
+                <span class="stat-num" id="kudosThisMonth">--</span>
+                <span class="stat-desc">This Month</span>
+              </div>
+            </div>
+            <div class="kudos-top-recipients" id="kudosTopRecipients">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Kudos Feed -->
+        <div class="kudos-feed-section">
+          <div class="section-header">
+            <h2><span class="material-icons">stream</span> Recent Kudos</h2>
+            <select id="kudosFeedFilter" onchange="Team.filterKudosFeed(this.value)">
+              <option value="all">All Time</option>
+              <option value="30" selected>Last 30 Days</option>
+              <option value="90">Last 90 Days</option>
+              <option value="quarter">This Quarter</option>
+            </select>
+          </div>
+          <div class="kudos-feed" id="kudosFeed">
+            <div class="loading-state">
+              <span class="loading-spinner"></span>
+              <span>Loading kudos...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confetti Canvas for Celebrations -->
+    <canvas id="confettiCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;display:none;"></canvas>
 
     <!-- Meetings View -->
     <div class="view-panel" id="meetingsView">
@@ -268,7 +380,7 @@
         </div>
         <div class="form-group">
           <label>Notes (optional)</label>
-          <textarea id="availNotes" rows="2"></textarea>
+          <textarea id="availNotes" rows="2" maxlength="500"></textarea>
         </div>
       </form>
     </div>
@@ -357,7 +469,7 @@
         </div>
         <div class="form-group">
           <label>Purpose</label>
-          <textarea id="meetingPurpose" rows="2" placeholder="What problem does this meeting solve?"></textarea>
+          <textarea id="meetingPurpose" rows="2" maxlength="1000" placeholder="What problem does this meeting solve?"></textarea>
         </div>
         <div class="form-group">
           <label>Online Meeting Link</label>
@@ -560,6 +672,7 @@
     box-shadow: var(--shadow-sm);
   }
   .stat-card.stat-warning .stat-icon { background: rgba(237, 108, 2, 0.1); color: var(--color-warning); }
+  .stat-card.stat-kudos .stat-icon { background: rgba(233, 30, 99, 0.1); color: #e91e63; }
   .stat-icon {
     width: 48px;
     height: 48px;
@@ -846,6 +959,73 @@
 
   .meeting-chip .meeting-name {
     color: var(--color-text-muted);
+  }
+
+  .meeting-chip .meeting-cadence {
+    font-style: italic;
+    color: var(--color-text-muted);
+    font-size: 0.9em;
+  }
+
+  /* Meeting Row Highlight (when clicked from weekly grid) */
+  .meeting-row.highlight {
+    animation: highlightPulse 1.5s ease-out;
+  }
+
+  @keyframes highlightPulse {
+    0% { background-color: rgba(11, 61, 145, 0.2); }
+    100% { background-color: var(--color-surface); }
+  }
+
+  /* Meeting Detail Modal */
+  .meeting-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .meeting-detail-section {
+    margin-bottom: var(--space-md);
+  }
+
+  .meeting-detail-section h4 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin: 0 0 var(--space-sm) 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .meeting-detail-section h4 .material-icons {
+    font-size: 16px;
+  }
+
+  .meeting-detail-row {
+    padding: var(--space-xs) 0;
+    font-size: var(--font-size-sm);
+  }
+
+  .meeting-detail-section p {
+    margin: 0;
+    color: var(--color-text);
+    line-height: 1.5;
+  }
+
+  .meeting-detail-section .btn-sm {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-xs);
+    margin-right: var(--space-xs);
+    margin-top: var(--space-xs);
+  }
+
+  .meeting-detail-section .btn-sm .material-icons {
+    font-size: 14px;
+    margin-right: var(--space-xs);
+    vertical-align: middle;
   }
 
   /* Meetings List */
@@ -1348,14 +1528,433 @@
     background: var(--color-surface);
   }
 
+  /* ============================================
+     KUDOS STYLES - The Fun Stuff!
+     ============================================ */
+
+  /* Kudos Layout */
+  .kudos-layout {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: var(--space-lg);
+  }
+
+  /* Give Kudos Card */
+  .kudos-give-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .kudos-give-card {
+    background: linear-gradient(135deg, #fff 0%, #fce4ec 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-md);
+    border: 2px solid #f8bbd9;
+  }
+
+  .kudos-give-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+
+  .kudos-header-icon {
+    font-size: 48px;
+    color: #e91e63;
+    animation: wiggle 2s ease-in-out infinite;
+  }
+
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+  }
+
+  .kudos-give-header h2 {
+    margin: 0;
+    font-size: var(--font-size-xl);
+    color: #c2185b;
+  }
+
+  .kudos-give-header p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+  }
+
+  /* Category Picker */
+  .kudos-category-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-top: var(--space-xs);
+  }
+
+  .kudos-cat-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: var(--space-sm);
+    background: white;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 70px;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+  }
+
+  .kudos-cat-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .kudos-cat-btn.selected {
+    border-color: #e91e63;
+    background: #fce4ec;
+    color: #c2185b;
+  }
+
+  .kudos-cat-btn .material-icons {
+    font-size: 24px;
+  }
+
+  .kudos-cat-btn[data-category="teamwork"] .material-icons { color: #2196F3; }
+  .kudos-cat-btn[data-category="innovation"] .material-icons { color: #FF9800; }
+  .kudos-cat-btn[data-category="above_and_beyond"] .material-icons { color: #9C27B0; }
+  .kudos-cat-btn[data-category="mentorship"] .material-icons { color: #4CAF50; }
+  .kudos-cat-btn[data-category="delivery"] .material-icons { color: #00BCD4; }
+
+  /* Message Textarea */
+  #kudosMessage {
+    resize: none;
+    font-size: var(--font-size-md);
+  }
+
+  .char-count {
+    text-align: right;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-top: 4px;
+  }
+
+  /* Slack Option */
+  .kudos-slack-option {
+    margin-top: var(--space-sm);
+  }
+
+  .kudos-slack-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: #4a154b;
+    color: white;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    border: none;
+  }
+
+  .kudos-slack-checkbox:hover {
+    background: #611f69;
+  }
+
+  .kudos-slack-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #36c5f0;
+  }
+
+  .kudos-slack-checkbox .slack-icon {
+    font-size: 18px;
+    color: #36c5f0;
+  }
+
+  /* Send Button */
+  .btn-kudos {
+    width: 100%;
+    padding: var(--space-md);
+    background: linear-gradient(135deg, #e91e63, #c2185b);
+    color: white;
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+  }
+
+  .btn-kudos:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.4);
+  }
+
+  .btn-kudos:active {
+    transform: translateY(0);
+  }
+
+  .btn-kudos.sending {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  /* Kudos Stats Card */
+  .kudos-stats-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .kudos-stats-card h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--font-size-md);
+    margin: 0 0 var(--space-md) 0;
+    color: var(--color-text);
+  }
+
+  .kudos-stats-card h3 .material-icons {
+    color: #e91e63;
+  }
+
+  .kudos-mini-stats {
+    display: flex;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .kudos-mini-stat {
+    flex: 1;
+    text-align: center;
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+  }
+
+  .kudos-mini-stat .stat-num {
+    display: block;
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: #e91e63;
+  }
+
+  .kudos-mini-stat .stat-desc {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .kudos-top-recipients h4 {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-sm) 0;
+  }
+
+  .kudos-top-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .kudos-top-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs);
+    font-size: var(--font-size-sm);
+  }
+
+  .kudos-top-item .rank {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fce4ec;
+    color: #c2185b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .kudos-top-item .rank.gold { background: #fff3cd; color: #856404; }
+  .kudos-top-item .rank.silver { background: #e2e3e5; color: #495057; }
+  .kudos-top-item .rank.bronze { background: #f5e0d3; color: #7c4a03; }
+
+  /* Kudos Feed */
+  .kudos-feed-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .kudos-feed-section .section-header {
+    margin-bottom: var(--space-md);
+  }
+
+  .kudos-feed-section .section-header h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .kudos-feed-section .section-header h2 .material-icons {
+    color: #e91e63;
+  }
+
+  .kudos-feed {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    max-height: 600px;
+    overflow-y: auto;
+  }
+
+  /* Individual Kudos Card */
+  .kudos-card {
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kudos-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+  }
+
+  .kudos-card.cat-teamwork::before { background: #2196F3; }
+  .kudos-card.cat-innovation::before { background: #FF9800; }
+  .kudos-card.cat-above_and_beyond::before { background: #9C27B0; }
+  .kudos-card.cat-mentorship::before { background: #4CAF50; }
+  .kudos-card.cat-delivery::before { background: #00BCD4; }
+
+  .kudos-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateX(4px);
+  }
+
+  .kudos-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+
+  .kudos-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e91e63, #9c27b0);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+  }
+
+  .kudos-meta {
+    flex: 1;
+  }
+
+  .kudos-names {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .kudos-names .from { color: var(--color-text-secondary); }
+  .kudos-names .to { color: #c2185b; }
+  .kudos-names .arrow { color: var(--color-text-muted); margin: 0 4px; }
+
+  .kudos-time {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .kudos-category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+  }
+
+  .kudos-category-badge.teamwork { background: #e3f2fd; color: #1565c0; }
+  .kudos-category-badge.innovation { background: #fff3e0; color: #ef6c00; }
+  .kudos-category-badge.above_and_beyond { background: #f3e5f5; color: #7b1fa2; }
+  .kudos-category-badge.mentorship { background: #e8f5e9; color: #2e7d32; }
+  .kudos-category-badge.delivery { background: #e0f7fa; color: #00838f; }
+
+  .kudos-category-badge .material-icons {
+    font-size: 14px;
+  }
+
+  .kudos-message {
+    font-size: var(--font-size-md);
+    color: var(--color-text);
+    line-height: 1.5;
+    margin-top: var(--space-sm);
+  }
+
+  /* Empty state for kudos */
+  .kudos-empty {
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--color-text-muted);
+  }
+
+  .kudos-empty .material-icons {
+    font-size: 64px;
+    color: #f8bbd9;
+    margin-bottom: var(--space-md);
+  }
+
+  /* Success animation */
+  @keyframes kudos-success {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  .kudos-card.new {
+    animation: kudos-success 0.5s ease;
+    border-color: #e91e63;
+    box-shadow: 0 0 20px rgba(233, 30, 99, 0.3);
+  }
+
   /* Responsive */
   @media (max-width: 1200px) {
     .team-grid { grid-template-columns: 1fr; }
+    .kudos-layout { grid-template-columns: 1fr; }
   }
   @media (max-width: 768px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
     .weekly-grid { grid-template-columns: repeat(3, 1fr); }
     .form-row { grid-template-columns: 1fr; }
+    .kudos-category-picker { justify-content: center; }
   }
 </style>
 
@@ -1371,10 +1970,47 @@
     meetings: [],
     availability: [],
     documents: [],
+    kudos: [],
+    kudosStats: null,
+    selectedKudosCategory: null,
     currentView: 'overview',
 
     init: function() {
       this.loadData();
+      this.setupKudosForm();
+      this.loadCurrentUser();
+    },
+
+    loadCurrentUser: function() {
+      google.script.run
+        .withSuccessHandler(function(user) {
+          window.currentUserName = user.name || 'Anonymous';
+          // If user has a name, we can personalize the kudos form
+          if (user.name) {
+            var header = document.querySelector('.kudos-give-header p');
+            if (header) {
+              header.textContent = 'Hey ' + user.firstName + '! Recognize a teammate for their awesome work';
+            }
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Could not load user info:', error);
+          window.currentUserName = 'Anonymous';
+        })
+        .getCurrentUserInfo();
+
+      // Check if Slack is configured
+      google.script.run
+        .withSuccessHandler(function(isConfigured) {
+          if (isConfigured) {
+            var slackGroup = document.getElementById('slackOptionGroup');
+            if (slackGroup) slackGroup.style.display = '';
+          }
+        })
+        .withFailureHandler(function() {
+          // Slack not configured, keep hidden
+        })
+        .isSlackConfigured();
     },
 
     loadData: function() {
@@ -1418,6 +2054,348 @@
         })
         .withFailureHandler(handleError)
         .getDirectingDocuments();
+
+      // Load kudos
+      this.loadKudos();
+    },
+
+    loadKudos: function() {
+      // Load recent kudos
+      google.script.run
+        .withSuccessHandler(function(data) {
+          Team.kudos = data || [];
+          Team.renderKudosFeed();
+          Team.updateStats();
+        })
+        .withFailureHandler(handleError)
+        .getAllKudos({ days: 30, limit: 50 });
+
+      // Load kudos stats
+      google.script.run
+        .withSuccessHandler(function(data) {
+          Team.kudosStats = data;
+          Team.renderKudosStats();
+        })
+        .withFailureHandler(handleError)
+        .getKudosStats(90);
+    },
+
+    setupKudosForm: function() {
+      // Character counter for message
+      var messageInput = document.getElementById('kudosMessage');
+      var charCount = document.getElementById('kudosCharCount');
+      if (messageInput && charCount) {
+        messageInput.addEventListener('input', function() {
+          charCount.textContent = this.value.length;
+          if (this.value.length > 280) {
+            charCount.style.color = '#c62828';
+          } else {
+            charCount.style.color = '';
+          }
+        });
+      }
+    },
+
+    selectKudosCategory: function(category) {
+      this.selectedKudosCategory = category;
+      document.getElementById('kudosCategory').value = category;
+
+      // Update button states
+      document.querySelectorAll('.kudos-cat-btn').forEach(function(btn) {
+        btn.classList.remove('selected');
+      });
+      document.querySelector('.kudos-cat-btn[data-category="' + category + '"]').classList.add('selected');
+    },
+
+    submitKudos: function() {
+      var recipientSelect = document.getElementById('kudosRecipient');
+      var category = document.getElementById('kudosCategory').value;
+      var message = document.getElementById('kudosMessage').value.trim();
+
+      // Validation
+      if (!recipientSelect.value) {
+        alert('Please select a teammate!');
+        return;
+      }
+      if (!category) {
+        alert('Please pick a category!');
+        return;
+      }
+      if (!message) {
+        alert('Please write a message!');
+        return;
+      }
+      if (message.length > 280) {
+        alert('Message is too long! Keep it under 280 characters.');
+        return;
+      }
+
+      var selectedOption = recipientSelect.options[recipientSelect.selectedIndex];
+      var toName = selectedOption.textContent;
+
+      // Get current user info (from session or prompt)
+      var fromName = window.currentUserName || 'Anonymous';
+
+      // Check if Slack posting is enabled
+      var postToSlack = document.getElementById('kudosPostToSlack');
+      var shouldPostToSlack = postToSlack && postToSlack.checked;
+
+      var btn = document.querySelector('.btn-kudos');
+      btn.classList.add('sending');
+      btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Sending...';
+
+      var data = {
+        from_name: fromName,
+        to_name: toName,
+        message: message,
+        category: category,
+        post_to_slack: shouldPostToSlack
+      };
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.classList.remove('sending');
+          btn.innerHTML = '<span class="material-icons">check</span> Sent!';
+
+          // Celebrate!
+          Team.celebrate();
+
+          // Add new kudos to top of feed with animation
+          Team.kudos.unshift(result);
+          Team.renderKudosFeed();
+
+          // Highlight the new kudos
+          setTimeout(function() {
+            var firstCard = document.querySelector('.kudos-card');
+            if (firstCard) firstCard.classList.add('new');
+          }, 100);
+
+          // Reset form after delay
+          setTimeout(function() {
+            btn.innerHTML = '<span class="material-icons">send</span> Send Kudos!';
+            document.getElementById('kudosForm').reset();
+            document.querySelectorAll('.kudos-cat-btn').forEach(function(b) { b.classList.remove('selected'); });
+            Team.selectedKudosCategory = null;
+            document.getElementById('kudosCharCount').textContent = '0';
+          }, 2000);
+
+          // Reload stats
+          Team.loadKudos();
+        })
+        .withFailureHandler(function(error) {
+          btn.classList.remove('sending');
+          btn.innerHTML = '<span class="material-icons">send</span> Send Kudos!';
+          alert('Failed to send kudos: ' + (error.message || error));
+        })
+        .submitKudos(data);
+    },
+
+    renderKudosFeed: function() {
+      var container = document.getElementById('kudosFeed');
+      if (!this.kudos.length) {
+        container.innerHTML = '<div class="kudos-empty">' +
+          '<span class="material-icons">emoji_events</span>' +
+          '<p>No kudos yet!</p>' +
+          '<p>Be the first to recognize a teammate.</p>' +
+        '</div>';
+        return;
+      }
+
+      var categoryIcons = {
+        'teamwork': 'group',
+        'innovation': 'lightbulb',
+        'above_and_beyond': 'star',
+        'mentorship': 'school',
+        'delivery': 'check_circle'
+      };
+
+      var categoryNames = {
+        'teamwork': 'Teamwork',
+        'innovation': 'Innovation',
+        'above_and_beyond': 'Above & Beyond',
+        'mentorship': 'Mentorship',
+        'delivery': 'Delivery'
+      };
+
+      var html = this.kudos.map(function(k) {
+        var toInitials = (k.to_name || '??').split(' ').map(function(n) { return n.charAt(0); }).join('').toUpperCase();
+        var timeAgo = Team.timeAgo(k.created_at);
+        var catIcon = categoryIcons[k.category] || 'star';
+        var catName = categoryNames[k.category] || k.category;
+
+        return '<div class="kudos-card cat-' + k.category + '">' +
+          '<div class="kudos-card-header">' +
+            '<div class="kudos-avatar">' + toInitials + '</div>' +
+            '<div class="kudos-meta">' +
+              '<div class="kudos-names">' +
+                '<span class="from">' + Team.escapeHtml(k.from_name) + '</span>' +
+                '<span class="arrow">&rarr;</span>' +
+                '<span class="to">' + Team.escapeHtml(k.to_name) + '</span>' +
+              '</div>' +
+              '<div class="kudos-time">' + timeAgo + '</div>' +
+            '</div>' +
+            '<span class="kudos-category-badge ' + k.category + '">' +
+              '<span class="material-icons">' + catIcon + '</span>' +
+              catName +
+            '</span>' +
+          '</div>' +
+          '<div class="kudos-message">' + Team.escapeHtml(k.message) + '</div>' +
+        '</div>';
+      }).join('');
+
+      container.innerHTML = html;
+    },
+
+    renderKudosStats: function() {
+      if (!this.kudosStats) return;
+
+      document.getElementById('kudosThisQuarter').textContent = this.kudosStats.total || 0;
+
+      // Calculate this month from the kudos array
+      var thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      var thisMonth = this.kudos.filter(function(k) {
+        return new Date(k.created_at) >= thirtyDaysAgo;
+      }).length;
+      document.getElementById('kudosThisMonth').textContent = thisMonth;
+
+      // Top recipients
+      var topContainer = document.getElementById('kudosTopRecipients');
+      if (this.kudosStats.top_recipients && this.kudosStats.top_recipients.length > 0) {
+        var html = '<h4>Top Kudos Recipients</h4><div class="kudos-top-list">';
+        this.kudosStats.top_recipients.slice(0, 5).forEach(function(r, i) {
+          var rankClass = i === 0 ? 'gold' : (i === 1 ? 'silver' : (i === 2 ? 'bronze' : ''));
+          html += '<div class="kudos-top-item">' +
+            '<span class="rank ' + rankClass + '">' + (i + 1) + '</span>' +
+            '<span style="flex:1;">' + Team.escapeHtml(r.name) + '</span>' +
+            '<span style="color:#e91e63;font-weight:600;">' + r.count + '</span>' +
+          '</div>';
+        });
+        html += '</div>';
+        topContainer.innerHTML = html;
+      } else {
+        topContainer.innerHTML = '<p class="text-muted text-sm">No kudos data yet</p>';
+      }
+    },
+
+    filterKudosFeed: function(value) {
+      var options = {};
+      if (value === 'quarter') {
+        options.quarter = this.kudosStats ? this.kudosStats.current_quarter : '';
+      } else if (value !== 'all') {
+        options.days = parseInt(value);
+      }
+      options.limit = 50;
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          Team.kudos = data || [];
+          Team.renderKudosFeed();
+        })
+        .withFailureHandler(handleError)
+        .getAllKudos(options);
+    },
+
+    // Confetti celebration!
+    celebrate: function() {
+      var canvas = document.getElementById('confettiCanvas');
+      canvas.style.display = 'block';
+      var ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      var particles = [];
+      var colors = ['#e91e63', '#9c27b0', '#2196f3', '#4caf50', '#ff9800', '#00bcd4', '#ffeb3b'];
+
+      // Create particles
+      for (var i = 0; i < 150; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          r: Math.random() * 6 + 4,
+          d: Math.random() * 150 + 50,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          tilt: Math.floor(Math.random() * 10) - 10,
+          tiltAngle: 0,
+          tiltAngleIncrement: Math.random() * 0.07 + 0.05
+        });
+      }
+
+      var animationFrame;
+      var frameCount = 0;
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        frameCount++;
+
+        particles.forEach(function(p, i) {
+          ctx.beginPath();
+          ctx.lineWidth = p.r / 2;
+          ctx.strokeStyle = p.color;
+          ctx.moveTo(p.x + p.tilt + p.r / 4, p.y);
+          ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 4);
+          ctx.stroke();
+
+          p.tiltAngle += p.tiltAngleIncrement;
+          p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+          p.x += Math.sin(0);
+          p.tilt = Math.sin(p.tiltAngle) * 15;
+
+          if (p.y > canvas.height) {
+            particles[i] = {
+              x: Math.random() * canvas.width,
+              y: -10,
+              r: p.r,
+              d: p.d,
+              color: p.color,
+              tilt: p.tilt,
+              tiltAngle: p.tiltAngle,
+              tiltAngleIncrement: p.tiltAngleIncrement
+            };
+          }
+        });
+
+        if (frameCount < 180) {
+          animationFrame = requestAnimationFrame(draw);
+        } else {
+          cancelAnimationFrame(animationFrame);
+          canvas.style.display = 'none';
+        }
+      }
+
+      draw();
+    },
+
+    timeAgo: function(dateString) {
+      var date = new Date(dateString);
+      var now = new Date();
+      var seconds = Math.floor((now - date) / 1000);
+
+      var interval = Math.floor(seconds / 31536000);
+      if (interval >= 1) return interval + ' year' + (interval > 1 ? 's' : '') + ' ago';
+
+      interval = Math.floor(seconds / 2592000);
+      if (interval >= 1) return interval + ' month' + (interval > 1 ? 's' : '') + ' ago';
+
+      interval = Math.floor(seconds / 86400);
+      if (interval >= 1) return interval + ' day' + (interval > 1 ? 's' : '') + ' ago';
+
+      interval = Math.floor(seconds / 3600);
+      if (interval >= 1) return interval + ' hour' + (interval > 1 ? 's' : '') + ' ago';
+
+      interval = Math.floor(seconds / 60);
+      if (interval >= 1) return interval + ' minute' + (interval > 1 ? 's' : '') + ' ago';
+
+      return 'Just now';
+    },
+
+    escapeHtml: function(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
     },
 
     setView: function(view) {
@@ -1444,6 +2422,8 @@
       } else if (view === 'meetings') {
         addBtn.style.display = '';
         addLabel.textContent = 'Add Meeting';
+      } else if (view === 'kudos') {
+        addBtn.style.display = 'none'; // Kudos has inline form
       } else {
         addBtn.style.display = 'none'; // Hide for documents view
       }
@@ -1494,6 +2474,10 @@
 
     renderTeamProfiles: function() {
       var container = document.getElementById('teamProfilesGrid');
+      if (!container) {
+        // SPA navigation - elements no longer exist
+        return;
+      }
       if (!this.members.length) {
         container.innerHTML = '<p class="text-muted">No team members found</p>';
         return;
@@ -1573,6 +2557,10 @@
 
     renderAvailability: function() {
       var container = document.getElementById('availabilityList');
+      if (!container) {
+        // SPA navigation - elements no longer exist
+        return;
+      }
       if (!this.availability.length) {
         container.innerHTML = '<p class="text-muted">No upcoming availability entries</p>';
         return;
@@ -1629,10 +2617,19 @@
     },
 
     renderMeetings: function() {
+      // Guard against SPA navigation - elements may not exist
+      var listContainer = document.getElementById('meetingsList');
+      if (!listContainer) {
+        // SPA navigation - elements no longer exist
+        return;
+      }
+
       // Render weekly grid
       var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
       days.forEach(function(day) {
         var container = document.getElementById('meetings' + day);
+        if (!container) return;
+
         var dayMeetings = Team.meetings.filter(function(m) {
           return m.day_of_week === day && m.is_active;
         });
@@ -1643,9 +2640,10 @@
         }
 
         var html = dayMeetings.map(function(m) {
+          var cadenceText = m.cadence && m.cadence.toLowerCase() !== 'weekly' ? ' <span class="meeting-cadence">(' + m.cadence + ')</span>' : '';
           return '<div class="meeting-chip" onclick="Team.showMeetingDetail(\'' + m.meeting_id + '\')">' +
             '<span class="meeting-time">' + (m.time || 'TBD') + '</span>' +
-            '<span class="meeting-name">' + m.name + '</span>' +
+            '<span class="meeting-name">' + m.name + cadenceText + '</span>' +
           '</div>';
         }).join('');
 
@@ -1653,7 +2651,6 @@
       });
 
       // Render meetings list
-      var listContainer = document.getElementById('meetingsList');
       var html = this.meetings.map(function(m) {
         return '<div class="meeting-row" id="meeting-' + m.meeting_id + '">' +
           '<div class="meeting-row-header" onclick="Team.toggleMeetingRow(\'' + m.meeting_id + '\')">' +
@@ -1709,6 +2706,10 @@
 
     renderDocuments: function() {
       var container = document.getElementById('directingDocsList');
+      if (!container) {
+        // SPA navigation - elements no longer exist
+        return;
+      }
       if (!this.documents.length) {
         container.innerHTML = '<div class="empty-state"><p>No directing documents configured.</p><p class="text-muted">Add document IDs to MO-DB_Config to display them here.</p></div>';
         return;
@@ -1765,7 +2766,13 @@
 },
 
     updateStats: function() {
-      document.getElementById('statTeamMembers').textContent = this.members.length;
+      // Guard against SPA navigation
+      var statEl = document.getElementById('statTeamMembers');
+      if (!statEl) {
+        // SPA navigation - elements no longer exist
+        return;
+      }
+      statEl.textContent = this.members.length;
 
       // Count meetings this week (recurring meetings with day_of_week set)
       var weeklyMeetings = this.meetings.filter(function(m) {
@@ -1782,17 +2789,34 @@
       });
       document.getElementById('statOutThisWeek').textContent = outThisWeek.length;
 
-      // Directing docs count
-      document.getElementById('statDocuments').textContent = this.documents.length;
+      // Kudos this month
+      var thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      var kudosThisMonth = this.kudos.filter(function(k) {
+        return new Date(k.created_at) >= thirtyDaysAgo;
+      }).length;
+      document.getElementById('statKudosMonth').textContent = kudosThisMonth;
     },
 
     populatePersonSelect: function() {
+      // Availability person select
       var select = document.getElementById('availPersonSelect');
       var options = '<option value="">Select person...</option>';
       this.members.forEach(function(m) {
         options += '<option value="' + m.contact_id + '">' + m.first_name + ' ' + m.last_name + '</option>';
       });
       select.innerHTML = options;
+
+      // Kudos recipient select
+      var kudosSelect = document.getElementById('kudosRecipient');
+      if (kudosSelect) {
+        var kudosOptions = '<option value="">Select teammate...</option>';
+        this.members.forEach(function(m) {
+          var fullName = ((m.first_name || '') + ' ' + (m.last_name || '')).trim();
+          kudosOptions += '<option value="' + m.contact_id + '">' + fullName + '</option>';
+        });
+        kudosSelect.innerHTML = kudosOptions;
+      }
     },
 
     // Modal functions
@@ -1827,12 +2851,23 @@
     },
 
     showMeetingDetail: function(meetingId) {
-      var meeting = this.meetings.find(function(m) { return m.meeting_id === meetingId; });
-      if (!meeting) return;
+      // Scroll to and expand the meeting row in the list below
+      var row = document.getElementById('meeting-' + meetingId);
+      if (!row) return;
 
-      document.getElementById('meetingDetailTitle').textContent = meeting.name;
-      // Populate body...
-      document.getElementById('meetingDetailModal').classList.add('show');
+      // Expand the row if not already expanded
+      if (!row.classList.contains('expanded')) {
+        this.toggleMeetingRow(meetingId);
+      }
+
+      // Scroll into view with some offset for the header
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Brief highlight effect
+      row.classList.add('highlight');
+      setTimeout(function() {
+        row.classList.remove('highlight');
+      }, 1500);
     },
 
     showMemberDetail: function(contactId) {

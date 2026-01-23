@@ -246,7 +246,7 @@
         <h3>Request Access:</h3>
         <div id="requestForm">
           <p style="margin-bottom: 12px; font-size: 14px; color: #555;">Click below to send an access request to the administrator.</p>
-          <textarea id="requestReason" placeholder="Reason for access (optional)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 12px; font-family: inherit; resize: vertical; min-height: 60px;"></textarea>
+          <textarea id="requestReason" placeholder="Reason for access (optional)" maxlength="500" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 12px; font-family: inherit; resize: vertical; min-height: 60px;"></textarea>
           <button id="requestBtn" onclick="submitAccessRequest()" style="width: 100%; padding: 12px; background: #0B3D91; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">
             Request Access
           </button>
@@ -278,10 +278,23 @@
   <script>
     var userEmail = null;
 
+    // Security: Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      if (!text) return '';
+      var div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
     // Get email from URL parameter
     function getUrlParam(name) {
       var url = new URL(window.location.href);
       return url.searchParams.get(name);
+    }
+
+    // Validate email format
+    function isValidEmail(email) {
+      return email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
 
     // Display the email from URL parameter
@@ -311,11 +324,12 @@
           document.getElementById('requestForm').style.display = 'none';
           if (result.manualRequest) {
             // Show manual instructions if email couldn't be sent
+            // Security: Escape user-controlled values to prevent XSS
             document.getElementById('requestSuccess').innerHTML =
               '<strong>Request Logged</strong><br>' +
               'Your request has been recorded. Please also contact the administrator directly:<br><br>' +
-              '<strong>Email:</strong> ' + result.adminEmail + '<br>' +
-              '<strong>Include:</strong> Your email (' + userEmail + ') and reason for access.';
+              '<strong>Email:</strong> ' + escapeHtml(result.adminEmail) + '<br>' +
+              '<strong>Include:</strong> Your email (' + escapeHtml(userEmail) + ') and reason for access.';
           } else {
             document.getElementById('requestSuccess').innerHTML =
               '<strong>Request Sent!</strong><br>' +

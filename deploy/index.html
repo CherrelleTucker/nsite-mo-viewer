@@ -163,17 +163,13 @@
     function navigateTo(page) {
       // Prevent double-clicks and multiple navigations
       if (isNavigating) {
-        console.log('Navigation already in progress');
         return;
       }
 
       // Don't navigate to current page
       if (page === Platform.activePage) {
-        console.log('Already on page:', page);
         return;
       }
-
-      console.log('SPA navigating to:', page);
       isNavigating = true;
 
       // Show loading state
@@ -210,8 +206,6 @@
           // Clear loading state
           clearLoadingState();
           isNavigating = false;
-
-          console.log('Page loaded:', page);
         })
         .withFailureHandler(function(error) {
           console.error('Failed to load page:', error);
@@ -304,8 +298,6 @@
       if (e.location && e.location.parameter && e.location.parameter.session) {
         Platform.sessionToken = e.location.parameter.session;
       }
-
-      console.log('History change, loading:', page);
 
       if (page !== Platform.activePage) {
         isNavigating = true;
@@ -482,11 +474,11 @@
         html += '<div class="search-group">';
         html += '<div class="search-group-header">Solutions (' + results.solutions.length + ')</div>';
         results.solutions.forEach(function(sol) {
-          html += '<div class="search-result" onclick="goToSearchResult(\'implementation\', \'' + escapeHtml(sol.solution_id || '') + '\')">';
+          html += '<div class="search-result" onclick="goToSearchResult(\'implementation\', \'' + escapeHtml(sol.core_id || '') + '\')">';
           html += '<span class="material-icons">storage</span>';
           html += '<div class="search-result-content">';
-          html += '<div class="search-result-title">' + escapeHtml(sol.short_name || sol.solution_name) + '</div>';
-          html += '<div class="search-result-subtitle">' + escapeHtml(sol.lifecycle_phase || '') + ' · ' + escapeHtml(sol.solution_group || '') + '</div>';
+          html += '<div class="search-result-title">' + escapeHtml(sol.core_id || sol.core_official_name) + '</div>';
+          html += '<div class="search-result-subtitle">' + escapeHtml(sol.admin_lifecycle_phase || '') + ' · ' + escapeHtml(sol.core_group || '') + '</div>';
           html += '</div>';
           html += '<span class="material-icons search-result-action">chevron_right</span>';
           html += '</div>';
