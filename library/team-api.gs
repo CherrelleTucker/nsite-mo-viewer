@@ -857,21 +857,21 @@ var DIRECTING_DOCUMENTS = [
     name: 'MO Project Plan',
     description: 'Overall project plan for NSITE Management Office operations',
     category: 'Core',
-    icon: 'file-text'
+    icon: 'description'
   },
   {
     configKey: 'HQ_PROJECT_PLAN_DOC_ID',
     name: 'HQ Project Plan',
     description: 'NASA Headquarters project plan and directives',
     category: 'Core',
-    icon: 'file-text'
+    icon: 'description'
   },
   {
     configKey: 'SOLUTION_REQUIREMENTS_EXPECTATIONS_DOC_ID',
     name: 'Solution Requirements & Expectations',
     description: 'Requirements and expectations for SNWG solutions',
     category: 'Core',
-    icon: 'clipboard'
+    icon: 'assignment'
   },
 
   // SEP Documents
@@ -880,7 +880,7 @@ var DIRECTING_DOCUMENTS = [
     name: 'SEP Plan',
     description: 'Stakeholder Engagement Program strategic plan',
     category: 'SEP',
-    icon: 'users'
+    icon: 'group'
   },
   {
     configKey: 'SEP_BLUEPRINT_DOC_ID',
@@ -894,7 +894,7 @@ var DIRECTING_DOCUMENTS = [
     name: 'CoDesign Pipeline',
     description: 'CoDesign process pipeline and workflow documentation',
     category: 'SEP',
-    icon: 'git-merge'
+    icon: 'merge_type'
   },
 
   // Comms Documents
@@ -903,14 +903,14 @@ var DIRECTING_DOCUMENTS = [
     name: 'Communications Plan',
     description: 'Strategic communications and outreach plan',
     category: 'Comms',
-    icon: 'message-square'
+    icon: 'chat'
   },
   {
     configKey: 'STYLE_GUIDE_DOC_ID',
     name: 'Style Guide',
     description: 'Brand and style guidelines for NSITE MO communications',
     category: 'Comms',
-    icon: 'edit-3'
+    icon: 'palette'
   },
   {
     configKey: 'HIGHLIGHTER_BLURBS_DOC_ID',
@@ -924,7 +924,7 @@ var DIRECTING_DOCUMENTS = [
     name: 'Webpage Log',
     description: 'Log of website updates and changes',
     category: 'Comms',
-    icon: 'globe'
+    icon: 'public'
   },
 
   // Assessment Documents
@@ -933,14 +933,14 @@ var DIRECTING_DOCUMENTS = [
     name: 'Assessment Process',
     description: 'Detailed assessment cycle process documentation',
     category: 'Assessment',
-    icon: 'check-circle'
+    icon: 'check_circle'
   },
   {
     configKey: 'ASSESSEMENT_CHEATSHEET_DOC_ID',
     name: 'Assessment Cheatsheet',
     description: 'Quick reference guide for assessment activities',
     category: 'Assessment',
-    icon: 'zap'
+    icon: 'bolt'
   },
 
   // Operations Documents
@@ -949,21 +949,21 @@ var DIRECTING_DOCUMENTS = [
     name: 'MO Risk Register',
     description: 'Management Office risk tracking and mitigation',
     category: 'Operations',
-    icon: 'alert-triangle'
+    icon: 'warning'
   },
   {
     configKey: 'RISK_REGISTER_DOC_ID',
     name: 'Risk Register',
     description: 'Program-wide risk register',
     category: 'Operations',
-    icon: 'alert-triangle'
+    icon: 'warning'
   },
   {
     configKey: 'INFO_MANAGEMENT_PLAN_DOC_ID',
     name: 'Information Management Plan',
     description: 'Data and information management guidelines',
     category: 'Operations',
-    icon: 'database'
+    icon: 'storage'
   },
   {
     configKey: 'AUDIT_LOG_DOC_ID',
@@ -971,6 +971,50 @@ var DIRECTING_DOCUMENTS = [
     description: 'Audit trail and change log',
     category: 'Operations',
     icon: 'list'
+  },
+
+  // Templates & Boilerplates
+  {
+    configKey: 'TEMPLATE_MEETING_NOTES_DOC_ID',
+    name: 'Meeting Notes Template',
+    description: 'Standard template for meeting notes and action items',
+    category: 'Templates',
+    icon: 'note_add'
+  },
+  {
+    configKey: 'TEMPLATE_SOLUTION_BRIEF_DOC_ID',
+    name: 'Solution Brief Template',
+    description: 'Template for solution overview briefs',
+    category: 'Templates',
+    icon: 'article'
+  },
+  {
+    configKey: 'TEMPLATE_STAKEHOLDER_REPORT_DOC_ID',
+    name: 'Stakeholder Report Template',
+    description: 'Template for stakeholder engagement reports',
+    category: 'Templates',
+    icon: 'summarize'
+  },
+  {
+    configKey: 'TEMPLATE_PRESENTATION_DOC_ID',
+    name: 'Presentation Template',
+    description: 'Standard slide deck template for presentations',
+    category: 'Templates',
+    icon: 'slideshow'
+  },
+  {
+    configKey: 'TEMPLATE_EMAIL_OUTREACH_DOC_ID',
+    name: 'Email Outreach Templates',
+    description: 'Boilerplate emails for stakeholder outreach',
+    category: 'Templates',
+    icon: 'forward_to_inbox'
+  },
+  {
+    configKey: 'TEMPLATE_ONE_PAGER_DOC_ID',
+    name: 'One-Pager Template',
+    description: 'Template for solution one-pagers and fact sheets',
+    category: 'Templates',
+    icon: 'request_page'
   }
 ];
 

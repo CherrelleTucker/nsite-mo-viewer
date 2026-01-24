@@ -203,6 +203,104 @@ Why this matters:
 | `meeting_link` | URL | Teams/Zoom link | Clickable in detail modal |
 | `notes_link` | URL | Link to meeting notes | Clickable in detail modal |
 
+### Directing Documents (MO-DB_Config)
+
+Team > Documents displays governing documents and templates. Document IDs are stored in MO-DB_Config.
+Categories only display if at least one document in that category has an ID configured.
+
+**Categories & Config Keys:**
+
+| Category | Config Key | Document Name |
+|----------|------------|---------------|
+| Core | `MO_PROJECT_PLAN_DOC_ID` | MO Project Plan |
+| Core | `HQ_PROJECT_PLAN_DOC_ID` | HQ Project Plan |
+| Core | `SOLUTION_REQUIREMENTS_EXPECTATIONS_DOC_ID` | Solution Requirements & Expectations |
+| SEP | `SEP_PLAN_DOC_ID` | SEP Plan |
+| SEP | `SEP_BLUEPRINT_DOC_ID` | SEP Blueprint |
+| SEP | `CODESIGN_PIPELINE_DOC_ID` | CoDesign Pipeline |
+| Comms | `COMMS_PLAN_DOC_ID` | Communications Plan |
+| Comms | `STYLE_GUIDE_DOC_ID` | Style Guide |
+| Comms | `HIGHLIGHTER_BLURBS_DOC_ID` | Highlighter Blurbs |
+| Comms | `WEBPAGE_LOG_DOC_ID` | Webpage Log |
+| Assessment | `ASSESSEMENT_PROCESS_DOC_ID` | Assessment Process |
+| Assessment | `ASSESSEMENT_CHEATSHEET_DOC_ID` | Assessment Cheatsheet |
+| Operations | `MO_RISK_REGISTER_DOC_ID` | MO Risk Register |
+| Operations | `RISK_REGISTER_DOC_ID` | Risk Register |
+| Operations | `INFO_MANAGEMENT_PLAN_DOC_ID` | Information Management Plan |
+| Operations | `AUDIT_LOG_DOC_ID` | Audit Log |
+| Templates | `TEMPLATE_MEETING_NOTES_DOC_ID` | Meeting Notes Template |
+| Templates | `TEMPLATE_SOLUTION_BRIEF_DOC_ID` | Solution Brief Template |
+| Templates | `TEMPLATE_STAKEHOLDER_REPORT_DOC_ID` | Stakeholder Report Template |
+| Templates | `TEMPLATE_PRESENTATION_DOC_ID` | Presentation Template |
+| Templates | `TEMPLATE_EMAIL_OUTREACH_DOC_ID` | Email Outreach Templates |
+| Templates | `TEMPLATE_ONE_PAGER_DOC_ID` | One-Pager Template |
+
+### MO-DB_Agencies Schema
+
+| Column | Type | Values | Notes |
+|--------|------|--------|-------|
+| `agency_id` | Text | AGY_*, e.g. AGY_NASA | Unique identifier |
+| `name` | Text | Short name | e.g. "NASA", "NOAA" |
+| `full_name` | Text | Full organization name | e.g. "National Aeronautics and Space Administration" |
+| `abbreviation` | Text | Common abbreviation | For display |
+| `parent_agency_id` | Text | AGY_* | Parent in hierarchy |
+| `type` | Text | Federal Agency, Bureau, Office, Lab | Organization type |
+| `status` | Text | Active, Closed, Merged | **For tracking closed agencies** |
+| `closed_date` | Date | YYYY-MM-DD | When agency closed |
+| `successor_agency_id` | Text | AGY_* | Where people/functions moved |
+| `relationship_status` | Text | New, Developing, Established, Strong, Dormant | Current relationship health |
+| `geographic_scope` | Text | National, Regional, State, Local, International | Coverage area |
+| `mission_statement` | Text | Mission text | Agency mission |
+| `data_interests` | Text | Interest areas | Earth observation interests |
+| `website_url` | URL | Agency website | External link |
+
+**API Functions:**
+- `getAgencyEngagementStats(agencyId)` - Total engagements, last date, heat status (hot/warm/cold)
+- `getAgencyEngagementTimeline(agencyId, limit)` - Engagement history for agency contacts
+- `getAgencyContactsWithTags(agencyId)` - Contacts with solution_tags array
+- `getContactSolutionTags(email)` - Solutions a contact has engaged with
+
+### MO-DB_Solutions SEP Milestone Schema
+
+Solutions have two types of milestones:
+1. **Implementation Milestones** (milestone_ prefix): ATP, F2I, ORR, Closeout
+2. **SEP Milestones** (sep_ prefix): Working Sessions and Touchpoints
+
+**SEP Active Column:**
+| Column | Type | Values | Notes |
+|--------|------|--------|-------|
+| `sep_active` | Boolean | `TRUE` / `FALSE` | Only TRUE solutions appear in SEP pipeline |
+
+**SEP Milestone Flow:**
+```
+WS1 → TP4 → WS2 → TP5 → WS3 → TP6 → WS4 → TP7 → WS5 → TP8
+```
+
+- **Working Sessions (WS)**: NSITE SEP team prepares solution teams for touchpoints
+- **Touchpoints (TP)**: Solution teams engage directly with stakeholders
+
+| Milestone | Type | Full Name | Date Column | URL Column |
+|-----------|------|-----------|-------------|------------|
+| WS1 | Working Session | Working Session 1 | `sep_ws1_date` | `sep_ws1_url` |
+| TP4 | Touchpoint | Touchpoint 4 - Outreach | `sep_tp4_date` | `sep_tp4_url` |
+| WS2 | Working Session | Working Session 2 | `sep_ws2_date` | `sep_ws2_url` |
+| TP5 | Touchpoint | Touchpoint 5 - Transition | `sep_tp5_date` | `sep_tp5_url` |
+| WS3 | Working Session | Working Session 3 | `sep_ws3_date` | `sep_ws3_url` |
+| TP6 | Touchpoint | Touchpoint 6 - Training | `sep_tp6_date` | `sep_tp6_url` |
+| WS4 | Working Session | Working Session 4 | `sep_ws4_date` | `sep_ws4_url` |
+| TP7 | Touchpoint | Touchpoint 7 - Adoption | `sep_tp7_date` | `sep_tp7_url` |
+| WS5 | Working Session | Working Session 5 | `sep_ws5_date` | `sep_ws5_url` |
+| TP8 | Touchpoint | Touchpoint 8 - Impact | `sep_tp8_date` | `sep_tp8_url` |
+
+**API Functions:**
+- `getSEPMilestones()` - Get milestone definitions
+- `getSolutionsWithSEPProgress()` - Solutions with progress info (filtered by sep_active)
+- `getSolutionsBySEPMilestone()` - Solutions grouped by current milestone
+- `getSEPPipelineStats()` - Dashboard statistics
+- `updateSolutionSEPMilestone(solutionId, milestoneId, date)` - Update milestone date
+- `getSEPCycles()` - Get unique cycles from SEP-active solutions (for filter dropdown)
+- `getSolutionsNeedingOutreach(threshold)` - Solutions with low engagement count
+
 ## Documentation
 
 | Document | Purpose |

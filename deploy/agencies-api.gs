@@ -73,3 +73,20 @@ function getAgencyStats(agencyId) {
 function getAgenciesOverview() {
   return MoApi.getAgenciesOverview();
 }
+
+// Engagement Integration
+function getAgencyEngagementStats(agencyId) {
+  return MoApi.getAgencyEngagementStats(agencyId);
+}
+
+function getAgencyEngagementTimeline(agencyId, limit) {
+  return MoApi.getAgencyEngagementTimeline(agencyId, limit);
+}
+
+function getContactSolutionTags(email) {
+  return MoApi.getContactSolutionTags(email);
+}
+
+function getAgencyContactsWithTags(agencyId) {
+  return MoApi.getAgencyContactsWithTags(agencyId);
+}

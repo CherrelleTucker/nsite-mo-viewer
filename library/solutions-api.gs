@@ -7,6 +7,20 @@
  * Part of MO-APIs Library - shared data access layer
  * Requires: config-helpers.gs
  *
+ * Schema v2 Column Prefixes:
+ *   core_     - identity (id, official_name, alternate_names, group, cycle, cycle_year)
+ *   funding_  - funding fields (status, period, type)
+ *   admin_    - administrative (lifecycle_phase, default_in_dashboard, row_last_updated, etc.)
+ *   team_     - team contacts (lead, ra_rep, ea_advocate, affiliations)
+ *   earthdata_- content from earthdata.nasa.gov (purpose, background, societal_impact, etc.)
+ *   comms_    - communications (key_messages, focus_type, thematic_areas, etc.)
+ *   product_  - technical specs (platform, temporal_freq, horiz_resolution, etc.)
+ *   milestone_- implementation decision gates (atp_date, f2i_date, orr_date, closeout_date, etc.)
+ *   docs_     - document URLs (project_plan, science_sow, ipa, icd, tta, etc.)
+ *   sep_      - SEP milestones: working sessions (ws1-ws5) and touchpoints (tp4-tp8)
+ *              Each has _date and _url: sep_ws1_date, sep_ws1_url, sep_tp4_date, sep_tp4_url, etc.
+ *              Flow: WS1→TP4→WS2→TP5→WS3→TP6→WS4→TP7→WS5→TP8
+ *
  * @fileoverview Solutions data access layer
  */
 
@@ -49,14 +63,14 @@ function getAllSolutions() {
       });
       return obj;
     }).filter(function(sol) {
-      return sol.solution_id && String(sol.solution_id).trim();
+      return sol.core_id && String(sol.core_id).trim();
     });
 
     solutions.sort(function(a, b) {
-      var cycleA = parseInt(a.cycle) || 0;
-      var cycleB = parseInt(b.cycle) || 0;
+      var cycleA = parseInt(a.core_cycle) || 0;
+      var cycleB = parseInt(b.core_cycle) || 0;
       if (cycleB !== cycleA) return cycleB - cycleA;
-      return (a.name || '').localeCompare(b.name || '');
+      return (a.core_id || '').localeCompare(b.core_id || '');
     });
 
     return solutions;
@@ -95,7 +109,7 @@ function getSolutions() {
 function getSolution(solutionId) {
   var solutions = getAllSolutions();
   for (var i = 0; i < solutions.length; i++) {
-    if (solutions[i].solution_id === solutionId) return solutions[i];
+    if (solutions[i].core_id === solutionId) return solutions[i];
   }
   return null;
 }
@@ -105,7 +119,7 @@ function getSolution(solutionId) {
  */
 function getSolutionsByCycle(cycle) {
   return getAllSolutions().filter(function(sol) {
-    return String(sol.cycle) === String(cycle);
+    return String(sol.core_cycle) === String(cycle);
   });
 }
 
@@ -113,7 +127,7 @@ function getSolutionsByCycle(cycle) {
  * Get solutions by phase
  */
 function getSolutionsByPhase(phase) {
-  return getAllSolutions().filter(function(sol) { return sol.phase === phase; });
+  return getAllSolutions().filter(function(sol) { return sol.admin_lifecycle_phase === phase; });
 }
 
 /**
@@ -123,7 +137,7 @@ function searchSolutions(query) {
   if (!query || query.trim().length < 2) return [];
   var searchTerm = query.toLowerCase().trim();
   return getAllSolutions().filter(function(sol) {
-    var searchable = [sol.solution_id, sol.name, sol.full_title, sol.solution_lead, sol.solution_group, sol.purpose_mission, sol.status_summary].join(' ').toLowerCase();
+    var searchable = [sol.core_id, sol.core_official_name, sol.core_alternate_names, sol.team_lead, sol.core_group, sol.earthdata_purpose, sol.earthdata_status_summary].join(' ').toLowerCase();
     return searchable.indexOf(searchTerm) !== -1;
   });
 }
@@ -134,7 +148,7 @@ function searchSolutions(query) {
 function getSolutionGroups() {
   var groups = {};
   getAllSolutions().forEach(function(sol) {
-    if (sol.solution_group && sol.solution_group.trim()) groups[sol.solution_group.trim()] = true;
+    if (sol.core_group && sol.core_group.trim()) groups[sol.core_group.trim()] = true;
   });
   return Object.keys(groups).sort();
 }
@@ -147,20 +161,268 @@ function getSolutionStats() {
   var stats = { total: solutions.length, byCycle: {}, byPhase: {}, operational: 0, implementation: 0, formulation: 0, funded: 0 };
 
   solutions.forEach(function(sol) {
-    var cycle = sol.cycle || 'Unknown';
+    var cycle = sol.core_cycle || 'Unknown';
     stats.byCycle[cycle] = (stats.byCycle[cycle] || 0) + 1;
-    var phase = sol.phase || 'Unknown';
+    var phase = sol.admin_lifecycle_phase || 'Unknown';
     stats.byPhase[phase] = (stats.byPhase[phase] || 0) + 1;
 
-    var phaseLower = (sol.phase || '').toLowerCase();
+    var phaseLower = (sol.admin_lifecycle_phase || '').toLowerCase();
     if (phaseLower.indexOf('operational') !== -1 || phaseLower.indexOf('production') !== -1) stats.operational++;
     else if (phaseLower.indexOf('implementation') !== -1) stats.implementation++;
     else if (phaseLower.indexOf('formulation') !== -1) stats.formulation++;
 
-    if (sol.funded_by_ison === 'Y') stats.funded++;
+    if (sol.funding_type === 'Y' || sol.funding_type === 'ISON') stats.funded++;
   });
 
   return stats;
+}
+
+// ============================================================================
+// SEP MILESTONE FUNCTIONS
+// ============================================================================
+
+/**
+ * SEP Milestone sequence definition
+ * Working Sessions (WS) prepare for corresponding Touchpoints (TP)
+ */
+var SEP_MILESTONES = [
+  { id: 'ws1', label: 'WS1', fullName: 'Working Session 1', type: 'working_session', dateField: 'sep_ws1_date', urlField: 'sep_ws1_url' },
+  { id: 'tp4', label: 'TP4', fullName: 'Touchpoint 4 - Outreach', type: 'touchpoint', dateField: 'sep_tp4_date', urlField: 'sep_tp4_url' },
+  { id: 'ws2', label: 'WS2', fullName: 'Working Session 2', type: 'working_session', dateField: 'sep_ws2_date', urlField: 'sep_ws2_url' },
+  { id: 'tp5', label: 'TP5', fullName: 'Touchpoint 5 - Transition', type: 'touchpoint', dateField: 'sep_tp5_date', urlField: 'sep_tp5_url' },
+  { id: 'ws3', label: 'WS3', fullName: 'Working Session 3', type: 'working_session', dateField: 'sep_ws3_date', urlField: 'sep_ws3_url' },
+  { id: 'tp6', label: 'TP6', fullName: 'Touchpoint 6 - Training', type: 'touchpoint', dateField: 'sep_tp6_date', urlField: 'sep_tp6_url' },
+  { id: 'ws4', label: 'WS4', fullName: 'Working Session 4', type: 'working_session', dateField: 'sep_ws4_date', urlField: 'sep_ws4_url' },
+  { id: 'tp7', label: 'TP7', fullName: 'Touchpoint 7 - Adoption', type: 'touchpoint', dateField: 'sep_tp7_date', urlField: 'sep_tp7_url' },
+  { id: 'ws5', label: 'WS5', fullName: 'Working Session 5', type: 'working_session', dateField: 'sep_ws5_date', urlField: 'sep_ws5_url' },
+  { id: 'tp8', label: 'TP8', fullName: 'Touchpoint 8 - Impact', type: 'touchpoint', dateField: 'sep_tp8_date', urlField: 'sep_tp8_url' }
+];
+
+/**
+ * Get SEP milestone definitions
+ * @returns {Array} Array of milestone objects with id, label, fullName, type, dateField, urlField
+ */
+function getSEPMilestones() {
+  return SEP_MILESTONES;
+}
+
+/**
+ * Determine a solution's current SEP milestone based on completed dates
+ * Returns the last completed milestone or 'not_started' if none
+ * @param {Object} solution - Solution object
+ * @returns {Object} { currentMilestone: string, nextMilestone: string, completedCount: number }
+ */
+function getSolutionSEPProgress(solution) {
+  var lastCompleted = null;
+  var completedCount = 0;
+
+  for (var i = 0; i < SEP_MILESTONES.length; i++) {
+    var ms = SEP_MILESTONES[i];
+    var dateValue = solution[ms.dateField];
+    if (dateValue && String(dateValue).trim()) {
+      lastCompleted = ms.id;
+      completedCount++;
+    }
+  }
+
+  var nextMilestone = null;
+  if (!lastCompleted) {
+    nextMilestone = 'ws1';
+  } else {
+    var lastIndex = SEP_MILESTONES.findIndex(function(m) { return m.id === lastCompleted; });
+    if (lastIndex < SEP_MILESTONES.length - 1) {
+      nextMilestone = SEP_MILESTONES[lastIndex + 1].id;
+    }
+  }
+
+  return {
+    currentMilestone: lastCompleted || 'not_started',
+    nextMilestone: nextMilestone,
+    completedCount: completedCount,
+    totalMilestones: SEP_MILESTONES.length
+  };
+}
+
+/**
+ * Get all solutions with their SEP progress information
+ * Only returns solutions where sep_active is TRUE
+ * @returns {Array} Solutions with sep_progress field added
+ */
+function getSolutionsWithSEPProgress() {
+  var solutions = getAllSolutions();
+
+  // Filter to only SEP-active solutions
+  var activeSolutions = solutions.filter(function(sol) {
+    return sol.sep_active === true || sol.sep_active === 'TRUE' || sol.sep_active === 1;
+  });
+
+  return activeSolutions.map(function(sol) {
+    sol.sep_progress = getSolutionSEPProgress(sol);
+    return sol;
+  });
+}
+
+/**
+ * Get unique cycles from SEP-active solutions (for filter dropdown)
+ * @returns {Array} Array of cycle numbers, sorted descending
+ */
+function getSEPCycles() {
+  var solutions = getSolutionsWithSEPProgress();
+  var cycles = {};
+
+  solutions.forEach(function(sol) {
+    if (sol.core_cycle) {
+      cycles[sol.core_cycle] = true;
+    }
+  });
+
+  return Object.keys(cycles).map(Number).sort(function(a, b) { return b - a; });
+}
+
+/**
+ * Get solutions that need outreach (low engagement count)
+ * @param {number} threshold - Max engagements to be considered "needs outreach" (default 2)
+ * @returns {Array} Solutions with engagement_count, sorted by count ascending
+ */
+function getSolutionsNeedingOutreach(threshold) {
+  threshold = threshold || 2;
+  var solutions = getSolutionsWithSEPProgress();
+
+  // Get engagement counts per solution
+  var engagements = [];
+  try {
+    engagements = getRecentEngagements(365, 1000); // Last year, up to 1000
+  } catch (e) {
+    Logger.log('Could not load engagements: ' + e.message);
+  }
+
+  // Count engagements per solution
+  var countBySolution = {};
+  engagements.forEach(function(eng) {
+    var solId = eng.solution_id || eng.related_solution;
+    if (solId) {
+      countBySolution[solId] = (countBySolution[solId] || 0) + 1;
+    }
+  });
+
+  // Add counts to solutions and filter
+  var needsOutreach = solutions.map(function(sol) {
+    sol.engagement_count = countBySolution[sol.core_id] || 0;
+    return sol;
+  }).filter(function(sol) {
+    return sol.engagement_count <= threshold;
+  }).sort(function(a, b) {
+    return a.engagement_count - b.engagement_count;
+  });
+
+  return needsOutreach.slice(0, 10); // Top 10 needing outreach
+}
+
+/**
+ * Get solutions grouped by their current/next SEP milestone
+ * @returns {Object} { milestone_id: [solutions], ... }
+ */
+function getSolutionsBySEPMilestone() {
+  var solutions = getSolutionsWithSEPProgress();
+  var grouped = {
+    not_started: [],
+    completed: []
+  };
+
+  // Initialize all milestone buckets
+  SEP_MILESTONES.forEach(function(ms) {
+    grouped[ms.id] = [];
+  });
+
+  solutions.forEach(function(sol) {
+    var progress = sol.sep_progress;
+
+    // Place in the "next milestone" bucket (what they're working toward)
+    if (progress.nextMilestone) {
+      grouped[progress.nextMilestone].push(sol);
+    } else if (progress.completedCount === SEP_MILESTONES.length) {
+      grouped.completed.push(sol);
+    } else {
+      grouped.not_started.push(sol);
+    }
+  });
+
+  return grouped;
+}
+
+/**
+ * Get SEP pipeline overview statistics
+ * @returns {Object} Stats for SEP dashboard
+ */
+function getSEPPipelineStats() {
+  var solutions = getSolutionsWithSEPProgress();
+  var grouped = getSolutionsBySEPMilestone();
+
+  var stats = {
+    total_solutions: solutions.length,
+    not_started: grouped.not_started.length,
+    in_progress: 0,
+    completed: grouped.completed.length,
+    by_milestone: {}
+  };
+
+  SEP_MILESTONES.forEach(function(ms) {
+    stats.by_milestone[ms.id] = grouped[ms.id].length;
+    if (grouped[ms.id].length > 0) {
+      stats.in_progress += grouped[ms.id].length;
+    }
+  });
+
+  return stats;
+}
+
+/**
+ * Update a solution's SEP milestone date
+ * @param {string} solutionId - Solution core_id
+ * @param {string} milestoneId - Milestone ID (ws1, tp4, etc.)
+ * @param {string} date - ISO date string
+ * @returns {Object} Success/failure result
+ */
+function updateSolutionSEPMilestone(solutionId, milestoneId, date) {
+  var milestone = SEP_MILESTONES.find(function(m) { return m.id === milestoneId; });
+  if (!milestone) {
+    return { success: false, error: 'Invalid milestone ID: ' + milestoneId };
+  }
+
+  try {
+    var sheetId = getConfigValue('SOLUTIONS_SHEET_ID');
+    var ss = SpreadsheetApp.openById(sheetId);
+    var sheet = ss.getSheets()[0];
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+
+    // Find column index for the date field
+    var colIndex = headers.indexOf(milestone.dateField);
+    if (colIndex === -1) {
+      return { success: false, error: 'Column not found: ' + milestone.dateField };
+    }
+
+    // Find row index for the solution
+    var idColIndex = headers.indexOf('core_id');
+    var rowIndex = -1;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][idColIndex] === solutionId) {
+        rowIndex = i + 1; // 1-indexed for sheet
+        break;
+      }
+    }
+
+    if (rowIndex === -1) {
+      return { success: false, error: 'Solution not found: ' + solutionId };
+    }
+
+    // Update the cell
+    sheet.getRange(rowIndex, colIndex + 1).setValue(date);
+
+    return { success: true, solutionId: solutionId, milestone: milestoneId, date: date };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
 }
 
 /**
@@ -178,7 +440,7 @@ function debugGetSolutions() {
     result.configValue = getConfigValue('SOLUTIONS_SHEET_ID');
     var solutions = getAllSolutions();
     result.solutionsCount = solutions ? solutions.length : 0;
-    result.firstSolution = solutions && solutions[0] ? solutions[0].name : 'none';
+    result.firstSolution = solutions && solutions[0] ? solutions[0].core_id : 'none';
   } catch (e) {
     result.error = e.message;
   }
@@ -191,11 +453,11 @@ function debugGetSolutions() {
  */
 function getSampleSolutions() {
   return [
-    { solution_id: 'HLS', name: 'HLS', full_title: 'Harmonized Landsat Sentinel-2', solution_group: '', cycle: 2, cycle_year: 2018, phase: 'Production / Operational', funding_status: 'Funded', funded_by_ison: 'Y', solution_lead: 'Jeff Masek', solution_lead_affiliation: 'NASA GSFC', purpose_mission: 'Consistent surface reflectance from Landsat 8/9 and Sentinel-2.', status_summary: 'Fully operational via LP DAAC.', drive_folder_url: '', snwg_solution_page_url: 'https://www.earthdata.nasa.gov/esds/harmonized-landsat-sentinel-2' },
-    { solution_id: 'AQ-GMAO', name: 'Air Quality - GMAO', full_title: 'Air Quality Forecasts - GMAO', solution_group: 'Air Quality', cycle: 3, cycle_year: 2020, phase: 'Implementation', funding_status: 'Funded', funded_by_ison: 'Y', solution_lead: 'Carl Malings', solution_lead_affiliation: 'Morgan State University, NASA GSFC', purpose_mission: 'Air quality measurements for international and domestic locations.', status_summary: 'Pandora sensor installation ongoing. PM2.5 forecasts available via AERONET.', drive_folder_url: '', snwg_solution_page_url: 'https://www.earthdata.nasa.gov/snwg-solutions/air-quality' },
-    { solution_id: 'OPERA R1-DSWx_DIST_HLS', name: 'OPERA DSWx/DIST', full_title: 'OPERA Dynamic Surface Water and Disturbance', solution_group: 'OPERA', cycle: 4, cycle_year: 2022, phase: 'Production / Operational', funding_status: 'Funded', funded_by_ison: 'Y', solution_lead: 'Alexander Handwerger', solution_lead_affiliation: 'NASA JPL', purpose_mission: 'Analysis-ready DSWx and DIST products using HLS.', status_summary: 'Products being distributed via ASF DAAC.', drive_folder_url: '', snwg_solution_page_url: 'https://www.earthdata.nasa.gov/esds/opera' },
-    { solution_id: 'VLM', name: 'VLM', full_title: 'Vertical Land Motion', solution_group: '', cycle: 4, cycle_year: 2022, phase: 'Implementation', funding_status: 'Funded', funded_by_ison: 'Y', solution_lead: '', solution_lead_affiliation: 'NASA JPL', purpose_mission: 'VLM products for sea level and flood risk.', status_summary: 'Product development ongoing.', drive_folder_url: '', snwg_solution_page_url: 'https://www.earthdata.nasa.gov/snwg-solutions/vlm' },
-    { solution_id: 'NISAR SM', name: 'NISAR Soil Moisture', full_title: 'NISAR Soil Moisture Products', solution_group: '', cycle: 5, cycle_year: 2024, phase: 'Formulation', funding_status: 'Funded', funded_by_ison: 'Y', solution_lead: '', purpose_mission: 'High-resolution soil moisture from NISAR radar.', status_summary: 'In formulation pending NISAR launch.', drive_folder_url: '', snwg_solution_page_url: '' }
+    { core_id: 'HLS', core_official_name: 'Harmonized Landsat Sentinel-2', core_alternate_names: 'HLS', core_group: '', core_cycle: 2, core_cycle_year: 2018, admin_lifecycle_phase: 'Production / Operational', funding_status: 'Funded', funding_type: 'ISON', team_lead: 'Jeff Masek', team_lead_affiliation: 'NASA GSFC', earthdata_purpose: 'Consistent surface reflectance from Landsat 8/9 and Sentinel-2.', earthdata_status_summary: 'Fully operational via LP DAAC.', admin_drive_folder: '', earthdata_solution_page_url: 'https://www.earthdata.nasa.gov/esds/harmonized-landsat-sentinel-2' },
+    { core_id: 'AQ-GMAO', core_official_name: 'Air Quality Forecasts - GMAO', core_alternate_names: 'Air Quality - GMAO', core_group: 'Air Quality', core_cycle: 3, core_cycle_year: 2020, admin_lifecycle_phase: 'Implementation', funding_status: 'Funded', funding_type: 'ISON', team_lead: 'Carl Malings', team_lead_affiliation: 'Morgan State University, NASA GSFC', earthdata_purpose: 'Air quality measurements for international and domestic locations.', earthdata_status_summary: 'Pandora sensor installation ongoing. PM2.5 forecasts available via AERONET.', admin_drive_folder: '', earthdata_solution_page_url: 'https://www.earthdata.nasa.gov/snwg-solutions/air-quality' },
+    { core_id: 'OPERA R1-DSWx_DIST_HLS', core_official_name: 'OPERA Dynamic Surface Water and Disturbance', core_alternate_names: 'OPERA DSWx/DIST', core_group: 'OPERA', core_cycle: 4, core_cycle_year: 2022, admin_lifecycle_phase: 'Production / Operational', funding_status: 'Funded', funding_type: 'ISON', team_lead: 'Alexander Handwerger', team_lead_affiliation: 'NASA JPL', earthdata_purpose: 'Analysis-ready DSWx and DIST products using HLS.', earthdata_status_summary: 'Products being distributed via ASF DAAC.', admin_drive_folder: '', earthdata_solution_page_url: 'https://www.earthdata.nasa.gov/esds/opera' },
+    { core_id: 'VLM', core_official_name: 'Vertical Land Motion', core_alternate_names: 'VLM', core_group: '', core_cycle: 4, core_cycle_year: 2022, admin_lifecycle_phase: 'Implementation', funding_status: 'Funded', funding_type: 'ISON', team_lead: '', team_lead_affiliation: 'NASA JPL', earthdata_purpose: 'VLM products for sea level and flood risk.', earthdata_status_summary: 'Product development ongoing.', admin_drive_folder: '', earthdata_solution_page_url: 'https://www.earthdata.nasa.gov/snwg-solutions/vlm' },
+    { core_id: 'NISAR SM', core_official_name: 'NISAR Soil Moisture Products', core_alternate_names: 'NISAR Soil Moisture', core_group: '', core_cycle: 5, core_cycle_year: 2024, admin_lifecycle_phase: 'Formulation', funding_status: 'Funded', funding_type: 'ISON', team_lead: '', earthdata_purpose: 'High-resolution soil moisture from NISAR radar.', earthdata_status_summary: 'In formulation pending NISAR launch.', admin_drive_folder: '', earthdata_solution_page_url: '' }
   ];
 }
 
@@ -220,9 +482,9 @@ var _solutionNameMapCache = null;
 
 /**
  * Build a map of solution names to solution IDs from the database
- * Uses solution_id, name, full_title, and alternate_names columns
+ * Uses core_id, core_official_name, and core_alternate_names columns
  *
- * @returns {Object} Map of lowercase name variants to solution_id
+ * @returns {Object} Map of lowercase name variants to core_id
  */
 function buildSolutionNameMap() {
   if (_solutionNameMapCache !== null) {
@@ -233,25 +495,20 @@ function buildSolutionNameMap() {
   var map = {};
 
   solutions.forEach(function(sol) {
-    var id = sol.solution_id;
+    var id = sol.core_id;
     if (!id) return;
 
-    // Add solution_id itself (lowercase)
+    // Add core_id itself (lowercase)
     map[id.toLowerCase()] = id;
 
-    // Add name
-    if (sol.name) {
-      map[sol.name.toLowerCase()] = id;
+    // Add core_official_name
+    if (sol.core_official_name) {
+      map[sol.core_official_name.toLowerCase()] = id;
     }
 
-    // Add full_title
-    if (sol.full_title) {
-      map[sol.full_title.toLowerCase()] = id;
-    }
-
-    // Add alternate_names (pipe-delimited)
-    if (sol.alternate_names) {
-      var alts = String(sol.alternate_names).split('|');
+    // Add core_alternate_names (pipe-delimited)
+    if (sol.core_alternate_names) {
+      var alts = String(sol.core_alternate_names).split('|');
       alts.forEach(function(alt) {
         var trimmed = alt.trim().toLowerCase();
         if (trimmed) {
@@ -267,10 +524,10 @@ function buildSolutionNameMap() {
 
 /**
  * Get solution ID by any name variant
- * Looks up in solution_id, name, full_title, and alternate_names
+ * Looks up in core_id, core_official_name, and core_alternate_names
  *
  * @param {string} name - Name to look up (case-insensitive)
- * @returns {string|null} Solution ID or null if not found
+ * @returns {string|null} Solution ID (core_id) or null if not found
  */
 function getSolutionIdByName(name) {
   if (!name) return null;
@@ -304,16 +561,19 @@ function getSolutionShortNames() {
   var names = [];
 
   solutions.forEach(function(sol) {
-    if (!sol.solution_id) return;
+    if (!sol.core_id) return;
 
-    // Add solution_id if it's a short name (typical acronym)
-    if (sol.solution_id.length <= 15) {
-      names.push({ name: sol.solution_id.toLowerCase(), id: sol.solution_id });
+    // Add core_id if it's a short name (typical acronym)
+    if (sol.core_id.length <= 15) {
+      names.push({ name: sol.core_id.toLowerCase(), id: sol.core_id });
     }
 
-    // Add name if different from solution_id
-    if (sol.name && sol.name !== sol.solution_id && sol.name.length <= 15) {
-      names.push({ name: sol.name.toLowerCase(), id: sol.solution_id });
+    // Add first alternate name if short and different from core_id
+    if (sol.core_alternate_names) {
+      var firstAlt = String(sol.core_alternate_names).split('|')[0].trim();
+      if (firstAlt && firstAlt !== sol.core_id && firstAlt.length <= 15) {
+        names.push({ name: firstAlt.toLowerCase(), id: sol.core_id });
+      }
     }
   });
 
@@ -384,7 +644,7 @@ function clearSolutionNameMapCache() {
 /**
  * Get key messages for a specific solution
  *
- * @param {string} solutionId - Solution ID
+ * @param {string} solutionId - Solution ID (core_id)
  * @returns {Object|null} Key messages data or null if not found
  */
 function getKeyMessages(solutionId) {
@@ -392,36 +652,36 @@ function getKeyMessages(solutionId) {
   if (!solution) return null;
 
   return {
-    solution_id: solution.solution_id,
-    solution_name: solution.name,
-    key_messages: solution.key_messages || '',
-    focus_type: solution.focus_type || '',
-    industry_connections: solution.industry_connections || '',
-    scientific_advancement: solution.scientific_advancement || '',
-    agency_use_impact: solution.agency_use_impact || '',
-    public_comms_links: solution.public_comms_links || ''
+    core_id: solution.core_id,
+    core_official_name: solution.core_official_name,
+    comms_key_messages: solution.comms_key_messages || '',
+    comms_focus_type: solution.comms_focus_type || '',
+    comms_industry: solution.comms_industry || '',
+    comms_science: solution.comms_science || '',
+    comms_agency_impact: solution.comms_agency_impact || '',
+    comms_public_links: solution.comms_public_links || ''
   };
 }
 
 /**
  * Get all solutions with key messages
  *
- * @returns {Array} Array of solutions that have key_messages populated
+ * @returns {Array} Array of solutions that have comms_key_messages populated
  */
 function getSolutionsWithKeyMessages() {
   var solutions = getAllSolutions();
   return solutions.filter(function(sol) {
-    return sol.key_messages && sol.key_messages.trim().length > 0;
+    return sol.comms_key_messages && sol.comms_key_messages.trim().length > 0;
   }).map(function(sol) {
     return {
-      solution_id: sol.solution_id,
-      solution_name: sol.name,
-      key_messages: sol.key_messages || '',
-      focus_type: sol.focus_type || '',
-      industry_connections: sol.industry_connections || '',
-      scientific_advancement: sol.scientific_advancement || '',
-      agency_use_impact: sol.agency_use_impact || '',
-      public_comms_links: sol.public_comms_links || ''
+      core_id: sol.core_id,
+      core_official_name: sol.core_official_name,
+      comms_key_messages: sol.comms_key_messages || '',
+      comms_focus_type: sol.comms_focus_type || '',
+      comms_industry: sol.comms_industry || '',
+      comms_science: sol.comms_science || '',
+      comms_agency_impact: sol.comms_agency_impact || '',
+      comms_public_links: sol.comms_public_links || ''
     };
   });
 }
@@ -434,12 +694,12 @@ function getSolutionsWithKeyMessages() {
 function getKeyMessagesSummary() {
   var solutions = getAllSolutions();
   var withMessages = solutions.filter(function(sol) {
-    return sol.key_messages && sol.key_messages.trim().length > 0;
+    return sol.comms_key_messages && sol.comms_key_messages.trim().length > 0;
   });
 
   var byFocusType = {};
   withMessages.forEach(function(sol) {
-    var focus = sol.focus_type || 'Unspecified';
+    var focus = sol.comms_focus_type || 'Unspecified';
     byFocusType[focus] = (byFocusType[focus] || 0) + 1;
   });
 
@@ -466,20 +726,21 @@ function searchKeyMessages(query) {
 
   return solutions.filter(function(sol) {
     var searchText = [
-      sol.name,
-      sol.key_messages,
-      sol.scientific_advancement,
-      sol.agency_use_impact,
-      sol.industry_connections
+      sol.core_id,
+      sol.core_official_name,
+      sol.comms_key_messages,
+      sol.comms_science,
+      sol.comms_agency_impact,
+      sol.comms_industry
     ].join(' ').toLowerCase();
 
     return searchText.indexOf(lowerQuery) !== -1;
   }).map(function(sol) {
     return {
-      solution_id: sol.solution_id,
-      solution_name: sol.name,
-      key_messages: sol.key_messages || '',
-      focus_type: sol.focus_type || ''
+      core_id: sol.core_id,
+      core_official_name: sol.core_official_name,
+      comms_key_messages: sol.comms_key_messages || '',
+      comms_focus_type: sol.comms_focus_type || ''
     };
   });
 }

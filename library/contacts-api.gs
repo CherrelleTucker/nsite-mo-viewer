@@ -842,6 +842,102 @@ function updateContactField_(email, fieldName, value) {
   return updated;
 }
 
+// ============================================================================
+// CONTACT SEARCH & AGENCY LINKING
+// ============================================================================
+
+/**
+ * Search contacts by name or email
+ * @param {string} query - Search query
+ * @returns {Array} Matching contacts
+ */
+function searchContacts(query) {
+  var contacts = loadAllContacts_();
+  if (!query || query.length < 2) return [];
+
+  var queryLower = query.toLowerCase();
+
+  var results = contacts.filter(function(c) {
+    var fullName = ((c.first_name || '') + ' ' + (c.last_name || '')).toLowerCase();
+    var email = (c.email || '').toLowerCase();
+    var org = (c.organization || '').toLowerCase();
+
+    return fullName.indexOf(queryLower) !== -1 ||
+           email.indexOf(queryLower) !== -1 ||
+           org.indexOf(queryLower) !== -1;
+  });
+
+  // Remove duplicates by email
+  var seen = {};
+  var unique = results.filter(function(c) {
+    if (!c.email || seen[c.email.toLowerCase()]) return false;
+    seen[c.email.toLowerCase()] = true;
+    return true;
+  });
+
+  return JSON.parse(JSON.stringify(unique.slice(0, 50)));
+}
+
+/**
+ * Update a contact's agency_id
+ * @param {string} email - Contact email
+ * @param {string} agencyId - Agency ID to link to
+ * @returns {Object} Success/failure result
+ */
+function updateContactAgency(email, agencyId) {
+  try {
+    var updated = updateContactField_(email, 'agency_id', agencyId);
+    return { success: updated, error: updated ? null : 'Contact not found' };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Create a new contact and link to an agency
+ * @param {Object} contactData - Contact data with agency_id
+ * @returns {Object} Success/failure result with created contact
+ */
+function createContactForAgency(contactData) {
+  try {
+    var sheet = getContactsSheet_();
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+    // Generate contact_id
+    var contactId = 'CON_' + new Date().getTime();
+    contactData.contact_id = contactId;
+    contactData.created_at = new Date().toISOString();
+
+    // Normalize email
+    if (contactData.email) {
+      contactData.email = contactData.email.toLowerCase().trim();
+    }
+
+    // Check if email already exists
+    var contacts = loadAllContacts_();
+    var existing = contacts.find(function(c) {
+      return c.email && c.email.toLowerCase() === contactData.email;
+    });
+    if (existing) {
+      // Update existing contact's agency instead
+      updateContactField_(contactData.email, 'agency_id', contactData.agency_id);
+      return { success: true, message: 'Updated existing contact', contact_id: existing.contact_id };
+    }
+
+    // Build row from headers
+    var newRow = headers.map(function(header) {
+      return contactData[header] !== undefined ? contactData[header] : '';
+    });
+
+    sheet.appendRow(newRow);
+    _contactsCache = null; // Clear cache
+
+    return { success: true, contact_id: contactId };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
 /**
  * Get SEP pipeline overview for dashboard
  * @returns {Object} Comprehensive SEP statistics

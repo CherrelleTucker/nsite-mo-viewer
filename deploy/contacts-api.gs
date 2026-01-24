@@ -146,3 +146,16 @@ function getTouchpointOptions() {
 function getEngagementLevelOptions() {
   return MoApi.getEngagementLevelOptions();
 }
+
+// Contact Search & Agency Linking
+function searchContacts(query) {
+  return MoApi.searchContacts(query);
+}
+
+function updateContactAgency(email, agencyId) {
+  return MoApi.updateContactAgency(email, agencyId);
+}
+
+function createContactForAgency(contactData) {
+  return MoApi.createContactForAgency(contactData);
+}

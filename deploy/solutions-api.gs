@@ -85,3 +85,36 @@ function getKeyMessagesSummary() {
 function searchKeyMessages(query) {
   return MoApi.searchKeyMessages(query);
 }
+
+// SEP Milestone Functions
+function getSEPMilestones() {
+  return MoApi.getSEPMilestones();
+}
+
+function getSolutionSEPProgress(solution) {
+  return MoApi.getSolutionSEPProgress(solution);
+}
+
+function getSolutionsWithSEPProgress() {
+  return MoApi.getSolutionsWithSEPProgress();
+}
+
+function getSolutionsBySEPMilestone() {
+  return MoApi.getSolutionsBySEPMilestone();
+}
+
+function getSEPPipelineStats() {
+  return MoApi.getSEPPipelineStats();
+}
+
+function updateSolutionSEPMilestone(solutionId, milestoneId, date) {
+  return MoApi.updateSolutionSEPMilestone(solutionId, milestoneId, date);
+}
+
+function getSEPCycles() {
+  return MoApi.getSEPCycles();
+}
+
+function getSolutionsNeedingOutreach(threshold) {
+  return MoApi.getSolutionsNeedingOutreach(threshold);
+}

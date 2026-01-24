@@ -458,3 +458,194 @@ function getAgenciesOverview() {
     by_geographic_scope: byScope
   };
 }
+
+// ============================================================================
+// ENGAGEMENT INTEGRATION
+// ============================================================================
+
+/**
+ * Get engagement statistics for an agency
+ * Aggregates engagements from all contacts at this agency
+ * @param {string} agencyId - Agency ID
+ * @returns {Object} Engagement stats with heat status
+ */
+function getAgencyEngagementStats(agencyId) {
+  var contacts = getAgencyContacts(agencyId);
+  var contactEmails = contacts.map(function(c) { return (c.email || '').toLowerCase(); });
+
+  if (contactEmails.length === 0) {
+    return {
+      total_engagements: 0,
+      last_engagement_date: null,
+      days_since_last: null,
+      heat_status: 'cold',
+      solutions_engaged: [],
+      by_type: {},
+      by_solution: {}
+    };
+  }
+
+  var engagements = loadAllEngagements_();
+
+  // Filter engagements involving any contact at this agency
+  var agencyEngagements = engagements.filter(function(e) {
+    if (!e.participants) return false;
+    var participants = e.participants.split(',').map(function(p) { return p.trim().toLowerCase(); });
+    return participants.some(function(p) { return contactEmails.indexOf(p) !== -1; });
+  });
+
+  // Find last engagement date
+  var lastDate = null;
+  agencyEngagements.forEach(function(e) {
+    if (e.date) {
+      var d = new Date(e.date);
+      if (!lastDate || d > lastDate) lastDate = d;
+    }
+  });
+
+  // Calculate days since last engagement
+  var daysSince = null;
+  if (lastDate) {
+    var now = new Date();
+    daysSince = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24));
+  }
+
+  // Determine heat status
+  var heatStatus = 'cold';
+  if (daysSince !== null) {
+    if (daysSince <= 30) heatStatus = 'hot';
+    else if (daysSince <= 90) heatStatus = 'warm';
+  }
+
+  // Aggregate by type and solution
+  var byType = {};
+  var bySolution = {};
+  var solutionsSet = {};
+
+  agencyEngagements.forEach(function(e) {
+    if (e.activity_type) {
+      byType[e.activity_type] = (byType[e.activity_type] || 0) + 1;
+    }
+    if (e.solution_id) {
+      bySolution[e.solution_id] = (bySolution[e.solution_id] || 0) + 1;
+      solutionsSet[e.solution_id] = true;
+    }
+  });
+
+  return {
+    total_engagements: agencyEngagements.length,
+    last_engagement_date: lastDate ? lastDate.toISOString().split('T')[0] : null,
+    days_since_last: daysSince,
+    heat_status: heatStatus,
+    solutions_engaged: Object.keys(solutionsSet),
+    by_type: byType,
+    by_solution: bySolution
+  };
+}
+
+/**
+ * Get engagement timeline for an agency
+ * Returns all engagements involving contacts at this agency
+ * @param {string} agencyId - Agency ID
+ * @param {number} limit - Max results (default 50)
+ * @returns {Array} Engagements sorted by date descending
+ */
+function getAgencyEngagementTimeline(agencyId, limit) {
+  limit = limit || 50;
+  var contacts = getAgencyContacts(agencyId);
+  var contactEmails = contacts.map(function(c) { return (c.email || '').toLowerCase(); });
+
+  if (contactEmails.length === 0) {
+    return [];
+  }
+
+  var engagements = loadAllEngagements_();
+
+  // Filter and enrich with contact info
+  var agencyEngagements = engagements.filter(function(e) {
+    if (!e.participants) return false;
+    var participants = e.participants.split(',').map(function(p) { return p.trim().toLowerCase(); });
+    return participants.some(function(p) { return contactEmails.indexOf(p) !== -1; });
+  }).map(function(e) {
+    // Add matched contacts info
+    var matchedContacts = [];
+    if (e.participants) {
+      var participants = e.participants.split(',').map(function(p) { return p.trim().toLowerCase(); });
+      participants.forEach(function(p) {
+        var contact = contacts.find(function(c) { return (c.email || '').toLowerCase() === p; });
+        if (contact) {
+          matchedContacts.push({
+            email: contact.email,
+            name: contact.first_name + ' ' + contact.last_name
+          });
+        }
+      });
+    }
+    e.matched_contacts = matchedContacts;
+    return e;
+  });
+
+  return JSON.parse(JSON.stringify(agencyEngagements.slice(0, limit)));
+}
+
+/**
+ * Get solutions a contact has engaged with
+ * @param {string} email - Contact email
+ * @returns {Array} Solution IDs this contact has engaged with
+ */
+function getContactSolutionTags(email) {
+  var engagements = loadAllEngagements_();
+  var emailLower = (email || '').toLowerCase();
+
+  var solutionsSet = {};
+
+  engagements.forEach(function(e) {
+    if (!e.participants || !e.solution_id) return;
+    var participants = e.participants.split(',').map(function(p) { return p.trim().toLowerCase(); });
+    if (participants.indexOf(emailLower) !== -1) {
+      solutionsSet[e.solution_id] = true;
+    }
+  });
+
+  return Object.keys(solutionsSet);
+}
+
+/**
+ * Get contacts with their solution tags for an agency
+ * @param {string} agencyId - Agency ID
+ * @returns {Array} Contacts with solution_tags array added
+ */
+function getAgencyContactsWithTags(agencyId) {
+  var contacts = getAgencyContacts(agencyId);
+  var engagements = loadAllEngagements_();
+
+  // Build email -> solutions map
+  var emailToSolutions = {};
+  engagements.forEach(function(e) {
+    if (!e.participants || !e.solution_id) return;
+    var participants = e.participants.split(',').map(function(p) { return p.trim().toLowerCase(); });
+    participants.forEach(function(p) {
+      if (!emailToSolutions[p]) emailToSolutions[p] = {};
+      emailToSolutions[p][e.solution_id] = true;
+    });
+  });
+
+  // Add tags to contacts
+  contacts.forEach(function(c) {
+    var emailLower = (c.email || '').toLowerCase();
+    c.solution_tags = emailToSolutions[emailLower] ? Object.keys(emailToSolutions[emailLower]) : [];
+  });
+
+  return JSON.parse(JSON.stringify(contacts));
+}
+
+/**
+ * Check if an agency is active (not closed/merged)
+ * @param {Object} agency - Agency object
+ * @returns {boolean} True if active
+ */
+function isAgencyActive(agency) {
+  if (!agency.status) return true; // Default to active if no status
+  var status = String(agency.status).toLowerCase();
+  return status === 'active' || status === '';
+}

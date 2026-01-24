@@ -9,6 +9,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **SEP Agencies View Enhancements** - Major upgrade to the Agencies detail panel
+  - **Tabbed interface** - Overview, Contacts, Engagements, Notes tabs for better organization
+  - **Metrics dashboard** - 4 metric cards showing Engagements, Contacts, Solutions, Heat status with trends
+  - **Relationship health bar** - Visual progress bar showing relationship status (New → Developing → Established → Strong)
+  - **Engagement trend chart** - Mini bar chart showing 6-month engagement activity
+  - **Quick action buttons** - Log Engagement, Add Contact, Website link
+  - **Enhanced contact cards** - Larger avatars, engagement badges, hover-reveal action buttons
+  - **Heat map coloring** - Agency tree shows colored dots and left borders based on relationship status
+  - **Active state highlighting** - Selected agency highlighted in tree
+  - **Notes tab** - Textarea for relationship notes (backend integration pending)
+
+- **Team Documents - Templates Category** - New section for boilerplates and templates
+  - 6 template document types: Meeting Notes, Solution Brief, Stakeholder Report, Presentation, Email Outreach, One-Pager
+  - Teal color scheme (#00838f) to differentiate from other categories
+  - Only displays if at least one template document ID is configured in MO-DB_Config
+
+### Fixed
+- **Team Documents Icons** - Fixed icon rendering issues
+  - Converted all Feather icon names to Material Icons (e.g., `file-text` → `description`, `git-merge` → `merge_type`)
+  - Added fallback to `description` icon if none specified
+  - Added validation to use only first icon if multiple provided
+  - Fixed vertical alignment with `align-items: center` on document cards
+
+- **SEP Agencies Panel Layout** - Removed forced height/scrolling constraints
+  - Panels now display full content naturally
+  - Removed `max-height` and `overflow-y: auto` that caused unnecessary scrolling
+
+### Changed
+- **MO-DB_Solutions Schema v2** - Major schema refactoring with semantic prefixes
+  - Reduced from 76 → 64 columns
+  - Added 9 semantic prefixes: `core_`, `funding_`, `admin_`, `team_`, `earthdata_`, `comms_`, `product_`, `milestone_`, `docs_`
+  - Merged `name` (colloquial) into `core_alternate-names`
+  - Added 5 new presentation URL columns for milestones (`milestone_*-presentation-url`)
+  - Dropped 17 columns (status fields derived from URL presence, redundant flags)
+  - Column naming uses underscores for JS dot notation compatibility (e.g., `core_official_name`, `team_stakeholder_list_url`)
+  - Migration script: `scripts/solutions_schema_v2.py`
+
 ### Fixed
 - **Implementation-NSITE**: Deep Dives stat now reads from `deep_dive_date` in MO-DB_Solutions (was hardcoded 'TBD')
 

@@ -1,5 +1,5 @@
 <!-- SEP-NSITE: Stakeholder Engagement Pipeline -->
-<!-- Pipeline view for tracking stakeholder touchpoints and engagements -->
+<!-- Solution-based milestone tracking for SEP working sessions and touchpoints -->
 
 <div class="sep-viewer">
   <!-- Page Header -->
@@ -26,122 +26,154 @@
     </div>
   </div>
 
-  <!-- Stats Row -->
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-icon"><span class="material-icons">group</span></div>
-      <div class="stat-info">
-        <span class="stat-value" id="statTotalContacts">--</span>
-        <span class="stat-label">Contacts</span>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon"><span class="material-icons">work</span></div>
-      <div class="stat-info">
-        <span class="stat-value" id="statTotalAgencies">--</span>
-        <span class="stat-label">Agencies</span>
-      </div>
-    </div>
-    <div class="stat-card stat-warning">
-      <div class="stat-icon"><span class="material-icons">error</span></div>
-      <div class="stat-info">
-        <span class="stat-value" id="statNeedFollowUp">--</span>
-        <span class="stat-label">Need Follow-up</span>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon"><span class="material-icons">calendar_today</span></div>
-      <div class="stat-info">
-        <span class="stat-value" id="statThisWeek">--</span>
-        <span class="stat-label">This Week</span>
-      </div>
-    </div>
-  </div>
-
   <!-- Main Content Area -->
   <div class="sep-content">
     <!-- Pipeline View -->
     <div class="view-panel active" id="pipelineView">
-      <!-- Touchpoint Pipeline -->
+      <!-- SEP Milestone Pipeline -->
       <div class="pipeline-section">
         <div class="section-header">
-          <h2>Touchpoint Pipeline</h2>
+          <h2>SEP Milestone Pipeline</h2>
           <div class="pipeline-legend">
-            <span class="legend-item"><span class="dot dot-outreach"></span>Outreach</span>
-            <span class="legend-item"><span class="dot dot-assess"></span>Assessment</span>
-            <span class="legend-item"><span class="dot dot-transition"></span>Transition</span>
-            <span class="legend-item"><span class="dot dot-adoption"></span>Adoption</span>
+            <span class="legend-item"><span class="dot dot-ws"></span>Working Session</span>
+            <span class="legend-item"><span class="dot dot-tp"></span>Touchpoint</span>
           </div>
         </div>
         <div class="pipeline-board" id="pipelineBoard">
-          <!-- T4 Column -->
-          <div class="pipeline-column" data-touchpoint="T4">
+          <!-- WS1 Column -->
+          <div class="pipeline-column column-ws" data-milestone="ws1">
             <div class="column-header">
-              <span class="column-title">T4 - Outreach</span>
-              <span class="column-count" id="countT4">0</span>
+              <span class="column-title">WS1</span>
+              <span class="column-count" id="count_ws1">0</span>
             </div>
-            <div class="column-cards" id="cardsT4"></div>
+            <div class="column-cards" id="cards_ws1"></div>
           </div>
-          <!-- W1 Column -->
-          <div class="pipeline-column" data-touchpoint="W1">
+          <!-- TP4 Column -->
+          <div class="pipeline-column column-tp" data-milestone="tp4">
             <div class="column-header">
-              <span class="column-title">W1 - Assessment</span>
-              <span class="column-count" id="countW1">0</span>
+              <span class="column-title">TP4</span>
+              <span class="column-count" id="count_tp4">0</span>
             </div>
-            <div class="column-cards" id="cardsW1"></div>
+            <div class="column-cards" id="cards_tp4"></div>
           </div>
-          <!-- W2 Column -->
-          <div class="pipeline-column" data-touchpoint="W2">
+          <!-- WS2 Column -->
+          <div class="pipeline-column column-ws" data-milestone="ws2">
             <div class="column-header">
-              <span class="column-title">W2 - Deep Dive</span>
-              <span class="column-count" id="countW2">0</span>
+              <span class="column-title">WS2</span>
+              <span class="column-count" id="count_ws2">0</span>
             </div>
-            <div class="column-cards" id="cardsW2"></div>
+            <div class="column-cards" id="cards_ws2"></div>
           </div>
-          <!-- T5 Column -->
-          <div class="pipeline-column" data-touchpoint="T5">
+          <!-- TP5 Column -->
+          <div class="pipeline-column column-tp" data-milestone="tp5">
             <div class="column-header">
-              <span class="column-title">T5 - Transition</span>
-              <span class="column-count" id="countT5">0</span>
+              <span class="column-title">TP5</span>
+              <span class="column-count" id="count_tp5">0</span>
             </div>
-            <div class="column-cards" id="cardsT5"></div>
+            <div class="column-cards" id="cards_tp5"></div>
           </div>
-          <!-- T6 Column -->
-          <div class="pipeline-column" data-touchpoint="T6">
+          <!-- WS3 Column -->
+          <div class="pipeline-column column-ws" data-milestone="ws3">
             <div class="column-header">
-              <span class="column-title">T6 - Training</span>
-              <span class="column-count" id="countT6">0</span>
+              <span class="column-title">WS3</span>
+              <span class="column-count" id="count_ws3">0</span>
             </div>
-            <div class="column-cards" id="cardsT6"></div>
+            <div class="column-cards" id="cards_ws3"></div>
           </div>
-          <!-- T7 Column -->
-          <div class="pipeline-column" data-touchpoint="T7">
+          <!-- TP6 Column -->
+          <div class="pipeline-column column-tp" data-milestone="tp6">
             <div class="column-header">
-              <span class="column-title">T7 - Adoption</span>
-              <span class="column-count" id="countT7">0</span>
+              <span class="column-title">TP6</span>
+              <span class="column-count" id="count_tp6">0</span>
             </div>
-            <div class="column-cards" id="cardsT7"></div>
+            <div class="column-cards" id="cards_tp6"></div>
           </div>
-          <!-- T8 Column -->
-          <div class="pipeline-column" data-touchpoint="T8">
+          <!-- WS4 Column -->
+          <div class="pipeline-column column-ws" data-milestone="ws4">
             <div class="column-header">
-              <span class="column-title">T8 - Impact</span>
-              <span class="column-count" id="countT8">0</span>
+              <span class="column-title">WS4</span>
+              <span class="column-count" id="count_ws4">0</span>
             </div>
-            <div class="column-cards" id="cardsT8"></div>
+            <div class="column-cards" id="cards_ws4"></div>
+          </div>
+          <!-- TP7 Column -->
+          <div class="pipeline-column column-tp" data-milestone="tp7">
+            <div class="column-header">
+              <span class="column-title">TP7</span>
+              <span class="column-count" id="count_tp7">0</span>
+            </div>
+            <div class="column-cards" id="cards_tp7"></div>
+          </div>
+          <!-- WS5 Column -->
+          <div class="pipeline-column column-ws" data-milestone="ws5">
+            <div class="column-header">
+              <span class="column-title">WS5</span>
+              <span class="column-count" id="count_ws5">0</span>
+            </div>
+            <div class="column-cards" id="cards_ws5"></div>
+          </div>
+          <!-- TP8 Column -->
+          <div class="pipeline-column column-tp" data-milestone="tp8">
+            <div class="column-header">
+              <span class="column-title">TP8</span>
+              <span class="column-count" id="count_tp8">0</span>
+            </div>
+            <div class="column-cards" id="cards_tp8"></div>
           </div>
         </div>
       </div>
 
-      <!-- Bottom Panels: Agency Browser + Engagement Log -->
+      <!-- Bottom Panels: Filters/Outreach + Recent Engagements -->
       <div class="bottom-panels">
+        <!-- Quick Filters + Needs Outreach -->
+        <div class="panel filters-panel">
+          <div class="panel-header">
+            <h3>Filters & Outreach</h3>
+          </div>
+          <div class="panel-content">
+            <!-- Quick Filters -->
+            <div class="quick-filters">
+              <div class="filter-row">
+                <label>Cycle</label>
+                <select id="filterCycle" onchange="SEP.applyFilters()">
+                  <option value="">All Cycles</option>
+                </select>
+              </div>
+              <div class="filter-row">
+                <label>Milestone Type</label>
+                <div class="toggle-group">
+                  <button class="toggle-btn active" data-filter="all" onclick="SEP.setMilestoneFilter('all')">All</button>
+                  <button class="toggle-btn" data-filter="ws" onclick="SEP.setMilestoneFilter('ws')">WS</button>
+                  <button class="toggle-btn" data-filter="tp" onclick="SEP.setMilestoneFilter('tp')">TP</button>
+                </div>
+              </div>
+            </div>
+            <!-- Needs Outreach -->
+            <div class="needs-outreach">
+              <div class="outreach-header">
+                <span class="material-icons">campaign</span>
+                <span>Needs Outreach</span>
+                <span class="outreach-count" id="outreachCount">0</span>
+              </div>
+              <div class="outreach-list" id="outreachList">
+                <div class="loading-state">
+                  <span class="loading-spinner"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Recent Engagements -->
         <div class="panel engagement-panel">
           <div class="panel-header">
             <h3>Recent Engagements</h3>
-            <button class="btn btn-sm btn-primary" onclick="SEP.showLogEngagementModal()">
-              <span class="material-icons">add</span>
-            </button>
+            <div style="display: flex; gap: var(--space-xs);">
+              <button class="btn btn-sm btn-secondary" onclick="SEP.showAllEngagements()">View All</button>
+              <button class="btn btn-sm btn-primary" onclick="SEP.showLogEngagementModal()">
+                <span class="material-icons">add</span>
+              </button>
+            </div>
           </div>
           <div class="panel-content" id="recentEngagements">
             <div class="loading-state">
@@ -186,14 +218,14 @@
   </div>
 </div>
 
-<!-- Contact Detail Modal -->
-<div class="modal-overlay" id="contactModal" onclick="SEP.closeModal('contactModal', event)">
+<!-- Solution Detail Modal -->
+<div class="modal-overlay" id="solutionModal" onclick="SEP.closeModal('solutionModal', event)">
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title" id="modalContactName">Contact Details</h2>
-      <button class="modal-close" onclick="SEP.closeModal('contactModal')">&times;</button>
+      <h2 class="modal-title" id="modalSolutionName">Solution Details</h2>
+      <button class="modal-close" onclick="SEP.closeModal('solutionModal')">&times;</button>
     </div>
-    <div class="modal-body" id="contactModalBody">
+    <div class="modal-body" id="solutionModalBody">
       <!-- Dynamic content -->
     </div>
   </div>
@@ -255,16 +287,19 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Touchpoint Reference</label>
+            <label>SEP Milestone</label>
             <select id="engTouchpoint">
               <option value="">None</option>
-              <option value="T4">T4 - Outreach</option>
-              <option value="W1">W1 - Assessment</option>
-              <option value="W2">W2 - Deep Dive</option>
-              <option value="T5">T5 - Transition</option>
-              <option value="T6">T6 - Training</option>
-              <option value="T7">T7 - Adoption</option>
-              <option value="T8">T8 - Impact</option>
+              <option value="ws1">WS1 - Working Session 1</option>
+              <option value="tp4">TP4 - Outreach</option>
+              <option value="ws2">WS2 - Working Session 2</option>
+              <option value="tp5">TP5 - Transition</option>
+              <option value="ws3">WS3 - Working Session 3</option>
+              <option value="tp6">TP6 - Training</option>
+              <option value="ws4">WS4 - Working Session 4</option>
+              <option value="tp7">TP7 - Adoption</option>
+              <option value="ws5">WS5 - Working Session 5</option>
+              <option value="tp8">TP8 - Impact</option>
             </select>
           </div>
           <div class="form-group">
@@ -290,6 +325,117 @@
     </div>
     <div class="modal-body" id="engagementDetailContent">
       <!-- Populated dynamically -->
+    </div>
+  </div>
+</div>
+
+<!-- All Engagements Modal -->
+<div class="modal-overlay" id="allEngagementsModal" onclick="SEP.closeModal('allEngagementsModal', event)">
+  <div class="modal-content modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">All Engagements</h2>
+      <button class="modal-close" onclick="SEP.closeModal('allEngagementsModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <!-- Filters -->
+      <div class="engagement-filters">
+        <div class="filter-group">
+          <label>Activity Type</label>
+          <select id="filterActivityType" onchange="SEP.filterAllEngagements()">
+            <option value="">All Types</option>
+            <option value="Email">Email</option>
+            <option value="Phone">Phone</option>
+            <option value="Meeting">Meeting</option>
+            <option value="Webinar">Webinar</option>
+            <option value="Conference">Conference</option>
+            <option value="Site Visit">Site Visit</option>
+            <option value="Training">Training</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Date Range</label>
+          <select id="filterDateRange" onchange="SEP.filterAllEngagements()">
+            <option value="30">Last 30 Days</option>
+            <option value="60">Last 60 Days</option>
+            <option value="90">Last 90 Days</option>
+            <option value="365">Last Year</option>
+            <option value="all">All Time</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Search</label>
+          <input type="text" id="filterEngagementSearch" placeholder="Search subject or summary..." oninput="SEP.filterAllEngagements()">
+        </div>
+      </div>
+      <!-- Engagement List -->
+      <div id="allEngagementsList" class="all-engagements-list">
+        <div class="loading-state"><span class="loading-spinner"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Contact Engagement History Modal -->
+<div class="modal-overlay" id="contactHistoryModal" onclick="SEP.closeModal('contactHistoryModal', event)">
+  <div class="modal-content modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="contactHistoryTitle">Engagement History</h2>
+      <button class="modal-close" onclick="SEP.closeModal('contactHistoryModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="contactHistoryContent">
+      <div class="loading-state"><span class="loading-spinner"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Link Contact Modal -->
+<div class="modal-overlay" id="linkContactModal" onclick="SEP.closeModal('linkContactModal', event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Link Contact to <span id="linkContactAgencyName">Agency</span></h2>
+      <button class="modal-close" onclick="SEP.closeModal('linkContactModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Search Existing Contacts</label>
+        <input type="text" id="contactSearchInput" placeholder="Search by name or email..."
+               oninput="SEP.searchContactsForLink(this.value)">
+      </div>
+      <div id="contactSearchResults" class="contact-search-results">
+        <div class="search-hint">Type to search existing contacts</div>
+      </div>
+      <div class="link-contact-divider">
+        <span>or</span>
+      </div>
+      <div class="form-group">
+        <label>Add New Contact</label>
+        <div class="new-contact-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>First Name</label>
+              <input type="text" id="newContactFirst" placeholder="First name">
+            </div>
+            <div class="form-group">
+              <label>Last Name</label>
+              <input type="text" id="newContactLast" placeholder="Last name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="newContactEmail" placeholder="email@agency.gov">
+          </div>
+          <div class="form-group">
+            <label>Title/Role</label>
+            <input type="text" id="newContactTitle" placeholder="Title or role">
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="SEP.closeModal('linkContactModal')">Cancel</button>
+        <button class="btn btn-primary" id="addNewContactBtn" onclick="SEP.addNewContactToAgency()">
+          <span class="material-icons">person_add</span> Add Contact
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -383,23 +529,21 @@
   }
   .legend-item { display: flex; align-items: center; gap: var(--space-xs); }
   .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .dot-outreach { background: #1565C0; }
-  .dot-assess { background: #7B1FA2; }
-  .dot-transition { background: #ED6C02; }
-  .dot-adoption { background: #2E7D32; }
+  .dot-ws { background: #7B1FA2; } /* Purple for Working Sessions */
+  .dot-tp { background: #1565C0; } /* Blue for Touchpoints */
 
-  /* Pipeline Board */
+  /* Pipeline Board - 10 columns for SEP milestones */
   .pipeline-board {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: var(--space-sm);
+    grid-template-columns: repeat(10, 1fr);
+    gap: var(--space-xs);
     overflow-x: auto;
     padding-bottom: var(--space-sm);
   }
   .pipeline-column {
     background: var(--color-surface-alt);
     border-radius: var(--radius-md);
-    min-width: 180px;
+    min-width: 140px;
     max-height: 400px;
     display: flex;
     flex-direction: column;
@@ -408,34 +552,40 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--space-sm) var(--space-md);
+    padding: var(--space-xs) var(--space-sm);
     border-bottom: 1px solid var(--color-border-light);
     background: var(--color-surface);
     border-radius: var(--radius-md) var(--radius-md) 0 0;
   }
-  .column-title { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text); }
+  .column-title { font-size: var(--font-size-xs); font-weight: 600; color: var(--color-text); }
   .column-count {
-    font-size: var(--font-size-xs);
-    padding: 2px 8px;
+    font-size: 10px;
+    padding: 2px 6px;
     background: var(--color-sep);
     color: white;
     border-radius: 12px;
     font-weight: 600;
   }
+  /* Working Session columns - purple accent */
+  .column-ws .column-header { border-top: 3px solid #7B1FA2; }
+  .column-ws .column-count { background: #7B1FA2; }
+  /* Touchpoint columns - blue accent */
+  .column-tp .column-header { border-top: 3px solid #1565C0; }
+  .column-tp .column-count { background: #1565C0; }
   .column-cards {
     flex: 1;
     overflow-y: auto;
-    padding: var(--space-sm);
+    padding: var(--space-xs);
     display: flex;
     flex-direction: column;
     gap: var(--space-xs);
   }
 
-  /* Pipeline Cards */
+  /* Pipeline Cards - Solution cards */
   .pipeline-card {
     background: var(--color-surface);
     border-radius: var(--radius-sm);
-    padding: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
     box-shadow: var(--shadow-sm);
     cursor: pointer;
     transition: all var(--transition-fast);
@@ -445,7 +595,9 @@
     box-shadow: var(--shadow-md);
     transform: translateY(-1px);
   }
-  .card-name { font-weight: 600; font-size: var(--font-size-sm); color: var(--color-text); margin-bottom: 2px; }
+  .card-id { font-weight: 700; font-size: 11px; color: var(--color-sep); margin-bottom: 1px; text-transform: uppercase; }
+  .card-name { font-weight: 500; font-size: 11px; color: var(--color-text); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-cycle { font-size: 10px; color: var(--color-text-muted); margin-top: 2px; }
   .card-org { font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-bottom: 4px; }
   .card-solutions {
     font-size: var(--font-size-xs);
@@ -483,11 +635,11 @@
     justify-content: space-between;
     align-items: center;
     padding: var(--space-sm) var(--space-md);
-    background: var(--color-surface-alt);
-    border-bottom: 1px solid var(--color-border-light);
+    background: linear-gradient(135deg, var(--color-surface-alt) 0%, var(--color-surface) 100%);
+    border-bottom: 2px solid var(--color-sep);
   }
-  .panel-header h3 { font-size: var(--font-size-md); font-weight: 600; margin: 0; }
-  .panel-content { padding: var(--space-md); max-height: 300px; overflow-y: auto; }
+  .panel-header h3 { font-size: var(--font-size-md); font-weight: 600; margin: 0; color: var(--color-sep); }
+  .panel-content { padding: var(--space-md); }
 
   /* Agency Browser Mini */
   .agency-item {
@@ -500,6 +652,7 @@
     transition: background var(--transition-fast);
   }
   .agency-item:hover { background: var(--color-surface-alt); }
+  .agency-item.active { background: rgba(21, 101, 192, 0.1); border-left: 3px solid var(--color-sep) !important; }
   .agency-item.has-children { font-weight: 500; }
   .agency-toggle {
     width: 16px;
@@ -587,20 +740,11 @@
     display: grid;
     grid-template-columns: minmax(280px, 400px) 1fr;
     gap: var(--space-md);
-    height: calc(100vh - 280px);
   }
   .agency-tree-panel, .agency-detail-panel {
     background: var(--color-surface);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-  .agency-tree-panel .panel-content,
-  .agency-detail-panel .panel-content {
-    flex: 1;
-    overflow-y: auto;
   }
   .search-input-sm {
     padding: var(--space-xs) var(--space-sm);
@@ -695,6 +839,476 @@
   .status-badge.status-new { background: #dbeafe; color: #1e40af; }
   .status-badge.status-strong { background: #d1fae5; color: #065f46; }
   .status-badge.status-dormant { background: #f3f4f6; color: #6b7280; }
+  .status-badge.status-closed { background: #fecaca; color: #991b1b; }
+  .status-badge.status-merged { background: #e9d5ff; color: #7c3aed; }
+
+  /* Agency Engagement Stats */
+  .agency-engagement-stats {
+    display: flex;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+  }
+  .engagement-stat {
+    flex: 1;
+    text-align: center;
+    padding: var(--space-xs);
+  }
+  .engagement-stat-value { font-size: 18px; font-weight: 700; color: var(--color-text); }
+  .engagement-stat-label { font-size: 9px; color: var(--color-text-muted); text-transform: uppercase; }
+  .heat-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .heat-indicator.heat-hot { background: #fecaca; color: #dc2626; }
+  .heat-indicator.heat-warm { background: #fed7aa; color: #ea580c; }
+  .heat-indicator.heat-cold { background: #e0e7ff; color: #4f46e5; }
+  .heat-indicator .material-icons { font-size: 12px; }
+
+  /* Solution Tags */
+  .solution-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 4px;
+  }
+  .solution-tag {
+    display: inline-block;
+    padding: 1px 5px;
+    background: rgba(21, 101, 192, 0.15);
+    color: var(--color-sep);
+    font-size: 9px;
+    font-weight: 600;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+
+  /* Agency Contact Cards */
+  .agency-contacts-section {
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--color-border-light);
+  }
+  .agency-contacts-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-xs);
+  }
+  .agency-contacts-header h4 {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    margin: 0;
+  }
+  .agency-contact-card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    padding: var(--space-xs);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    margin-bottom: 4px;
+  }
+  .agency-contact-card:hover { background: var(--color-surface-alt); }
+  .contact-avatar-sm {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--color-sep), #60a5fa);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+  }
+  .contact-card-info { flex: 1; min-width: 0; }
+  .contact-card-name { font-size: 12px; font-weight: 500; }
+  .contact-card-role { font-size: 10px; color: var(--color-text-muted); }
+
+  /* Link Contact Modal */
+  .contact-search-results {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-md);
+  }
+  .search-hint {
+    padding: var(--space-md);
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+  .contact-search-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .contact-search-item:last-child { border-bottom: none; }
+  .contact-search-item:hover { background: var(--color-surface-alt); }
+  .contact-search-item.selected { background: rgba(21, 101, 192, 0.1); }
+  .contact-search-avatar {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--color-sep), #60a5fa);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+  }
+  .contact-search-info { flex: 1; }
+  .contact-search-name { font-weight: 500; font-size: var(--font-size-sm); }
+  .contact-search-email { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+  .contact-search-agency { font-size: 10px; color: var(--color-text-secondary); }
+  .link-contact-divider {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin: var(--space-md) 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+  .link-contact-divider::before,
+  .link-contact-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--color-border);
+  }
+  .new-contact-form { margin-top: var(--space-sm); }
+
+  /* Agency Timeline */
+  .agency-timeline-section {
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--color-border-light);
+  }
+  .agency-timeline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-xs);
+  }
+  .agency-timeline-header h4 {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    margin: 0;
+  }
+  .timeline-item {
+    display: flex;
+    gap: var(--space-sm);
+    padding: var(--space-xs) 0;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .timeline-item:last-child { border-bottom: none; }
+  .timeline-icon {
+    width: 24px;
+    height: 24px;
+    background: rgba(21, 101, 192, 0.1);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .timeline-icon .material-icons { font-size: 14px; color: var(--color-sep); }
+  .timeline-content { flex: 1; min-width: 0; }
+  .timeline-subject { font-size: 11px; font-weight: 500; }
+  .timeline-meta { font-size: 9px; color: var(--color-text-muted); }
+  .timeline-contacts { font-size: 9px; color: var(--color-text-secondary); margin-top: 2px; }
+
+  /* Agency Tree Heat Map */
+  .agency-item.heat-hot { background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444; }
+  .agency-item.heat-warm { background: rgba(249, 115, 22, 0.08); border-left: 3px solid #f97316; }
+  .agency-item.heat-cold { border-left: 3px solid transparent; }
+  .agency-item .heat-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .heat-dot.hot { background: #ef4444; }
+  .heat-dot.warm { background: #f97316; }
+  .heat-dot.cold { background: #94a3b8; }
+
+  /* Agency Detail Tabs */
+  .agency-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--color-border-light);
+    margin-bottom: var(--space-md);
+  }
+  .agency-tab {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    border: none;
+    background: none;
+    position: relative;
+    transition: color var(--transition-fast);
+  }
+  .agency-tab:hover { color: var(--color-text); }
+  .agency-tab.active {
+    color: var(--color-sep);
+  }
+  .agency-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--color-sep);
+  }
+  .agency-tab-panel { display: none; }
+  .agency-tab-panel.active { display: block; }
+
+  /* Relationship Health Bar */
+  .relationship-health {
+    margin: var(--space-sm) 0;
+  }
+  .health-bar-container {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .health-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--color-border-light);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .health-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+  .health-bar-fill.level-1 { width: 20%; background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+  .health-bar-fill.level-2 { width: 40%; background: linear-gradient(90deg, #3b82f6, #22c55e); }
+  .health-bar-fill.level-3 { width: 60%; background: linear-gradient(90deg, #22c55e, #84cc16); }
+  .health-bar-fill.level-4 { width: 80%; background: linear-gradient(90deg, #84cc16, #eab308); }
+  .health-bar-fill.level-5 { width: 100%; background: linear-gradient(90deg, #eab308, #22c55e); }
+  .health-label { font-size: 10px; color: var(--color-text-muted); white-space: nowrap; }
+
+  /* Quick Actions */
+  .quick-actions {
+    display: flex;
+    gap: var(--space-xs);
+    margin: var(--space-sm) 0;
+  }
+  .quick-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  .quick-action-btn:hover {
+    background: var(--color-sep);
+    border-color: var(--color-sep);
+    color: white;
+  }
+  .quick-action-btn .material-icons { font-size: 14px; }
+
+  /* Enhanced Metrics Row */
+  .agency-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+  }
+  .metric-card {
+    background: linear-gradient(135deg, var(--color-surface-alt), var(--color-surface));
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+  .metric-card.metric-engagements::before { background: var(--color-sep); }
+  .metric-card.metric-contacts::before { background: #22c55e; }
+  .metric-card.metric-solutions::before { background: #f59e0b; }
+  .metric-card.metric-heat::before { background: #ef4444; }
+  .metric-value { font-size: 24px; font-weight: 700; color: var(--color-text); line-height: 1.2; }
+  .metric-label { font-size: 10px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .metric-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 10px;
+    margin-top: 4px;
+  }
+  .metric-trend.up { color: #22c55e; }
+  .metric-trend.down { color: #ef4444; }
+  .metric-trend.neutral { color: var(--color-text-muted); }
+  .metric-trend .material-icons { font-size: 12px; }
+
+  /* Mini Engagement Chart */
+  .engagement-chart {
+    height: 60px;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+  }
+  .chart-bar {
+    flex: 1;
+    background: var(--color-sep);
+    border-radius: 2px 2px 0 0;
+    min-height: 4px;
+    transition: height 0.3s ease;
+    opacity: 0.7;
+  }
+  .chart-bar:hover { opacity: 1; }
+  .chart-bar.current { background: #22c55e; opacity: 1; }
+  .chart-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: var(--color-text-muted);
+    padding: 0 var(--space-sm);
+  }
+
+  /* Enhanced Contact Cards */
+  .contact-card-enhanced {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-xs);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  .contact-card-enhanced:hover {
+    border-color: var(--color-sep);
+    box-shadow: 0 2px 8px rgba(21, 101, 192, 0.1);
+  }
+  .contact-avatar-md {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--color-sep), #60a5fa);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+  }
+  .contact-details { flex: 1; min-width: 0; }
+  .contact-name-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .contact-name { font-size: 13px; font-weight: 500; }
+  .contact-engagement-badge {
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+  .contact-engagement-badge.high { background: #dcfce7; color: #166534; }
+  .contact-engagement-badge.medium { background: #fef3c7; color: #92400e; }
+  .contact-engagement-badge.low { background: #fee2e2; color: #991b1b; }
+  .contact-role-title { font-size: 11px; color: var(--color-text-muted); }
+  .contact-last-engagement { font-size: 10px; color: var(--color-text-secondary); margin-top: 2px; }
+  .contact-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+  .contact-card-enhanced:hover .contact-actions { opacity: 1; }
+  .contact-action-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+    transition: all var(--transition-fast);
+  }
+  .contact-action-btn:hover {
+    background: var(--color-sep);
+    color: white;
+  }
+  .contact-action-btn .material-icons { font-size: 16px; }
+
+  /* Notes Section */
+  .notes-section textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    line-height: 1.5;
+    resize: vertical;
+  }
+  .notes-section textarea:focus {
+    outline: none;
+    border-color: var(--color-sep);
+  }
+  .notes-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-xs);
+    margin-top: var(--space-sm);
+  }
 
   /* Modal & Forms */
   .modal-overlay {
@@ -782,8 +1396,173 @@
     animation: spin 1s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
   .empty-state { text-align: center; padding: var(--space-lg); color: var(--color-text-muted); }
   .empty-state svg { width: 48px; height: 48px; margin-bottom: var(--space-sm); opacity: 0.5; }
+
+  /* Needs Attention Panel */
+  .attention-panel .panel-header { background: rgba(239, 68, 68, 0.1); }
+  .attention-count {
+    background: var(--color-error);
+    color: white;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+  }
+  .attention-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-xs);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+  }
+  .attention-item:hover { background: var(--color-surface-alt); }
+  .attention-item.overdue { border-left: 3px solid var(--color-error); background: rgba(239, 68, 68, 0.05); }
+  .attention-item.due-soon { border-left: 3px solid var(--color-warning); background: rgba(237, 108, 2, 0.05); }
+  .attention-info { flex: 1; min-width: 0; }
+  .attention-name { font-weight: 500; font-size: var(--font-size-sm); }
+  .attention-org { font-size: var(--font-size-xs); color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .attention-status {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+  }
+  .attention-status.overdue { background: var(--color-error); color: white; }
+  .attention-status.due-soon { background: var(--color-warning); color: white; }
+  .attention-action {
+    padding: 4px 8px;
+    font-size: var(--font-size-xs);
+    background: var(--color-sep);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+  .attention-action:hover { background: var(--color-primary-dark); }
+
+  /* Engagement Filters */
+  .engagement-filters {
+    display: flex;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .filter-group { display: flex; flex-direction: column; gap: var(--space-xs); }
+  .filter-group label { font-size: var(--font-size-xs); color: var(--color-text-muted); text-transform: uppercase; }
+  .filter-group select, .filter-group input {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    min-width: 150px;
+  }
+
+  /* All Engagements List */
+  .all-engagements-list { max-height: 500px; overflow-y: auto; }
+  .engagement-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--color-border-light);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+  }
+  .engagement-row:hover { background: var(--color-surface-alt); }
+  .engagement-row-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(21, 101, 192, 0.1);
+    border-radius: var(--radius-sm);
+    color: var(--color-sep);
+    flex-shrink: 0;
+  }
+  .engagement-row-info { flex: 1; min-width: 0; }
+  .engagement-row-subject { font-weight: 500; font-size: var(--font-size-sm); }
+  .engagement-row-meta { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+  .engagement-row-date { font-size: var(--font-size-sm); color: var(--color-text-muted); white-space: nowrap; }
+  .engagement-count-badge {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+  }
+
+  /* Contact History Timeline */
+  .history-timeline { position: relative; padding-left: var(--space-lg); }
+  .history-timeline::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--color-border-light);
+  }
+  .history-item {
+    position: relative;
+    padding-bottom: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  .history-item::before {
+    content: '';
+    position: absolute;
+    left: calc(-1 * var(--space-lg) + 8px);
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-sep);
+    border: 2px solid var(--color-surface);
+  }
+  .history-date { font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: var(--space-xs); }
+  .history-content {
+    background: var(--color-surface-alt);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+  }
+  .history-subject { font-weight: 500; margin-bottom: var(--space-xs); }
+  .history-meta { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+  .history-summary { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-top: var(--space-xs); }
+
+  /* Inline Edit Controls */
+  .inline-edit-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .inline-select {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    cursor: pointer;
+  }
+  .inline-select:focus { border-color: var(--color-sep); outline: none; }
+  .inline-date {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+  }
+  .save-indicator {
+    font-size: var(--font-size-xs);
+    color: var(--color-success);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+  .save-indicator.visible { opacity: 1; }
 
   /* Contact Detail (in modal) */
   .contact-detail-header {
@@ -839,11 +1618,193 @@
     font-size: var(--font-size-sm);
   }
 
+  /* Solution Detail Modal */
+  .solution-detail-header {
+    display: flex;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .solution-avatar {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--color-sep), #60a5fa);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+  .solution-info { flex: 1; }
+  .solution-id { font-size: var(--font-size-sm); font-weight: 700; color: var(--color-sep); text-transform: uppercase; }
+  .solution-name { font-size: var(--font-size-lg); font-weight: 600; margin-bottom: var(--space-xs); }
+  .solution-meta { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+
+  /* Milestone Timeline */
+  .milestone-timeline {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-sm);
+  }
+  .milestone-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-alt);
+    position: relative;
+  }
+  .milestone-item.completed { background: rgba(46, 125, 50, 0.1); }
+  .milestone-item.milestone-ws .milestone-marker { background: #7B1FA2; }
+  .milestone-item.milestone-tp .milestone-marker { background: #1565C0; }
+  .milestone-item.completed .milestone-marker { background: #2E7D32; }
+  .milestone-marker {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-text-muted);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+  }
+  .milestone-content { width: 100%; }
+  .milestone-label { font-size: 11px; font-weight: 700; color: var(--color-text); }
+  .milestone-name { font-size: 9px; color: var(--color-text-muted); margin-bottom: var(--space-xs); line-height: 1.2; }
+  .milestone-date-row { display: flex; align-items: center; justify-content: center; gap: 4px; }
+  .milestone-date-input {
+    font-size: 10px;
+    padding: 2px 4px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    width: 90px;
+  }
+  .milestone-link {
+    color: var(--color-sep);
+    display: flex;
+    align-items: center;
+  }
+  .milestone-link .material-icons { font-size: 14px; }
+
+  /* Filters Panel */
+  .filters-panel .panel-header { background: rgba(21, 101, 192, 0.1); }
+  .filters-panel .panel-content { padding: var(--space-sm); }
+
+  .quick-filters {
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+  .filter-row:last-child { margin-bottom: 0; }
+  .filter-row label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    min-width: 80px;
+  }
+  .filter-row select {
+    flex: 1;
+    padding: 4px 8px;
+    font-size: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+  }
+  .toggle-group {
+    display: flex;
+    gap: 2px;
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+  }
+  .toggle-btn {
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  .toggle-btn:hover { color: var(--color-text); }
+  .toggle-btn.active {
+    background: var(--color-sep);
+    color: white;
+  }
+
+  .needs-outreach {
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    padding: var(--space-sm);
+  }
+  .outreach-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-sm);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-warning);
+  }
+  .outreach-header .material-icons { font-size: 16px; }
+  .outreach-count {
+    background: var(--color-warning);
+    color: white;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    margin-left: auto;
+  }
+  .outreach-list { max-height: 150px; overflow-y: auto; }
+  .outreach-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    border-left: 3px solid var(--color-warning);
+    margin-bottom: 4px;
+  }
+  .outreach-item:hover { background: var(--color-surface); }
+  .outreach-id { font-weight: 700; font-size: 10px; color: var(--color-sep); }
+  .outreach-name { font-size: 10px; color: var(--color-text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .outreach-count-badge {
+    font-size: 9px;
+    background: var(--color-surface);
+    padding: 1px 6px;
+    border-radius: 8px;
+    color: var(--color-text-muted);
+  }
+
   /* Responsive */
+  @media (max-width: 1400px) {
+    .pipeline-board { grid-template-columns: repeat(5, 1fr); }
+  }
   @media (max-width: 1200px) {
-    .pipeline-board { grid-template-columns: repeat(4, 1fr); }
+    .pipeline-board { grid-template-columns: repeat(5, 1fr); }
     .bottom-panels { grid-template-columns: 1fr; }
     .agencies-layout { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 900px) {
+    .pipeline-board { grid-template-columns: repeat(3, 1fr); }
   }
   @media (max-width: 768px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
@@ -855,27 +1816,55 @@
 <!-- SEP JavaScript -->
 <script>
 var SEP = (function() {
+  // SEP Milestone definitions
+  var MILESTONES = ['ws1', 'tp4', 'ws2', 'tp5', 'ws3', 'tp6', 'ws4', 'tp7', 'ws5', 'tp8'];
+
   var state = {
-    overview: null,
-    contacts: [],
+    solutions: [],
+    solutionsByMilestone: {},
+    stats: null,
     agencies: [],
     agencyHierarchy: [],
     engagements: [],
-    solutions: [],
     currentView: 'pipeline',
-    selectedAgency: null
+    selectedAgency: null,
+    selectedAgencyData: null,
+    selectedSolution: null,
+    // Filter state
+    cycles: [],
+    filterCycle: null,
+    filterMilestone: 'all',
+    needsOutreach: [],
+    // Link Contact modal
+    linkContactAgencyId: null
   };
+
+  // Store all engagements for filtering
+  var allEngagementsCache = [];
 
   function init() {
     setDefaultDate();
-    loadOverview();
-    loadContacts();
+    loadSolutionsWithProgress();
+    loadCycles();
+    loadNeedsOutreach();
     loadAgencies();
     loadRecentEngagements();
-    loadSolutions();
   }
 
-  function loadSolutions() {
+  function loadSolutionsWithProgress() {
+    // Load solutions grouped by SEP milestone
+    google.script.run
+      .withSuccessHandler(function(grouped) {
+        state.solutionsByMilestone = grouped || {};
+        renderPipeline();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load solutions by milestone:', error);
+        showPipelineError('Failed to load solutions');
+      })
+      .getSolutionsBySEPMilestone();
+
+    // Load full solutions list for dropdown
     google.script.run
       .withSuccessHandler(function(solutions) {
         state.solutions = (solutions || []).filter(function(s) { return s && s.core_id; });
@@ -891,7 +1880,6 @@ var SEP = (function() {
     var select = document.getElementById('engSolution');
     if (!select) return;
 
-    // Keep the default option
     select.innerHTML = '<option value="">-- Select Solution --</option>';
 
     var sorted = state.solutions.slice().sort(function(a, b) {
@@ -909,31 +1897,6 @@ var SEP = (function() {
   function setDefaultDate() {
     var today = new Date().toISOString().split('T')[0];
     document.getElementById('engDate').value = today;
-  }
-
-  function loadOverview() {
-    google.script.run
-      .withSuccessHandler(function(overview) {
-        state.overview = overview;
-        renderStats(overview);
-      })
-      .withFailureHandler(function(error) {
-        console.error('Failed to load overview:', error);
-      })
-      .getSEPPipelineOverview();
-  }
-
-  function loadContacts() {
-    google.script.run
-      .withSuccessHandler(function(contacts) {
-        state.contacts = contacts || [];
-        renderPipeline();
-      })
-      .withFailureHandler(function(error) {
-        console.error('Failed to load contacts:', error);
-        showPipelineError('Failed to load contacts');
-      })
-      .getSEPPipelineContacts();
   }
 
   function loadAgencies() {
@@ -962,88 +1925,321 @@ var SEP = (function() {
       .getRecentEngagements(30, 10);
   }
 
-  function renderStats(overview) {
-    if (!overview) return;
-    document.getElementById('statTotalContacts').textContent = overview.total_contacts || 0;
-    document.getElementById('statTotalAgencies').textContent = overview.total_agencies || 0;
-    document.getElementById('statNeedFollowUp').textContent = overview.follow_ups ? overview.follow_ups.need_attention : 0;
-    document.getElementById('statThisWeek').textContent = overview.follow_ups ? overview.follow_ups.this_week : 0;
-  }
 
   function renderPipeline() {
-    var touchpoints = ['T4', 'W1', 'W2', 'T5', 'T6', 'T7', 'T8'];
-    var contactsByTouchpoint = {};
+    MILESTONES.forEach(function(ms) {
+      var column = document.querySelector('.pipeline-column[data-milestone="' + ms + '"]');
+      var container = document.getElementById('cards_' + ms);
+      var countEl = document.getElementById('count_' + ms);
 
-    touchpoints.forEach(function(tp) {
-      contactsByTouchpoint[tp] = [];
-    });
-
-    state.contacts.forEach(function(c) {
-      if (c.touchpoint_status && contactsByTouchpoint[c.touchpoint_status]) {
-        contactsByTouchpoint[c.touchpoint_status].push(c);
-      }
-    });
-
-    touchpoints.forEach(function(tp) {
-      var container = document.getElementById('cards' + tp);
-      var countEl = document.getElementById('count' + tp);
-      var contacts = contactsByTouchpoint[tp];
-
-      countEl.textContent = contacts.length;
-
-      if (contacts.length === 0) {
-        container.innerHTML = '<div class="empty-state" style="padding: var(--space-md);"><p style="font-size: var(--font-size-xs);">No contacts</p></div>';
+      // Show/hide column based on milestone type filter
+      if (!shouldShowMilestone(ms)) {
+        if (column) column.style.display = 'none';
+        return;
       } else {
-        var html = contacts.slice(0, 20).map(function(c) {
-          return renderPipelineCard(c);
+        if (column) column.style.display = '';
+      }
+
+      // Get filtered solutions
+      var solutions = getFilteredSolutions(ms);
+
+      countEl.textContent = solutions.length;
+
+      if (solutions.length === 0) {
+        container.innerHTML = '<div class="empty-state" style="padding: var(--space-sm); font-size: 10px; color: var(--color-text-muted);">No solutions</div>';
+      } else {
+        var html = solutions.slice(0, 15).map(function(sol) {
+          return renderSolutionCard(sol);
         }).join('');
-        if (contacts.length > 20) {
-          html += '<div class="pipeline-overflow" style="text-align: center; padding: var(--space-sm); font-size: var(--font-size-xs); color: var(--color-text-muted);">+' + (contacts.length - 20) + ' more contacts</div>';
+        if (solutions.length > 15) {
+          html += '<div style="text-align: center; padding: var(--space-xs); font-size: 10px; color: var(--color-text-muted);">+' + (solutions.length - 15) + ' more</div>';
         }
         container.innerHTML = html;
       }
     });
-}
+  }
 
-  function renderPipelineCard(contact) {
-    var name = (contact.first_name || '') + ' ' + (contact.last_name || '');
-    var org = contact.agency || contact.department || '';
-    var solutions = contact.solutions ? contact.solutions.slice(0, 2).join(', ') : '';
-    if (contact.solutions && contact.solutions.length > 2) {
-      solutions += ' +' + (contact.solutions.length - 2);
+  // ========================================================================
+  // FILTERS & OUTREACH
+  // ========================================================================
+
+  function loadCycles() {
+    google.script.run
+      .withSuccessHandler(function(cycles) {
+        state.cycles = cycles || [];
+        renderCycleDropdown();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load cycles:', error);
+      })
+      .getSEPCycles();
+  }
+
+  function renderCycleDropdown() {
+    var select = document.getElementById('filterCycle');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">All Cycles</option>';
+    state.cycles.forEach(function(cycle) {
+      var opt = document.createElement('option');
+      opt.value = cycle;
+      opt.textContent = 'Cycle ' + cycle;
+      select.appendChild(opt);
+    });
+  }
+
+  function loadNeedsOutreach() {
+    google.script.run
+      .withSuccessHandler(function(solutions) {
+        state.needsOutreach = solutions || [];
+        renderNeedsOutreach();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load outreach:', error);
+        document.getElementById('outreachList').innerHTML =
+          '<div style="font-size: 10px; color: var(--color-text-muted); padding: 4px;">Could not load</div>';
+      })
+      .getSolutionsNeedingOutreach(2);
+  }
+
+  function renderNeedsOutreach() {
+    var container = document.getElementById('outreachList');
+    var countEl = document.getElementById('outreachCount');
+    var solutions = state.needsOutreach || [];
+
+    countEl.textContent = solutions.length;
+
+    if (solutions.length === 0) {
+      container.innerHTML = '<div style="font-size: 10px; color: var(--color-text-muted); padding: 4px; text-align: center;">All solutions have good engagement!</div>';
+      return;
     }
 
-    var dateClass = '';
-    var dateText = '';
-    if (contact.next_scheduled_contact) {
-      var nextDate = new Date(contact.next_scheduled_contact);
-      var today = new Date();
-      today.setHours(0, 0, 0, 0);
-      var diffDays = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24));
+    var html = solutions.map(function(sol) {
+      return '<div class="outreach-item" onclick="SEP.showSolutionDetail(\'' + escapeAttr(sol.core_id) + '\')">' +
+        '<span class="outreach-id">' + escapeHtml(sol.core_id) + '</span>' +
+        '<span class="outreach-name">' + escapeHtml(sol.core_official_name || '') + '</span>' +
+        '<span class="outreach-count-badge">' + (sol.engagement_count || 0) + '</span>' +
+        '</div>';
+    }).join('');
 
-      if (diffDays < 0) {
-        dateClass = 'card-date-overdue';
-        dateText = 'Overdue ' + Math.abs(diffDays) + 'd';
-      } else if (diffDays <= 7) {
-        dateClass = 'card-date-warning';
-        dateText = 'Next: ' + diffDays + 'd';
-      } else {
-        dateText = 'Next: ' + formatDate(contact.next_scheduled_contact);
+    container.innerHTML = html;
+  }
+
+  function applyFilters() {
+    var cycleFilter = document.getElementById('filterCycle').value;
+    state.filterCycle = cycleFilter ? parseInt(cycleFilter) : null;
+    renderPipeline();
+  }
+
+  function setMilestoneFilter(filter) {
+    state.filterMilestone = filter;
+
+    // Update toggle button states
+    document.querySelectorAll('.toggle-btn').forEach(function(btn) {
+      btn.classList.remove('active');
+      if (btn.dataset.filter === filter) {
+        btn.classList.add('active');
       }
+    });
+
+    renderPipeline();
+  }
+
+  function getFilteredSolutions(milestone) {
+    var solutions = state.solutionsByMilestone[milestone] || [];
+
+    // Apply cycle filter
+    if (state.filterCycle) {
+      solutions = solutions.filter(function(sol) {
+        return parseInt(sol.core_cycle) === state.filterCycle;
+      });
     }
 
-    var lastText = contact.last_contact_date ? formatDate(contact.last_contact_date) : '--';
+    return solutions;
+  }
 
-    var html = '<div class="pipeline-card" onclick="SEP.showContactDetail(\'' + escapeAttr(contact.email) + '\')">';
-    html += '<div class="card-name">' + escapeHtml(name) + '</div>';
-    if (org) html += '<div class="card-org">' + escapeHtml(org) + '</div>';
-    if (solutions) html += '<div class="card-solutions">' + escapeHtml(solutions) + '</div>';
-    html += '<div class="card-meta">';
-    html += '<span>Last: ' + lastText + '</span>';
-    if (dateText) html += '<span class="' + dateClass + '">' + dateText + '</span>';
-    html += '</div>';
+  function shouldShowMilestone(milestone) {
+    if (!state.filterMilestone || state.filterMilestone === 'all') return true;
+    if (state.filterMilestone === 'ws') return milestone.startsWith('ws');
+    if (state.filterMilestone === 'tp') return milestone.startsWith('tp');
+    return true;
+  }
+
+  function renderSolutionCard(sol) {
+    var html = '<div class="pipeline-card" onclick="SEP.showSolutionDetail(\'' + escapeAttr(sol.core_id) + '\')">';
+    html += '<div class="card-id">' + escapeHtml(sol.core_id) + '</div>';
+    html += '<div class="card-name" title="' + escapeAttr(sol.core_official_name || '') + '">' + escapeHtml(sol.core_official_name || 'Unnamed') + '</div>';
+    if (sol.core_cycle) {
+      html += '<div class="card-cycle">Cycle ' + escapeHtml(String(sol.core_cycle)) + '</div>';
+    }
     html += '</div>';
     return html;
+  }
+
+  // ========================================================================
+  // SOLUTION DETAIL
+  // ========================================================================
+
+  function showSolutionDetail(solutionId) {
+    // Find solution in state
+    var solution = state.solutions.find(function(s) { return s.core_id === solutionId; });
+    if (!solution) {
+      // Try to find in milestone groups
+      for (var ms in state.solutionsByMilestone) {
+        var found = (state.solutionsByMilestone[ms] || []).find(function(s) { return s.core_id === solutionId; });
+        if (found) { solution = found; break; }
+      }
+    }
+    if (!solution) {
+      alert('Solution not found: ' + solutionId);
+      return;
+    }
+
+    state.selectedSolution = solution;
+    document.getElementById('modalSolutionName').textContent = solution.core_id + ' - ' + (solution.core_official_name || 'Unnamed');
+
+    var html = renderSolutionDetailContent(solution);
+    document.getElementById('solutionModalBody').innerHTML = html;
+    document.getElementById('solutionModal').classList.add('active');
+  }
+
+  function renderSolutionDetailContent(sol) {
+    var html = '';
+
+    // Header with basic info
+    html += '<div class="solution-detail-header">';
+    html += '<div class="solution-avatar">' + escapeHtml((sol.core_id || 'XX').substring(0, 2).toUpperCase()) + '</div>';
+    html += '<div class="solution-info">';
+    html += '<div class="solution-id">' + escapeHtml(sol.core_id) + '</div>';
+    html += '<div class="solution-name">' + escapeHtml(sol.core_official_name || '') + '</div>';
+    html += '<div class="solution-meta">Cycle ' + escapeHtml(String(sol.core_cycle || '--')) + ' | ' + escapeHtml(sol.admin_lifecycle_phase || 'Unknown phase') + '</div>';
+    html += '</div></div>';
+
+    // SEP Progress Section
+    html += '<div class="detail-section">';
+    html += '<div class="detail-section-title">SEP Milestones <span class="save-indicator" id="sepSaveIndicator">✓ Saved</span></div>';
+    html += renderMilestoneTimeline(sol);
+    html += '</div>';
+
+    // Team Section
+    if (sol.team_lead || sol.team_ra_rep) {
+      html += '<div class="detail-section">';
+      html += '<div class="detail-section-title">Team</div>';
+      html += '<div class="detail-grid">';
+      if (sol.team_lead) {
+        html += '<div class="detail-item"><div class="detail-label">Solution Lead</div><div class="detail-value">' + escapeHtml(sol.team_lead) + '</div></div>';
+      }
+      if (sol.team_ra_rep) {
+        html += '<div class="detail-item"><div class="detail-label">RA Representative</div><div class="detail-value">' + escapeHtml(sol.team_ra_rep) + '</div></div>';
+      }
+      html += '</div></div>';
+    }
+
+    // Actions
+    html += '<div style="display: flex; gap: var(--space-sm); margin-top: var(--space-lg); flex-wrap: wrap;">';
+    html += '<button class="btn btn-primary" onclick="SEP.logEngagementForSolution(\'' + escapeAttr(sol.core_id) + '\')"><span class="material-icons">add</span> Log Engagement</button>';
+    html += '<button class="btn btn-secondary" onclick="SEP.showSolutionEngagements(\'' + escapeAttr(sol.core_id) + '\')"><span class="material-icons">history</span> View Engagements</button>';
+    html += '</div>';
+
+    return html;
+  }
+
+  function renderMilestoneTimeline(sol) {
+    var milestoneLabels = {
+      ws1: 'WS1', tp4: 'TP4', ws2: 'WS2', tp5: 'TP5',
+      ws3: 'WS3', tp6: 'TP6', ws4: 'WS4', tp7: 'TP7',
+      ws5: 'WS5', tp8: 'TP8'
+    };
+    var milestoneNames = {
+      ws1: 'Working Session 1', tp4: 'Touchpoint 4 - Outreach',
+      ws2: 'Working Session 2', tp5: 'Touchpoint 5 - Transition',
+      ws3: 'Working Session 3', tp6: 'Touchpoint 6 - Training',
+      ws4: 'Working Session 4', tp7: 'Touchpoint 7 - Adoption',
+      ws5: 'Working Session 5', tp8: 'Touchpoint 8 - Impact'
+    };
+
+    var html = '<div class="milestone-timeline">';
+
+    MILESTONES.forEach(function(ms, idx) {
+      var dateField = 'sep_' + ms + '_date';
+      var urlField = 'sep_' + ms + '_url';
+      var dateValue = sol[dateField] || '';
+      var urlValue = sol[urlField] || '';
+      var isCompleted = dateValue && String(dateValue).trim();
+      var isWS = ms.startsWith('ws');
+
+      html += '<div class="milestone-item ' + (isCompleted ? 'completed' : '') + ' ' + (isWS ? 'milestone-ws' : 'milestone-tp') + '">';
+      html += '<div class="milestone-marker">' + (isCompleted ? '✓' : (idx + 1)) + '</div>';
+      html += '<div class="milestone-content">';
+      html += '<div class="milestone-label">' + milestoneLabels[ms] + '</div>';
+      html += '<div class="milestone-name">' + milestoneNames[ms] + '</div>';
+      html += '<div class="milestone-date-row">';
+      html += '<input type="date" class="milestone-date-input" value="' + (dateValue ? formatDateForInput(dateValue) : '') + '" onchange="SEP.updateMilestoneDate(\'' + escapeAttr(sol.core_id) + '\', \'' + ms + '\', this.value)">';
+      if (urlValue) {
+        html += '<a href="' + escapeAttr(urlValue) + '" target="_blank" class="milestone-link"><span class="material-icons">link</span></a>';
+      }
+      html += '</div>';
+      html += '</div></div>';
+    });
+
+    html += '</div>';
+    return html;
+  }
+
+  function formatDateForInput(dateStr) {
+    if (!dateStr) return '';
+    try {
+      var d = new Date(dateStr);
+      return d.toISOString().split('T')[0];
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function updateMilestoneDate(solutionId, milestoneId, date) {
+    var indicator = document.getElementById('sepSaveIndicator');
+    if (indicator) {
+      indicator.textContent = 'Saving...';
+      indicator.classList.add('visible');
+    }
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success) {
+          if (indicator) {
+            indicator.textContent = '✓ Saved';
+            setTimeout(function() { indicator.classList.remove('visible'); }, 2000);
+          }
+          // Refresh pipeline
+          loadSolutionsWithProgress();
+        } else {
+          if (indicator) {
+            indicator.textContent = '✗ ' + (result.error || 'Failed');
+            indicator.style.color = 'var(--color-error)';
+          }
+        }
+      })
+      .withFailureHandler(function(err) {
+        if (indicator) {
+          indicator.textContent = '✗ Failed';
+          indicator.style.color = 'var(--color-error)';
+        }
+        console.error('Failed to update milestone:', err);
+      })
+      .updateSolutionSEPMilestone(solutionId, milestoneId, date);
+  }
+
+  function logEngagementForSolution(solutionId) {
+    closeModal('solutionModal');
+    showLogEngagementModal();
+    document.getElementById('engSolution').value = solutionId;
+  }
+
+  function showSolutionEngagements(solutionId) {
+    // TODO: Show engagements filtered by solution
+    closeModal('solutionModal');
+    showAllEngagements();
+    // Could pre-filter by solution if we add that capability
   }
 
   function renderAgencyTree() {
@@ -1063,14 +2259,35 @@ return;
   function renderAgencyTreeItem(agency, level) {
     var hasChildren = agency.children && agency.children.length > 0;
     var indent = level * 20;
+    var isClosed = agency.status && (agency.status.toLowerCase() === 'closed' || agency.status.toLowerCase() === 'merged');
 
-    var html = '<div class="agency-item' + (hasChildren ? ' has-children' : '') + '" style="padding-left: ' + (indent + 8) + 'px;" onclick="SEP.selectAgency(\'' + escapeAttr(agency.agency_id) + '\')">';
+    // Determine heat level from relationship status
+    var heatClass = '';
+    var heatDot = 'cold';
+    var relStatus = (agency.relationship_status || '').toLowerCase();
+    if (relStatus === 'strong' || relStatus === 'established') {
+      heatClass = 'heat-hot';
+      heatDot = 'hot';
+    } else if (relStatus === 'developing') {
+      heatClass = 'heat-warm';
+      heatDot = 'warm';
+    }
+
+    var html = '<div class="agency-item' + (hasChildren ? ' has-children' : '') + (isClosed ? ' agency-closed' : '') + (heatClass ? ' ' + heatClass : '') + '" style="padding-left: ' + (indent + 8) + 'px;' + (isClosed ? ' opacity: 0.6;' : '') + '" onclick="SEP.selectAgency(\'' + escapeAttr(agency.agency_id) + '\')">';
     if (hasChildren) {
       html += '<span class="agency-toggle" data-agency="' + escapeAttr(agency.agency_id) + '" onclick="event.stopPropagation(); SEP.toggleAgencyChildren(\'' + escapeAttr(agency.agency_id) + '\')"><span class="material-icons">chevron_right</span></span>';
     } else {
       html += '<span style="width: 16px;"></span>';
     }
-    html += '<span class="agency-name">' + escapeHtml(agency.name || agency.abbreviation || 'Unknown') + '</span>';
+    html += '<span class="agency-name">' + escapeHtml(agency.name || agency.abbreviation || 'Unknown');
+    if (isClosed) {
+      html += ' <span style="font-size: 9px; color: var(--color-text-muted);">(' + escapeHtml(agency.status) + ')</span>';
+    }
+    html += '</span>';
+    // Heat indicator dot
+    if (!isClosed) {
+      html += '<span class="heat-dot ' + heatDot + '"></span>';
+    }
     html += '</div>';
 
     if (hasChildren) {
@@ -1096,99 +2313,548 @@ return;
 
   function selectAgency(agencyId) {
     state.selectedAgency = agencyId;
-    document.getElementById('agencyDetailTitle').textContent = 'Loading...';
+    state.selectedAgencyData = null;
+    state.selectedAgencyStats = null;
+    state.selectedAgencyContacts = null;
+    state.selectedAgencyTimeline = null;
 
+    // Highlight active agency in tree
+    document.querySelectorAll('#agencyTree .agency-item').forEach(function(item) {
+      item.classList.remove('active');
+    });
+    var activeItem = document.querySelector('#agencyTree .agency-item[onclick*="' + agencyId + '"]');
+    if (activeItem) activeItem.classList.add('active');
+
+    document.getElementById('agencyDetailTitle').textContent = 'Loading...';
+    document.getElementById('agencyDetail').innerHTML = '<div class="loading-state"><span class="loading-spinner"></span></div>';
+
+    // Load agency details
     google.script.run
       .withSuccessHandler(function(agency) {
-        renderAgencyDetail(agency);
+        state.selectedAgencyData = agency;
+        renderAgencyDetailIfReady();
       })
       .withFailureHandler(function(error) {
+        console.error('Failed to load agency:', error);
         document.getElementById('agencyDetail').innerHTML =
           '<div class="empty-state"><p>Failed to load agency details</p></div>';
       })
       .getAgencyById(agencyId);
+
+    // Load engagement stats
+    google.script.run
+      .withSuccessHandler(function(stats) {
+        state.selectedAgencyStats = stats;
+        renderAgencyDetailIfReady();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load agency stats:', error);
+        state.selectedAgencyStats = { total_engagements: 0, heat_status: 'cold' };
+        renderAgencyDetailIfReady();
+      })
+      .getAgencyEngagementStats(agencyId);
+
+    // Load contacts with solution tags
+    google.script.run
+      .withSuccessHandler(function(contacts) {
+        state.selectedAgencyContacts = contacts;
+        renderAgencyDetailIfReady();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load contacts:', error);
+        state.selectedAgencyContacts = [];
+        renderAgencyDetailIfReady();
+      })
+      .getAgencyContactsWithTags(agencyId);
+
+    // Load engagement timeline
+    google.script.run
+      .withSuccessHandler(function(timeline) {
+        state.selectedAgencyTimeline = timeline;
+        renderAgencyDetailIfReady();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load timeline:', error);
+        state.selectedAgencyTimeline = [];
+        renderAgencyDetailIfReady();
+      })
+      .getAgencyEngagementTimeline(agencyId, 10);
   }
 
-  function renderAgencyDetail(agency) {
+  function renderAgencyDetailIfReady() {
+    // Only render when all data is loaded
+    if (state.selectedAgencyData === null ||
+        state.selectedAgencyStats === null ||
+        state.selectedAgencyContacts === null ||
+        state.selectedAgencyTimeline === null) {
+      return;
+    }
+    renderAgencyDetail(
+      state.selectedAgencyData,
+      state.selectedAgencyStats,
+      state.selectedAgencyContacts,
+      state.selectedAgencyTimeline
+    );
+  }
+
+  function renderAgencyDetail(agency, stats, contacts, timeline) {
     if (!agency) {
       document.getElementById('agencyDetail').innerHTML =
         '<div class="empty-state"><p>Agency not found</p></div>';
       return;
     }
 
-    document.getElementById('agencyDetailTitle').textContent = agency.name || agency.abbreviation;
+    stats = stats || { total_engagements: 0, heat_status: 'cold' };
+    contacts = contacts || [];
+    timeline = timeline || [];
+
+    var titleText = agency.name || agency.abbreviation;
+    if (agency.status && agency.status.toLowerCase() !== 'active') {
+      titleText += ' (' + agency.status + ')';
+    }
+    document.getElementById('agencyDetailTitle').textContent = titleText;
 
     var initials = (agency.abbreviation || agency.name || 'AG').substring(0, 2).toUpperCase();
+    var isClosed = agency.status && (agency.status.toLowerCase() === 'closed' || agency.status.toLowerCase() === 'merged');
 
-    var html = '<div class="agency-detail-header">';
-    html += '<div class="agency-logo">' + initials + '</div>';
+    var html = '';
+
+    // Agency Header with logo and info
+    html += '<div class="agency-detail-header">';
+    html += '<div class="agency-logo" style="' + (isClosed ? 'opacity: 0.5;' : '') + '">' + initials + '</div>';
     html += '<div class="agency-info">';
     html += '<div class="agency-full-name">' + escapeHtml(agency.full_name || agency.name || '') + '</div>';
-    html += '<div class="agency-type">' + escapeHtml(agency.type || 'Organization') + '</div>';
+    html += '<div class="agency-type">' + escapeHtml(agency.type || 'Organization');
+    if (isClosed) {
+      html += ' <span class="status-badge status-' + agency.status.toLowerCase() + '">' + escapeHtml(agency.status) + '</span>';
+    }
+    html += '</div>';
     if (agency.website_url) {
-      html += '<div class="agency-website"><a href="' + escapeHtml(agency.website_url) + '" target="_blank">';
-      html += '<span class="material-icons">open_in_new</span> ' + escapeHtml(agency.website_url) + '</a></div>';
+      html += '<div class="agency-website"><a href="' + escapeAttr(agency.website_url) + '" target="_blank">';
+      html += '<span class="material-icons">open_in_new</span> Website</a></div>';
     }
     html += '</div></div>';
 
-    // Mission Statement (prominent display)
+    // Relationship Health Bar
+    if (agency.relationship_status) {
+      var healthLevel = getRelationshipLevel(agency.relationship_status);
+      html += '<div class="relationship-health">';
+      html += '<div class="health-bar-container">';
+      html += '<span class="health-label">Relationship</span>';
+      html += '<div class="health-bar"><div class="health-bar-fill level-' + healthLevel + '"></div></div>';
+      html += '<span class="health-label">' + escapeHtml(agency.relationship_status) + '</span>';
+      html += '</div></div>';
+    }
+
+    // Quick Actions
+    html += '<div class="quick-actions">';
+    html += '<button class="quick-action-btn" onclick="SEP.showLogEngagementModalForAgency(\'' + escapeAttr(agency.agency_id) + '\')">';
+    html += '<span class="material-icons">add_circle</span>Log Engagement</button>';
+    html += '<button class="quick-action-btn" onclick="SEP.showLinkContactModal(\'' + escapeAttr(agency.agency_id) + '\')">';
+    html += '<span class="material-icons">person_add</span>Add Contact</button>';
+    if (agency.website_url) {
+      html += '<a class="quick-action-btn" href="' + escapeAttr(agency.website_url) + '" target="_blank">';
+      html += '<span class="material-icons">open_in_new</span>Website</a>';
+    }
+    html += '</div>';
+
+    // Metrics Cards Row
+    html += '<div class="agency-metrics">';
+    html += '<div class="metric-card metric-engagements">';
+    html += '<div class="metric-value">' + (stats.total_engagements || 0) + '</div>';
+    html += '<div class="metric-label">Engagements</div>';
+    var thisMonth = stats.by_month ? (stats.by_month[getCurrentMonth()] || 0) : 0;
+    var lastMonth = stats.by_month ? (stats.by_month[getLastMonth()] || 0) : 0;
+    var trend = thisMonth > lastMonth ? 'up' : (thisMonth < lastMonth ? 'down' : 'neutral');
+    var trendIcon = trend === 'up' ? 'trending_up' : (trend === 'down' ? 'trending_down' : 'trending_flat');
+    html += '<div class="metric-trend ' + trend + '"><span class="material-icons">' + trendIcon + '</span>' + thisMonth + ' this month</div>';
+    html += '</div>';
+
+    html += '<div class="metric-card metric-contacts">';
+    html += '<div class="metric-value">' + contacts.length + '</div>';
+    html += '<div class="metric-label">Contacts</div>';
+    var activeContacts = contacts.filter(function(c) { return c.solution_tags && c.solution_tags.length > 0; }).length;
+    html += '<div class="metric-trend neutral">' + activeContacts + ' engaged</div>';
+    html += '</div>';
+
+    html += '<div class="metric-card metric-solutions">';
+    html += '<div class="metric-value">' + (stats.solutions_engaged ? stats.solutions_engaged.length : 0) + '</div>';
+    html += '<div class="metric-label">Solutions</div>';
+    html += '<div class="metric-trend neutral">involved with</div>';
+    html += '</div>';
+
+    html += '<div class="metric-card metric-heat">';
+    var heatIcon = stats.heat_status === 'hot' ? 'whatshot' : (stats.heat_status === 'warm' ? 'wb_sunny' : 'ac_unit');
+    var heatLabel = stats.heat_status === 'hot' ? 'Hot' : (stats.heat_status === 'warm' ? 'Warm' : 'Cold');
+    html += '<div class="metric-value"><span class="material-icons" style="font-size: 24px; color: ' + (stats.heat_status === 'hot' ? '#ef4444' : stats.heat_status === 'warm' ? '#f97316' : '#6366f1') + ';">' + heatIcon + '</span></div>';
+    html += '<div class="metric-label">' + heatLabel + '</div>';
+    if (stats.last_engagement_date) {
+      html += '<div class="metric-trend neutral">' + stats.days_since_last + ' days ago</div>';
+    } else {
+      html += '<div class="metric-trend neutral">No activity</div>';
+    }
+    html += '</div>';
+    html += '</div>';
+
+    // Engagement Trend Mini Chart
+    if (timeline.length > 0) {
+      html += renderEngagementChart(timeline);
+    }
+
+    // Tabs
+    html += '<div class="agency-tabs">';
+    html += '<button class="agency-tab active" onclick="SEP.switchAgencyTab(\'overview\')">Overview</button>';
+    html += '<button class="agency-tab" onclick="SEP.switchAgencyTab(\'contacts\')">Contacts (' + contacts.length + ')</button>';
+    html += '<button class="agency-tab" onclick="SEP.switchAgencyTab(\'engagements\')">Engagements (' + timeline.length + ')</button>';
+    html += '<button class="agency-tab" onclick="SEP.switchAgencyTab(\'notes\')">Notes</button>';
+    html += '</div>';
+
+    // Tab: Overview
+    html += '<div class="agency-tab-panel active" id="agencyTab_overview">';
     if (agency.mission_statement) {
       html += '<div class="mission-statement">';
       html += '<div class="detail-label">Mission</div>';
       html += '<div class="mission-text">' + escapeHtml(agency.mission_statement) + '</div>';
       html += '</div>';
     }
-
     html += '<div class="detail-grid">';
-
-    if (agency.relationship_status) {
-      html += '<div class="detail-item"><div class="detail-label">Relationship Status</div>';
-      html += '<div class="detail-value"><span class="status-badge status-' + (agency.relationship_status || '').toLowerCase().replace(/\s+/g, '-') + '">' + escapeHtml(agency.relationship_status) + '</span></div></div>';
-    }
     if (agency.geographic_scope) {
       html += '<div class="detail-item"><div class="detail-label">Geographic Scope</div>';
       html += '<div class="detail-value">' + escapeHtml(agency.geographic_scope) + '</div></div>';
     }
-    if (agency.leadership_name) {
-      html += '<div class="detail-item"><div class="detail-label">Leadership</div>';
-      html += '<div class="detail-value">' + escapeHtml(agency.leadership_name);
-      if (agency.leadership_title) html += ' (' + escapeHtml(agency.leadership_title) + ')';
-      html += '</div></div>';
+    if (agency.data_interests) {
+      html += '<div class="detail-item"><div class="detail-label">Data Interests</div>';
+      html += '<div class="detail-value">' + escapeHtml(agency.data_interests) + '</div></div>';
     }
     if (agency.poc_name) {
-      html += '<div class="detail-item"><div class="detail-label">Point of Contact</div>';
-      html += '<div class="detail-value">' + escapeHtml(agency.poc_name);
-      if (agency.poc_email) html += '<br><a href="mailto:' + escapeHtml(agency.poc_email) + '">' + escapeHtml(agency.poc_email) + '</a>';
+      html += '<div class="detail-item"><div class="detail-label">Primary POC</div>';
+      html += '<div class="detail-value">' + escapeHtml(agency.poc_name) + '</div></div>';
+    }
+    if (agency.successor_agency_id) {
+      html += '<div class="detail-item"><div class="detail-label">Successor Agency</div>';
+      html += '<div class="detail-value"><a href="#" onclick="SEP.selectAgency(\'' + escapeAttr(agency.successor_agency_id) + '\'); return false;">' + escapeHtml(agency.successor_agency_id) + '</a></div></div>';
+    }
+    html += '</div>';
+    // Top solutions for this agency
+    if (stats.solutions_engaged && stats.solutions_engaged.length > 0) {
+      html += '<div style="margin-top: var(--space-sm);">';
+      html += '<div class="detail-label">Solutions Engaged</div>';
+      html += '<div class="solution-tags" style="margin-top: 4px;">';
+      stats.solutions_engaged.slice(0, 8).forEach(function(sol) {
+        html += '<span class="solution-tag">' + escapeHtml(sol) + '</span>';
+      });
+      if (stats.solutions_engaged.length > 8) {
+        html += '<span class="solution-tag">+' + (stats.solutions_engaged.length - 8) + '</span>';
+      }
       html += '</div></div>';
     }
-
     html += '</div>';
 
-    // Data Interests (full width)
-    if (agency.data_interests) {
-      html += '<div class="data-interests">';
-      html += '<div class="detail-label">Earth Observation Data Interests</div>';
-      html += '<div class="detail-value">' + escapeHtml(agency.data_interests) + '</div>';
-      html += '</div>';
+    // Tab: Contacts
+    html += '<div class="agency-tab-panel" id="agencyTab_contacts">';
+    if (contacts.length === 0) {
+      html += '<div class="empty-state" style="padding: var(--space-md);"><p>No contacts linked to this agency</p>';
+      html += '<button class="btn btn-primary btn-sm" onclick="SEP.showLinkContactModal(\'' + escapeAttr(agency.agency_id) + '\')"><span class="material-icons">person_add</span> Add Contact</button></div>';
+    } else {
+      contacts.forEach(function(c) {
+        var contactInitials = ((c.first_name || '').charAt(0) + (c.last_name || '').charAt(0)).toUpperCase() || '?';
+        var engagementLevel = c.solution_tags ? (c.solution_tags.length >= 3 ? 'high' : (c.solution_tags.length >= 1 ? 'medium' : 'low')) : 'low';
+        html += '<div class="contact-card-enhanced" onclick="SEP.showContactDetail(\'' + escapeAttr(c.email) + '\')">';
+        html += '<div class="contact-avatar-md">' + contactInitials + '</div>';
+        html += '<div class="contact-details">';
+        html += '<div class="contact-name-row">';
+        html += '<span class="contact-name">' + escapeHtml((c.first_name || '') + ' ' + (c.last_name || '')) + '</span>';
+        if (c.solution_tags && c.solution_tags.length > 0) {
+          html += '<span class="contact-engagement-badge ' + engagementLevel + '">' + c.solution_tags.length + ' solutions</span>';
+        }
+        html += '</div>';
+        html += '<div class="contact-role-title">' + escapeHtml(c.title || c.role || 'No title') + '</div>';
+        if (c.last_contact_date) {
+          html += '<div class="contact-last-engagement">Last contact: ' + escapeHtml(c.last_contact_date) + '</div>';
+        }
+        html += '</div>';
+        html += '<div class="contact-actions">';
+        html += '<button class="contact-action-btn" onclick="event.stopPropagation(); SEP.logEngagementFor(\'' + escapeAttr(c.email) + '\')" title="Log Engagement"><span class="material-icons">add_circle</span></button>';
+        if (c.email) {
+          html += '<a class="contact-action-btn" href="mailto:' + escapeAttr(c.email) + '" onclick="event.stopPropagation();" title="Send Email"><span class="material-icons">email</span></a>';
+        }
+        html += '</div>';
+        html += '</div>';
+      });
     }
+    html += '</div>';
 
-    // Mission Areas
-    if (agency.mission_areas) {
-      html += '<div class="mission-areas">';
-      html += '<div class="detail-label">Mission Areas</div>';
-      html += '<div class="detail-value">' + escapeHtml(agency.mission_areas) + '</div>';
-      html += '</div>';
+    // Tab: Engagements
+    html += '<div class="agency-tab-panel" id="agencyTab_engagements">';
+    if (timeline.length === 0) {
+      html += '<div class="empty-state" style="padding: var(--space-md);"><p>No engagements recorded</p>';
+      html += '<button class="btn btn-primary btn-sm" onclick="SEP.showLogEngagementModalForAgency(\'' + escapeAttr(agency.agency_id) + '\')"><span class="material-icons">add</span> Log Engagement</button></div>';
+    } else {
+      var iconMap = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school' };
+      timeline.forEach(function(e) {
+        var icon = iconMap[e.activity_type] || 'event';
+        html += '<div class="timeline-item">';
+        html += '<div class="timeline-icon"><span class="material-icons">' + icon + '</span></div>';
+        html += '<div class="timeline-content">';
+        html += '<div class="timeline-subject">' + escapeHtml(e.subject || e.activity_type || 'Engagement') + '</div>';
+        html += '<div class="timeline-meta">' + escapeHtml(e.date || '') + ' • ' + escapeHtml(e.activity_type || '') + (e.solution_id ? ' • ' + escapeHtml(e.solution_id) : '') + '</div>';
+        if (e.matched_contacts && e.matched_contacts.length > 0) {
+          var names = e.matched_contacts.map(function(c) { return c.name; }).join(', ');
+          html += '<div class="timeline-contacts">' + escapeHtml(names) + '</div>';
+        }
+        html += '</div>';
+        html += '</div>';
+      });
     }
+    html += '</div>';
 
-    // Notes
-    if (agency.relationship_notes) {
-      html += '<div class="relationship-notes">';
-      html += '<div class="detail-label">Notes</div>';
-      html += '<div class="detail-value">' + escapeHtml(agency.relationship_notes) + '</div>';
-      html += '</div>';
-    }
+    // Tab: Notes
+    html += '<div class="agency-tab-panel" id="agencyTab_notes">';
+    html += '<div class="notes-section">';
+    html += '<textarea id="agencyNotes" placeholder="Add notes about this agency relationship, key contacts, or upcoming opportunities...">' + escapeHtml(agency.notes || '') + '</textarea>';
+    html += '<div class="notes-actions">';
+    html += '<button class="btn btn-secondary btn-sm" onclick="SEP.cancelAgencyNotes()">Cancel</button>';
+    html += '<button class="btn btn-primary btn-sm" onclick="SEP.saveAgencyNotes(\'' + escapeAttr(agency.agency_id) + '\')">Save Notes</button>';
+    html += '</div></div>';
+    html += '</div>';
 
     document.getElementById('agencyDetail').innerHTML = html;
+  }
+
+  function getRelationshipLevel(status) {
+    var levels = { 'new': 1, 'developing': 2, 'established': 3, 'strong': 4, 'dormant': 1 };
+    return levels[(status || '').toLowerCase()] || 2;
+  }
+
+  function getCurrentMonth() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+
+  function getLastMonth() {
+    var d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+
+  function renderEngagementChart(timeline) {
+    // Group engagements by month (last 6 months)
+    var months = [];
+    var now = new Date();
+    for (var i = 5; i >= 0; i--) {
+      var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({
+        key: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'),
+        label: d.toLocaleString('default', { month: 'short' }),
+        count: 0
+      });
+    }
+
+    timeline.forEach(function(e) {
+      if (!e.date) return;
+      var dateParts = e.date.split('-');
+      if (dateParts.length >= 2) {
+        var monthKey = dateParts[0] + '-' + dateParts[1];
+        var month = months.find(function(m) { return m.key === monthKey; });
+        if (month) month.count++;
+      }
+    });
+
+    var maxCount = Math.max.apply(null, months.map(function(m) { return m.count; })) || 1;
+
+    var html = '<div class="engagement-chart">';
+    months.forEach(function(m, idx) {
+      var height = Math.max(4, (m.count / maxCount) * 50);
+      var isCurrentMonth = idx === months.length - 1;
+      html += '<div class="chart-bar' + (isCurrentMonth ? ' current' : '') + '" style="height: ' + height + 'px;" title="' + m.label + ': ' + m.count + ' engagements"></div>';
+    });
+    html += '</div>';
+    html += '<div class="chart-label">';
+    html += '<span>' + months[0].label + '</span>';
+    html += '<span>' + months[months.length - 1].label + '</span>';
+    html += '</div>';
+
+    return html;
+  }
+
+  function switchAgencyTab(tabName) {
+    document.querySelectorAll('.agency-tab').forEach(function(tab) {
+      tab.classList.remove('active');
+    });
+    document.querySelectorAll('.agency-tab-panel').forEach(function(panel) {
+      panel.classList.remove('active');
+    });
+    document.querySelector('.agency-tab[onclick*="' + tabName + '"]').classList.add('active');
+    document.getElementById('agencyTab_' + tabName).classList.add('active');
+  }
+
+  function showLogEngagementModalForAgency(agencyId) {
+    // Pre-fill engagement modal for this agency
+    showLogEngagementModal();
+    // Could set agency context here if needed
+  }
+
+  function saveAgencyNotes(agencyId) {
+    var notes = document.getElementById('agencyNotes').value;
+    // TODO: Implement save to backend
+    alert('Notes saved (backend integration pending)');
+  }
+
+  function cancelAgencyNotes() {
+    // Reset to original value
+    if (state.selectedAgencyData && state.selectedAgencyData.notes) {
+      document.getElementById('agencyNotes').value = state.selectedAgencyData.notes;
+    } else {
+      document.getElementById('agencyNotes').value = '';
+    }
+  }
+
+  // ========================================================================
+  // LINK CONTACT TO AGENCY
+  // ========================================================================
+
+  function showLinkContactModal(agencyId) {
+    state.linkContactAgencyId = agencyId;
+    var agencyName = state.selectedAgencyData ? state.selectedAgencyData.name : agencyId;
+    document.getElementById('linkContactAgencyName').textContent = agencyName;
+    document.getElementById('contactSearchInput').value = '';
+    document.getElementById('contactSearchResults').innerHTML = '<div class="search-hint">Type to search existing contacts</div>';
+    document.getElementById('newContactFirst').value = '';
+    document.getElementById('newContactLast').value = '';
+    document.getElementById('newContactEmail').value = '';
+    document.getElementById('newContactTitle').value = '';
+    document.getElementById('linkContactModal').classList.add('active');
+    document.getElementById('contactSearchInput').focus();
+  }
+
+  var searchDebounceTimer = null;
+  function searchContactsForLink(query) {
+    clearTimeout(searchDebounceTimer);
+    if (!query || query.length < 2) {
+      document.getElementById('contactSearchResults').innerHTML = '<div class="search-hint">Type to search existing contacts</div>';
+      return;
+    }
+
+    document.getElementById('contactSearchResults').innerHTML = '<div class="search-hint">Searching...</div>';
+
+    searchDebounceTimer = setTimeout(function() {
+      google.script.run
+        .withSuccessHandler(function(contacts) {
+          renderContactSearchResults(contacts || []);
+        })
+        .withFailureHandler(function(error) {
+          console.error('Search failed:', error);
+          document.getElementById('contactSearchResults').innerHTML = '<div class="search-hint">Search failed</div>';
+        })
+        .searchContacts(query);
+    }, 300);
+  }
+
+  function renderContactSearchResults(contacts) {
+    var container = document.getElementById('contactSearchResults');
+
+    if (contacts.length === 0) {
+      container.innerHTML = '<div class="search-hint">No contacts found. Add a new contact below.</div>';
+      return;
+    }
+
+    var html = '';
+    contacts.slice(0, 10).forEach(function(c) {
+      var initials = ((c.first_name || '').charAt(0) + (c.last_name || '').charAt(0)).toUpperCase() || '?';
+      var alreadyLinked = c.agency_id === state.linkContactAgencyId;
+
+      html += '<div class="contact-search-item' + (alreadyLinked ? ' selected' : '') + '" onclick="SEP.linkExistingContact(\'' + escapeAttr(c.email) + '\')">';
+      html += '<div class="contact-search-avatar">' + initials + '</div>';
+      html += '<div class="contact-search-info">';
+      html += '<div class="contact-search-name">' + escapeHtml((c.first_name || '') + ' ' + (c.last_name || '')) + '</div>';
+      html += '<div class="contact-search-email">' + escapeHtml(c.email || '') + '</div>';
+      if (c.agency_name || c.organization) {
+        html += '<div class="contact-search-agency">' + escapeHtml(c.agency_name || c.organization || '') + (alreadyLinked ? ' (already linked)' : '') + '</div>';
+      }
+      html += '</div>';
+      if (alreadyLinked) {
+        html += '<span class="material-icons" style="color: var(--color-success);">check_circle</span>';
+      }
+      html += '</div>';
+    });
+
+    if (contacts.length > 10) {
+      html += '<div class="search-hint">' + (contacts.length - 10) + ' more results not shown</div>';
+    }
+
+    container.innerHTML = html;
+  }
+
+  function linkExistingContact(email) {
+    var btn = document.getElementById('addNewContactBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner" style="width: 16px; height: 16px;"></span> Linking...';
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons">person_add</span> Add Contact';
+
+        if (result.success) {
+          closeModal('linkContactModal');
+          // Refresh the agency view
+          selectAgency(state.linkContactAgencyId);
+        } else {
+          alert('Failed to link contact: ' + (result.error || 'Unknown error'));
+        }
+      })
+      .withFailureHandler(function(error) {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons">person_add</span> Add Contact';
+        alert('Failed to link contact: ' + error);
+      })
+      .updateContactAgency(email, state.linkContactAgencyId);
+  }
+
+  function addNewContactToAgency() {
+    var firstName = document.getElementById('newContactFirst').value.trim();
+    var lastName = document.getElementById('newContactLast').value.trim();
+    var email = document.getElementById('newContactEmail').value.trim();
+    var title = document.getElementById('newContactTitle').value.trim();
+
+    if (!firstName || !lastName) {
+      alert('Please enter first and last name');
+      return;
+    }
+    if (!email || !email.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    var btn = document.getElementById('addNewContactBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner" style="width: 16px; height: 16px;"></span> Adding...';
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons">person_add</span> Add Contact';
+
+        if (result.success) {
+          closeModal('linkContactModal');
+          // Refresh the agency view
+          selectAgency(state.linkContactAgencyId);
+        } else {
+          alert('Failed to add contact: ' + (result.error || 'Unknown error'));
+        }
+      })
+      .withFailureHandler(function(error) {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons">person_add</span> Add Contact';
+        alert('Failed to add contact: ' + error);
+      })
+      .createContactForAgency({
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
+        title: title,
+        agency_id: state.linkContactAgencyId
+      });
   }
 
   function renderRecentEngagements() {
@@ -1305,26 +2971,40 @@ return;
     }
     html += '</div></div>';
 
-    // SEP Status Section
+    // SEP Status Section with Inline Editing
     html += '<div class="detail-section">';
-    html += '<div class="detail-section-title">SEP Status</div>';
+    html += '<div class="detail-section-title">SEP Status <span class="save-indicator" id="saveIndicator">✓ Saved</span></div>';
     html += '<div class="detail-grid">';
-    html += '<div class="detail-item"><div class="detail-label">Touchpoint</div><div class="detail-value">';
-    if (contact.touchpoint_status) {
-      html += '<span class="touchpoint-badge">' + escapeHtml(contact.touchpoint_status) + '</span>';
-    } else {
-      html += '<span style="color: var(--color-text-muted);">Not assigned</span>';
-    }
-    html += '</div></div>';
-    html += '<div class="detail-item"><div class="detail-label">Engagement Level</div><div class="detail-value">';
-    if (contact.engagement_level) {
-      html += '<span class="engagement-level-badge">' + escapeHtml(contact.engagement_level) + '</span>';
-    } else {
-      html += '<span style="color: var(--color-text-muted);">Not set</span>';
-    }
-    html += '</div></div>';
+
+    // Touchpoint - Inline Editable
+    html += '<div class="detail-item"><div class="detail-label">Touchpoint</div><div class="detail-value inline-edit-group">';
+    html += '<select class="inline-select" id="editTouchpoint" onchange="SEP.updateContactField(\'' + escapeAttr(contact.email) + '\', \'touchpoint\', this.value)">';
+    html += '<option value="">Not assigned</option>';
+    ['T4', 'W1', 'W2', 'T5', 'T6', 'T7', 'T8'].forEach(function(tp) {
+      var selected = contact.touchpoint_status === tp ? ' selected' : '';
+      var labels = { 'T4': 'T4 - Outreach', 'W1': 'W1 - Assessment', 'W2': 'W2 - Deep Dive', 'T5': 'T5 - Transition', 'T6': 'T6 - Training', 'T7': 'T7 - Adoption', 'T8': 'T8 - Impact' };
+      html += '<option value="' + tp + '"' + selected + '>' + labels[tp] + '</option>';
+    });
+    html += '</select></div></div>';
+
+    // Engagement Level - Inline Editable
+    html += '<div class="detail-item"><div class="detail-label">Engagement Level</div><div class="detail-value inline-edit-group">';
+    html += '<select class="inline-select" id="editEngagementLevel" onchange="SEP.updateContactField(\'' + escapeAttr(contact.email) + '\', \'engagement\', this.value)">';
+    html += '<option value="">Not set</option>';
+    ['Could benefit', 'Interested', 'Info & Feedback', 'Collaborate', 'CoOwners'].forEach(function(level) {
+      var selected = contact.engagement_level === level ? ' selected' : '';
+      html += '<option value="' + level + '"' + selected + '>' + level + '</option>';
+    });
+    html += '</select></div></div>';
+
+    // Last Contact - Display only
     html += '<div class="detail-item"><div class="detail-label">Last Contact</div><div class="detail-value">' + (contact.last_contact_date ? formatDate(contact.last_contact_date) : '--') + '</div></div>';
-    html += '<div class="detail-item"><div class="detail-label">Next Scheduled</div><div class="detail-value">' + (contact.next_scheduled_contact ? formatDate(contact.next_scheduled_contact) : '--') + '</div></div>';
+
+    // Next Scheduled - Inline Editable
+    html += '<div class="detail-item"><div class="detail-label">Next Scheduled</div><div class="detail-value inline-edit-group">';
+    html += '<input type="date" class="inline-date" id="editNextContact" value="' + (contact.next_scheduled_contact || '') + '" onchange="SEP.updateContactField(\'' + escapeAttr(contact.email) + '\', \'next_contact\', this.value)">';
+    html += '</div></div>';
+
     html += '</div></div>';
 
     // Solutions Section
@@ -1347,9 +3027,13 @@ return;
     }
 
     // Actions
-    html += '<div style="display: flex; gap: var(--space-sm); margin-top: var(--space-lg);">';
-    html += '<a href="mailto:' + escapeHtml(contact.email) + '" class="btn btn-primary"><span class="material-icons">email</span> Email</a>';
+    html += '<div style="display: flex; gap: var(--space-sm); margin-top: var(--space-lg); flex-wrap: wrap;">';
+    if (contact.email) {
+      html += '<a href="mailto:' + escapeHtml(contact.email) + '" class="btn btn-primary"><span class="material-icons">email</span> Email</a>';
+    }
     html += '<button class="btn btn-secondary" onclick="SEP.logEngagementFor(\'' + escapeAttr(contact.email) + '\')"><span class="material-icons">add</span> Log Engagement</button>';
+    html += '<button class="btn btn-secondary" onclick="SEP.showContactHistory(\'' + escapeAttr(contact.email) + '\')"><span class="material-icons">history</span> View History</button>';
+    html += '<button class="btn btn-secondary" onclick="SEP.markContacted(\'' + escapeAttr(contact.email) + '\')"><span class="material-icons">check_circle</span> Mark Contacted</button>';
     html += '</div>';
 
     document.getElementById('contactModalBody').innerHTML = html;
@@ -1442,18 +3126,422 @@ return;
     });
   }
 
+  // ========================================================================
+  // NEEDS ATTENTION (Follow-up Dashboard)
+  // ========================================================================
+
+  function loadNeedsAttention() {
+    // Load overdue contacts
+    google.script.run
+      .withSuccessHandler(function(overdue) {
+        google.script.run
+          .withSuccessHandler(function(dueSoon) {
+            renderNeedsAttention(overdue || [], dueSoon || []);
+          })
+          .withFailureHandler(function(err) {
+            console.error('Failed to load due-soon contacts:', err);
+            renderNeedsAttention(overdue || [], []);
+          })
+          .getContactsNeedingFollowUp(7);
+      })
+      .withFailureHandler(function(err) {
+        console.error('Failed to load overdue contacts:', err);
+        document.getElementById('needsAttentionList').innerHTML =
+          '<div class="empty-state"><p>Failed to load</p></div>';
+      })
+      .getContactsOverdueFollowUp();
+  }
+
+  function renderNeedsAttention(overdue, dueSoon) {
+    var container = document.getElementById('needsAttentionList');
+    var countEl = document.getElementById('attentionCount');
+
+    // Filter out duplicates (contacts in both lists)
+    var overdueEmails = overdue.map(function(c) { return c.email; });
+    var uniqueDueSoon = dueSoon.filter(function(c) {
+      return overdueEmails.indexOf(c.email) === -1;
+    });
+
+    var totalCount = overdue.length + uniqueDueSoon.length;
+    countEl.textContent = totalCount;
+
+    if (totalCount === 0) {
+      container.innerHTML = '<div class="empty-state" style="padding: var(--space-lg);"><span class="material-icons" style="font-size: 32px; color: var(--color-success);">check_circle</span><p>All caught up!</p></div>';
+      return;
+    }
+
+    var html = '';
+
+    // Overdue contacts first
+    overdue.slice(0, 5).forEach(function(c) {
+      var name = (c.first_name || '') + ' ' + (c.last_name || '');
+      var org = c.agency || c.department || '';
+      var daysOverdue = c.next_scheduled_contact ? Math.abs(Math.ceil((new Date(c.next_scheduled_contact) - new Date()) / (1000 * 60 * 60 * 24))) : 0;
+
+      html += '<div class="attention-item overdue" onclick="SEP.showContactDetail(\'' + escapeAttr(c.email) + '\')">';
+      html += '<div class="attention-info">';
+      html += '<div class="attention-name">' + escapeHtml(name) + '</div>';
+      html += '<div class="attention-org">' + escapeHtml(org) + '</div>';
+      html += '</div>';
+      html += '<span class="attention-status overdue">' + daysOverdue + 'd overdue</span>';
+      html += '<button class="attention-action" onclick="event.stopPropagation(); SEP.markContacted(\'' + escapeAttr(c.email) + '\')">✓</button>';
+      html += '</div>';
+    });
+
+    // Due soon contacts
+    uniqueDueSoon.slice(0, 5).forEach(function(c) {
+      var name = (c.first_name || '') + ' ' + (c.last_name || '');
+      var org = c.agency || c.department || '';
+      var daysUntil = c.next_scheduled_contact ? Math.ceil((new Date(c.next_scheduled_contact) - new Date()) / (1000 * 60 * 60 * 24)) : 0;
+
+      html += '<div class="attention-item due-soon" onclick="SEP.showContactDetail(\'' + escapeAttr(c.email) + '\')">';
+      html += '<div class="attention-info">';
+      html += '<div class="attention-name">' + escapeHtml(name) + '</div>';
+      html += '<div class="attention-org">' + escapeHtml(org) + '</div>';
+      html += '</div>';
+      html += '<span class="attention-status due-soon">' + (daysUntil === 0 ? 'Today' : daysUntil + 'd') + '</span>';
+      html += '<button class="attention-action" onclick="event.stopPropagation(); SEP.markContacted(\'' + escapeAttr(c.email) + '\')">✓</button>';
+      html += '</div>';
+    });
+
+    if (totalCount > 10) {
+      html += '<div style="text-align: center; padding: var(--space-sm); font-size: var(--font-size-xs); color: var(--color-text-muted);">+' + (totalCount - 10) + ' more</div>';
+    }
+
+    container.innerHTML = html;
+  }
+
+  // ========================================================================
+  // INLINE EDITING
+  // ========================================================================
+
+  function updateContactField(email, fieldType, value) {
+    var indicator = document.getElementById('saveIndicator');
+    if (indicator) {
+      indicator.textContent = 'Saving...';
+      indicator.classList.add('visible');
+    }
+
+    var runner = google.script.run
+      .withSuccessHandler(function() {
+        if (indicator) {
+          indicator.textContent = '✓ Saved';
+          setTimeout(function() { indicator.classList.remove('visible'); }, 2000);
+        }
+        // Update local state
+        var contact = state.contacts.find(function(c) { return c.email === email; });
+        if (contact) {
+          if (fieldType === 'touchpoint') contact.touchpoint_status = value;
+          else if (fieldType === 'engagement') contact.engagement_level = value;
+          else if (fieldType === 'next_contact') contact.next_scheduled_contact = value;
+        }
+        // Refresh pipeline view
+        renderPipeline();
+        loadNeedsAttention();
+      })
+      .withFailureHandler(function(err) {
+        if (indicator) {
+          indicator.textContent = '✗ Failed';
+          indicator.style.color = 'var(--color-error)';
+          setTimeout(function() {
+            indicator.classList.remove('visible');
+            indicator.style.color = '';
+          }, 3000);
+        }
+        console.error('Failed to update contact:', err);
+      });
+
+    // Call the appropriate API function
+    if (fieldType === 'touchpoint') {
+      runner.updateContactTouchpoint(email, value);
+    } else if (fieldType === 'engagement') {
+      runner.updateContactEngagement(email, value);
+    } else if (fieldType === 'next_contact') {
+      runner.updateContactNextScheduledContact(email, value);
+    }
+  }
+
+  function markContacted(email) {
+    var today = new Date().toISOString().split('T')[0];
+
+    google.script.run
+      .withSuccessHandler(function() {
+        // Update local state
+        var contact = state.contacts.find(function(c) { return c.email === email; });
+        if (contact) {
+          contact.last_contact_date = today;
+        }
+        // Refresh views
+        renderPipeline();
+        loadNeedsAttention();
+        // Close contact modal if open
+        closeModal('contactModal');
+        // Show confirmation
+        showToast('Contact marked as contacted today');
+      })
+      .withFailureHandler(function(err) {
+        alert('Failed to update: ' + err);
+      })
+      .updateContactLastContactDate(email, today);
+  }
+
+  function showToast(message) {
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--color-text); color: white; padding: 12px 24px; border-radius: var(--radius-md); font-size: var(--font-size-sm); z-index: 9999; animation: fadeIn 0.3s;';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(function() {
+      toast.style.animation = 'fadeOut 0.3s';
+      setTimeout(function() { toast.remove(); }, 300);
+    }, 2000);
+  }
+
+  // ========================================================================
+  // CONTACT ENGAGEMENT HISTORY
+  // ========================================================================
+
+  function showContactHistory(email) {
+    var contact = state.contacts.find(function(c) { return c.email === email; });
+    var name = contact ? ((contact.first_name || '') + ' ' + (contact.last_name || '')) : email;
+
+    document.getElementById('contactHistoryTitle').textContent = 'Engagement History - ' + name;
+    document.getElementById('contactHistoryContent').innerHTML = '<div class="loading-state"><span class="loading-spinner"></span><p>Loading history...</p></div>';
+    document.getElementById('contactHistoryModal').classList.add('active');
+
+    google.script.run
+      .withSuccessHandler(function(engagements) {
+        renderContactHistory(engagements || [], email);
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('contactHistoryContent').innerHTML =
+          '<div class="empty-state"><p>Failed to load history</p></div>';
+      })
+      .getEngagementsByContact(email);
+  }
+
+  function renderContactHistory(engagements, email) {
+    var container = document.getElementById('contactHistoryContent');
+
+    if (engagements.length === 0) {
+      container.innerHTML = '<div class="empty-state" style="padding: var(--space-lg);"><span class="material-icons" style="font-size: 48px; opacity: 0.5;">history</span><p>No engagement history found</p><button class="btn btn-primary" onclick="SEP.closeModal(\'contactHistoryModal\'); SEP.logEngagementFor(\'' + escapeAttr(email) + '\');"><span class="material-icons">add</span> Log First Engagement</button></div>';
+      return;
+    }
+
+    // Sort by date descending
+    engagements.sort(function(a, b) {
+      return new Date(b.date || 0) - new Date(a.date || 0);
+    });
+
+    var html = '<div class="engagement-count-badge">' + engagements.length + ' engagement' + (engagements.length === 1 ? '' : 's') + '</div>';
+    html += '<div class="history-timeline">';
+
+    engagements.forEach(function(e) {
+      var iconMap = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school' };
+      var icon = iconMap[e.activity_type] || 'event';
+
+      html += '<div class="history-item">';
+      html += '<div class="history-date">' + escapeHtml(e.date || 'Unknown date') + '</div>';
+      html += '<div class="history-content">';
+      html += '<div class="history-subject"><span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">' + icon + '</span>' + escapeHtml(e.subject || 'No subject') + '</div>';
+      html += '<div class="history-meta">' + escapeHtml(e.activity_type || '') + ' • ' + escapeHtml(e.direction || '') + (e.touchpoint_reference ? ' • ' + escapeHtml(e.touchpoint_reference) : '') + '</div>';
+      if (e.summary) {
+        html += '<div class="history-summary">' + escapeHtml(e.summary.length > 200 ? e.summary.substring(0, 200) + '...' : e.summary) + '</div>';
+      }
+      html += '</div></div>';
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  // ========================================================================
+  // ALL ENGAGEMENTS VIEW
+  // ========================================================================
+
+  function showAllEngagements() {
+    document.getElementById('allEngagementsModal').classList.add('active');
+    document.getElementById('allEngagementsList').innerHTML = '<div class="loading-state"><span class="loading-spinner"></span><p>Loading engagements...</p></div>';
+
+    // Reset filters
+    document.getElementById('filterActivityType').value = '';
+    document.getElementById('filterDateRange').value = '30';
+    document.getElementById('filterEngagementSearch').value = '';
+
+    loadAllEngagements();
+  }
+
+  function loadAllEngagements() {
+    var dateRange = document.getElementById('filterDateRange').value;
+    var days = dateRange === 'all' ? 9999 : parseInt(dateRange);
+
+    google.script.run
+      .withSuccessHandler(function(engagements) {
+        allEngagementsCache = engagements || [];
+        filterAllEngagements();
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('allEngagementsList').innerHTML =
+          '<div class="empty-state"><p>Failed to load engagements</p></div>';
+      })
+      .getRecentEngagements(days, 500);
+  }
+
+  function filterAllEngagements() {
+    var activityType = document.getElementById('filterActivityType').value;
+    var searchQuery = document.getElementById('filterEngagementSearch').value.toLowerCase();
+    var dateRange = document.getElementById('filterDateRange').value;
+
+    var filtered = allEngagementsCache.filter(function(e) {
+      // Activity type filter
+      if (activityType && e.activity_type !== activityType) return false;
+
+      // Search filter
+      if (searchQuery) {
+        var searchable = ((e.subject || '') + ' ' + (e.summary || '')).toLowerCase();
+        if (searchable.indexOf(searchQuery) === -1) return false;
+      }
+
+      // Date range filter
+      if (dateRange !== 'all') {
+        var days = parseInt(dateRange);
+        var cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - days);
+        if (new Date(e.date) < cutoff) return false;
+      }
+
+      return true;
+    });
+
+    renderAllEngagements(filtered);
+  }
+
+  function renderAllEngagements(engagements) {
+    var container = document.getElementById('allEngagementsList');
+
+    if (engagements.length === 0) {
+      container.innerHTML = '<div class="empty-state" style="padding: var(--space-lg);"><span class="material-icons" style="font-size: 48px; opacity: 0.5;">inbox</span><p>No engagements match your filters</p></div>';
+      return;
+    }
+
+    var iconMap = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school' };
+
+    var html = '<div class="engagement-count-badge">' + engagements.length + ' engagement' + (engagements.length === 1 ? '' : 's') + '</div>';
+
+    engagements.forEach(function(e, index) {
+      var icon = iconMap[e.activity_type] || 'event';
+
+      html += '<div class="engagement-row" onclick="SEP.showEngagementDetailFromAll(' + index + ')">';
+      html += '<div class="engagement-row-icon"><span class="material-icons">' + icon + '</span></div>';
+      html += '<div class="engagement-row-info">';
+      html += '<div class="engagement-row-subject">' + escapeHtml(e.subject || 'No subject') + '</div>';
+      html += '<div class="engagement-row-meta">' + escapeHtml(e.activity_type || '') + ' • ' + escapeHtml(e.direction || '') + (e.participants ? ' • ' + escapeHtml(e.participants.split(',').length + ' participant' + (e.participants.split(',').length > 1 ? 's' : '')) : '') + '</div>';
+      html += '</div>';
+      html += '<div class="engagement-row-date">' + escapeHtml(e.date || '--') + '</div>';
+      html += '</div>';
+    });
+
+    container.innerHTML = html;
+  }
+
+  function showEngagementDetailFromAll(index) {
+    var filtered = filterEngagementsForDisplay();
+    var e = filtered[index];
+    if (!e) return;
+
+    // Reuse the existing engagement detail rendering
+    showEngagementDetailData(e);
+  }
+
+  function filterEngagementsForDisplay() {
+    var activityType = document.getElementById('filterActivityType').value;
+    var searchQuery = document.getElementById('filterEngagementSearch').value.toLowerCase();
+    var dateRange = document.getElementById('filterDateRange').value;
+
+    return allEngagementsCache.filter(function(e) {
+      if (activityType && e.activity_type !== activityType) return false;
+      if (searchQuery) {
+        var searchable = ((e.subject || '') + ' ' + (e.summary || '')).toLowerCase();
+        if (searchable.indexOf(searchQuery) === -1) return false;
+      }
+      if (dateRange !== 'all') {
+        var days = parseInt(dateRange);
+        var cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - days);
+        if (new Date(e.date) < cutoff) return false;
+      }
+      return true;
+    });
+  }
+
+  function showEngagementDetailData(e) {
+    var typeIcons = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school' };
+    var icon = typeIcons[e.activity_type] || 'event';
+
+    var html = '<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">';
+    html += '<div class="engagement-icon" style="width: 48px; height: 48px;"><span class="material-icons" style="font-size: 24px;">' + icon + '</span></div>';
+    html += '<div><div style="font-size: 16px; font-weight: 600;">' + escapeHtml(e.subject || 'No subject') + '</div>';
+    html += '<div style="color: var(--color-text-secondary); font-size: 13px;">' + escapeHtml(e.activity_type || 'Unknown') + '</div></div>';
+    html += '</div>';
+
+    html += '<div class="engagement-detail-grid">';
+    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Date</div><div class="engagement-detail-value">' + escapeHtml(e.date || '--') + '</div></div>';
+    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Direction</div><div class="engagement-detail-value">' + escapeHtml(e.direction || '--') + '</div></div>';
+    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Touchpoint</div><div class="engagement-detail-value">' + escapeHtml(e.touchpoint_reference || '--') + '</div></div>';
+    if (e.follow_up_date) {
+      html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Follow-up</div><div class="engagement-detail-value">' + escapeHtml(e.follow_up_date) + '</div></div>';
+    }
+    if (e.solution_ids) {
+      html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Solutions</div><div class="engagement-detail-value">' + escapeHtml(e.solution_ids) + '</div></div>';
+    }
+    html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Participants</div><div class="engagement-detail-value">' + escapeHtml(e.participants || '--') + '</div></div>';
+    html += '</div>';
+
+    if (e.summary) {
+      html += '<div class="engagement-detail-label" style="margin-bottom: 4px;">Summary</div>';
+      html += '<div class="engagement-summary-box">' + escapeHtml(e.summary) + '</div>';
+    }
+
+    document.getElementById('engagementDetailContent').innerHTML = html;
+    document.getElementById('engagementDetailModal').classList.add('active');
+  }
+
   return {
     init: init,
     setView: setView,
     filterAgencies: filterAgencies,
     toggleAgencyChildren: toggleAgencyChildren,
     selectAgency: selectAgency,
-    showContactDetail: showContactDetail,
     showLogEngagementModal: showLogEngagementModal,
-    logEngagementFor: logEngagementFor,
     submitEngagement: submitEngagement,
     showEngagementDetail: showEngagementDetail,
-    closeModal: closeModal
+    closeModal: closeModal,
+    // Solution-based SEP functions
+    showSolutionDetail: showSolutionDetail,
+    updateMilestoneDate: updateMilestoneDate,
+    logEngagementForSolution: logEngagementForSolution,
+    showSolutionEngagements: showSolutionEngagements,
+    // Filter functions
+    applyFilters: applyFilters,
+    setMilestoneFilter: setMilestoneFilter,
+    // Contact/Agency functions
+    showContactDetail: showContactDetail,
+    updateContactField: updateContactField,
+    logEngagementFor: logEngagementFor,
+    showLinkContactModal: showLinkContactModal,
+    searchContactsForLink: searchContactsForLink,
+    linkExistingContact: linkExistingContact,
+    addNewContactToAgency: addNewContactToAgency,
+    markContacted: markContacted,
+    showContactHistory: showContactHistory,
+    // Agency detail tabs and actions
+    switchAgencyTab: switchAgencyTab,
+    showLogEngagementModalForAgency: showLogEngagementModalForAgency,
+    saveAgencyNotes: saveAgencyNotes,
+    cancelAgencyNotes: cancelAgencyNotes,
+    // Engagement list functions
+    showAllEngagements: showAllEngagements,
+    filterAllEngagements: filterAllEngagements,
+    showEngagementDetailFromAll: showEngagementDetailFromAll
   };
 })();
 
