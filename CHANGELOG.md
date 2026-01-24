@@ -11,6 +11,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **SEP Agencies View Enhancements** - Major upgrade to the Agencies detail panel
+  - **Network Graph tab** - Interactive vis.js visualization showing contact-solution relationships
+    - Nodes for contacts (blue) and solutions (green) with physics simulation
+    - Edges show engagement connections between contacts and solutions
+    - Legend explaining node types
+  - **Engagement edit/delete** - Click any engagement in timeline to view full details with Edit/Delete buttons
+  - **Remove contact from agency** - Red X button on contact cards to remove agency association
+  - **Quick Log button** - Fixed existing feature that had a modal error
+  - **Contact Detail Modal** - Added missing modal for viewing contact details from agency view
+
+### Removed
+- **Engagement trend chart** - Removed mini bar chart from agency overview (clutter reduction)
+
+### Fixed
+- **Quick Log closeModal TypeError** - Added null check to prevent error when modal doesn't exist
+- **Contact detail TypeError** - Fixed `state.contacts` undefined by checking `currentAgencyContacts` first
+- **Contact history TypeError** - Same fix applied to showContactHistory function
+- **Duplicate contacts in search** - Added deduplication by email in renderContactSearchResults
+- **Timeline items not clickable** - Added click handlers and showAgencyEngagementDetail for engagement expansion
+
+---
+
+## [2.1.0] - 2026-01-23
+
+### Added
+- **SEP Agencies View Enhancements** - Major upgrade to the Agencies detail panel (continued from previous session)
   - **Tabbed interface** - Overview, Contacts, Engagements, Notes tabs for better organization
   - **Metrics dashboard** - 4 metric cards showing Engagements, Contacts, Solutions, Heat status with trends
   - **Relationship health bar** - Visual progress bar showing relationship status (New → Developing → Established → Strong)

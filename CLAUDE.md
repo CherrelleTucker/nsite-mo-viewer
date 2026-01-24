@@ -250,6 +250,7 @@ Categories only display if at least one document in that category has an ID conf
 | `successor_agency_id` | Text | AGY_* | Where people/functions moved |
 | `relationship_status` | Text | New, Developing, Established, Strong, Dormant | Current relationship health |
 | `geographic_scope` | Text | National, Regional, State, Local, International | Coverage area |
+| `headquarters_state` | Text | 2-letter state code | **For Map view** - e.g. "DC", "MD", "CA" |
 | `mission_statement` | Text | Mission text | Agency mission |
 | `data_interests` | Text | Interest areas | Earth observation interests |
 | `website_url` | URL | Agency website | External link |

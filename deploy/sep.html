@@ -316,6 +316,19 @@
   </div>
 </div>
 
+<!-- Contact Detail Modal -->
+<div class="modal-overlay" id="contactModal" onclick="SEP.closeModal('contactModal', event)">
+  <div class="modal-content modal-md" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalContactName">Contact Details</h2>
+      <button class="modal-close" onclick="SEP.closeModal('contactModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="contactModalBody">
+      <!-- Populated dynamically -->
+    </div>
+  </div>
+</div>
+
 <!-- Engagement Detail Modal -->
 <div class="modal-overlay" id="engagementDetailModal" onclick="SEP.closeModal('engagementDetailModal', event)">
   <div class="modal-content modal-sm" onclick="event.stopPropagation()">
@@ -439,6 +452,9 @@
     </div>
   </div>
 </div>
+
+<!-- vis.js for Network Graph -->
+<script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
 
 <!-- SEP Styles -->
 <style>
@@ -1021,7 +1037,12 @@
     gap: var(--space-sm);
     padding: var(--space-xs) 0;
     border-bottom: 1px solid var(--color-border-light);
+    transition: background var(--transition-fast);
+    border-radius: var(--radius-sm);
+    margin: 0 calc(-1 * var(--space-xs));
+    padding: var(--space-xs);
   }
+  .timeline-item:hover { background: var(--color-surface-alt); }
   .timeline-item:last-child { border-bottom: none; }
   .timeline-icon {
     width: 24px;
@@ -1185,35 +1206,6 @@
   .metric-trend.neutral { color: var(--color-text-muted); }
   .metric-trend .material-icons { font-size: 12px; }
 
-  /* Mini Engagement Chart */
-  .engagement-chart {
-    height: 60px;
-    display: flex;
-    align-items: flex-end;
-    gap: 2px;
-    padding: var(--space-sm);
-    background: var(--color-surface-alt);
-    border-radius: var(--radius-sm);
-    margin-bottom: var(--space-sm);
-  }
-  .chart-bar {
-    flex: 1;
-    background: var(--color-sep);
-    border-radius: 2px 2px 0 0;
-    min-height: 4px;
-    transition: height 0.3s ease;
-    opacity: 0.7;
-  }
-  .chart-bar:hover { opacity: 1; }
-  .chart-bar.current { background: #22c55e; opacity: 1; }
-  .chart-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 9px;
-    color: var(--color-text-muted);
-    padding: 0 var(--space-sm);
-  }
-
   /* Enhanced Contact Cards */
   .contact-card-enhanced {
     display: flex;
@@ -1286,6 +1278,10 @@
     background: var(--color-sep);
     color: white;
   }
+  .contact-action-btn.contact-action-remove:hover {
+    background: #ef4444;
+    color: white;
+  }
   .contact-action-btn .material-icons { font-size: 16px; }
 
   /* Notes Section */
@@ -1308,6 +1304,52 @@
     justify-content: flex-end;
     gap: var(--space-xs);
     margin-top: var(--space-sm);
+  }
+
+  /* Network Graph */
+  .network-container {
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+  }
+  .network-legend {
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+  }
+  .network-legend .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--color-text-muted);
+  }
+  .legend-node {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+  }
+  .legend-node.contact-node {
+    background: var(--color-sep);
+  }
+  .legend-node.solution-node {
+    background: #10b981;
+    border-radius: 3px;
+  }
+  .network-graph {
+    flex: 1;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+  }
+  .network-help {
+    font-size: 10px;
+    color: var(--color-text-muted);
+    text-align: center;
+    margin-top: var(--space-xs);
   }
 
   /* Modal & Forms */
@@ -1333,6 +1375,7 @@
     display: flex;
     flex-direction: column;
   }
+  .modal-content.modal-md { max-width: 600px; }
   .modal-content.modal-lg { max-width: 900px; }
   .modal-header {
     display: flex;
@@ -1382,7 +1425,11 @@
   .btn-primary:hover { background: var(--color-primary-dark); }
   .btn-secondary { background: var(--color-surface-alt); color: var(--color-text); border: 1px solid var(--color-border); }
   .btn-secondary:hover { background: var(--color-border-light); }
+  .btn-danger { background: #ef4444; color: white; border: none; }
+  .btn-danger:hover { background: #dc2626; }
   .btn-sm { padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-xs); }
+  .btn-sm .material-icons { font-size: 16px; }
+  .engagement-detail-actions { display: flex; gap: var(--space-xs); }
 
   /* Loading & Empty States */
   .loading-state { text-align: center; padding: var(--space-lg); color: var(--color-text-muted); }
@@ -1836,7 +1883,15 @@ var SEP = (function() {
     filterMilestone: 'all',
     needsOutreach: [],
     // Link Contact modal
-    linkContactAgencyId: null
+    linkContactAgencyId: null,
+    // Network graph
+    currentAgencyContacts: [],
+    agencyNetwork: null,
+    // Agency timeline (for engagement clicks)
+    currentAgencyTimeline: [],
+    // Engagement detail
+    currentEngagementDetail: null,
+    editingEngagementId: null
   };
 
   // Store all engagements for filtering
@@ -2312,6 +2367,9 @@ return;
   }
 
   function selectAgency(agencyId) {
+    // Clean up previous network graph
+    destroyAgencyNetwork();
+
     state.selectedAgency = agencyId;
     state.selectedAgencyData = null;
     state.selectedAgencyStats = null;
@@ -2496,17 +2554,13 @@ return;
     html += '</div>';
     html += '</div>';
 
-    // Engagement Trend Mini Chart
-    if (timeline.length > 0) {
-      html += renderEngagementChart(timeline);
-    }
-
     // Tabs
     html += '<div class="agency-tabs">';
     html += '<button class="agency-tab active" onclick="SEP.switchAgencyTab(\'overview\')">Overview</button>';
     html += '<button class="agency-tab" onclick="SEP.switchAgencyTab(\'contacts\')">Contacts (' + contacts.length + ')</button>';
     html += '<button class="agency-tab" onclick="SEP.switchAgencyTab(\'engagements\')">Engagements (' + timeline.length + ')</button>';
     html += '<button class="agency-tab" onclick="SEP.switchAgencyTab(\'notes\')">Notes</button>';
+    html += '<button class="agency-tab" onclick="SEP.switchAgencyTab(\'network\')"><span class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 2px;">hub</span>Network</button>';
     html += '</div>';
 
     // Tab: Overview
@@ -2578,6 +2632,7 @@ return;
         if (c.email) {
           html += '<a class="contact-action-btn" href="mailto:' + escapeAttr(c.email) + '" onclick="event.stopPropagation();" title="Send Email"><span class="material-icons">email</span></a>';
         }
+        html += '<button class="contact-action-btn contact-action-remove" onclick="event.stopPropagation(); SEP.removeContactFromAgency(\'' + escapeAttr(c.contact_id || c.email) + '\', \'' + escapeAttr(agency.agency_id) + '\')" title="Remove from Agency"><span class="material-icons">person_remove</span></button>';
         html += '</div>';
         html += '</div>';
       });
@@ -2591,9 +2646,9 @@ return;
       html += '<button class="btn btn-primary btn-sm" onclick="SEP.showLogEngagementModalForAgency(\'' + escapeAttr(agency.agency_id) + '\')"><span class="material-icons">add</span> Log Engagement</button></div>';
     } else {
       var iconMap = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school' };
-      timeline.forEach(function(e) {
+      timeline.forEach(function(e, idx) {
         var icon = iconMap[e.activity_type] || 'event';
-        html += '<div class="timeline-item">';
+        html += '<div class="timeline-item" style="cursor: pointer;" onclick="SEP.showAgencyEngagementDetail(' + idx + ')">';
         html += '<div class="timeline-icon"><span class="material-icons">' + icon + '</span></div>';
         html += '<div class="timeline-content">';
         html += '<div class="timeline-subject">' + escapeHtml(e.subject || e.activity_type || 'Engagement') + '</div>';
@@ -2608,6 +2663,9 @@ return;
     }
     html += '</div>';
 
+    // Store timeline for engagement clicks
+    state.currentAgencyTimeline = timeline;
+
     // Tab: Notes
     html += '<div class="agency-tab-panel" id="agencyTab_notes">';
     html += '<div class="notes-section">';
@@ -2617,6 +2675,25 @@ return;
     html += '<button class="btn btn-primary btn-sm" onclick="SEP.saveAgencyNotes(\'' + escapeAttr(agency.agency_id) + '\')">Save Notes</button>';
     html += '</div></div>';
     html += '</div>';
+
+    // Tab: Network
+    html += '<div class="agency-tab-panel" id="agencyTab_network">';
+    if (contacts.length === 0) {
+      html += '<div class="empty-state" style="padding: var(--space-md);"><span class="material-icons">hub</span><p>No contacts to visualize</p></div>';
+    } else {
+      html += '<div class="network-container">';
+      html += '<div class="network-legend">';
+      html += '<span class="legend-item"><span class="legend-node contact-node"></span>Contact</span>';
+      html += '<span class="legend-item"><span class="legend-node solution-node"></span>Solution</span>';
+      html += '</div>';
+      html += '<div id="agencyNetworkGraph" class="network-graph"></div>';
+      html += '<div class="network-help">Click and drag to explore. Scroll to zoom.</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // Store contacts for network rendering
+    state.currentAgencyContacts = contacts;
 
     document.getElementById('agencyDetail').innerHTML = html;
   }
@@ -2637,46 +2714,6 @@ return;
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
   }
 
-  function renderEngagementChart(timeline) {
-    // Group engagements by month (last 6 months)
-    var months = [];
-    var now = new Date();
-    for (var i = 5; i >= 0; i--) {
-      var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      months.push({
-        key: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'),
-        label: d.toLocaleString('default', { month: 'short' }),
-        count: 0
-      });
-    }
-
-    timeline.forEach(function(e) {
-      if (!e.date) return;
-      var dateParts = e.date.split('-');
-      if (dateParts.length >= 2) {
-        var monthKey = dateParts[0] + '-' + dateParts[1];
-        var month = months.find(function(m) { return m.key === monthKey; });
-        if (month) month.count++;
-      }
-    });
-
-    var maxCount = Math.max.apply(null, months.map(function(m) { return m.count; })) || 1;
-
-    var html = '<div class="engagement-chart">';
-    months.forEach(function(m, idx) {
-      var height = Math.max(4, (m.count / maxCount) * 50);
-      var isCurrentMonth = idx === months.length - 1;
-      html += '<div class="chart-bar' + (isCurrentMonth ? ' current' : '') + '" style="height: ' + height + 'px;" title="' + m.label + ': ' + m.count + ' engagements"></div>';
-    });
-    html += '</div>';
-    html += '<div class="chart-label">';
-    html += '<span>' + months[0].label + '</span>';
-    html += '<span>' + months[months.length - 1].label + '</span>';
-    html += '</div>';
-
-    return html;
-  }
-
   function switchAgencyTab(tabName) {
     document.querySelectorAll('.agency-tab').forEach(function(tab) {
       tab.classList.remove('active');
@@ -2686,6 +2723,13 @@ return;
     });
     document.querySelector('.agency-tab[onclick*="' + tabName + '"]').classList.add('active');
     document.getElementById('agencyTab_' + tabName).classList.add('active');
+
+    // Initialize network graph when tab is selected
+    if (tabName === 'network' && !state.agencyNetwork) {
+      setTimeout(function() {
+        initAgencyNetwork();
+      }, 100);
+    }
   }
 
   function showLogEngagementModalForAgency(agencyId) {
@@ -2706,6 +2750,135 @@ return;
       document.getElementById('agencyNotes').value = state.selectedAgencyData.notes;
     } else {
       document.getElementById('agencyNotes').value = '';
+    }
+  }
+
+  // ========================================================================
+  // NETWORK GRAPH
+  // ========================================================================
+
+  function initAgencyNetwork() {
+    var container = document.getElementById('agencyNetworkGraph');
+    if (!container || !state.currentAgencyContacts || state.currentAgencyContacts.length === 0) {
+      return;
+    }
+
+    var contacts = state.currentAgencyContacts;
+    var nodes = [];
+    var edges = [];
+    var solutionSet = {};
+
+    // Create contact nodes
+    contacts.forEach(function(contact, idx) {
+      var name = ((contact.first_name || '') + ' ' + (contact.last_name || '')).trim() || contact.email || 'Unknown';
+      nodes.push({
+        id: 'contact_' + idx,
+        label: name.split(' ').map(function(n) { return n.charAt(0); }).join(''),
+        title: name + (contact.title ? '\n' + contact.title : ''),
+        group: 'contact',
+        shape: 'dot',
+        size: 20,
+        color: {
+          background: '#1565c0',
+          border: '#0d47a1',
+          highlight: { background: '#1976d2', border: '#0d47a1' }
+        },
+        font: { color: '#fff', size: 10 }
+      });
+
+      // Create edges to solutions
+      if (contact.solution_tags && contact.solution_tags.length > 0) {
+        contact.solution_tags.forEach(function(solId) {
+          solutionSet[solId] = true;
+          edges.push({
+            from: 'contact_' + idx,
+            to: 'solution_' + solId,
+            color: { color: '#90caf9', highlight: '#1565c0' },
+            width: 1.5
+          });
+        });
+      }
+    });
+
+    // Create solution nodes
+    Object.keys(solutionSet).forEach(function(solId) {
+      nodes.push({
+        id: 'solution_' + solId,
+        label: solId.toUpperCase(),
+        title: 'Solution: ' + solId,
+        group: 'solution',
+        shape: 'box',
+        size: 15,
+        color: {
+          background: '#10b981',
+          border: '#059669',
+          highlight: { background: '#34d399', border: '#059669' }
+        },
+        font: { color: '#fff', size: 9 }
+      });
+    });
+
+    // If no connections exist, show a message
+    if (edges.length === 0) {
+      container.innerHTML = '<div class="empty-state" style="height: 100%; display: flex; align-items: center; justify-content: center;"><p style="color: var(--color-text-muted); font-size: 12px;">No solution engagements to visualize.<br>Contacts will connect when they engage with solutions.</p></div>';
+      return;
+    }
+
+    // Create network
+    var data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+    var options = {
+      physics: {
+        enabled: true,
+        solver: 'forceAtlas2Based',
+        forceAtlas2Based: {
+          gravitationalConstant: -30,
+          centralGravity: 0.005,
+          springLength: 100,
+          springConstant: 0.08
+        },
+        stabilization: { iterations: 100 }
+      },
+      interaction: {
+        hover: true,
+        tooltipDelay: 100,
+        zoomView: true,
+        dragView: true
+      },
+      nodes: {
+        borderWidth: 2,
+        shadow: true
+      },
+      edges: {
+        smooth: {
+          type: 'continuous'
+        }
+      }
+    };
+
+    state.agencyNetwork = new vis.Network(container, data, options);
+
+    // Handle node click
+    state.agencyNetwork.on('click', function(params) {
+      if (params.nodes.length > 0) {
+        var nodeId = params.nodes[0];
+        if (nodeId.startsWith('contact_')) {
+          var idx = parseInt(nodeId.replace('contact_', ''));
+          var contact = contacts[idx];
+          if (contact && contact.email) {
+            showContactDetail(contact.email);
+          }
+        } else if (nodeId.startsWith('solution_')) {
+          var solId = nodeId.replace('solution_', '');
+          showSolutionDetail(solId);
+        }
+      }
+    });
+  }
+
+  function destroyAgencyNetwork() {
+    if (state.agencyNetwork) {
+      state.agencyNetwork.destroy();
+      state.agencyNetwork = null;
     }
   }
 
@@ -2758,8 +2931,17 @@ return;
       return;
     }
 
+    // Deduplicate contacts by email
+    var seenEmails = {};
+    var uniqueContacts = contacts.filter(function(c) {
+      var email = (c.email || '').toLowerCase();
+      if (!email || seenEmails[email]) return false;
+      seenEmails[email] = true;
+      return true;
+    });
+
     var html = '';
-    contacts.slice(0, 10).forEach(function(c) {
+    uniqueContacts.slice(0, 10).forEach(function(c) {
       var initials = ((c.first_name || '').charAt(0) + (c.last_name || '').charAt(0)).toUpperCase() || '?';
       var alreadyLinked = c.agency_id === state.linkContactAgencyId;
 
@@ -2778,8 +2960,8 @@ return;
       html += '</div>';
     });
 
-    if (contacts.length > 10) {
-      html += '<div class="search-hint">' + (contacts.length - 10) + ' more results not shown</div>';
+    if (uniqueContacts.length > 10) {
+      html += '<div class="search-hint">' + (uniqueContacts.length - 10) + ' more results not shown</div>';
     }
 
     container.innerHTML = html;
@@ -2855,6 +3037,26 @@ return;
         title: title,
         agency_id: state.linkContactAgencyId
       });
+  }
+
+  function removeContactFromAgency(contactId, agencyId) {
+    if (!confirm('Remove this contact from the agency?\n\nThis will unlink the contact from ' + (state.selectedAgencyData ? state.selectedAgencyData.name : agencyId) + '. The contact will still exist in the system.')) {
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success) {
+          // Refresh the agency view
+          selectAgency(agencyId);
+        } else {
+          alert('Failed to remove contact: ' + (result.error || 'Unknown error'));
+        }
+      })
+      .withFailureHandler(function(error) {
+        alert('Failed to remove contact: ' + error);
+      })
+      .updateContactAgency(contactId, '');
   }
 
   function renderRecentEngagements() {
@@ -2950,8 +3152,18 @@ return;
   }
 
   function showContactDetail(email) {
-    var contact = state.contacts.find(function(c) { return c.email === email; });
-    if (!contact) return;
+    // Try to find contact in currentAgencyContacts first, then fall back to contacts
+    var contact = null;
+    if (state.currentAgencyContacts && state.currentAgencyContacts.length > 0) {
+      contact = state.currentAgencyContacts.find(function(c) { return c.email === email; });
+    }
+    if (!contact && state.contacts && state.contacts.length > 0) {
+      contact = state.contacts.find(function(c) { return c.email === email; });
+    }
+    if (!contact) {
+      alert('Contact not found');
+      return;
+    }
 
     document.getElementById('modalContactName').textContent =
       (contact.first_name || '') + ' ' + (contact.last_name || '');
@@ -3041,9 +3253,10 @@ return;
 }
 
   function showLogEngagementModal() {
-    setDefaultDate();
+    state.editingEngagementId = null;
     document.getElementById('engagementForm').reset();
     setDefaultDate();
+    document.getElementById('engSubmitBtn').textContent = 'Log Engagement';
     document.getElementById('engagementModal').classList.add('active');
   }
 
@@ -3058,6 +3271,7 @@ return;
 
     var submitBtn = document.getElementById('engSubmitBtn');
     var originalText = submitBtn.textContent;
+    var isEditing = !!state.editingEngagementId;
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span class="material-icons" style="font-size: 16px; animation: spin 1s linear infinite;">refresh</span> Saving...';
 
@@ -3073,25 +3287,43 @@ return;
       follow_up_date: document.getElementById('engFollowUp').value
     };
 
-    google.script.run
-      .withSuccessHandler(function(result) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-        closeModal('engagementModal');
-        loadRecentEngagements();
-        alert('Engagement logged successfully!');
-      })
-      .withFailureHandler(function(error) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-        alert('Failed to log engagement: ' + error);
-      })
-      .createEngagement(engagement);
+    var successHandler = function(result) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Log Engagement';
+      state.editingEngagementId = null;
+      closeModal('engagementModal');
+      loadRecentEngagements();
+      if (state.selectedAgency) {
+        selectAgency(state.selectedAgency);
+      }
+      alert(isEditing ? 'Engagement updated!' : 'Engagement logged successfully!');
+    };
+
+    var failureHandler = function(error) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = isEditing ? 'Update Engagement' : 'Log Engagement';
+      alert('Failed to ' + (isEditing ? 'update' : 'log') + ' engagement: ' + error);
+    };
+
+    if (isEditing) {
+      engagement.engagement_id = state.editingEngagementId;
+      google.script.run
+        .withSuccessHandler(successHandler)
+        .withFailureHandler(failureHandler)
+        .updateEngagement(engagement);
+    } else {
+      google.script.run
+        .withSuccessHandler(successHandler)
+        .withFailureHandler(failureHandler)
+        .createEngagement(engagement);
+    }
   }
 
   function closeModal(modalId, event) {
-    if (!event || event.target === document.getElementById(modalId)) {
-      document.getElementById(modalId).classList.remove('active');
+    var modal = document.getElementById(modalId);
+    if (!modal) return; // Modal doesn't exist, nothing to close
+    if (!event || event.target === modal) {
+      modal.classList.remove('active');
     }
   }
 
@@ -3301,7 +3533,14 @@ return;
   // ========================================================================
 
   function showContactHistory(email) {
-    var contact = state.contacts.find(function(c) { return c.email === email; });
+    // Try to find contact in currentAgencyContacts first, then fall back to contacts
+    var contact = null;
+    if (state.currentAgencyContacts && state.currentAgencyContacts.length > 0) {
+      contact = state.currentAgencyContacts.find(function(c) { return c.email === email; });
+    }
+    if (!contact && state.contacts && state.contacts.length > 0) {
+      contact = state.contacts.find(function(c) { return c.email === email; });
+    }
     var name = contact ? ((contact.first_name || '') + ' ' + (contact.last_name || '')) : email;
 
     document.getElementById('contactHistoryTitle').textContent = 'Engagement History - ' + name;
@@ -3474,13 +3713,20 @@ return;
   }
 
   function showEngagementDetailData(e) {
+    // Store for edit/delete
+    state.currentEngagementDetail = e;
+
     var typeIcons = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school' };
     var icon = typeIcons[e.activity_type] || 'event';
 
     var html = '<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">';
     html += '<div class="engagement-icon" style="width: 48px; height: 48px;"><span class="material-icons" style="font-size: 24px;">' + icon + '</span></div>';
-    html += '<div><div style="font-size: 16px; font-weight: 600;">' + escapeHtml(e.subject || 'No subject') + '</div>';
+    html += '<div style="flex: 1;"><div style="font-size: 16px; font-weight: 600;">' + escapeHtml(e.subject || 'No subject') + '</div>';
     html += '<div style="color: var(--color-text-secondary); font-size: 13px;">' + escapeHtml(e.activity_type || 'Unknown') + '</div></div>';
+    html += '<div class="engagement-detail-actions">';
+    html += '<button class="btn btn-sm btn-secondary" onclick="SEP.editEngagement()" title="Edit"><span class="material-icons">edit</span></button>';
+    html += '<button class="btn btn-sm btn-danger" onclick="SEP.deleteEngagement()" title="Delete"><span class="material-icons">delete</span></button>';
+    html += '</div>';
     html += '</div>';
 
     html += '<div class="engagement-detail-grid">';
@@ -3505,6 +3751,70 @@ return;
     document.getElementById('engagementDetailModal').classList.add('active');
   }
 
+  function editEngagement() {
+    var e = state.currentEngagementDetail;
+    if (!e) return;
+
+    closeModal('engagementDetailModal');
+    showLogEngagementModal();
+
+    // Populate form with existing values
+    document.getElementById('engDate').value = e.date || '';
+    document.getElementById('engActivityType').value = e.activity_type || '';
+    document.getElementById('engDirection').value = e.direction || '';
+    document.getElementById('engSubject').value = e.subject || '';
+    document.getElementById('engParticipants').value = e.participants || '';
+    document.getElementById('engSolution').value = e.solution_ids || '';
+    document.getElementById('engSummary').value = e.summary || '';
+    document.getElementById('engTouchpoint').value = e.touchpoint_reference || '';
+    document.getElementById('engFollowUp').value = e.follow_up_date || '';
+
+    // Store the engagement ID for update
+    state.editingEngagementId = e.engagement_id;
+
+    // Change submit button text
+    var submitBtn = document.getElementById('engSubmitBtn');
+    submitBtn.textContent = 'Update Engagement';
+  }
+
+  function deleteEngagement() {
+    var e = state.currentEngagementDetail;
+    if (!e || !e.engagement_id) {
+      alert('Cannot delete: Engagement ID not found');
+      return;
+    }
+
+    if (!confirm('Delete this engagement?\n\n"' + (e.subject || 'No subject') + '"\n\nThis action cannot be undone.')) {
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success) {
+          closeModal('engagementDetailModal');
+          // Refresh engagements
+          loadRecentEngagements();
+          if (state.selectedAgency) {
+            selectAgency(state.selectedAgency);
+          }
+        } else {
+          alert('Failed to delete: ' + (result.error || 'Unknown error'));
+        }
+      })
+      .withFailureHandler(function(error) {
+        alert('Failed to delete: ' + error);
+      })
+      .deleteEngagement(e.engagement_id);
+  }
+
+  function showAgencyEngagementDetail(index) {
+    if (!state.currentAgencyTimeline || index >= state.currentAgencyTimeline.length) {
+      return;
+    }
+    var e = state.currentAgencyTimeline[index];
+    showEngagementDetailData(e);
+  }
+
   return {
     init: init,
     setView: setView,
@@ -3514,6 +3824,8 @@ return;
     showLogEngagementModal: showLogEngagementModal,
     submitEngagement: submitEngagement,
     showEngagementDetail: showEngagementDetail,
+    editEngagement: editEngagement,
+    deleteEngagement: deleteEngagement,
     closeModal: closeModal,
     // Solution-based SEP functions
     showSolutionDetail: showSolutionDetail,
@@ -3538,6 +3850,8 @@ return;
     showLogEngagementModalForAgency: showLogEngagementModalForAgency,
     saveAgencyNotes: saveAgencyNotes,
     cancelAgencyNotes: cancelAgencyNotes,
+    removeContactFromAgency: removeContactFromAgency,
+    showAgencyEngagementDetail: showAgencyEngagementDetail,
     // Engagement list functions
     showAllEngagements: showAllEngagements,
     filterAllEngagements: filterAllEngagements,
