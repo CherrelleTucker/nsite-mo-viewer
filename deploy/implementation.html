@@ -6,7 +6,6 @@
   <div class="page-header">
     <div class="page-title">
       <h1>Implementation-NSITE</h1>
-      <p class="page-subtitle">Solution / Project Focused Dashboard</p>
     </div>
   </div>
 
@@ -1290,6 +1289,14 @@ var Implementation = (function() {
     if (dateVal instanceof Date) return dateVal;
     var str = String(dateVal).trim();
     if (!str) return null;
+    // Handle ISO dates (2026-01-23T00:00:00.000Z) by extracting just the date part
+    // This avoids timezone conversion issues where UTC midnight becomes previous day locally
+    var dateOnly = str.split('T')[0];
+    var parts = dateOnly.split('-');
+    if (parts.length === 3) {
+      return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    }
+    // Fallback for other formats
     var d = new Date(str);
     return isNaN(d.getTime()) ? null : d;
   }

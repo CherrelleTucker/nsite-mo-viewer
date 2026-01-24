@@ -6,7 +6,6 @@
   <div class="page-header">
     <div class="page-title">
       <h1>SEP-NSITE</h1>
-      <p class="page-subtitle">Stakeholder Engagement Pipeline</p>
     </div>
     <div class="page-actions">
       <div class="view-toggle">
@@ -18,11 +17,6 @@
           <span class="material-icons">account_tree</span>
           <span>Agencies</span>
         </button>
-      </div>
-      <div class="header-filter">
-        <select id="filterCycle" onchange="SEP.applyFilters()" title="Filter by cycle">
-          <option value="">All Cycles</option>
-        </select>
       </div>
       <button class="btn btn-primary" onclick="SEP.showLogEngagementModal()">
         <span class="material-icons">add</span>
@@ -449,17 +443,26 @@
   /* Main Panels: The "How" section */
   .main-panels {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 2fr 1fr;
     gap: var(--space-md);
     margin-bottom: var(--space-lg);
   }
 
   .main-panels .panel {
     border-top: 3px solid var(--page-accent);
-    min-height: 300px;
-    max-height: 400px;
     display: flex;
     flex-direction: column;
+  }
+
+  .main-panels .engagement-panel {
+    min-height: 350px;
+    max-height: 500px;
+  }
+
+  .main-panels .outreach-panel {
+    min-height: 200px;
+    max-height: 350px;
+    border-top: 3px solid var(--color-warning) !important;
   }
 
   .main-panels .panel-content {
@@ -1453,8 +1456,8 @@
     border-radius: var(--radius-sm);
     white-space: nowrap;
   }
-  .attention-status.overdue { background: var(--color-error); color: white; }
-  .attention-status.due-soon { background: var(--color-warning); color: white; }
+  .attention-status.overdue { background: rgba(239, 68, 68, 0.15); color: var(--color-error); border: 1px solid rgba(239, 68, 68, 0.3); }
+  .attention-status.due-soon { background: rgba(237, 108, 2, 0.15); color: #b45309; border: 1px solid rgba(237, 108, 2, 0.3); }
   .attention-action {
     padding: 4px 8px;
     font-size: var(--font-size-xs);
@@ -1829,7 +1832,8 @@ var SEP = (function() {
     currentAgencyTimeline: [],
     // Engagement detail
     currentEngagementDetail: null,
-    editingEngagementId: null
+    editingEngagementId: null,
+    editingOriginalParticipants: null
   };
 
   // Store all engagements for filtering
@@ -2446,6 +2450,14 @@ var SEP = (function() {
   function formatDateForInput(dateStr) {
     if (!dateStr) return '';
     try {
+      // Handle ISO dates (2026-01-23T00:00:00.000Z) by extracting just the date part
+      // This avoids timezone conversion issues
+      var dateOnly = String(dateStr).split('T')[0];
+      // Validate it looks like YYYY-MM-DD
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+        return dateOnly;
+      }
+      // Fallback: parse and extract date (may have timezone issues)
       var d = new Date(dateStr);
       return d.toISOString().split('T')[0];
     } catch (e) {
@@ -2851,6 +2863,13 @@ return;
         html += '</div>';
         html += '</div>';
       });
+      // Add link to view all engagements
+      html += '<div style="padding: var(--space-md); text-align: center; border-top: 1px solid var(--color-border-light); margin-top: var(--space-sm);">';
+      html += '<a href="#" onclick="SEP.setView(\'engagements\'); return false;" style="color: var(--page-accent); text-decoration: none; font-size: var(--font-size-sm);">';
+      html += '<span class="material-icons" style="font-size: 14px; vertical-align: middle;">list</span> View All Engagements';
+      html += '</a>';
+      html += '<div style="color: var(--color-text-secondary); font-size: var(--font-size-xs); margin-top: 4px;">Can\'t find an engagement? It may have different participants.</div>';
+      html += '</div>';
     }
     html += '</div>';
 
@@ -3310,44 +3329,8 @@ return;
   function showEngagementDetail(index) {
     var e = state.engagements[index];
     if (!e) return;
-
-    var typeIcons = {
-      'Email': 'email',
-      'Phone': 'phone',
-      'Meeting': 'groups',
-      'Webinar': 'videocam',
-      'Conference': 'location_city',
-      'Site Visit': 'place',
-      'Training': 'school'
-    };
-    var icon = typeIcons[e.activity_type] || 'event';
-
-    var html = '<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">';
-    html += '<div class="engagement-icon" style="width: 48px; height: 48px;"><span class="material-icons" style="font-size: 24px;">' + icon + '</span></div>';
-    html += '<div><div style="font-size: 16px; font-weight: 600;">' + escapeHtml(e.subject || 'No subject') + '</div>';
-    html += '<div style="color: var(--color-text-secondary); font-size: 13px;">' + escapeHtml(e.activity_type || 'Unknown') + '</div></div>';
-    html += '</div>';
-
-    html += '<div class="engagement-detail-grid">';
-    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Date</div><div class="engagement-detail-value">' + escapeHtml(e.date || '--') + '</div></div>';
-    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Direction</div><div class="engagement-detail-value">' + escapeHtml(e.direction || '--') + '</div></div>';
-    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Touchpoint</div><div class="engagement-detail-value">' + escapeHtml(e.touchpoint_reference || '--') + '</div></div>';
-    if (e.follow_up_date) {
-      html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Follow-up</div><div class="engagement-detail-value">' + escapeHtml(e.follow_up_date) + '</div></div>';
-    }
-    if (e.solution_ids) {
-      html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Solutions</div><div class="engagement-detail-value">' + escapeHtml(e.solution_ids) + '</div></div>';
-    }
-    html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Participants</div><div class="engagement-detail-value">' + escapeHtml(e.participants || '--') + '</div></div>';
-    html += '</div>';
-
-    if (e.summary) {
-      html += '<div class="engagement-detail-label" style="margin-bottom: 4px;">Summary</div>';
-      html += '<div class="engagement-summary-box">' + escapeHtml(e.summary) + '</div>';
-    }
-
-    document.getElementById('engagementDetailContent').innerHTML = html;
-    document.getElementById('engagementDetailModal').classList.add('active');
+    // Use the shared editable detail function
+    showEngagementDetailData(e);
   }
 
   function setView(view) {
@@ -3431,7 +3414,7 @@ return;
 
     // Next Scheduled - Inline Editable
     html += '<div class="detail-item"><div class="detail-label">Next Scheduled</div><div class="detail-value inline-edit-group">';
-    html += '<input type="date" class="inline-date" id="editNextContact" value="' + (contact.next_scheduled_contact || '') + '" onchange="SEP.updateContactField(\'' + escapeAttr(contact.email) + '\', \'next_contact\', this.value)">';
+    html += '<input type="date" class="inline-date" id="editNextContact" value="' + formatDateForInput(contact.next_scheduled_contact) + '" onchange="SEP.updateContactField(\'' + escapeAttr(contact.email) + '\', \'next_contact\', this.value)">';
     html += '</div></div>';
 
     html += '</div></div>';
@@ -3471,6 +3454,7 @@ return;
 
   function showLogEngagementModal() {
     state.editingEngagementId = null;
+    state.editingOriginalParticipants = null;
     document.getElementById('engagementForm').reset();
     setDefaultDate();
     document.getElementById('engSubmitBtn').textContent = 'Log Engagement';
@@ -3506,7 +3490,19 @@ return;
     var successHandler = function(result) {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Log Engagement';
+
+      // Validate result - updateEngagement returns null if not found
+      if (isEditing && !result) {
+        alert('Error: Engagement not found. It may have been deleted. Please refresh the page.');
+        state.editingEngagementId = null;
+        state.editingOriginalParticipants = null;
+        closeModal('engagementModal');
+        loadRecentEngagements();
+        return;
+      }
+
       state.editingEngagementId = null;
+      state.editingOriginalParticipants = null;
       closeModal('engagementModal');
       loadRecentEngagements();
       if (state.selectedAgency) {
@@ -3521,17 +3517,44 @@ return;
       alert('Failed to ' + (isEditing ? 'update' : 'log') + ' engagement: ' + error);
     };
 
-    if (isEditing) {
-      google.script.run
-        .withSuccessHandler(successHandler)
-        .withFailureHandler(failureHandler)
-        .updateEngagement(state.editingEngagementId, engagement);
-    } else {
-      google.script.run
-        .withSuccessHandler(successHandler)
-        .withFailureHandler(failureHandler)
-        .createEngagement(engagement);
+    // Helper function to perform the actual save
+    var performSave = function() {
+      if (isEditing) {
+        google.script.run
+          .withSuccessHandler(successHandler)
+          .withFailureHandler(failureHandler)
+          .updateEngagement(state.editingEngagementId, engagement);
+      } else {
+        google.script.run
+          .withSuccessHandler(successHandler)
+          .withFailureHandler(failureHandler)
+          .createEngagement(engagement);
+      }
+    };
+
+    // Check for participants change when editing (affects where engagement appears)
+    if (isEditing && state.editingOriginalParticipants !== null) {
+      var originalEmails = state.editingOriginalParticipants.split(',').map(function(e) { return e.trim().toLowerCase(); }).filter(Boolean).sort().join(',');
+      var newEmails = engagement.participants.split(',').map(function(e) { return e.trim().toLowerCase(); }).filter(Boolean).sort().join(',');
+
+      if (originalEmails !== newEmails) {
+        var confirmMsg = 'You are changing the participants for this engagement.\n\n';
+        confirmMsg += 'This affects which Agency/Contact views display this engagement.\n\n';
+        if (!engagement.participants.trim()) {
+          confirmMsg += 'WARNING: Removing all participants will make this engagement harder to find.\n\n';
+        }
+        confirmMsg += 'Continue with save?';
+
+        if (!confirm(confirmMsg)) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Update Engagement';
+          return;
+        }
+      }
     }
+
+    // Perform the save
+    performSave();
   }
 
   function closeModal(modalId, event) {
@@ -3544,6 +3567,15 @@ return;
 
   function formatDate(dateStr) {
     if (!dateStr) return '--';
+    // Handle ISO dates (2026-01-23T00:00:00.000Z) by extracting just the date part
+    // This avoids timezone conversion issues where UTC midnight becomes previous day locally
+    var dateOnly = String(dateStr).split('T')[0];
+    var parts = dateOnly.split('-');
+    if (parts.length === 3) {
+      var date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    // Fallback for other formats
     var date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
@@ -3902,7 +3934,10 @@ return;
     var e = filtered[index];
     if (!e) return;
 
-    // Reuse the existing engagement detail rendering
+    // Close the All Engagements modal first
+    closeModal('allEngagementsModal');
+
+    // Then show the editable detail modal
     showEngagementDetailData(e);
   }
 
@@ -3934,36 +3969,208 @@ return;
     var typeIcons = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school' };
     var icon = typeIcons[e.activity_type] || 'event';
 
+    // Read-only view
     var html = '<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">';
     html += '<div class="engagement-icon" style="width: 48px; height: 48px;"><span class="material-icons" style="font-size: 24px;">' + icon + '</span></div>';
     html += '<div style="flex: 1;"><div style="font-size: 16px; font-weight: 600;">' + escapeHtml(e.subject || 'No subject') + '</div>';
     html += '<div style="color: var(--color-text-secondary); font-size: 13px;">' + escapeHtml(e.activity_type || 'Unknown') + '</div></div>';
     html += '<div class="engagement-detail-actions">';
-    html += '<button class="btn btn-sm btn-secondary" onclick="SEP.editEngagement()" title="Edit"><span class="material-icons">edit</span></button>';
+    html += '<button class="btn btn-sm btn-secondary" onclick="SEP.showEngagementEditForm()" title="Edit"><span class="material-icons">edit</span></button>';
     html += '<button class="btn btn-sm btn-danger" onclick="SEP.deleteEngagement()" title="Delete"><span class="material-icons">delete</span></button>';
     html += '</div>';
     html += '</div>';
 
+    // Look up solution name (solutions use core_id and core_official_name)
+    var solutionName = '--';
+    if (e.solution_id && state.solutions) {
+      var sol = state.solutions.find(function(s) { return s.core_id === e.solution_id; });
+      solutionName = sol ? (sol.core_official_name || e.solution_id) : e.solution_id;
+    } else if (e.solution_id) {
+      solutionName = e.solution_id;
+    }
+
     html += '<div class="engagement-detail-grid">';
-    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Date</div><div class="engagement-detail-value">' + escapeHtml(e.date || '--') + '</div></div>';
+    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Date</div><div class="engagement-detail-value">' + (e.date ? formatDate(e.date) : '--') + '</div></div>';
     html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Direction</div><div class="engagement-detail-value">' + escapeHtml(e.direction || '--') + '</div></div>';
-    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Touchpoint</div><div class="engagement-detail-value">' + escapeHtml(e.touchpoint_reference || '--') + '</div></div>';
-    if (e.follow_up_date) {
-      html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Follow-up</div><div class="engagement-detail-value">' + escapeHtml(e.follow_up_date) + '</div></div>';
-    }
-    if (e.solution_ids) {
-      html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Solutions</div><div class="engagement-detail-value">' + escapeHtml(e.solution_ids) + '</div></div>';
-    }
+    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Follow-up</div><div class="engagement-detail-value">' + (e.follow_up_date ? formatDate(e.follow_up_date) : '--') + '</div></div>';
+    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Solution</div><div class="engagement-detail-value">' + escapeHtml(solutionName) + '</div></div>';
     html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Participants</div><div class="engagement-detail-value">' + escapeHtml(e.participants || '--') + '</div></div>';
     html += '</div>';
 
-    if (e.summary) {
-      html += '<div class="engagement-detail-label" style="margin-bottom: 4px;">Summary</div>';
-      html += '<div class="engagement-summary-box">' + escapeHtml(e.summary) + '</div>';
-    }
+    html += '<div class="engagement-detail-label" style="margin-bottom: 4px; margin-top: var(--space-sm);">Summary</div>';
+    html += '<div class="engagement-summary-box">' + escapeHtml(e.summary || 'No summary provided') + '</div>';
 
     document.getElementById('engagementDetailContent').innerHTML = html;
     document.getElementById('engagementDetailModal').classList.add('active');
+  }
+
+  function showEngagementEditForm() {
+    var e = state.currentEngagementDetail;
+    if (!e) return;
+
+    state.editingOriginalParticipants = e.participants || '';
+
+    var typeIcons = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school' };
+
+    var html = '<form id="engagementDetailForm" onsubmit="SEP.saveEngagementDetail(event)">';
+
+    // Header row with subject input and delete button
+    html += '<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">';
+    html += '<div class="engagement-icon" style="width: 48px; height: 48px;"><span class="material-icons" id="detailTypeIcon" style="font-size: 24px;">' + (typeIcons[e.activity_type] || 'event') + '</span></div>';
+    html += '<div style="flex: 1;">';
+    html += '<input type="text" id="detailSubject" value="' + escapeAttr(e.subject || '') + '" placeholder="Subject" required style="font-size: 16px; font-weight: 600; width: 100%; border: none; border-bottom: 1px solid var(--color-border); padding: 4px 0; background: transparent;">';
+    html += '</div>';
+    html += '<button type="button" class="btn btn-sm btn-danger" onclick="SEP.deleteEngagement()" title="Delete"><span class="material-icons">delete</span></button>';
+    html += '</div>';
+
+    // Form fields in a grid
+    html += '<div class="form-row" style="margin-bottom: var(--space-sm);">';
+    html += '<div class="form-group" style="flex: 1;">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Date</label>';
+    html += '<input type="date" id="detailDate" value="' + escapeAttr(formatDateForInput(e.date)) + '" required>';
+    html += '</div>';
+    html += '<div class="form-group" style="flex: 1;">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Activity Type</label>';
+    html += '<select id="detailActivityType" onchange="SEP.updateDetailIcon()">';
+    ['Email', 'Phone', 'Meeting', 'Webinar', 'Conference', 'Site Visit', 'Training'].forEach(function(type) {
+      html += '<option value="' + type + '"' + (e.activity_type === type ? ' selected' : '') + '>' + type + '</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+    html += '<div class="form-group" style="flex: 1;">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Direction</label>';
+    html += '<select id="detailDirection">';
+    ['Outbound', 'Inbound', 'Bidirectional'].forEach(function(dir) {
+      html += '<option value="' + dir + '"' + (e.direction === dir ? ' selected' : '') + '>' + dir + '</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+    html += '</div>';
+
+    // Participants
+    html += '<div class="form-group" style="margin-bottom: var(--space-sm);">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Participants (emails, comma-separated)</label>';
+    html += '<input type="text" id="detailParticipants" value="' + escapeAttr(e.participants || '') + '" placeholder="email1@example.com, email2@example.com">';
+    html += '</div>';
+
+    // Solution and Follow-up row
+    html += '<div class="form-row" style="margin-bottom: var(--space-sm);">';
+    html += '<div class="form-group" style="flex: 2;">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Solution</label>';
+    html += '<select id="detailSolution">';
+    html += '<option value="">-- Select Solution --</option>';
+    if (state.solutions) {
+      state.solutions.slice().sort(function(a, b) {
+        return (a.core_id || '').localeCompare(b.core_id || '');
+      }).forEach(function(sol) {
+        var selected = (e.solution_id === sol.core_id) ? ' selected' : '';
+        html += '<option value="' + escapeAttr(sol.core_id) + '"' + selected + '>' + escapeHtml(sol.core_id.toUpperCase() + ' - ' + (sol.core_official_name || '')) + '</option>';
+      });
+    }
+    html += '</select>';
+    html += '</div>';
+    html += '<div class="form-group" style="flex: 1;">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Follow-up Date</label>';
+    html += '<input type="date" id="detailFollowUp" value="' + formatDateForInput(e.follow_up_date) + '">';
+    html += '</div>';
+    html += '</div>';
+
+    // Summary
+    html += '<div class="form-group" style="margin-bottom: var(--space-md);">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Summary</label>';
+    html += '<textarea id="detailSummary" rows="3" maxlength="2000" placeholder="Brief summary of the engagement">' + escapeHtml(e.summary || '') + '</textarea>';
+    html += '</div>';
+
+    // Action buttons
+    html += '<div class="form-actions" style="display: flex; justify-content: flex-end; gap: var(--space-sm);">';
+    html += '<button type="button" class="btn btn-secondary" onclick="SEP.showEngagementDetailData(SEP.getCurrentEngagement())">Cancel</button>';
+    html += '<button type="submit" class="btn btn-primary" id="detailSaveBtn">Save Changes</button>';
+    html += '</div>';
+
+    html += '</form>';
+
+    document.getElementById('engagementDetailContent').innerHTML = html;
+  }
+
+  function getCurrentEngagement() {
+    return state.currentEngagementDetail;
+  }
+
+  function updateDetailIcon() {
+    var typeIcons = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school' };
+    var type = document.getElementById('detailActivityType').value;
+    document.getElementById('detailTypeIcon').textContent = typeIcons[type] || 'event';
+  }
+
+  function saveEngagementDetail(event) {
+    event.preventDefault();
+
+    var e = state.currentEngagementDetail;
+    if (!e || !e.engagement_id) {
+      alert('Error: No engagement selected');
+      return;
+    }
+
+    var saveBtn = document.getElementById('detailSaveBtn');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="material-icons" style="font-size: 16px; animation: spin 1s linear infinite;">refresh</span> Saving...';
+
+    var updates = {
+      date: document.getElementById('detailDate').value,
+      activity_type: document.getElementById('detailActivityType').value,
+      direction: document.getElementById('detailDirection').value,
+      subject: document.getElementById('detailSubject').value,
+      participants: document.getElementById('detailParticipants').value,
+      solution_id: document.getElementById('detailSolution').value,
+      summary: document.getElementById('detailSummary').value,
+      follow_up_date: document.getElementById('detailFollowUp').value
+    };
+
+    // Check for participants change
+    var originalEmails = state.editingOriginalParticipants.split(',').map(function(e) { return e.trim().toLowerCase(); }).filter(Boolean).sort().join(',');
+    var newEmails = updates.participants.split(',').map(function(e) { return e.trim().toLowerCase(); }).filter(Boolean).sort().join(',');
+
+    if (originalEmails !== newEmails) {
+      var confirmMsg = 'You are changing the participants for this engagement.\n\n';
+      confirmMsg += 'This affects which Agency/Contact views display this engagement.\n\n';
+      if (!updates.participants.trim()) {
+        confirmMsg += 'WARNING: Removing all participants will make this engagement harder to find.\n\n';
+      }
+      confirmMsg += 'Continue with save?';
+
+      if (!confirm(confirmMsg)) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Changes';
+        return;
+      }
+    }
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Changes';
+
+        if (!result) {
+          alert('Error: Engagement not found. It may have been deleted.');
+          closeModal('engagementDetailModal');
+          loadRecentEngagements();
+          return;
+        }
+
+        state.editingOriginalParticipants = null;
+        closeModal('engagementDetailModal');
+        loadRecentEngagements();
+        if (state.selectedAgency) {
+          selectAgency(state.selectedAgency);
+        }
+        alert('Engagement updated!');
+      })
+      .withFailureHandler(function(error) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Changes';
+        alert('Failed to update engagement: ' + error);
+      })
+      .updateEngagement(e.engagement_id, updates);
   }
 
   function editEngagement() {
@@ -3983,8 +4190,9 @@ return;
     document.getElementById('engSummary').value = e.summary || '';
     document.getElementById('engFollowUp').value = e.follow_up_date || '';
 
-    // Store the engagement ID for update
+    // Store the engagement ID and original participants for update
     state.editingEngagementId = e.engagement_id;
+    state.editingOriginalParticipants = e.participants || '';
 
     // Change submit button text
     var submitBtn = document.getElementById('engSubmitBtn');
@@ -4040,6 +4248,11 @@ return;
     showEngagementDetail: showEngagementDetail,
     editEngagement: editEngagement,
     deleteEngagement: deleteEngagement,
+    updateDetailIcon: updateDetailIcon,
+    saveEngagementDetail: saveEngagementDetail,
+    showEngagementEditForm: showEngagementEditForm,
+    showEngagementDetailData: showEngagementDetailData,
+    getCurrentEngagement: getCurrentEngagement,
     closeModal: closeModal,
     // Solution-based SEP functions
     showSolutionDetail: showSolutionDetail,

@@ -695,3 +695,619 @@ function eventExists(eventName) {
     return e.name && e.name.toLowerCase().trim() === nameLower;
   });
 }
+
+// ============================================================================
+// GUEST LIST MANAGEMENT
+// ============================================================================
+
+/**
+ * Add a guest (contact) to an event's guest list
+ * @param {string} eventId - Event ID
+ * @param {string} contactEmail - Contact email to add
+ * @returns {Object} Updated event or error
+ */
+function addGuestToEvent(eventId, contactEmail) {
+  // Read directly from sheet to avoid any caching issues
+  var sheet = getOutreachSheet_();
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+
+  var idColIndex = headers.indexOf('event_id');
+  var guestListColIndex = headers.indexOf('guest_list');
+
+  if (idColIndex === -1) {
+    return { success: false, error: 'event_id column not found' };
+  }
+  if (guestListColIndex === -1) {
+    return { success: false, error: 'guest_list column not found in spreadsheet. Please add it.' };
+  }
+
+  // Find the event row
+  var rowIndex = -1;
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][idColIndex] === eventId) {
+      rowIndex = i;
+      break;
+    }
+  }
+
+  if (rowIndex === -1) {
+    return { success: false, error: 'Event not found' };
+  }
+
+  // Get current guest list directly from the cell
+  var currentGuestListValue = data[rowIndex][guestListColIndex];
+  var currentGuestListStr = currentGuestListValue ? String(currentGuestListValue) : '';
+
+  var email = contactEmail.toLowerCase().trim();
+  var currentGuests = currentGuestListStr ? currentGuestListStr.split(',').map(function(e) { return e.trim().toLowerCase(); }).filter(Boolean) : [];
+
+  if (currentGuests.indexOf(email) !== -1) {
+    return { success: false, error: 'Contact already in guest list' };
+  }
+
+  currentGuests.push(email);
+  var updatedGuestList = currentGuests.join(', ');
+
+  // Write directly to the cell
+  sheet.getRange(rowIndex + 1, guestListColIndex + 1).setValue(updatedGuestList);
+  SpreadsheetApp.flush();
+
+  // Clear cache so subsequent reads get fresh data
+  clearOutreachCache_();
+
+  return { success: true, guest_list: updatedGuestList };
+}
+
+/**
+ * Remove a guest from an event's guest list
+ * @param {string} eventId - Event ID
+ * @param {string} contactEmail - Contact email to remove
+ * @returns {Object} Updated event or error
+ */
+function removeGuestFromEvent(eventId, contactEmail) {
+  // Read directly from sheet
+  var sheet = getOutreachSheet_();
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+
+  var idColIndex = headers.indexOf('event_id');
+  var guestListColIndex = headers.indexOf('guest_list');
+
+  if (idColIndex === -1 || guestListColIndex === -1) {
+    return { success: false, error: 'Required columns not found' };
+  }
+
+  // Find the event row
+  var rowIndex = -1;
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][idColIndex] === eventId) {
+      rowIndex = i;
+      break;
+    }
+  }
+
+  if (rowIndex === -1) {
+    return { success: false, error: 'Event not found' };
+  }
+
+  var currentGuestListValue = data[rowIndex][guestListColIndex];
+  var currentGuestListStr = currentGuestListValue ? String(currentGuestListValue) : '';
+
+  var email = contactEmail.toLowerCase().trim();
+  var currentGuests = currentGuestListStr ? currentGuestListStr.split(',').map(function(e) { return e.trim().toLowerCase(); }).filter(Boolean) : [];
+
+  var index = currentGuests.indexOf(email);
+  if (index === -1) {
+    return { success: false, error: 'Contact not in guest list' };
+  }
+
+  currentGuests.splice(index, 1);
+  var updatedGuestList = currentGuests.join(', ');
+
+  sheet.getRange(rowIndex + 1, guestListColIndex + 1).setValue(updatedGuestList);
+  SpreadsheetApp.flush();
+  clearOutreachCache_();
+
+  return { success: true, guest_list: updatedGuestList };
+}
+
+/**
+ * Get all guests for an event with full contact profile data
+ * @param {string} eventId - Event ID
+ * @returns {Array} Array of contact objects with profile data
+ */
+function getEventGuests(eventId) {
+  // Read guest_list directly from sheet to avoid cache issues
+  var sheet = getOutreachSheet_();
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+
+  var idColIndex = headers.indexOf('event_id');
+  var guestListColIndex = headers.indexOf('guest_list');
+  var attendeesColIndex = headers.indexOf('actual_attendees');
+
+  if (idColIndex === -1 || guestListColIndex === -1) {
+    return [];
+  }
+
+  // Find the event row
+  var rowIndex = -1;
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][idColIndex] === eventId) {
+      rowIndex = i;
+      break;
+    }
+  }
+
+  if (rowIndex === -1) {
+    return [];
+  }
+
+  var guestListValue = data[rowIndex][guestListColIndex];
+  var guestListStr = guestListValue ? String(guestListValue) : '';
+
+  if (!guestListStr) {
+    return [];
+  }
+
+  var guestEmails = guestListStr.split(',').map(function(e) { return e.trim().toLowerCase(); }).filter(Boolean);
+  if (guestEmails.length === 0) {
+    return [];
+  }
+
+  // Get actual attendees for post-event display
+  var actualAttendeesValue = attendeesColIndex !== -1 ? data[rowIndex][attendeesColIndex] : '';
+  var actualAttendeesStr = actualAttendeesValue ? String(actualAttendeesValue) : '';
+  var actualAttendees = actualAttendeesStr ? actualAttendeesStr.split(',').map(function(e) { return e.trim().toLowerCase(); }).filter(Boolean) : [];
+
+  // Load contacts (using contacts-api.gs functions)
+  var allContacts = getAllContacts();
+  var uniqueContacts = {};
+
+  allContacts.forEach(function(c) {
+    var email = (c.email || '').toLowerCase();
+    if (guestEmails.indexOf(email) !== -1 && !uniqueContacts[email]) {
+      uniqueContacts[email] = {
+        email: email,
+        first_name: c.first_name,
+        last_name: c.last_name,
+        agency: c.agency,
+        agency_id: c.agency_id,
+        organization: c.organization,
+        title: c.title,
+        department: c.department,
+        phone: c.phone,
+        // Profile fields for prep report
+        education: c.education,
+        job_duties: c.job_duties,
+        professional_skills: c.professional_skills,
+        non_work_skills: c.non_work_skills,
+        hobbies: c.hobbies,
+        goals: c.goals,
+        relax: c.relax,
+        early_job: c.early_job,
+        // Engagement data
+        solution_id: c.solution_id,
+        solutions: []
+      };
+    }
+  });
+
+  // Aggregate solutions per contact
+  allContacts.forEach(function(c) {
+    var email = (c.email || '').toLowerCase();
+    if (uniqueContacts[email] && c.solution_id) {
+      if (uniqueContacts[email].solutions.indexOf(c.solution_id) === -1) {
+        uniqueContacts[email].solutions.push(c.solution_id);
+      }
+    }
+  });
+
+  // Mark attendance status (actualAttendees already loaded from sheet above)
+  return Object.values(uniqueContacts).map(function(contact) {
+    contact.attended = actualAttendees.indexOf(contact.email) !== -1;
+    return contact;
+  });
+}
+
+/**
+ * Mark a guest as attended or not attended for an event
+ * @param {string} eventId - Event ID
+ * @param {string} contactEmail - Contact email
+ * @param {boolean} attended - Whether they attended
+ * @returns {Object} Success/failure result
+ */
+function markGuestAttended(eventId, contactEmail, attended) {
+  // Read directly from sheet
+  var sheet = getOutreachSheet_();
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+
+  var idColIndex = headers.indexOf('event_id');
+  var attendeesColIndex = headers.indexOf('actual_attendees');
+
+  if (idColIndex === -1) {
+    return { success: false, error: 'event_id column not found' };
+  }
+  if (attendeesColIndex === -1) {
+    return { success: false, error: 'actual_attendees column not found in spreadsheet. Please add it.' };
+  }
+
+  // Find the event row
+  var rowIndex = -1;
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][idColIndex] === eventId) {
+      rowIndex = i;
+      break;
+    }
+  }
+
+  if (rowIndex === -1) {
+    return { success: false, error: 'Event not found' };
+  }
+
+  var currentAttendeesValue = data[rowIndex][attendeesColIndex];
+  var currentAttendeesStr = currentAttendeesValue ? String(currentAttendeesValue) : '';
+
+  var email = contactEmail.toLowerCase().trim();
+  var currentAttendees = currentAttendeesStr ? currentAttendeesStr.split(',').map(function(e) { return e.trim().toLowerCase(); }).filter(Boolean) : [];
+
+  var index = currentAttendees.indexOf(email);
+
+  if (attended && index === -1) {
+    currentAttendees.push(email);
+  } else if (!attended && index !== -1) {
+    currentAttendees.splice(index, 1);
+  }
+
+  var updatedAttendees = currentAttendees.join(', ');
+
+  sheet.getRange(rowIndex + 1, attendeesColIndex + 1).setValue(updatedAttendees);
+  SpreadsheetApp.flush();
+  clearOutreachCache_();
+
+  return { success: true, actual_attendees: updatedAttendees };
+}
+
+// ============================================================================
+// PREP REPORT
+// ============================================================================
+
+/**
+ * Generate a comprehensive prep report for an event
+ * @param {string} eventId - Event ID
+ * @returns {Object} Prep report with guests, agencies, connections, and conversation starters
+ */
+function getEventPrepReport(eventId) {
+  var event = getEventById(eventId);
+  if (!event) {
+    return { error: 'Event not found' };
+  }
+
+  var guests = getEventGuests(eventId);
+  var guestEmails = guests.map(function(g) { return g.email.toLowerCase(); });
+
+  // Event info with linked solutions
+  var linkedSolutions = [];
+  if (event.solution_id) {
+    linkedSolutions = event.solution_id.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+  }
+
+  var eventInfo = {
+    event_id: event.event_id,
+    name: event.name,
+    event_type: event.event_type,
+    start_date: event.start_date,
+    end_date: event.end_date,
+    location: event.location,
+    sector: event.sector,
+    linked_solutions: linkedSolutions
+  };
+
+  // Find potential guests from solution engagements
+  var potentialGuests = findPotentialGuestsFromEngagements_(linkedSolutions, guestEmails, event.name);
+
+  // Agencies represented
+  var agencyMap = {};
+  guests.forEach(function(guest) {
+    var agencyName = guest.agency || guest.organization || 'Unknown';
+    if (!agencyMap[agencyName]) {
+      agencyMap[agencyName] = {
+        name: agencyName,
+        count: 0,
+        contacts: []
+      };
+    }
+    agencyMap[agencyName].count++;
+    agencyMap[agencyName].contacts.push({
+      name: (guest.first_name || '') + ' ' + (guest.last_name || ''),
+      email: guest.email,
+      title: guest.title
+    });
+  });
+
+  var agencies = Object.values(agencyMap).sort(function(a, b) {
+    return b.count - a.count;
+  });
+
+  // Find potential connections
+  var connections = findPotentialConnections_(guests);
+
+  // Generate conversation starters
+  var conversationStarters = guests.map(function(guest) {
+    var topics = [];
+
+    if (guest.hobbies) {
+      topics.push({ type: 'hobby', text: 'Hobbies: ' + guest.hobbies });
+    }
+    if (guest.early_job) {
+      topics.push({ type: 'icebreaker', text: 'First job: ' + guest.early_job });
+    }
+    if (guest.goals) {
+      topics.push({ type: 'professional', text: 'Goals: ' + guest.goals });
+    }
+    if (guest.relax) {
+      topics.push({ type: 'personal', text: 'Unwinds by: ' + guest.relax });
+    }
+    if (guest.non_work_skills) {
+      topics.push({ type: 'skill', text: 'Outside work: ' + guest.non_work_skills });
+    }
+    if (guest.solutions && guest.solutions.length > 0) {
+      topics.push({ type: 'work', text: 'Engaged with: ' + guest.solutions.slice(0, 3).join(', ') });
+    }
+
+    return {
+      name: (guest.first_name || '') + ' ' + (guest.last_name || ''),
+      email: guest.email,
+      agency: guest.agency || guest.organization,
+      topics: topics
+    };
+  }).filter(function(g) {
+    return g.topics.length > 0;
+  });
+
+  return {
+    event: eventInfo,
+    guests: guests.map(function(g) {
+      return {
+        name: (g.first_name || '') + ' ' + (g.last_name || ''),
+        email: g.email,
+        agency: g.agency || g.organization,
+        title: g.title,
+        hobbies: g.hobbies,
+        goals: g.goals,
+        education: g.education,
+        professional_skills: g.professional_skills,
+        non_work_skills: g.non_work_skills,
+        early_job: g.early_job,
+        relax: g.relax,
+        solutions: g.solutions,
+        attended: g.attended
+      };
+    }),
+    agencies_represented: agencies,
+    potential_connections: connections,
+    conversation_starters: conversationStarters,
+    potential_guests: potentialGuests,
+    summary: {
+      total_guests: guests.length,
+      total_agencies: agencies.length,
+      total_connections: connections.length,
+      total_potential_guests: potentialGuests.length,
+      linked_solutions: linkedSolutions.length
+    }
+  };
+}
+
+/**
+ * Find potential connections between guests
+ * @private
+ */
+function findPotentialConnections_(guests) {
+  var connections = [];
+
+  for (var i = 0; i < guests.length; i++) {
+    for (var j = i + 1; j < guests.length; j++) {
+      var guest1 = guests[i];
+      var guest2 = guests[j];
+      var reasons = [];
+
+      // Check shared solutions
+      if (guest1.solutions && guest2.solutions) {
+        var sharedSolutions = guest1.solutions.filter(function(s) {
+          return guest2.solutions.indexOf(s) !== -1;
+        });
+        if (sharedSolutions.length > 0) {
+          reasons.push('Both engaged with ' + sharedSolutions[0]);
+        }
+      }
+
+      // Check shared hobbies (simple word match)
+      if (guest1.hobbies && guest2.hobbies) {
+        var hobbies1 = guest1.hobbies.toLowerCase().split(/[,;]/);
+        var hobbies2 = guest2.hobbies.toLowerCase().split(/[,;]/);
+        hobbies1.forEach(function(h1) {
+          h1 = h1.trim();
+          hobbies2.forEach(function(h2) {
+            h2 = h2.trim();
+            if (h1 && h2 && (h1.indexOf(h2) !== -1 || h2.indexOf(h1) !== -1)) {
+              reasons.push('Shared interest: ' + h1);
+            }
+          });
+        });
+      }
+
+      // Check same agency
+      if (guest1.agency && guest2.agency && guest1.agency === guest2.agency) {
+        reasons.push('Same agency: ' + guest1.agency);
+      }
+
+      if (reasons.length > 0) {
+        connections.push({
+          contact1: {
+            name: (guest1.first_name || '') + ' ' + (guest1.last_name || ''),
+            email: guest1.email
+          },
+          contact2: {
+            name: (guest2.first_name || '') + ' ' + (guest2.last_name || ''),
+            email: guest2.email
+          },
+          reason: reasons[0]
+        });
+      }
+    }
+  }
+
+  return connections.slice(0, 20); // Limit to top 20 connections
+}
+
+/**
+ * Find potential guests based on solution engagements
+ * Looks for contacts who have engaged with the event's linked solutions
+ * @param {Array} linkedSolutions - Solutions linked to the event
+ * @param {Array} existingGuestEmails - Emails of guests already on the list
+ * @param {string} eventName - Event name (used to infer solutions)
+ * @returns {Array} Potential guests with engagement info
+ * @private
+ */
+function findPotentialGuestsFromEngagements_(linkedSolutions, existingGuestEmails, eventName) {
+  var potentialGuests = {};
+  var solutionsToSearch = linkedSolutions.slice(); // Copy array
+
+  // Try to infer solutions from event name if none linked
+  if (solutionsToSearch.length === 0 && eventName) {
+    // Get all solutions and check if any appear in the event name
+    try {
+      var allSolutions = getSolutions ? getSolutions() : [];
+      var eventNameLower = eventName.toLowerCase();
+      allSolutions.forEach(function(sol) {
+        var solName = sol.core_official_name || sol.core_id || '';
+        if (solName && eventNameLower.indexOf(solName.toLowerCase()) !== -1) {
+          solutionsToSearch.push(solName);
+        }
+      });
+    } catch (e) {
+      // getSolutions may not be available
+    }
+  }
+
+  if (solutionsToSearch.length === 0) {
+    return [];
+  }
+
+  // Get engagements for each solution
+  solutionsToSearch.forEach(function(solutionId) {
+    try {
+      var engagements = getEngagementsBySolution(solutionId);
+      engagements.forEach(function(eng) {
+        // Get participant emails from engagement (comma-separated)
+        var participantEmails = [];
+        if (eng.participants) {
+          participantEmails = eng.participants.split(',').map(function(p) {
+            return p.trim().toLowerCase();
+          }).filter(Boolean);
+        }
+
+        // Process each participant
+        participantEmails.forEach(function(contactEmail) {
+          // Skip if already on guest list
+          if (existingGuestEmails.indexOf(contactEmail) !== -1) return;
+
+          // Add or update potential guest entry
+          if (!potentialGuests[contactEmail]) {
+            potentialGuests[contactEmail] = {
+              email: contactEmail,
+              contact_name: '',
+              agency: eng.agency || eng.agency_id || '',
+              solutions: [],
+              engagements: [],
+              engagement_count: 0,
+              last_engagement: null,
+              touchpoints: []
+            };
+          }
+
+          var pg = potentialGuests[contactEmail];
+          pg.engagement_count++;
+
+          // Track solutions they've engaged with
+          if (solutionId && pg.solutions.indexOf(solutionId) === -1) {
+            pg.solutions.push(solutionId);
+          }
+
+          // Track engagement types
+          if (eng.activity_type && pg.engagements.indexOf(eng.activity_type) === -1) {
+            pg.engagements.push(eng.activity_type);
+          }
+
+          // Track touchpoints
+          if (eng.touchpoint && pg.touchpoints.indexOf(eng.touchpoint) === -1) {
+            pg.touchpoints.push(eng.touchpoint);
+          }
+
+          // Track most recent engagement
+          if (eng.date) {
+            var engDate = new Date(eng.date);
+            if (!pg.last_engagement || engDate > new Date(pg.last_engagement)) {
+              pg.last_engagement = eng.date;
+            }
+          }
+        });
+      });
+    } catch (e) {
+      // getEngagementsBySolution may fail
+    }
+  });
+
+  // Try to enrich with contact details
+  try {
+    var allContacts = getAllContacts();
+    var contactMap = {};
+    allContacts.forEach(function(c) {
+      var email = (c.email || '').toLowerCase();
+      if (email && !contactMap[email]) {
+        contactMap[email] = c;
+      }
+    });
+
+    Object.keys(potentialGuests).forEach(function(email) {
+      var contact = contactMap[email];
+      if (contact) {
+        var pg = potentialGuests[email];
+        pg.first_name = contact.first_name;
+        pg.last_name = contact.last_name;
+        pg.contact_name = (contact.first_name || '') + ' ' + (contact.last_name || '');
+        pg.title = contact.title;
+        pg.agency = contact.agency || contact.organization || pg.agency;
+        pg.department = contact.department;
+      }
+    });
+  } catch (e) {
+    // getAllContacts may fail
+  }
+
+  // Convert to array and sort by engagement count
+  var result = Object.values(potentialGuests);
+  result.sort(function(a, b) {
+    return b.engagement_count - a.engagement_count;
+  });
+
+  // Return top 15 potential guests
+  return result.slice(0, 15).map(function(pg) {
+    return {
+      email: pg.email,
+      name: pg.contact_name || pg.email,
+      first_name: pg.first_name,
+      last_name: pg.last_name,
+      agency: pg.agency,
+      title: pg.title,
+      solutions: pg.solutions,
+      engagement_count: pg.engagement_count,
+      engagement_types: pg.engagements,
+      touchpoints: pg.touchpoints,
+      last_engagement: pg.last_engagement,
+      reason: 'Engaged with ' + pg.solutions.join(', ') + ' (' + pg.engagement_count + ' engagements)'
+    };
+  });
+}

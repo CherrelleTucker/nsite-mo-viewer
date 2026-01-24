@@ -6,7 +6,6 @@
   <div class="page-header">
     <div class="page-title">
       <h1>Comms-NSITE</h1>
-      <p class="page-subtitle">Communications Pipeline</p>
     </div>
     <div class="page-actions">
       <div class="view-toggle">
@@ -35,15 +34,11 @@
           <span>Messages</span>
         </button>
       </div>
-      <button class="btn btn-primary" onclick="COMMS.showCreateStoryModal()">
-        <span class="material-icons">add</span>
-        New Story
-      </button>
     </div>
   </div>
 
-  <!-- Stats Row -->
-  <div class="stats-row">
+  <!-- Stats Row (Pipeline only) -->
+  <div class="stats-row" id="pipelineStatsRow">
     <div class="stat-card">
       <div class="stat-icon"><span class="material-icons">description</span></div>
       <div class="stat-info">
@@ -74,55 +69,81 @@
     </div>
   </div>
 
-  <!-- Filter Bar -->
-  <div class="filter-bar">
-    <div class="filter-group">
-      <select id="filterType" onchange="COMMS.applyFilters()">
-        <option value="">All Types</option>
-        <option value="story">Impact Story</option>
-        <option value="web_content">Web Content</option>
-        <option value="social_media">Social Media</option>
-        <option value="external_mention">External Mention</option>
-        <option value="nugget">Nugget Slide</option>
-        <option value="key_date">Key Date</option>
-      </select>
-      <select id="filterStatus" onchange="COMMS.applyFilters()">
-        <option value="">All Status</option>
-        <option value="idea">Idea</option>
-        <option value="researching">Researching</option>
-        <option value="drafting">Drafting</option>
-        <option value="review">Review</option>
-        <option value="published">Published</option>
-      </select>
-      <select id="filterChannel" onchange="COMMS.applyFilters()">
-        <option value="">All Channels</option>
-        <option value="web">Web</option>
-        <option value="social">Social</option>
-        <option value="slide">Slide</option>
-        <option value="external">External</option>
-        <option value="newsletter">Newsletter</option>
-      </select>
-    </div>
-    <div class="search-group">
-      <span class="material-icons">search</span>
-      <input type="text" id="searchInput" placeholder="Search stories..." oninput="COMMS.applyFilters()">
-    </div>
-  </div>
-
   <!-- Main Content Area -->
   <div class="comms-content">
     <!-- Pipeline View -->
     <div class="view-panel active" id="pipelineView">
+      <!-- Top Panels: Opportunities + Coverage Gaps -->
+      <div class="top-panels">
+        <!-- Story Opportunities -->
+        <div class="panel opportunities-panel">
+          <div class="panel-header">
+            <h3>Story Opportunities</h3>
+            <button class="btn btn-sm btn-secondary" onclick="COMMS.refreshOpportunities()">
+              <span class="material-icons">refresh</span>
+            </button>
+          </div>
+          <div class="panel-content" id="opportunitiesPanel">
+            <div class="loading-state">
+              <span class="loading-spinner"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coverage Gaps -->
+        <div class="panel coverage-panel">
+          <div class="panel-header">
+            <h3>Coverage Gaps</h3>
+            <button class="btn btn-sm btn-secondary" onclick="COMMS.setView('coverage')">
+              <span class="material-icons">fullscreen</span>
+            </button>
+          </div>
+          <div class="panel-content" id="coverageGapsPanel">
+            <div class="loading-state">
+              <span class="loading-spinner"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Story Pipeline -->
       <div class="pipeline-section">
         <div class="section-header">
           <h2>Story Pipeline</h2>
-          <div class="pipeline-legend">
-            <span class="legend-item"><span class="dot dot-idea"></span>Idea</span>
-            <span class="legend-item"><span class="dot dot-research"></span>Research</span>
-            <span class="legend-item"><span class="dot dot-draft"></span>Draft</span>
-            <span class="legend-item"><span class="dot dot-review"></span>Review</span>
-            <span class="legend-item"><span class="dot dot-published"></span>Published</span>
+          <div class="pipeline-filters">
+            <div class="header-search" style="margin-right: var(--space-sm);">
+              <span class="material-icons">search</span>
+              <input type="text" id="searchInput" placeholder="Search stories..." oninput="COMMS.applyFilters()">
+            </div>
+            <select id="filterType" onchange="COMMS.applyFilters()">
+              <option value="">All Types</option>
+              <option value="story">Impact Story</option>
+              <option value="web_content">Web Content</option>
+              <option value="social_media">Social Media</option>
+              <option value="external_mention">External Mention</option>
+              <option value="nugget">Nugget Slide</option>
+              <option value="key_date">Key Date</option>
+            </select>
+            <select id="filterStatus" onchange="COMMS.applyFilters()">
+              <option value="">All Status</option>
+              <option value="idea">Idea</option>
+              <option value="researching">Researching</option>
+              <option value="drafting">Drafting</option>
+              <option value="review">Review</option>
+              <option value="published">Published</option>
+            </select>
+            <select id="filterChannel" onchange="COMMS.applyFilters()">
+              <option value="">All Channels</option>
+              <option value="web">Web</option>
+              <option value="social">Social</option>
+              <option value="slide">Slide</option>
+              <option value="external">External</option>
+              <option value="newsletter">Newsletter</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="COMMS.showCreateStoryModal()" style="margin-left: var(--space-sm);">
+              <span class="material-icons">add</span>
+              New Story
+            </button>
           </div>
         </div>
         <div class="pipeline-board" id="pipelineBoard">
@@ -165,39 +186,6 @@
               <span class="column-count" id="countPublished">0</span>
             </div>
             <div class="column-cards" id="cardsPublished"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Bottom Panels: Opportunities + Coverage Gaps -->
-      <div class="bottom-panels">
-        <!-- Story Opportunities -->
-        <div class="panel opportunities-panel">
-          <div class="panel-header">
-            <h3>Story Opportunities</h3>
-            <button class="btn btn-sm btn-secondary" onclick="COMMS.refreshOpportunities()">
-              <span class="material-icons">refresh</span>
-            </button>
-          </div>
-          <div class="panel-content" id="opportunitiesPanel">
-            <div class="loading-state">
-              <span class="loading-spinner"></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Coverage Gaps -->
-        <div class="panel coverage-panel">
-          <div class="panel-header">
-            <h3>Coverage Gaps</h3>
-            <button class="btn btn-sm btn-secondary" onclick="COMMS.setView('coverage')">
-              <span class="material-icons">fullscreen</span>
-            </button>
-          </div>
-          <div class="panel-content" id="coverageGapsPanel">
-            <div class="loading-state">
-              <span class="loading-spinner"></span>
-            </div>
           </div>
         </div>
       </div>
@@ -786,15 +774,125 @@
   </div>
 </div>
 
-<!-- Event Detail Modal -->
+<!-- Event Detail Modal (Tabbed) -->
 <div class="modal-overlay" id="eventModal" onclick="COMMS.closeModal('eventModal', event)">
-  <div class="modal-content" onclick="event.stopPropagation()">
+  <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title" id="modalEventName">Event Details</h2>
       <button class="modal-close" onclick="COMMS.closeModal('eventModal')">&times;</button>
     </div>
-    <div class="modal-body" id="eventModalBody">
-      <!-- Dynamic content -->
+    <!-- Modal Tabs -->
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="details" onclick="COMMS.switchEventTab('details')">
+        <span class="material-icons">info</span> Details
+      </button>
+      <button class="modal-tab" data-tab="guests" onclick="COMMS.switchEventTab('guests')">
+        <span class="material-icons">people</span> Guest List
+        <span class="tab-badge" id="guestCountBadge">0</span>
+      </button>
+      <button class="modal-tab" data-tab="prep" onclick="COMMS.switchEventTab('prep')">
+        <span class="material-icons">assignment</span> Prep Report
+      </button>
+    </div>
+    <div class="modal-body">
+      <!-- Details Tab -->
+      <div class="tab-panel active" id="eventDetailsTab">
+        <div id="eventModalBody">
+          <!-- Dynamic content -->
+        </div>
+      </div>
+      <!-- Guest List Tab -->
+      <div class="tab-panel" id="eventGuestsTab">
+        <div class="guest-list-container">
+          <!-- Search contacts to add -->
+          <div class="guest-search-section">
+            <h4>Add Guests</h4>
+            <div class="guest-search-input">
+              <span class="material-icons">search</span>
+              <input type="text" id="guestSearchInput" placeholder="Search contacts by name or email..." oninput="COMMS.searchContactsForGuest()">
+            </div>
+            <div class="guest-search-results" id="guestSearchResults">
+              <div class="empty-state-sm">Search to find contacts</div>
+            </div>
+          </div>
+          <!-- Current guest list -->
+          <div class="guest-list-section">
+            <h4>Expected Guests</h4>
+            <div class="guest-list" id="currentGuestList">
+              <div class="empty-state-sm">No guests added yet</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Prep Report Tab -->
+      <div class="tab-panel" id="eventPrepTab">
+        <div class="prep-report-container" id="prepReportContent">
+          <div class="prep-actions">
+            <button class="btn btn-primary" onclick="COMMS.generatePrepReport()">
+              <span class="material-icons">description</span>
+              Generate Prep Report
+            </button>
+          </div>
+          <div id="prepReportBody">
+            <div class="empty-state">
+              <span class="material-icons">assignment</span>
+              <p>Click "Generate Prep Report" to create a preparation report for this event</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Contact from Event Modal -->
+<div class="modal-overlay" id="newContactFromEventModal" onclick="COMMS.closeModal('newContactFromEventModal', event)">
+  <div class="modal-content modal-md" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Add New Contact</h2>
+      <button class="modal-close" onclick="COMMS.closeModal('newContactFromEventModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="newContactFromEventForm" onsubmit="COMMS.submitNewContactFromEvent(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name *</label>
+            <input type="text" id="newContactFirstName" required>
+          </div>
+          <div class="form-group">
+            <label>Last Name *</label>
+            <input type="text" id="newContactLastName" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" id="newContactEmail" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Agency/Organization</label>
+            <input type="text" id="newContactAgency">
+          </div>
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="newContactTitle">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="newContactNotes" rows="2" placeholder="How did you meet? Any follow-up needed?"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-item">
+            <input type="checkbox" id="addToGuestList" checked>
+            <span>Add to this event's guest list</span>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="COMMS.closeModal('newContactFromEventModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Contact</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -806,6 +904,46 @@
     --page-accent: var(--color-comms);
     max-width: 1600px;
     margin: 0 auto;
+  }
+
+  /* Header Search (like SEP's cycle filter) */
+  .header-search {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+  }
+  .header-search .material-icons {
+    font-size: 18px;
+    color: var(--color-text-muted);
+  }
+  .header-search input {
+    border: none;
+    outline: none;
+    font-size: var(--font-size-sm);
+    width: 180px;
+    background: transparent;
+  }
+
+  /* Pipeline Filters (inline in section header) */
+  .pipeline-filters {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+  }
+  .pipeline-filters select {
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    background: var(--color-surface);
+  }
+  .pipeline-filters select:focus {
+    outline: none;
+    border-color: var(--color-comms);
   }
 
   /* Comms Pipeline Customizations */
@@ -882,10 +1020,14 @@
   .card-channel svg { width: 12px; height: 12px; }
 
   /* Bottom Panels */
-  .bottom-panels {
+  .bottom-panels,
+  .top-panels {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--space-md);
+  }
+  .top-panels {
+    margin-bottom: var(--space-lg);
   }
   .panel {
     background: var(--color-surface);
@@ -1582,23 +1724,444 @@
   .message-link:hover { text-decoration: underline; }
   .message-link svg { width: 14px; height: 14px; }
 
+  /* Modal Tabs */
+  .modal-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--color-border-light);
+    background: var(--color-surface-alt);
+  }
+  .modal-tab {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-muted);
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition-fast);
+  }
+  .modal-tab:hover {
+    color: var(--color-text);
+    background: var(--color-surface);
+  }
+  .modal-tab.active {
+    color: var(--color-comms);
+    border-bottom-color: var(--color-comms);
+    background: var(--color-surface);
+  }
+  .modal-tab .material-icons {
+    font-size: 18px;
+  }
+  .tab-badge {
+    padding: 2px 6px;
+    background: var(--color-comms);
+    color: white;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .tab-panel {
+    display: none;
+  }
+  .tab-panel.active {
+    display: block;
+  }
+
+  /* Guest List Styles */
+  .guest-list-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+  }
+  .guest-search-section h4,
+  .guest-list-section h4 {
+    margin: 0 0 var(--space-sm) 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .guest-search-input {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+  }
+  .guest-search-input .material-icons {
+    color: var(--color-text-muted);
+    font-size: 18px;
+  }
+  .guest-search-input input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: var(--font-size-sm);
+    outline: none;
+  }
+  .guest-search-results,
+  .guest-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+  }
+  .guest-result-item,
+  .guest-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm);
+    background: var(--color-surface);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-xs);
+    transition: background var(--transition-fast);
+  }
+  .guest-result-item:hover,
+  .guest-list-item:hover {
+    background: var(--color-border-light);
+  }
+  .guest-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .guest-name {
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+    margin-bottom: 2px;
+  }
+  .guest-email {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .guest-agency {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+  }
+  .guest-actions {
+    display: flex;
+    gap: var(--space-xs);
+  }
+  .guest-add-btn,
+  .guest-remove-btn {
+    padding: var(--space-xs);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  .guest-add-btn {
+    background: var(--color-success);
+    color: white;
+  }
+  .guest-add-btn:hover {
+    filter: brightness(1.1);
+  }
+  .guest-remove-btn {
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+  }
+  .guest-remove-btn:hover {
+    background: var(--color-error);
+    color: white;
+    border-color: var(--color-error);
+  }
+  .empty-state-sm {
+    padding: var(--space-md);
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  /* Post-Event Attendance Section */
+  .attendance-section {
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-border-light);
+  }
+  .attendance-section h4 {
+    margin: 0 0 var(--space-sm) 0;
+    font-size: var(--font-size-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .attendance-checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-xs);
+  }
+  .attendance-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+  .attendance-checkbox label {
+    flex: 1;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+  }
+  .attendance-checkbox.attended {
+    background: rgba(76, 175, 80, 0.1);
+  }
+
+  /* Prep Report Styles */
+  .prep-report-container {
+    padding: var(--space-md);
+  }
+  .prep-actions {
+    margin-bottom: var(--space-lg);
+  }
+  .prep-section {
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .prep-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .prep-section h3 {
+    margin: 0 0 var(--space-sm) 0;
+    font-size: var(--font-size-md);
+    color: var(--color-comms);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .prep-section h3 .material-icons {
+    font-size: 20px;
+  }
+  .prep-summary-stats {
+    display: flex;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-md);
+    padding: var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-md);
+  }
+  .prep-stat {
+    text-align: center;
+  }
+  .prep-stat-value {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--color-comms);
+  }
+  .prep-stat-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+  .prep-guest-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-bottom: var(--space-sm);
+  }
+  .prep-guest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-sm);
+  }
+  .prep-guest-name {
+    font-weight: 600;
+    font-size: var(--font-size-md);
+  }
+  .prep-guest-title {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+  .prep-guest-agency {
+    font-size: var(--font-size-sm);
+    color: var(--color-comms);
+  }
+  .prep-guest-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-sm);
+  }
+  .prep-detail-item {
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+  }
+  .prep-detail-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .prep-agency-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-sm);
+  }
+  .prep-agency-item {
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+  }
+  .prep-agency-name {
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+  }
+  .prep-agency-count {
+    font-size: var(--font-size-xs);
+    color: var(--color-comms);
+  }
+  .prep-connection-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-xs);
+  }
+  .prep-connection-icon {
+    color: var(--color-comms);
+  }
+  .prep-connection-names {
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+  }
+  .prep-connection-reason {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+  .prep-starter-item {
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+  }
+  .prep-starter-name {
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-xs);
+  }
+  .prep-starter-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+  .prep-topic-tag {
+    padding: 2px 8px;
+    background: var(--color-surface);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    border: 1px solid var(--color-border-light);
+  }
+  .prep-topic-tag.hobby { border-left: 3px solid #4CAF50; }
+  .prep-topic-tag.icebreaker { border-left: 3px solid #FF9800; }
+  .prep-topic-tag.professional { border-left: 3px solid #2196F3; }
+  .prep-topic-tag.personal { border-left: 3px solid #9C27B0; }
+  .prep-topic-tag.skill { border-left: 3px solid #00BCD4; }
+  .prep-topic-tag.work { border-left: 3px solid var(--color-comms); }
+
+  /* Linked Solutions */
+  .prep-solution-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+  .prep-solution-tag {
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-comms);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+  }
+
+  /* Potential Guests / Suggested Attendees */
+  .prep-section-desc {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-md) 0;
+  }
+  .potential-guests-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  .potential-guest-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--color-success);
+  }
+  .potential-guest-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .potential-guest-name {
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+  }
+  .potential-guest-agency {
+    font-size: var(--font-size-xs);
+    color: var(--color-comms);
+  }
+  .potential-guest-reason {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-top: 2px;
+  }
+  .potential-guest-touchpoints {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    margin-top: 2px;
+  }
+
   /* Responsive */
   @media (max-width: 1200px) {
     .pipeline-board { grid-template-columns: repeat(3, 1fr); }
-    .bottom-panels { grid-template-columns: 1fr; }
+    .bottom-panels, .top-panels { grid-template-columns: 1fr; }
     .coverage-summary { grid-template-columns: 1fr; }
     .priorities-grid { grid-template-columns: repeat(2, 1fr); }
     .messages-grid { grid-template-columns: 1fr; }
+    .guest-list-container { grid-template-columns: 1fr; }
+    .prep-guest-details { grid-template-columns: 1fr; }
   }
   @media (max-width: 768px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
     .pipeline-board { grid-template-columns: repeat(2, 1fr); }
     .form-row { grid-template-columns: 1fr; }
     .form-group-wide { grid-column: span 1; }
-    .filter-bar { flex-direction: column; }
+    .pipeline-filters { flex-wrap: wrap; }
     .priorities-grid { grid-template-columns: 1fr; }
     .priority-bar-label { width: 120px; }
     .messages-summary { flex-direction: column; gap: var(--space-sm); }
+    .modal-tabs { flex-wrap: wrap; }
+    .prep-summary-stats { flex-direction: column; }
+    .header-search input { width: 120px; }
   }
 </style>
 
@@ -1910,15 +2473,18 @@ var COMMS = (function() {
         statusText = 'Covered';
       }
 
+      var displayName = sol.solution_name || sol.solution_id || '--';
+      var solId = sol.solution_id || '';
+
       html += '<tr>';
-      html += '<td><strong>' + escapeHtml(sol.core_official_name) + '</strong></td>';
-      html += '<td>' + escapeHtml(sol.admin_lifecycle_phase || '--') + '</td>';
+      html += '<td><strong>' + escapeHtml(displayName) + '</strong></td>';
+      html += '<td>' + escapeHtml(sol.phase || '--') + '</td>';
       html += '<td>' + (sol.total_stories || 0) + '</td>';
       html += '<td>' + (sol.recent_stories || 0) + '</td>';
       html += '<td>' + (sol.last_story_date ? formatDate(sol.last_story_date) : '--') + '</td>';
       html += '<td>' + (sol.days_since_story != null ? sol.days_since_story : '--') + '</td>';
       html += '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>';
-      html += '<td><button class="btn btn-sm btn-secondary" onclick="COMMS.suggestStory(\'' + escapeAttr(sol.core_official_name) + '\')">+ Story</button></td>';
+      html += '<td><button class="btn btn-sm btn-secondary" onclick="COMMS.suggestStory(\'' + escapeAttr(solId) + '\')">+ Story</button></td>';
       html += '</tr>';
     });
 
@@ -1960,6 +2526,19 @@ var COMMS = (function() {
     document.getElementById('calendarView').classList.toggle('active', view === 'calendar');
     document.getElementById('prioritiesView').classList.toggle('active', view === 'priorities');
     document.getElementById('messagesView').classList.toggle('active', view === 'messages');
+
+    // Show pipeline stats only on pipeline view
+    var pipelineStats = document.getElementById('pipelineStatsRow');
+    if (pipelineStats) pipelineStats.style.display = (view === 'pipeline') ? '' : 'none';
+
+    if (view === 'coverage') {
+      // Refresh coverage view when switching to it
+      if (state.coverage) {
+        renderCoverageView();
+      } else {
+        loadCoverage();
+      }
+    }
 
     if (view === 'calendar') {
       renderCalendar();
@@ -2294,6 +2873,10 @@ return;
   function advanceStatus(storyId, newStatus) {
     google.script.run
       .withSuccessHandler(function(result) {
+        if (!result) {
+          alert('Error: Story not found. It may have been deleted or the ID changed.\n\nPlease refresh the page and try again.');
+          return;
+        }
         closeModal('storyModal');
         loadStories();
         loadOverview();
@@ -2408,6 +2991,10 @@ return;
       google.script.run
         .withSuccessHandler(function(result) {
           resetButton();
+          if (!result) {
+            alert('Error: Story not found. It may have been deleted or the ID changed.\n\nPlease refresh the page and try again.');
+            return;
+          }
           closeModal('editStoryModal');
           loadStories();
           loadOverview();
@@ -2780,7 +3367,37 @@ return;
   }
 
   function renderEventDetailModal(event) {
+    // Set current event for guest list functions
+    currentEventId = event.event_id;
+    currentEventDetail = event;
+    currentEventGuests = [];
+
+    // Reset to details tab
+    switchEventTab('details');
+
+    // Reset prep report
+    document.getElementById('prepReportBody').innerHTML = '<div class="empty-state"><span class="material-icons">assignment</span><p>Click "Generate Prep Report" to create a preparation report for this event</p></div>';
+
+    // Reset guest search
+    document.getElementById('guestSearchInput').value = '';
+    document.getElementById('guestSearchResults').innerHTML = '<div class="empty-state-sm">Search to find contacts</div>';
+    document.getElementById('currentGuestList').innerHTML = '<div class="empty-state-sm">Switch to Guest List tab to load guests</div>';
+
+    // Load guest count for badge
+    google.script.run
+      .withSuccessHandler(function(guests) {
+        document.getElementById('guestCountBadge').textContent = (guests || []).length;
+      })
+      .getEventGuests(event.event_id);
+
     document.getElementById('modalEventName').textContent = event.name || 'Event Details';
+
+    // Render the view mode content
+    renderEventViewMode(event);
+  }
+
+  function renderEventViewMode(event) {
+    currentEventDetail = event;
 
     var statusColors = {
       'confirmed': '#4CAF50',
@@ -2793,10 +3410,16 @@ return;
 
     var html = '<div class="event-detail">';
 
-    // Status header
+    // Header with type, status, and edit/delete buttons
     html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); padding-bottom: var(--space-md); border-bottom: 1px solid var(--color-border-light);">';
+    html += '<div style="display: flex; align-items: center; gap: var(--space-sm);">';
     html += '<span style="font-size: var(--font-size-sm); color: var(--color-text-muted);">' + capitalizeFirst(event.event_type || 'Event') + '</span>';
     html += '<span style="padding: 4px 12px; background: ' + statusColor + '; color: white; border-radius: 12px; font-size: var(--font-size-sm);">' + capitalizeFirst(event.status) + '</span>';
+    html += '</div>';
+    html += '<div style="display: flex; gap: var(--space-xs);">';
+    html += '<button class="btn btn-sm btn-secondary" onclick="COMMS.showEventEditForm()" title="Edit"><span class="material-icons" style="font-size: 16px;">edit</span></button>';
+    html += '<button class="btn btn-sm btn-danger" onclick="COMMS.deleteEvent(\'' + escapeAttr(event.event_id) + '\')" title="Delete"><span class="material-icons" style="font-size: 16px;">delete</span></button>';
+    html += '</div>';
     html += '</div>';
 
     // Details grid
@@ -2893,7 +3516,238 @@ return;
 
     document.getElementById('eventModalBody').innerHTML = html;
     document.getElementById('eventModal').classList.add('active');
-}
+  }
+
+  function formatDateForInput(dateStr) {
+    if (!dateStr) return '';
+    // Handle ISO dates by extracting just the date part
+    var dateOnly = String(dateStr).split('T')[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+      return dateOnly;
+    }
+    // Fallback
+    try {
+      var d = new Date(dateStr);
+      return d.toISOString().split('T')[0];
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function showEventEditForm() {
+    var event = currentEventDetail;
+    if (!event) return;
+
+    var html = '<form id="eventEditForm" onsubmit="COMMS.saveEventDetails(event); return false;">';
+
+    // Row 1: Name and Type
+    html += '<div class="form-row" style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-md); margin-bottom: var(--space-md);">';
+    html += '<div class="form-group">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Event Name</label>';
+    html += '<input type="text" id="editEventName" value="' + escapeAttr(event.name || '') + '" required class="form-control">';
+    html += '</div>';
+    html += '<div class="form-group">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Type</label>';
+    html += '<select id="editEventType" class="form-control">';
+    var types = ['conference', 'webinar', 'workshop', 'meeting', 'presentation', 'training', 'other'];
+    types.forEach(function(t) {
+      var selected = (event.event_type === t) ? ' selected' : '';
+      html += '<option value="' + t + '"' + selected + '>' + capitalizeFirst(t) + '</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+    html += '</div>';
+
+    // Row 2: Dates
+    html += '<div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-md);">';
+    html += '<div class="form-group">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Start Date</label>';
+    html += '<input type="date" id="editEventStartDate" value="' + formatDateForInput(event.start_date) + '" class="form-control">';
+    html += '</div>';
+    html += '<div class="form-group">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">End Date</label>';
+    html += '<input type="date" id="editEventEndDate" value="' + formatDateForInput(event.end_date) + '" class="form-control">';
+    html += '</div>';
+    html += '<div class="form-group">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Deadline</label>';
+    html += '<input type="date" id="editEventDeadline" value="' + formatDateForInput(event.deadline) + '" class="form-control">';
+    html += '</div>';
+    html += '</div>';
+
+    // Row 3: Location and Status
+    html += '<div class="form-row" style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-md); margin-bottom: var(--space-md);">';
+    html += '<div class="form-group">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Location</label>';
+    html += '<input type="text" id="editEventLocation" value="' + escapeAttr(event.location || '') + '" class="form-control">';
+    html += '</div>';
+    html += '<div class="form-group">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Status</label>';
+    html += '<select id="editEventStatus" class="form-control">';
+    var statuses = ['potential', 'considering', 'confirmed', 'attended', 'cancelled'];
+    statuses.forEach(function(s) {
+      var selected = (event.status === s) ? ' selected' : '';
+      html += '<option value="' + s + '"' + selected + '>' + capitalizeFirst(s) + '</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+    html += '</div>';
+
+    // Row 4: Sector and Priority
+    html += '<div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-md);">';
+    html += '<div class="form-group">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Sector</label>';
+    html += '<input type="text" id="editEventSector" value="' + escapeAttr(event.sector || '') + '" class="form-control">';
+    html += '</div>';
+    html += '<div class="form-group">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Priority</label>';
+    html += '<select id="editEventPriority" class="form-control">';
+    html += '<option value="">-- Select --</option>';
+    var priorities = ['high', 'medium', 'low'];
+    priorities.forEach(function(p) {
+      var selected = (event.priority === p) ? ' selected' : '';
+      html += '<option value="' + p + '"' + selected + '>' + capitalizeFirst(p) + '</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+    html += '</div>';
+
+    // Row 5: Solutions and Team
+    html += '<div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-md);">';
+    html += '<div class="form-group">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Relevant Solutions</label>';
+    html += '<input type="text" id="editEventSolutions" value="' + escapeAttr(event.solution_id || '') + '" class="form-control" placeholder="e.g., FIRMS, LANCE">';
+    html += '</div>';
+    html += '<div class="form-group">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Team Members</label>';
+    html += '<input type="text" id="editEventTeam" value="' + escapeAttr(event.team_members || '') + '" class="form-control">';
+    html += '</div>';
+    html += '</div>';
+
+    // Row 6: Stakeholders
+    html += '<div class="form-group" style="margin-bottom: var(--space-md);">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Audience/Stakeholders</label>';
+    html += '<input type="text" id="editEventStakeholders" value="' + escapeAttr(event.stakeholders || '') + '" class="form-control">';
+    html += '</div>';
+
+    // Row 7: Purpose
+    html += '<div class="form-group" style="margin-bottom: var(--space-md);">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Purpose</label>';
+    html += '<textarea id="editEventPurpose" rows="2" class="form-control">' + escapeHtml(event.purpose || '') + '</textarea>';
+    html += '</div>';
+
+    // Row 8: URLs
+    html += '<div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-md);">';
+    html += '<div class="form-group">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Event URL</label>';
+    html += '<input type="url" id="editEventUrl" value="' + escapeAttr(event.event_url || '') + '" class="form-control" placeholder="https://">';
+    html += '</div>';
+    html += '<div class="form-group">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Presentation URL</label>';
+    html += '<input type="url" id="editEventPresentation" value="' + escapeAttr(event.presentation_url || '') + '" class="form-control" placeholder="https://">';
+    html += '</div>';
+    html += '</div>';
+
+    // Row 9: Notes
+    html += '<div class="form-group" style="margin-bottom: var(--space-md);">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Notes</label>';
+    html += '<textarea id="editEventNotes" rows="3" class="form-control">' + escapeHtml(event.notes || '') + '</textarea>';
+    html += '</div>';
+
+    // Actions
+    html += '<div style="display: flex; gap: var(--space-sm); justify-content: flex-end; padding-top: var(--space-md); border-top: 1px solid var(--color-border-light);">';
+    html += '<button type="button" class="btn btn-secondary" onclick="COMMS.renderEventViewMode(COMMS.getCurrentEventDetail())">Cancel</button>';
+    html += '<button type="submit" class="btn btn-primary" id="saveEventBtn">Save Changes</button>';
+    html += '</div>';
+
+    html += '</form>';
+
+    document.getElementById('eventModalBody').innerHTML = html;
+  }
+
+  function getCurrentEventDetail() {
+    return currentEventDetail;
+  }
+
+  function saveEventDetails(e) {
+    if (e) e.preventDefault();
+    if (!currentEventDetail) return;
+
+    var updates = {
+      name: document.getElementById('editEventName').value.trim(),
+      event_type: document.getElementById('editEventType').value,
+      start_date: document.getElementById('editEventStartDate').value || null,
+      end_date: document.getElementById('editEventEndDate').value || null,
+      deadline: document.getElementById('editEventDeadline').value || null,
+      location: document.getElementById('editEventLocation').value.trim(),
+      status: document.getElementById('editEventStatus').value,
+      sector: document.getElementById('editEventSector').value.trim(),
+      priority: document.getElementById('editEventPriority').value,
+      solution_id: document.getElementById('editEventSolutions').value.trim(),
+      team_members: document.getElementById('editEventTeam').value.trim(),
+      stakeholders: document.getElementById('editEventStakeholders').value.trim(),
+      purpose: document.getElementById('editEventPurpose').value.trim(),
+      event_url: document.getElementById('editEventUrl').value.trim(),
+      presentation_url: document.getElementById('editEventPresentation').value.trim(),
+      notes: document.getElementById('editEventNotes').value.trim()
+    };
+
+    if (!updates.name) {
+      alert('Event name is required.');
+      return;
+    }
+
+    var saveBtn = document.getElementById('saveEventBtn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Changes';
+        if (!result) {
+          alert('Error: Event not found. It may have been deleted.\n\nPlease refresh the page and try again.');
+          return;
+        }
+        // Update local state
+        currentEventDetail = result;
+        var idx = state.events.findIndex(function(ev) { return ev.event_id === result.event_id; });
+        if (idx !== -1) {
+          state.events[idx] = result;
+        }
+        // Update modal title
+        document.getElementById('modalEventName').textContent = result.name || 'Event Details';
+        // Switch back to view mode
+        renderEventViewMode(result);
+        loadEvents(); // Refresh the events list
+      })
+      .withFailureHandler(function(error) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Changes';
+        alert('Failed to save event: ' + error);
+      })
+      .updateEvent(currentEventDetail.event_id, updates);
+  }
+
+  function deleteEvent(eventId) {
+    if (!confirm('Are you sure you want to delete this event? This cannot be undone.')) {
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result) {
+          closeModal('eventModal');
+          loadEvents();
+          alert('Event deleted.');
+        } else {
+          alert('Failed to delete event. It may have already been deleted.');
+        }
+      })
+      .withFailureHandler(function(error) {
+        alert('Failed to delete event: ' + error);
+      })
+      .deleteEvent(eventId);
+  }
 
   function updateEventStatus(eventId, newStatus) {
     // Disable all status buttons (modal and card) and show loading
@@ -2911,6 +3765,17 @@ return;
 
     google.script.run
       .withSuccessHandler(function(result) {
+        if (!result) {
+          // Re-enable buttons on error
+          buttons.forEach(function(btn) {
+            btn.disabled = false;
+            if (btn.dataset.originalText) {
+              btn.textContent = btn.dataset.originalText;
+            }
+          });
+          alert('Error: Event not found. It may have been deleted or the ID changed.\n\nPlease refresh the page and try again.');
+          return;
+        }
         closeModal('eventModal');
         loadEvents();
         // Show brief success notification
@@ -2999,6 +3864,15 @@ return;
   // Utility functions
   function formatDate(dateStr) {
     if (!dateStr) return '--';
+    // Handle ISO dates (2026-01-23T00:00:00.000Z) by extracting just the date part
+    // This avoids timezone conversion issues where UTC midnight becomes previous day locally
+    var dateOnly = String(dateStr).split('T')[0];
+    var parts = dateOnly.split('-');
+    if (parts.length === 3) {
+      var date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    // Fallback for other formats
     var date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
@@ -3033,6 +3907,475 @@ return;
     });
   }
 
+  // ============================================
+  // Guest List & Prep Report Functions
+  // ============================================
+
+  var currentEventId = null;
+  var currentEventDetail = null;
+  var currentEventGuests = [];
+  var guestSearchTimeout = null;
+
+  function switchEventTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.modal-tab').forEach(function(tab) {
+      tab.classList.toggle('active', tab.dataset.tab === tabName);
+    });
+
+    // Update tab panels
+    document.getElementById('eventDetailsTab').classList.toggle('active', tabName === 'details');
+    document.getElementById('eventGuestsTab').classList.toggle('active', tabName === 'guests');
+    document.getElementById('eventPrepTab').classList.toggle('active', tabName === 'prep');
+
+    // Load guest list if switching to guests tab
+    if (tabName === 'guests' && currentEventId) {
+      loadEventGuests();
+    }
+  }
+
+  function loadEventGuests() {
+    var listContainer = document.getElementById('currentGuestList');
+    listContainer.innerHTML = '<div class="loading-state"><span class="loading-spinner"></span></div>';
+
+    google.script.run
+      .withSuccessHandler(function(guests) {
+        currentEventGuests = guests || [];
+        renderGuestList(guests);
+        document.getElementById('guestCountBadge').textContent = guests.length;
+      })
+      .withFailureHandler(function(error) {
+        listContainer.innerHTML = '<div class="empty-state-sm">Failed to load guests</div>';
+      })
+      .getEventGuests(currentEventId);
+  }
+
+  function renderGuestList(guests) {
+    var container = document.getElementById('currentGuestList');
+
+    if (!guests || guests.length === 0) {
+      container.innerHTML = '<div class="empty-state-sm">No guests added yet</div>';
+      return;
+    }
+
+    // Check if event date has passed
+    var event = state.events.find(function(e) { return e.event_id === currentEventId; });
+    var isPastEvent = event && event.start_date && new Date(event.start_date) < new Date();
+
+    var html = '';
+
+    if (isPastEvent) {
+      html += '<div class="attendance-section">';
+      html += '<h4><span class="material-icons">fact_check</span> Mark Attendance</h4>';
+    }
+
+    guests.forEach(function(guest) {
+      var name = (guest.first_name || '') + ' ' + (guest.last_name || '');
+
+      if (isPastEvent) {
+        // Show attendance checkboxes for past events
+        html += '<div class="attendance-checkbox' + (guest.attended ? ' attended' : '') + '">';
+        html += '<input type="checkbox" id="attend_' + escapeAttr(guest.email) + '" ' +
+                (guest.attended ? 'checked' : '') +
+                ' onchange="COMMS.toggleAttendance(\'' + escapeAttr(guest.email) + '\', this.checked)">';
+        html += '<label for="attend_' + escapeAttr(guest.email) + '">';
+        html += '<span class="guest-name">' + escapeHtml(name.trim() || guest.email) + '</span>';
+        html += '</label>';
+        html += '</div>';
+      } else {
+        // Show regular guest list for upcoming events
+        html += '<div class="guest-list-item">';
+        html += '<div class="guest-info">';
+        html += '<div class="guest-name">' + escapeHtml(name.trim() || guest.email) + '</div>';
+        html += '<div class="guest-email">' + escapeHtml(guest.email) + '</div>';
+        if (guest.agency) {
+          html += '<div class="guest-agency">' + escapeHtml(guest.agency) + '</div>';
+        }
+        html += '</div>';
+        html += '<div class="guest-actions">';
+        html += '<button class="guest-remove-btn" onclick="COMMS.removeGuest(\'' + escapeAttr(guest.email) + '\')" title="Remove">';
+        html += '<span class="material-icons">close</span></button>';
+        html += '</div>';
+        html += '</div>';
+      }
+    });
+
+    if (isPastEvent) {
+      html += '<button class="btn btn-secondary" style="margin-top: var(--space-md); width: 100%;" onclick="COMMS.showNewContactFromEvent()">';
+      html += '<span class="material-icons">person_add</span> Add New Contact Met at Event';
+      html += '</button>';
+      html += '</div>';
+    }
+
+    container.innerHTML = html;
+  }
+
+  function searchContactsForGuest() {
+    var query = document.getElementById('guestSearchInput').value.trim();
+    var resultsContainer = document.getElementById('guestSearchResults');
+
+    if (query.length < 2) {
+      resultsContainer.innerHTML = '<div class="empty-state-sm">Search to find contacts</div>';
+      return;
+    }
+
+    // Debounce
+    clearTimeout(guestSearchTimeout);
+    guestSearchTimeout = setTimeout(function() {
+      resultsContainer.innerHTML = '<div class="loading-state"><span class="loading-spinner"></span></div>';
+
+      google.script.run
+        .withSuccessHandler(function(contacts) {
+          renderGuestSearchResults(contacts);
+        })
+        .withFailureHandler(function(error) {
+          resultsContainer.innerHTML = '<div class="empty-state-sm">Search failed</div>';
+        })
+        .searchContacts(query);
+    }, 300);
+  }
+
+  function renderGuestSearchResults(contacts) {
+    var container = document.getElementById('guestSearchResults');
+
+    if (!contacts || contacts.length === 0) {
+      container.innerHTML = '<div class="empty-state-sm">No contacts found</div>';
+      return;
+    }
+
+    // Filter out contacts already in guest list
+    var guestEmails = currentEventGuests.map(function(g) { return g.email.toLowerCase(); });
+    var available = contacts.filter(function(c) {
+      return guestEmails.indexOf(c.email.toLowerCase()) === -1;
+    });
+
+    if (available.length === 0) {
+      container.innerHTML = '<div class="empty-state-sm">All matching contacts already added</div>';
+      return;
+    }
+
+    var html = '';
+    available.slice(0, 10).forEach(function(contact) {
+      var name = (contact.first_name || '') + ' ' + (contact.last_name || '');
+      html += '<div class="guest-result-item">';
+      html += '<div class="guest-info">';
+      html += '<div class="guest-name">' + escapeHtml(name.trim() || contact.email) + '</div>';
+      html += '<div class="guest-email">' + escapeHtml(contact.email) + '</div>';
+      if (contact.agency || contact.organization) {
+        html += '<div class="guest-agency">' + escapeHtml(contact.agency || contact.organization) + '</div>';
+      }
+      html += '</div>';
+      html += '<button class="guest-add-btn" onclick="COMMS.addGuest(\'' + escapeAttr(contact.email) + '\')" title="Add to guest list">';
+      html += '<span class="material-icons">add</span></button>';
+      html += '</div>';
+    });
+
+    container.innerHTML = html;
+  }
+
+  function addGuest(email) {
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success) {
+          loadEventGuests();
+          document.getElementById('guestSearchInput').value = '';
+          document.getElementById('guestSearchResults').innerHTML = '<div class="empty-state-sm">Search to find contacts</div>';
+        } else {
+          alert(result.error || 'Failed to add guest');
+        }
+      })
+      .withFailureHandler(function(error) {
+        alert('Failed to add guest: ' + error);
+      })
+      .addGuestToEvent(currentEventId, email);
+  }
+
+  function addSuggestedGuest(email) {
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success) {
+          // Refresh both the guest list and prep report
+          loadEventGuests();
+          generatePrepReport();
+        } else {
+          alert(result.error || 'Failed to add guest');
+        }
+      })
+      .withFailureHandler(function(error) {
+        alert('Failed to add guest: ' + error);
+      })
+      .addGuestToEvent(currentEventId, email);
+  }
+
+  function removeGuest(email) {
+    if (!confirm('Remove this guest from the list?')) return;
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success) {
+          loadEventGuests();
+        } else {
+          alert(result.error || 'Failed to remove guest');
+        }
+      })
+      .withFailureHandler(function(error) {
+        alert('Failed to remove guest: ' + error);
+      })
+      .removeGuestFromEvent(currentEventId, email);
+  }
+
+  function toggleAttendance(email, attended) {
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (!result.success) {
+          alert(result.error || 'Failed to update attendance');
+          loadEventGuests(); // Reload to reset checkbox
+        }
+      })
+      .withFailureHandler(function(error) {
+        alert('Failed to update attendance: ' + error);
+        loadEventGuests();
+      })
+      .markGuestAttended(currentEventId, email, attended);
+  }
+
+  function generatePrepReport() {
+    var container = document.getElementById('prepReportBody');
+    container.innerHTML = '<div class="loading-state"><span class="loading-spinner"></span><p>Generating prep report...</p></div>';
+
+    google.script.run
+      .withSuccessHandler(function(report) {
+        renderPrepReport(report);
+      })
+      .withFailureHandler(function(error) {
+        container.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>Failed to generate report: ' + escapeHtml(error) + '</p></div>';
+      })
+      .getEventPrepReport(currentEventId);
+  }
+
+  function renderPrepReport(report) {
+    var container = document.getElementById('prepReportBody');
+
+    if (report.error) {
+      container.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>' + escapeHtml(report.error) + '</p></div>';
+      return;
+    }
+
+    if (!report.guests || report.guests.length === 0) {
+      container.innerHTML = '<div class="empty-state"><span class="material-icons">people</span><p>No guests in the guest list. Add guests first to generate a prep report.</p></div>';
+      return;
+    }
+
+    var html = '';
+
+    // Summary Stats
+    html += '<div class="prep-section">';
+    html += '<h3><span class="material-icons">summarize</span> Summary</h3>';
+    html += '<div class="prep-summary-stats">';
+    html += '<div class="prep-stat"><div class="prep-stat-value">' + report.summary.total_guests + '</div><div class="prep-stat-label">Guests</div></div>';
+    html += '<div class="prep-stat"><div class="prep-stat-value">' + report.summary.total_agencies + '</div><div class="prep-stat-label">Agencies</div></div>';
+    html += '<div class="prep-stat"><div class="prep-stat-value">' + report.summary.total_connections + '</div><div class="prep-stat-label">Connections</div></div>';
+    if (report.summary.linked_solutions > 0) {
+      html += '<div class="prep-stat"><div class="prep-stat-value">' + report.summary.linked_solutions + '</div><div class="prep-stat-label">Solutions</div></div>';
+    }
+    if (report.summary.total_potential_guests > 0) {
+      html += '<div class="prep-stat"><div class="prep-stat-value">' + report.summary.total_potential_guests + '</div><div class="prep-stat-label">Suggested</div></div>';
+    }
+    html += '</div>';
+    html += '</div>';
+
+    // Agencies Represented
+    if (report.agencies_represented && report.agencies_represented.length > 0) {
+      html += '<div class="prep-section">';
+      html += '<h3><span class="material-icons">business</span> Agencies Represented</h3>';
+      html += '<div class="prep-agency-list">';
+      report.agencies_represented.forEach(function(agency) {
+        html += '<div class="prep-agency-item">';
+        html += '<div class="prep-agency-name">' + escapeHtml(agency.name) + '</div>';
+        html += '<div class="prep-agency-count">' + agency.count + ' ' + (agency.count === 1 ? 'contact' : 'contacts') + '</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+      html += '</div>';
+    }
+
+    // Potential Connections
+    if (report.potential_connections && report.potential_connections.length > 0) {
+      html += '<div class="prep-section">';
+      html += '<h3><span class="material-icons">connect_without_contact</span> Potential Connections</h3>';
+      report.potential_connections.slice(0, 10).forEach(function(conn) {
+        html += '<div class="prep-connection-item">';
+        html += '<span class="material-icons prep-connection-icon">link</span>';
+        html += '<div>';
+        html += '<div class="prep-connection-names">' + escapeHtml(conn.contact1.name) + ' & ' + escapeHtml(conn.contact2.name) + '</div>';
+        html += '<div class="prep-connection-reason">' + escapeHtml(conn.reason) + '</div>';
+        html += '</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    // Conversation Starters
+    if (report.conversation_starters && report.conversation_starters.length > 0) {
+      html += '<div class="prep-section">';
+      html += '<h3><span class="material-icons">chat_bubble</span> Conversation Starters</h3>';
+      report.conversation_starters.forEach(function(starter) {
+        html += '<div class="prep-starter-item">';
+        html += '<div class="prep-starter-name">' + escapeHtml(starter.name) + '</div>';
+        html += '<div class="prep-starter-topics">';
+        starter.topics.slice(0, 4).forEach(function(topic) {
+          html += '<span class="prep-topic-tag ' + topic.type + '">' + escapeHtml(topic.text) + '</span>';
+        });
+        html += '</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    // Linked Solutions & Event Context
+    if (report.event.linked_solutions && report.event.linked_solutions.length > 0) {
+      html += '<div class="prep-section">';
+      html += '<h3><span class="material-icons">hub</span> Linked Solutions</h3>';
+      html += '<div class="prep-solution-tags">';
+      report.event.linked_solutions.forEach(function(sol) {
+        html += '<span class="prep-solution-tag">' + escapeHtml(sol) + '</span>';
+      });
+      html += '</div>';
+      html += '</div>';
+    }
+
+    // Potential Guests (from solution engagements)
+    if (report.potential_guests && report.potential_guests.length > 0) {
+      html += '<div class="prep-section">';
+      html += '<h3><span class="material-icons">person_add</span> Suggested Attendees</h3>';
+      html += '<p class="prep-section-desc">These contacts have engaged with the event\'s linked solutions but aren\'t on the guest list yet.</p>';
+      html += '<div class="potential-guests-list">';
+      report.potential_guests.forEach(function(pg) {
+        html += '<div class="potential-guest-item">';
+        html += '<div class="potential-guest-info">';
+        html += '<div class="potential-guest-name">' + escapeHtml(pg.name) + '</div>';
+        if (pg.agency) html += '<div class="potential-guest-agency">' + escapeHtml(pg.agency) + '</div>';
+        html += '<div class="potential-guest-reason">' + escapeHtml(pg.reason) + '</div>';
+        if (pg.touchpoints && pg.touchpoints.length > 0) {
+          html += '<div class="potential-guest-touchpoints">Touchpoints: ' + escapeHtml(pg.touchpoints.join(', ')) + '</div>';
+        }
+        html += '</div>';
+        html += '<button class="btn btn-sm btn-primary" onclick="COMMS.addSuggestedGuest(\'' + escapeAttr(pg.email) + '\')">';
+        html += '<span class="material-icons">add</span> Add</button>';
+        html += '</div>';
+      });
+      html += '</div>';
+      html += '</div>';
+    }
+
+    // Guest Profiles
+    html += '<div class="prep-section">';
+    html += '<h3><span class="material-icons">person</span> Guest Profiles</h3>';
+    report.guests.forEach(function(guest) {
+      html += '<div class="prep-guest-card">';
+      html += '<div class="prep-guest-header">';
+      html += '<div>';
+      html += '<div class="prep-guest-name">' + escapeHtml(guest.name) + '</div>';
+      if (guest.title) html += '<div class="prep-guest-title">' + escapeHtml(guest.title) + '</div>';
+      if (guest.agency) html += '<div class="prep-guest-agency">' + escapeHtml(guest.agency) + '</div>';
+      html += '</div>';
+      html += '</div>';
+
+      var hasDetails = guest.education || guest.hobbies || guest.goals || guest.professional_skills || guest.early_job || guest.relax;
+      if (hasDetails) {
+        html += '<div class="prep-guest-details">';
+        if (guest.education) {
+          html += '<div class="prep-detail-item"><div class="prep-detail-label">Education</div>' + escapeHtml(guest.education) + '</div>';
+        }
+        if (guest.hobbies) {
+          html += '<div class="prep-detail-item"><div class="prep-detail-label">Hobbies</div>' + escapeHtml(guest.hobbies) + '</div>';
+        }
+        if (guest.goals) {
+          html += '<div class="prep-detail-item"><div class="prep-detail-label">Goals</div>' + escapeHtml(guest.goals) + '</div>';
+        }
+        if (guest.early_job) {
+          html += '<div class="prep-detail-item"><div class="prep-detail-label">First Job</div>' + escapeHtml(guest.early_job) + '</div>';
+        }
+        if (guest.relax) {
+          html += '<div class="prep-detail-item"><div class="prep-detail-label">Unwinds By</div>' + escapeHtml(guest.relax) + '</div>';
+        }
+        if (guest.solutions && guest.solutions.length > 0) {
+          html += '<div class="prep-detail-item"><div class="prep-detail-label">Solutions</div>' + escapeHtml(guest.solutions.join(', ')) + '</div>';
+        }
+        html += '</div>';
+      }
+
+      html += '</div>';
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+  }
+
+  function showNewContactFromEvent() {
+    document.getElementById('newContactFromEventForm').reset();
+    document.getElementById('addToGuestList').checked = true;
+    document.getElementById('newContactFromEventModal').classList.add('active');
+  }
+
+  function submitNewContactFromEvent(e) {
+    e.preventDefault();
+
+    var contactData = {
+      first_name: document.getElementById('newContactFirstName').value.trim(),
+      last_name: document.getElementById('newContactLastName').value.trim(),
+      email: document.getElementById('newContactEmail').value.trim().toLowerCase(),
+      agency: document.getElementById('newContactAgency').value.trim(),
+      title: document.getElementById('newContactTitle').value.trim(),
+      notes: document.getElementById('newContactNotes').value.trim()
+    };
+
+    var addToGuests = document.getElementById('addToGuestList').checked;
+
+    var submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Adding...';
+
+    // First create the contact
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success) {
+          // If checkbox is checked, add to guest list
+          if (addToGuests) {
+            google.script.run
+              .withSuccessHandler(function(guestResult) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Contact';
+                closeModal('newContactFromEventModal');
+                loadEventGuests();
+                alert('Contact added successfully!');
+              })
+              .withFailureHandler(function(error) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Contact';
+                closeModal('newContactFromEventModal');
+                alert('Contact created but failed to add to guest list: ' + error);
+              })
+              .addGuestToEvent(currentEventId, contactData.email);
+          } else {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Add Contact';
+            closeModal('newContactFromEventModal');
+            alert('Contact added successfully!');
+          }
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Add Contact';
+          alert(result.error || 'Failed to create contact');
+        }
+      })
+      .withFailureHandler(function(error) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Add Contact';
+        alert('Failed to create contact: ' + error);
+      })
+      .createContactForAgency(contactData);
+  }
+
   return {
     init: init,
     setView: setView,
@@ -3050,11 +4393,26 @@ return;
     // Events functions
     filterEvents: filterEvents,
     showEventDetail: showEventDetail,
+    showEventEditForm: showEventEditForm,
+    saveEventDetails: saveEventDetails,
+    deleteEvent: deleteEvent,
+    renderEventViewMode: renderEventViewMode,
+    getCurrentEventDetail: getCurrentEventDetail,
     updateEventStatus: updateEventStatus,
     showAddEventModal: showAddEventModal,
     submitNewEvent: submitNewEvent,
     // Key Messages functions
-    searchMessages: searchMessages
+    searchMessages: searchMessages,
+    // Guest List & Prep Report functions
+    switchEventTab: switchEventTab,
+    searchContactsForGuest: searchContactsForGuest,
+    addGuest: addGuest,
+    addSuggestedGuest: addSuggestedGuest,
+    removeGuest: removeGuest,
+    toggleAttendance: toggleAttendance,
+    generatePrepReport: generatePrepReport,
+    showNewContactFromEvent: showNewContactFromEvent,
+    submitNewContactFromEvent: submitNewContactFromEvent
   };
 })();
 

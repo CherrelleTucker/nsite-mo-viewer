@@ -113,3 +113,25 @@ function getPrioritySectorOptions() {
 function eventExists(eventName) {
   return MoApi.eventExists(eventName);
 }
+
+// Guest List Management
+function addGuestToEvent(eventId, contactEmail) {
+  return MoApi.addGuestToEvent(eventId, contactEmail);
+}
+
+function removeGuestFromEvent(eventId, contactEmail) {
+  return MoApi.removeGuestFromEvent(eventId, contactEmail);
+}
+
+function getEventGuests(eventId) {
+  return MoApi.getEventGuests(eventId);
+}
+
+function markGuestAttended(eventId, contactEmail, attended) {
+  return MoApi.markGuestAttended(eventId, contactEmail, attended);
+}
+
+// Prep Report
+function getEventPrepReport(eventId) {
+  return MoApi.getEventPrepReport(eventId);
+}
