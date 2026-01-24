@@ -8,12 +8,6 @@
       <h1>Implementation-NSITE</h1>
       <p class="page-subtitle">Solution / Project Focused Dashboard</p>
     </div>
-    <div class="page-actions">
-      <button class="btn btn-secondary" onclick="Implementation.exportData()">
-        <span class="material-icons">download</span>
-        Export
-      </button>
-    </div>
   </div>
 
   <!-- Top Row: Stats + MO Milestones + Document Administration -->
@@ -235,13 +229,12 @@
 
 <!-- Implementation-NSITE Styles -->
 <style>
-  .implementation-viewer { max-width: 1600px; margin: 0 auto; }
-
-  /* Page Header */
-  .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg); }
-  .page-title h1 { font-size: var(--font-size-xxl); color: var(--color-implementation); margin-bottom: var(--space-xs); }
-  .page-subtitle { color: var(--color-text-secondary); font-size: var(--font-size-md); }
-  .page-actions { display: flex; gap: var(--space-sm); }
+  /* Page accent color for shared styles */
+  .implementation-viewer {
+    --page-accent: var(--color-implementation);
+    max-width: 1600px;
+    margin: 0 auto;
+  }
 
   /* Dashboard Top Row */
   .dashboard-top-row {
@@ -251,26 +244,16 @@
     margin-bottom: var(--space-md);
   }
 
-  .panel {
-    background: var(--color-surface);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-  }
-
-  .panel-header {
-    display: flex;
-    align-items: center;
+  /* Implementation-specific panel header (icon + label layout) */
+  .implementation-viewer .panel-header {
+    justify-content: flex-start;
     gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-md);
-    background: var(--color-surface-alt);
     font-weight: 600;
     font-size: var(--font-size-sm);
     color: var(--color-text-secondary);
-    border-bottom: 1px solid var(--color-border-light);
   }
 
-  .panel-header svg { width: 16px; height: 16px; }
+  .implementation-viewer .panel-header svg { width: 16px; height: 16px; }
 
   /* Stats Panel */
   .stats-panel { border-top: 3px solid var(--color-implementation); }
@@ -1548,7 +1531,7 @@ return;
 
     // Header
     html += '<div class="solution-card-header"><div>';
-    html += '<div class="solution-name" onclick="Implementation.showDetail(\'' + sol.core_id + '\')">' + escapeHtml((sol.core_id || '').toUpperCase()) + '</div>';
+    html += '<div class="solution-name" onclick="Implementation.showDetail(\'' + escapeAttr(sol.core_id) + '\')">' + escapeHtml((sol.core_id || '').toUpperCase()) + '</div>';
     html += '</div><div class="solution-badges">';
     html += '<span class="phase-badge ' + phaseClass + '">' + escapeHtml(sol.admin_lifecycle_phase || 'Unknown') + '</span>';
     html += '</div></div>';
@@ -1583,7 +1566,7 @@ return;
     if (sol.admin_drive_folder) html += '<a href="' + escapeHtml(sol.admin_drive_folder) + '" target="_blank" class="solution-action-btn"><span class="material-icons">folder</span>Drive</a>';
     if (sol.earthdata_solution_page_url) html += '<a href="' + escapeHtml(sol.earthdata_solution_page_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">open_in_new</span>Earthdata</a>';
     if (sol.docs_project_plan) html += '<a href="' + escapeHtml(sol.docs_project_plan) + '" target="_blank" class="solution-action-btn"><span class="material-icons">description</span>Plan</a>';
-    html += '<button class="solution-action-btn" onclick="Implementation.showDetail(\'' + sol.core_id + '\')"><span class="material-icons">info</span>Details</button>';
+    html += '<button class="solution-action-btn" onclick="Implementation.showDetail(\'' + escapeAttr(sol.core_id) + '\')"><span class="material-icons">info</span>Details</button>';
     html += '</div></div>';
 
     return html;
@@ -2010,24 +1993,6 @@ return;
 
   function syncSolutions() { loadSolutions(); }
 
-  function exportData() {
-    // Export filtered solutions to CSV
-    var columns = [
-      { key: 'short_name', label: 'Short Name' },
-      { key: 'solution_name', label: 'Solution Name' },
-      { key: 'lifecycle_phase', label: 'Lifecycle Phase' },
-      { key: 'solution_group', label: 'Solution Group' },
-      { key: 'daac_assignment', label: 'DAAC Assignment' },
-      { key: 'program_executive', label: 'Program Executive' },
-      { key: 'solution_manager', label: 'Solution Manager' },
-      { key: 'selection_cycle', label: 'Selection Cycle' },
-      { key: 'description', label: 'Description' }
-    ];
-
-    var dataToExport = state.filteredSolutions.length > 0 ? state.filteredSolutions : state.solutions;
-    exportToCSV(dataToExport, columns, 'solutions_export');
-  }
-
   function getCycleYear(cycle) {
     var years = { '1': '2016', '2': '2018', '3': '2020', '4': '2022', '5': '2024', '6': '2026' };
     return years[String(cycle)] || '';
@@ -2101,7 +2066,6 @@ return;
     showDetail: showDetail,
     closeModal: closeModal,
     syncSolutions: syncSolutions,
-    exportData: exportData,
     toggleSolutionPicker: toggleSolutionPicker,
     onSolutionToggle: onSolutionToggle,
     selectActiveSolutions: selectActiveSolutions,

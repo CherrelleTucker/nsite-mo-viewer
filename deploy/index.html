@@ -16,6 +16,7 @@
 
   <!-- Platform Styles (inline for Apps Script) -->
   <?!= include('styles'); ?>
+  <?!= include('shared-page-styles'); ?>
 </head>
 <body>
   <!-- Header -->
@@ -599,9 +600,58 @@
     // ERROR HANDLING
     // ========================================================================
 
-    function handleError(error) {
+    /**
+     * Standard error handler for API calls
+     * @param {Error|string} error - The error object or message
+     * @param {string} [userMessage] - Optional user-friendly message to display instead
+     */
+    function handleError(error, userMessage) {
       console.error('Platform error:', error);
-      showToast('An error occurred: ' + (error.message || error), 'error');
+      var displayMessage = userMessage || (error && error.message) || String(error) || 'An unexpected error occurred';
+      showToast(displayMessage, 'error');
+    }
+
+    /**
+     * Create a failure handler for google.script.run with custom user message
+     * @param {string} userMessage - User-friendly error message
+     * @returns {function} Failure handler function
+     */
+    function createErrorHandler(userMessage) {
+      return function(error) {
+        handleError(error, userMessage);
+      };
+    }
+
+    // ========================================================================
+    // SHARED UTILITY FUNCTIONS
+    // ========================================================================
+
+    /**
+     * Global HTML escape function - available to all pages
+     * Use for escaping text content in innerHTML
+     */
+    function escapeHtml(text) {
+      if (text === null || text === undefined) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    /**
+     * Global attribute escape function - available to all pages
+     * Use for escaping values in HTML attributes (onclick, href, etc.)
+     */
+    function escapeAttr(text) {
+      if (text === null || text === undefined) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
     }
   </script>
 </body>

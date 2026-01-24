@@ -621,85 +621,12 @@
 
 <!-- Team Page Styles -->
 <style>
-  .team-viewer { max-width: 1600px; margin: 0 auto; }
-
-  /* Page Header - matching SEP pattern */
-  .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg); }
-  .page-title h1 { font-size: var(--font-size-xxl); color: var(--color-primary); margin-bottom: var(--space-xs); }
-  .page-subtitle { color: var(--color-text-secondary); font-size: var(--font-size-md); }
-  .page-actions { display: flex; gap: var(--space-md); align-items: center; }
-
-  /* View Toggle - matching SEP */
-  .view-toggle {
-    display: flex;
-    gap: 2px;
-    background: var(--color-surface);
-    border-radius: var(--radius-md);
-    padding: 2px;
-    box-shadow: var(--shadow-sm);
+  /* Page accent color for shared styles */
+  .team-viewer {
+    --page-accent: var(--color-primary);
+    max-width: 1600px;
+    margin: 0 auto;
   }
-  .view-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    padding: var(--space-sm) var(--space-md);
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    border-radius: var(--radius-sm);
-    color: var(--color-text-muted);
-    font-size: var(--font-size-sm);
-    transition: all var(--transition-fast);
-  }
-  .view-btn:hover { color: var(--color-text); background: var(--color-surface-alt); }
-  .view-btn.active { background: var(--color-primary); color: white; }
-  .view-btn svg { width: 16px; height: 16px; }
-
-  /* Stats Row - matching SEP */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-md);
-    margin-bottom: var(--space-lg);
-  }
-  .stat-card {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-    padding: var(--space-md);
-    background: var(--color-surface);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-  }
-  .stat-card.stat-warning .stat-icon { background: rgba(237, 108, 2, 0.1); color: var(--color-warning); }
-  .stat-card.stat-kudos .stat-icon { background: rgba(233, 30, 99, 0.1); color: #e91e63; }
-  .stat-icon {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(11, 61, 145, 0.1);
-    border-radius: var(--radius-md);
-    color: var(--color-primary);
-  }
-  .stat-icon svg { width: 24px; height: 24px; }
-  .stat-info { display: flex; flex-direction: column; }
-  .stat-value { font-size: var(--font-size-xl); font-weight: 700; color: var(--color-text); }
-  .stat-label { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
-
-  /* View Panels */
-  .view-panel { display: none; }
-  .view-panel.active { display: block; }
-
-  /* Section Header */
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-md);
-  }
-  .section-header h2 { font-size: var(--font-size-lg); color: var(--color-text); margin: 0; }
 
   /* Team Grid Layout */
   .team-grid {
@@ -714,6 +641,7 @@
     border-radius: var(--radius-md);
     padding: var(--space-md);
     box-shadow: var(--shadow-sm);
+    border-top: 3px solid var(--page-accent);
   }
 
   .team-grid-cards {
@@ -1966,6 +1894,27 @@
     console.error('Team page error:', error);
   }
 
+  // HTML escape functions for XSS prevention
+  function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function escapeAttr(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
   var Team = {
     members: [],
     meetings: [],
@@ -2486,15 +2435,15 @@
 
       var html = this.members.map(function(member) {
         var initials = (member.first_name || '').charAt(0) + (member.last_name || '').charAt(0);
-        var teamClass = (member.internal_team || '').replace(/\s+/g, '');
+        var teamClass = escapeAttr((member.internal_team || '').replace(/\s+/g, ''));
         var profileIndicator = member.has_profile ? '<span class="profile-badge" title="View About Me"><span class="material-icons">person</span></span>' : '';
 
-        return '<div class="team-card' + (member.has_profile ? ' has-profile' : '') + '" onclick="Team.showMemberDetail(\'' + member.contact_id + '\')">' +
+        return '<div class="team-card' + (member.has_profile ? ' has-profile' : '') + '" onclick="Team.showMemberDetail(\'' + escapeAttr(member.contact_id) + '\')">' +
           profileIndicator +
-          '<div class="avatar">' + initials.toUpperCase() + '</div>' +
-          '<div class="name">' + (member.first_name || '') + ' ' + (member.last_name || '') + '</div>' +
-          '<div class="title">' + (member.internal_title || '') + '</div>' +
-          '<span class="team-badge ' + teamClass + '">' + (member.internal_team || '') + '</span>' +
+          '<div class="avatar">' + escapeHtml(initials.toUpperCase()) + '</div>' +
+          '<div class="name">' + escapeHtml(member.first_name || '') + ' ' + escapeHtml(member.last_name || '') + '</div>' +
+          '<div class="title">' + escapeHtml(member.internal_title || '') + '</div>' +
+          '<span class="team-badge ' + teamClass + '">' + escapeHtml(member.internal_team || '') + '</span>' +
         '</div>';
       }).join('');
 

@@ -801,200 +801,30 @@
 
 <!-- Comms Styles -->
 <style>
-  .comms-viewer { max-width: 1600px; margin: 0 auto; }
-
-  /* Page Header */
-  .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg); }
-  .page-title h1 { font-size: var(--font-size-xxl); color: var(--color-comms); margin-bottom: var(--space-xs); }
-  .page-subtitle { color: var(--color-text-secondary); font-size: var(--font-size-md); }
-  .page-actions { display: flex; gap: var(--space-md); align-items: center; }
-
-  /* View Toggle */
-  .view-toggle {
-    display: flex;
-    gap: 2px;
-    background: var(--color-surface);
-    border-radius: var(--radius-md);
-    padding: 2px;
-    box-shadow: var(--shadow-sm);
-  }
-  .view-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    padding: var(--space-sm) var(--space-md);
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    border-radius: var(--radius-sm);
-    color: var(--color-text-muted);
-    font-size: var(--font-size-sm);
-    transition: all var(--transition-fast);
-  }
-  .view-btn:hover { color: var(--color-text); background: var(--color-surface-alt); }
-  .view-btn.active { background: var(--color-comms); color: white; }
-  .view-btn svg { width: 16px; height: 16px; }
-
-  /* Stats Row */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-md);
-    margin-bottom: var(--space-lg);
-  }
-  .stat-card {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-    padding: var(--space-md);
-    background: var(--color-surface);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-  }
-  .stat-card.stat-success .stat-icon { background: rgba(46, 125, 50, 0.1); color: var(--color-success); }
-  .stat-card.stat-warning .stat-icon { background: rgba(237, 108, 2, 0.1); color: var(--color-warning); }
-  .stat-icon {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(123, 31, 162, 0.1);
-    border-radius: var(--radius-md);
-    color: var(--color-comms);
-  }
-  .stat-icon svg { width: 24px; height: 24px; }
-  .stat-info { display: flex; flex-direction: column; }
-  .stat-value { font-size: var(--font-size-xl); font-weight: 700; color: var(--color-text); }
-  .stat-label { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
-
-  /* Filter Bar */
-  .filter-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--space-md);
-    margin-bottom: var(--space-md);
-    padding: var(--space-sm) var(--space-md);
-    background: var(--color-surface);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-  }
-  .filter-group {
-    display: flex;
-    gap: var(--space-sm);
-  }
-  .filter-group select {
-    padding: var(--space-xs) var(--space-sm);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    font-size: var(--font-size-sm);
-    background: var(--color-surface);
-  }
-  .search-group {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    padding: var(--space-xs) var(--space-sm);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    background: var(--color-surface);
-  }
-  .search-group svg { width: 16px; height: 16px; color: var(--color-text-muted); }
-  .search-group input {
-    border: none;
-    outline: none;
-    font-size: var(--font-size-sm);
-    width: 200px;
+  /* Page accent color for shared styles */
+  .comms-viewer {
+    --page-accent: var(--color-comms);
+    max-width: 1600px;
+    margin: 0 auto;
   }
 
-  /* View Panels */
-  .view-panel { display: none; }
-  .view-panel.active { display: block; }
+  /* Comms Pipeline Customizations */
 
-  /* Pipeline Section */
-  .pipeline-section { margin-bottom: var(--space-lg); }
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-md);
-  }
-  .section-header h2 { font-size: var(--font-size-lg); color: var(--color-text); margin: 0; }
-  .pipeline-legend {
-    display: flex;
-    gap: var(--space-md);
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
-  }
-  .legend-item { display: flex; align-items: center; gap: var(--space-xs); }
-  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  /* Comms dot colors (story status) */
   .dot-idea { background: #9E9E9E; }
   .dot-research { background: #2196F3; }
   .dot-draft { background: #FF9800; }
   .dot-review { background: #9C27B0; }
   .dot-published { background: #4CAF50; }
 
-  /* Pipeline Board */
-  .pipeline-board {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: var(--space-sm);
-    overflow-x: auto;
-    padding-bottom: var(--space-sm);
-  }
-  .pipeline-column {
-    background: var(--color-surface-alt);
-    border-radius: var(--radius-md);
-    min-width: 200px;
-    max-height: 450px;
-    display: flex;
-    flex-direction: column;
-  }
-  .column-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--space-sm) var(--space-md);
-    border-bottom: 1px solid var(--color-border-light);
-    background: var(--color-surface);
-    border-radius: var(--radius-md) var(--radius-md) 0 0;
-  }
-  .column-title { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text); }
-  .column-count {
-    font-size: var(--font-size-xs);
-    padding: 2px 8px;
-    background: var(--color-comms);
-    color: white;
-    border-radius: 12px;
-    font-weight: 600;
-  }
-  .column-cards {
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--space-sm);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
+  /* Comms column customizations */
+  .comms-viewer .pipeline-column { min-width: 200px; }
+  .comms-viewer .column-header {
+    border-top: 3px solid var(--color-comms);
   }
 
-  /* Story Cards */
-  .story-card {
-    background: var(--color-surface);
-    border-radius: var(--radius-sm);
-    padding: var(--space-sm);
-    box-shadow: var(--shadow-sm);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    border-left: 3px solid var(--color-comms);
-  }
-  .story-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
-  }
-  .story-card.priority-high { border-left-color: var(--color-error); }
-  .story-card.priority-low { border-left-color: var(--color-text-muted); }
-  .card-header {
+  /* Comms story card header */
+  .story-card .card-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -1023,6 +853,7 @@
     line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -1851,18 +1682,27 @@ var COMMS = (function() {
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load coverage:', error);
-        document.getElementById('coverageGapsPanel').innerHTML =
-          '<div class="empty-state"><p>Could not load coverage data</p></div>';
+        var panel = document.getElementById('coverageGapsPanel');
+        if (panel) {
+          panel.innerHTML = '<div class="empty-state"><p>Could not load coverage data</p></div>';
+        }
       })
       .getCoverageAnalysis(90);
   }
 
   function renderStats(overview) {
     if (!overview) return;
-    document.getElementById('statTotalStories').textContent = overview.stats ? overview.stats.total_stories : 0;
-    document.getElementById('statInPipeline').textContent = overview.stats ? overview.stats.active_pipeline : 0;
-    document.getElementById('statPublishedQtr').textContent = overview.stats ? overview.stats.published_this_quarter : 0;
-    document.getElementById('statCoverageGaps').textContent = overview.coverage_gaps_count || 0;
+    // Guard for SPA navigation
+    var el1 = document.getElementById('statTotalStories');
+    var el2 = document.getElementById('statInPipeline');
+    var el3 = document.getElementById('statPublishedQtr');
+    var el4 = document.getElementById('statCoverageGaps');
+    if (!el1 || !el2 || !el3 || !el4) return;
+
+    el1.textContent = overview.stats ? overview.stats.total_stories : 0;
+    el2.textContent = overview.stats ? overview.stats.active_pipeline : 0;
+    el3.textContent = overview.stats ? overview.stats.published_this_quarter : 0;
+    el4.textContent = overview.coverage_gaps_count || 0;
   }
 
   function renderPipeline() {
@@ -1887,6 +1727,7 @@ var COMMS = (function() {
       var countId = 'count' + capitalizeFirst(status);
       var container = document.getElementById(containerId);
       var countEl = document.getElementById(countId);
+      if (!container || !countEl) return; // Guard for SPA navigation
       var stories = storiesByStatus[status];
 
       countEl.textContent = stories.length;
@@ -1946,11 +1787,12 @@ var COMMS = (function() {
 
   function renderOpportunities() {
     var container = document.getElementById('opportunitiesPanel');
+    if (!container) return; // Guard for SPA navigation
     var opp = state.opportunities;
 
     if (!opp || opp.summary.total_opportunities === 0) {
       container.innerHTML = '<div class="empty-state"><span class="material-icons">flash_on</span><p>No new opportunities detected</p></div>';
-return;
+      return;
     }
 
     var html = '';
@@ -1984,11 +1826,12 @@ return;
 
   function renderCoverageGaps() {
     var container = document.getElementById('coverageGapsPanel');
+    if (!container) return; // Guard for SPA navigation
     var coverage = state.coverage;
 
     if (!coverage || (coverage.gaps.length === 0 && coverage.uncovered.length === 0)) {
       container.innerHTML = '<div class="empty-state"><span class="material-icons">check_circle</span><p>All solutions have recent coverage!</p></div>';
-return;
+      return;
     }
 
     var html = '';
@@ -2023,12 +1866,19 @@ return;
     var coverage = state.coverage;
     if (!coverage) return;
 
-    document.getElementById('coverageWellCovered').textContent = coverage.well_covered || 0;
-    document.getElementById('coverageNeedsAttention').textContent = coverage.needs_attention || 0;
-    document.getElementById('coverageNoStories').textContent = coverage.no_stories || 0;
+    // Guard for SPA navigation - elements may not exist
+    var wellCoveredEl = document.getElementById('coverageWellCovered');
+    var needsAttentionEl = document.getElementById('coverageNeedsAttention');
+    var noStoriesEl = document.getElementById('coverageNoStories');
+    var tbody = document.getElementById('coverageTableBody');
+
+    if (!wellCoveredEl || !tbody) return; // Elements don't exist, user navigated away
+
+    wellCoveredEl.textContent = coverage.well_covered || 0;
+    if (needsAttentionEl) needsAttentionEl.textContent = coverage.needs_attention || 0;
+    if (noStoriesEl) noStoriesEl.textContent = coverage.no_stories || 0;
 
     // Render table
-    var tbody = document.getElementById('coverageTableBody');
     var allSolutions = []
       .concat(coverage.gaps || [])
       .concat(coverage.uncovered || [])

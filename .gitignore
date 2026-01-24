@@ -51,3 +51,10 @@ coverage/
 # Archives
 *.zip
 *.tar.gz
+
+# Local data files and exports
+data/
+database-files/
+scripts/*.csv
+scripts/import-outreach/
+scripts/import-story-tracking/
