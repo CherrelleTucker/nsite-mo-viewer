@@ -102,9 +102,6 @@ var CONFIG_KEYS = {
   AUDIT_LOG_DOC_ID: 'AUDIT_LOG_DOC_ID'
 };
 
-// Cache for config values (refreshed per execution)
-var _configCache = null;
-
 /**
  * Valid page routes
  */
@@ -115,11 +112,11 @@ var PAGES = {
   },
   'sep': {
     title: 'SEP',
-    icon: 'users'
+    icon: 'group'
   },
   'comms': {
     title: 'Comms',
-    icon: 'message-square'
+    icon: 'chat'
   },
   'quick-update': {
     title: 'Quick Update',
@@ -127,23 +124,23 @@ var PAGES = {
   },
   'contacts': {
     title: 'Contacts',
-    icon: 'book'
+    icon: 'menu_book'
   },
   'reports': {
     title: 'Reports',
-    icon: 'file-text'
+    icon: 'description'
   },
   'schedule': {
     title: 'Schedule',
-    icon: 'calendar'
+    icon: 'calendar_today'
   },
   'actions': {
     title: 'Actions',
-    icon: 'check-square'
+    icon: 'check_box'
   },
   'team': {
     title: 'Team',
-    icon: 'user-check'
+    icon: 'how_to_reg'
   },
   'about': {
     title: 'About',
@@ -474,77 +471,34 @@ function setProperty(key, value) {
 
 /**
  * Load all config values from MO-DB_Config sheet
- * Caches results for the duration of the script execution
+ * Delegates to MoApi library for single source of truth
  *
  * @returns {Object} Key-value map of config settings
  */
 function loadConfigFromSheet() {
-  if (_configCache !== null) {
-    return _configCache;
-  }
-
-  var configSheetId = getProperty(CONFIG.CONFIG_SHEET_ID);
-  if (!configSheetId) {
-    Logger.log('CONFIG_SHEET_ID not set in Script Properties');
-    return {};
-  }
-
-  try {
-    var ss = SpreadsheetApp.openById(configSheetId);
-    var sheet = ss.getSheets()[0]; // First sheet
-    var data = sheet.getDataRange().getValues();
-
-    _configCache = {};
-
-    // Skip header row, read key-value pairs
-    for (var i = 1; i < data.length; i++) {
-      var key = data[i][0];
-      var value = data[i][1];
-      if (key) {
-        _configCache[key] = value || '';
-      }
-    }
-
-    return _configCache;
-  } catch (error) {
-    Logger.log('Error loading config sheet: ' + error);
-    return {};
-  }
+  return MoApi.loadConfigFromSheet();
 }
 
 /**
  * Get a config value from MO-DB_Config sheet
+ * Delegates to MoApi library for single source of truth
  *
  * @param {string} key - Config key name
  * @returns {string} Config value or empty string
  */
 function getConfigValue(key) {
-  var config = loadConfigFromSheet();
-  return config[key] || '';
+  return MoApi.getConfigValue(key);
 }
 
 /**
  * Get a database sheet by table name
- * Reads the sheet ID from MO-DB_Config
+ * Delegates to MoApi library for single source of truth
  *
  * @param {string} tableName - Table name (e.g., 'Solutions', 'Contacts')
  * @returns {Sheet} The sheet object
  */
 function getDatabaseSheet(tableName) {
-  var sheetIdKey = tableName.toUpperCase() + '_SHEET_ID';
-  var sheetId = getConfigValue(sheetIdKey);
-
-  if (!sheetId) {
-    throw new Error('Sheet ID not configured for: ' + tableName +
-                    '. Set ' + sheetIdKey + ' in MO-DB_Config.');
-  }
-
-  try {
-    var ss = SpreadsheetApp.openById(sheetId);
-    return ss.getSheets()[0]; // Each database file has one sheet
-  } catch (error) {
-    throw new Error('Cannot open sheet for ' + tableName + ': ' + error.message);
-  }
+  return MoApi.getDatabaseSheet(tableName);
 }
 
 /**
