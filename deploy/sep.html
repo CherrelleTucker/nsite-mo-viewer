@@ -1,5 +1,5 @@
 <!-- SEP-NSITE: Stakeholder Engagement Pipeline -->
-<!-- Solution-based milestone tracking for SEP working sessions and touchpoints -->
+<!-- Engagement health dashboard with milestone tracking -->
 
 <div class="sep-viewer">
   <!-- Page Header -->
@@ -10,14 +10,19 @@
     </div>
     <div class="page-actions">
       <div class="view-toggle">
-        <button class="view-btn active" data-view="pipeline" onclick="SEP.setView('pipeline')">
-          <span class="material-icons">view_column</span>
-          <span>Pipeline</span>
+        <button class="view-btn active" data-view="dashboard" onclick="SEP.setView('dashboard')">
+          <span class="material-icons">dashboard</span>
+          <span>Dashboard</span>
         </button>
         <button class="view-btn" data-view="agencies" onclick="SEP.setView('agencies')">
           <span class="material-icons">account_tree</span>
           <span>Agencies</span>
         </button>
+      </div>
+      <div class="header-filter">
+        <select id="filterCycle" onchange="SEP.applyFilters()" title="Filter by cycle">
+          <option value="">All Cycles</option>
+        </select>
       </div>
       <button class="btn btn-primary" onclick="SEP.showLogEngagementModal()">
         <span class="material-icons">add</span>
@@ -28,143 +33,44 @@
 
   <!-- Main Content Area -->
   <div class="sep-content">
-    <!-- Pipeline View -->
-    <div class="view-panel active" id="pipelineView">
-      <!-- SEP Milestone Pipeline -->
-      <div class="pipeline-section">
-        <div class="section-header">
-          <h2>SEP Milestone Pipeline</h2>
-          <div class="pipeline-legend">
-            <span class="legend-item"><span class="dot dot-ws"></span>Working Session</span>
-            <span class="legend-item"><span class="dot dot-tp"></span>Touchpoint</span>
+    <!-- Dashboard View (renamed from Pipeline View) -->
+    <div class="view-panel active" id="dashboardView">
+
+      <!-- Stats Row: The "What" -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon"><span class="material-icons">event</span></div>
+          <div class="stat-info">
+            <span class="stat-value" id="statEngagementsMonth">--</span>
+            <span class="stat-label">Engagements This Month</span>
           </div>
         </div>
-        <div class="pipeline-board" id="pipelineBoard">
-          <!-- WS1 Column -->
-          <div class="pipeline-column column-ws" data-milestone="ws1">
-            <div class="column-header">
-              <span class="column-title">WS1</span>
-              <span class="column-count" id="count_ws1">0</span>
-            </div>
-            <div class="column-cards" id="cards_ws1"></div>
+        <div class="stat-card">
+          <div class="stat-icon"><span class="material-icons">people</span></div>
+          <div class="stat-info">
+            <span class="stat-value" id="statContactsEngaged">--</span>
+            <span class="stat-label">Contacts Engaged</span>
           </div>
-          <!-- TP4 Column -->
-          <div class="pipeline-column column-tp" data-milestone="tp4">
-            <div class="column-header">
-              <span class="column-title">TP4</span>
-              <span class="column-count" id="count_tp4">0</span>
-            </div>
-            <div class="column-cards" id="cards_tp4"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><span class="material-icons">widgets</span></div>
+          <div class="stat-info">
+            <span class="stat-value" id="statSolutionsEngaged">--</span>
+            <span class="stat-label">Solutions Engaged</span>
           </div>
-          <!-- WS2 Column -->
-          <div class="pipeline-column column-ws" data-milestone="ws2">
-            <div class="column-header">
-              <span class="column-title">WS2</span>
-              <span class="column-count" id="count_ws2">0</span>
-            </div>
-            <div class="column-cards" id="cards_ws2"></div>
-          </div>
-          <!-- TP5 Column -->
-          <div class="pipeline-column column-tp" data-milestone="tp5">
-            <div class="column-header">
-              <span class="column-title">TP5</span>
-              <span class="column-count" id="count_tp5">0</span>
-            </div>
-            <div class="column-cards" id="cards_tp5"></div>
-          </div>
-          <!-- WS3 Column -->
-          <div class="pipeline-column column-ws" data-milestone="ws3">
-            <div class="column-header">
-              <span class="column-title">WS3</span>
-              <span class="column-count" id="count_ws3">0</span>
-            </div>
-            <div class="column-cards" id="cards_ws3"></div>
-          </div>
-          <!-- TP6 Column -->
-          <div class="pipeline-column column-tp" data-milestone="tp6">
-            <div class="column-header">
-              <span class="column-title">TP6</span>
-              <span class="column-count" id="count_tp6">0</span>
-            </div>
-            <div class="column-cards" id="cards_tp6"></div>
-          </div>
-          <!-- WS4 Column -->
-          <div class="pipeline-column column-ws" data-milestone="ws4">
-            <div class="column-header">
-              <span class="column-title">WS4</span>
-              <span class="column-count" id="count_ws4">0</span>
-            </div>
-            <div class="column-cards" id="cards_ws4"></div>
-          </div>
-          <!-- TP7 Column -->
-          <div class="pipeline-column column-tp" data-milestone="tp7">
-            <div class="column-header">
-              <span class="column-title">TP7</span>
-              <span class="column-count" id="count_tp7">0</span>
-            </div>
-            <div class="column-cards" id="cards_tp7"></div>
-          </div>
-          <!-- WS5 Column -->
-          <div class="pipeline-column column-ws" data-milestone="ws5">
-            <div class="column-header">
-              <span class="column-title">WS5</span>
-              <span class="column-count" id="count_ws5">0</span>
-            </div>
-            <div class="column-cards" id="cards_ws5"></div>
-          </div>
-          <!-- TP8 Column -->
-          <div class="pipeline-column column-tp" data-milestone="tp8">
-            <div class="column-header">
-              <span class="column-title">TP8</span>
-              <span class="column-count" id="count_tp8">0</span>
-            </div>
-            <div class="column-cards" id="cards_tp8"></div>
+        </div>
+        <div class="stat-card" id="statHeatCard">
+          <div class="stat-icon"><span class="material-icons" id="statHeatIcon">whatshot</span></div>
+          <div class="stat-info">
+            <span class="stat-value" id="statHeatLabel">--</span>
+            <span class="stat-label">Activity Level</span>
           </div>
         </div>
       </div>
 
-      <!-- Bottom Panels: Filters/Outreach + Recent Engagements -->
-      <div class="bottom-panels">
-        <!-- Quick Filters + Needs Outreach -->
-        <div class="panel filters-panel">
-          <div class="panel-header">
-            <h3>Filters & Outreach</h3>
-          </div>
-          <div class="panel-content">
-            <!-- Quick Filters -->
-            <div class="quick-filters">
-              <div class="filter-row">
-                <label>Cycle</label>
-                <select id="filterCycle" onchange="SEP.applyFilters()">
-                  <option value="">All Cycles</option>
-                </select>
-              </div>
-              <div class="filter-row">
-                <label>Milestone Type</label>
-                <div class="toggle-group">
-                  <button class="toggle-btn active" data-filter="all" onclick="SEP.setMilestoneFilter('all')">All</button>
-                  <button class="toggle-btn" data-filter="ws" onclick="SEP.setMilestoneFilter('ws')">WS</button>
-                  <button class="toggle-btn" data-filter="tp" onclick="SEP.setMilestoneFilter('tp')">TP</button>
-                </div>
-              </div>
-            </div>
-            <!-- Needs Outreach -->
-            <div class="needs-outreach">
-              <div class="outreach-header">
-                <span class="material-icons">campaign</span>
-                <span>Needs Outreach</span>
-                <span class="outreach-count" id="outreachCount">0</span>
-              </div>
-              <div class="outreach-list" id="outreachList">
-                <div class="loading-state">
-                  <span class="loading-spinner"></span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Recent Engagements -->
+      <!-- Main Panels: The "How" -->
+      <div class="main-panels">
+        <!-- Recent Engagements (activity feed) -->
         <div class="panel engagement-panel">
           <div class="panel-header">
             <h3>Recent Engagements</h3>
@@ -181,6 +87,79 @@
             </div>
           </div>
         </div>
+
+        <!-- Needs Attention (low engagement alerts) -->
+        <div class="panel outreach-panel">
+          <div class="panel-header">
+            <h3>Needs Attention</h3>
+            <span class="badge badge-warning" id="outreachCount">0</span>
+          </div>
+          <div class="panel-content">
+            <div class="outreach-list" id="outreachList">
+              <div class="loading-state">
+                <span class="loading-spinner"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pipeline Summary: The "Where" -->
+      <div class="pipeline-summary">
+        <div class="summary-header">
+          <h3>Milestone Summary</h3>
+          <div class="pipeline-legend">
+            <span class="legend-item"><span class="dot dot-ws"></span>WS</span>
+            <span class="legend-item"><span class="dot dot-tp"></span>TP</span>
+          </div>
+        </div>
+        <div class="pipeline-board" id="pipelineBoard">
+          <!-- WS1/TP4 Column -->
+          <div class="pipeline-column" data-column="1" data-ws="ws1" data-tp="tp4"
+               ondragover="SEP.handleDragOver(event)" ondrop="SEP.handleDrop(event, '1')" ondragleave="SEP.handleDragLeave(event)">
+            <div class="column-header">
+              <span class="column-title-group">WS1 / TP4</span>
+              <span class="column-count" id="count_col1">0</span>
+            </div>
+            <div class="column-cards" id="cards_col1"></div>
+          </div>
+          <!-- WS2/TP5 Column -->
+          <div class="pipeline-column" data-column="2" data-ws="ws2" data-tp="tp5"
+               ondragover="SEP.handleDragOver(event)" ondrop="SEP.handleDrop(event, '2')" ondragleave="SEP.handleDragLeave(event)">
+            <div class="column-header">
+              <span class="column-title-group">WS2 / TP5</span>
+              <span class="column-count" id="count_col2">0</span>
+            </div>
+            <div class="column-cards" id="cards_col2"></div>
+          </div>
+          <!-- WS3/TP6 Column -->
+          <div class="pipeline-column" data-column="3" data-ws="ws3" data-tp="tp6"
+               ondragover="SEP.handleDragOver(event)" ondrop="SEP.handleDrop(event, '3')" ondragleave="SEP.handleDragLeave(event)">
+            <div class="column-header">
+              <span class="column-title-group">WS3 / TP6</span>
+              <span class="column-count" id="count_col3">0</span>
+            </div>
+            <div class="column-cards" id="cards_col3"></div>
+          </div>
+          <!-- WS4/TP7 Column -->
+          <div class="pipeline-column" data-column="4" data-ws="ws4" data-tp="tp7"
+               ondragover="SEP.handleDragOver(event)" ondrop="SEP.handleDrop(event, '4')" ondragleave="SEP.handleDragLeave(event)">
+            <div class="column-header">
+              <span class="column-title-group">WS4 / TP7</span>
+              <span class="column-count" id="count_col4">0</span>
+            </div>
+            <div class="column-cards" id="cards_col4"></div>
+          </div>
+          <!-- WS5/TP8 Column -->
+          <div class="pipeline-column" data-column="5" data-ws="ws5" data-tp="tp8"
+               ondragover="SEP.handleDragOver(event)" ondrop="SEP.handleDrop(event, '5')" ondragleave="SEP.handleDragLeave(event)">
+            <div class="column-header">
+              <span class="column-title-group">WS5 / TP8</span>
+              <span class="column-count" id="count_col5">0</span>
+            </div>
+            <div class="column-cards" id="cards_col5"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -190,9 +169,15 @@
         <!-- Agency Tree -->
         <div class="agency-tree-panel">
           <div class="panel-header">
-            <h3>Organization Hierarchy</h3>
-            <input type="text" class="search-input-sm" placeholder="Search agencies..."
+            <h3>Orgs/Agencies</h3>
+            <input type="text" class="search-input-sm" placeholder="Search..."
                    id="agencySearchInput" oninput="SEP.filterAgencies()">
+          </div>
+          <div class="tree-legend">
+            <span class="legend-item"><span class="heat-dot hot"></span>4+</span>
+            <span class="legend-item"><span class="heat-dot warm"></span>1-3</span>
+            <span class="legend-item"><span class="heat-dot cold"></span>0</span>
+            <span style="color: var(--color-text-muted);">engagements</span>
           </div>
           <div class="panel-content" id="agencyTree">
             <div class="loading-state">
@@ -287,23 +272,7 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>SEP Milestone</label>
-            <select id="engTouchpoint">
-              <option value="">None</option>
-              <option value="ws1">WS1 - Working Session 1</option>
-              <option value="tp4">TP4 - Outreach</option>
-              <option value="ws2">WS2 - Working Session 2</option>
-              <option value="tp5">TP5 - Transition</option>
-              <option value="ws3">WS3 - Working Session 3</option>
-              <option value="tp6">TP6 - Training</option>
-              <option value="ws4">WS4 - Working Session 4</option>
-              <option value="tp7">TP7 - Adoption</option>
-              <option value="ws5">WS5 - Working Session 5</option>
-              <option value="tp8">TP8 - Impact</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Follow-up Date</label>
+            <label>Follow-up Date (optional)</label>
             <input type="date" id="engFollowUp">
           </div>
         </div>
@@ -405,7 +374,7 @@
 <div class="modal-overlay" id="linkContactModal" onclick="SEP.closeModal('linkContactModal', event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Link Contact to <span id="linkContactAgencyName">Agency</span></h2>
+      <h2 class="modal-title">Add Contact to <span id="linkContactAgencyName">Agency</span></h2>
       <button class="modal-close" onclick="SEP.closeModal('linkContactModal')">&times;</button>
     </div>
     <div class="modal-body">
@@ -413,15 +382,17 @@
         <label>Search Existing Contacts</label>
         <input type="text" id="contactSearchInput" placeholder="Search by name or email..."
                oninput="SEP.searchContactsForLink(this.value)">
+        <div class="form-hint">Click a result below to link them to this agency</div>
       </div>
       <div id="contactSearchResults" class="contact-search-results">
         <div class="search-hint">Type to search existing contacts</div>
       </div>
       <div class="link-contact-divider">
-        <span>or</span>
+        <span>or create new</span>
       </div>
       <div class="form-group">
-        <label>Add New Contact</label>
+        <label>Create New Contact</label>
+        <p class="form-hint" style="margin-bottom: var(--space-sm);">Only use this if the contact doesn't exist in the system yet.</p>
         <div class="new-contact-form">
           <div class="form-row">
             <div class="form-group">
@@ -446,7 +417,7 @@
       <div class="form-actions">
         <button class="btn btn-secondary" onclick="SEP.closeModal('linkContactModal')">Cancel</button>
         <button class="btn btn-primary" id="addNewContactBtn" onclick="SEP.addNewContactToAgency()">
-          <span class="material-icons">person_add</span> Add Contact
+          <span class="material-icons">person_add</span> Create New Contact
         </button>
       </div>
     </div>
@@ -458,162 +429,135 @@
 
 <!-- SEP Styles -->
 <style>
-  .sep-viewer { max-width: 1600px; margin: 0 auto; }
-
-  /* Page Header */
-  .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg); }
-  .page-title h1 { font-size: var(--font-size-xxl); color: var(--color-sep); margin-bottom: var(--space-xs); }
-  .page-subtitle { color: var(--color-text-secondary); font-size: var(--font-size-md); }
-  .page-actions { display: flex; gap: var(--space-md); align-items: center; }
-
-  /* View Toggle */
-  .view-toggle {
-    display: flex;
-    gap: 2px;
-    background: var(--color-surface);
-    border-radius: var(--radius-md);
-    padding: 2px;
-    box-shadow: var(--shadow-sm);
+  /* Page accent color for shared styles */
+  .sep-viewer {
+    --page-accent: var(--color-sep);
+    max-width: 1600px;
+    margin: 0 auto;
   }
-  .view-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    padding: var(--space-sm) var(--space-md);
-    border: none;
-    background: transparent;
-    cursor: pointer;
+
+  /* Header filter (cycle dropdown in page header) */
+  .header-filter select {
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
-    color: var(--color-text-muted);
     font-size: var(--font-size-sm);
-    transition: all var(--transition-fast);
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
   }
-  .view-btn:hover { color: var(--color-text); background: var(--color-surface-alt); }
-  .view-btn.active { background: var(--color-sep); color: white; }
-  .view-btn svg { width: 16px; height: 16px; }
 
-  /* Stats Row */
-  .stats-row {
+  /* Main Panels: The "How" section */
+  .main-panels {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: 1fr 1fr;
     gap: var(--space-md);
     margin-bottom: var(--space-lg);
   }
-  .stat-card {
+
+  .main-panels .panel {
+    border-top: 3px solid var(--page-accent);
+    min-height: 300px;
+    max-height: 400px;
     display: flex;
-    align-items: center;
-    gap: var(--space-md);
-    padding: var(--space-md);
+    flex-direction: column;
+  }
+
+  .main-panels .panel-content {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* Pipeline Summary: The "Where" section */
+  .pipeline-summary {
     background: var(--color-surface);
     border-radius: var(--radius-md);
+    padding: var(--space-md);
     box-shadow: var(--shadow-sm);
   }
-  .stat-card.stat-warning .stat-icon { background: rgba(237, 108, 2, 0.1); color: var(--color-warning); }
-  .stat-icon {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(21, 101, 192, 0.1);
-    border-radius: var(--radius-md);
-    color: var(--color-sep);
-  }
-  .stat-icon svg { width: 24px; height: 24px; }
-  .stat-info { display: flex; flex-direction: column; }
-  .stat-value { font-size: var(--font-size-xl); font-weight: 700; color: var(--color-text); }
-  .stat-label { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
 
-  /* View Panels */
-  .view-panel { display: none; }
-  .view-panel.active { display: block; }
-
-  /* Pipeline Section */
-  .pipeline-section { margin-bottom: var(--space-lg); }
-  .section-header {
+  .summary-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: var(--space-md);
   }
-  .section-header h2 { font-size: var(--font-size-lg); color: var(--color-text); margin: 0; }
-  .pipeline-legend {
+
+  .summary-header h3 {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* SEP legend */
+  .sep-viewer .pipeline-legend {
     display: flex;
     gap: var(--space-md);
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
   }
-  .legend-item { display: flex; align-items: center; gap: var(--space-xs); }
-  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .sep-viewer .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* SEP dot colors */
   .dot-ws { background: #7B1FA2; } /* Purple for Working Sessions */
   .dot-tp { background: #1565C0; } /* Blue for Touchpoints */
 
-  /* Pipeline Board - 10 columns for SEP milestones */
-  .pipeline-board {
-    display: grid;
-    grid-template-columns: repeat(10, 1fr);
-    gap: var(--space-xs);
-    overflow-x: auto;
-    padding-bottom: var(--space-sm);
-  }
-  .pipeline-column {
-    background: var(--color-surface-alt);
-    border-radius: var(--radius-md);
-    min-width: 140px;
-    max-height: 400px;
-    display: flex;
-    flex-direction: column;
-  }
-  .column-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--space-xs) var(--space-sm);
-    border-bottom: 1px solid var(--color-border-light);
-    background: var(--color-surface);
+  /* SEP pipeline columns (compact for summary) */
+  .sep-viewer .pipeline-column { max-height: 250px; }
+  .sep-viewer .column-header {
+    border-top: 3px solid var(--color-sep);
     border-radius: var(--radius-md) var(--radius-md) 0 0;
   }
-  .column-title { font-size: var(--font-size-xs); font-weight: 600; color: var(--color-text); }
-  .column-count {
-    font-size: 10px;
-    padding: 2px 6px;
-    background: var(--color-sep);
-    color: white;
-    border-radius: 12px;
+  .column-title-group {
+    font-size: var(--font-size-sm);
     font-weight: 600;
+    color: var(--color-text-secondary);
   }
-  /* Working Session columns - purple accent */
-  .column-ws .column-header { border-top: 3px solid #7B1FA2; }
-  .column-ws .column-count { background: #7B1FA2; }
-  /* Touchpoint columns - blue accent */
-  .column-tp .column-header { border-top: 3px solid #1565C0; }
-  .column-tp .column-count { background: #1565C0; }
-  .column-cards {
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--space-xs);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
+  .column-title-ws, .column-title-tp { color: inherit; }
+  .column-divider { opacity: 0.5; }
+
+  /* SEP count badge */
+  .sep-viewer .column-count { font-size: 10px; }
+
+  /* Drag and drop states */
+  .pipeline-column.drag-over {
+    background: #e8f5e9;
+    outline: 2px dashed #4CAF50;
+    outline-offset: -2px;
+  }
+  .pipeline-card.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
   }
 
-  /* Pipeline Cards - Solution cards */
-  .pipeline-card {
-    background: var(--color-surface);
-    border-radius: var(--radius-sm);
+  /* SEP card customizations */
+  .sep-viewer .column-cards { padding: var(--space-xs); }
+  .sep-viewer .pipeline-card {
     padding: var(--space-xs) var(--space-sm);
-    box-shadow: var(--shadow-sm);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    border-left: 3px solid var(--color-sep);
+    cursor: grab;
+    user-select: none;
   }
-  .pipeline-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
+  .pipeline-card:active { cursor: grabbing; }
+  .card-id { font-weight: 700; font-size: 11px; color: var(--color-sep); text-transform: uppercase; }
+
+  /* Card milestone dates */
+  .card-dates {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    font-size: 10px;
+    font-weight: 500;
   }
-  .card-id { font-weight: 700; font-size: 11px; color: var(--color-sep); margin-bottom: 1px; text-transform: uppercase; }
-  .card-name { font-weight: 500; font-size: 11px; color: var(--color-text); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .card-cycle { font-size: 10px; color: var(--color-text-muted); margin-top: 2px; }
+  .date-ws { color: #7B1FA2; }
+  .date-tp { color: #1565C0; }
+
+  /* Card border colors based on current milestone */
+  .pipeline-card.card-ws { border-left-color: #7B1FA2; }
+  .pipeline-card.card-tp { border-left-color: #1565C0; }
   .card-org { font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-bottom: 4px; }
   .card-solutions {
     font-size: var(--font-size-xs);
@@ -622,9 +566,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .card-meta {
-    display: flex;
-    justify-content: space-between;
+
+  /* SEP card meta uses smaller spacing */
+  .sep-viewer .card-meta {
     font-size: 10px;
     color: var(--color-text-muted);
     margin-top: 4px;
@@ -634,28 +578,30 @@
   .card-date-warning { color: var(--color-warning); }
   .card-date-overdue { color: var(--color-error); font-weight: 600; }
 
-  /* Bottom Panels */
-  .bottom-panels {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-md);
+  /* Heat level styling for activity stat */
+  .stat-card.heat-hot .stat-icon {
+    color: var(--color-error);
   }
-  .panel {
-    background: var(--color-surface);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
+  .stat-card.heat-warm .stat-icon {
+    color: var(--color-warning);
   }
-  .panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--space-sm) var(--space-md);
-    background: linear-gradient(135deg, var(--color-surface-alt) 0%, var(--color-surface) 100%);
-    border-bottom: 2px solid var(--color-sep);
+  .stat-card.heat-cold .stat-icon {
+    color: var(--color-info);
   }
-  .panel-header h3 { font-size: var(--font-size-md); font-weight: 600; margin: 0; color: var(--color-sep); }
-  .panel-content { padding: var(--space-md); }
+  .stat-card.heat-hot .stat-value {
+    color: var(--color-error);
+  }
+  .stat-card.heat-warm .stat-value {
+    color: var(--color-warning);
+  }
+  .stat-card.heat-cold .stat-value {
+    color: var(--color-info);
+  }
+
+  /* SEP panels use border-top accent like Implementation */
+  .sep-viewer .panel {
+    border-top: 3px solid var(--page-accent);
+  }
 
   /* Agency Browser Mini */
   .agency-item {
@@ -689,6 +635,15 @@
     border-radius: 10px;
   }
   .agency-children { padding-left: var(--space-lg); }
+
+  /* Drop Dialog */
+  .drop-dialog p { margin-bottom: var(--space-md); }
+  .drop-options {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
 
   /* Engagement Detail Modal */
   .modal-sm .modal-content { max-width: 500px; }
@@ -754,7 +709,7 @@
   /* Agencies View */
   .agencies-layout {
     display: grid;
-    grid-template-columns: minmax(280px, 400px) 1fr;
+    grid-template-columns: 25% 1fr;
     gap: var(--space-md);
   }
   .agency-tree-panel, .agency-detail-panel {
@@ -762,12 +717,30 @@
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
   }
+  .tree-legend {
+    display: flex;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-md);
+    font-size: 10px;
+    color: var(--color-text-muted);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .tree-legend .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .tree-legend .heat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
   .search-input-sm {
     padding: var(--space-xs) var(--space-sm);
     font-size: var(--font-size-sm);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
-    width: 150px;
+    width: 100px;
   }
 
   /* Agency Detail */
@@ -1109,34 +1082,6 @@
   .agency-tab-panel { display: none; }
   .agency-tab-panel.active { display: block; }
 
-  /* Relationship Health Bar */
-  .relationship-health {
-    margin: var(--space-sm) 0;
-  }
-  .health-bar-container {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-  }
-  .health-bar {
-    flex: 1;
-    height: 8px;
-    background: var(--color-border-light);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-  .health-bar-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 0.3s ease;
-  }
-  .health-bar-fill.level-1 { width: 20%; background: linear-gradient(90deg, #3b82f6, #60a5fa); }
-  .health-bar-fill.level-2 { width: 40%; background: linear-gradient(90deg, #3b82f6, #22c55e); }
-  .health-bar-fill.level-3 { width: 60%; background: linear-gradient(90deg, #22c55e, #84cc16); }
-  .health-bar-fill.level-4 { width: 80%; background: linear-gradient(90deg, #84cc16, #eab308); }
-  .health-bar-fill.level-5 { width: 100%; background: linear-gradient(90deg, #eab308, #22c55e); }
-  .health-label { font-size: 10px; color: var(--color-text-muted); white-space: nowrap; }
-
   /* Quick Actions */
   .quick-actions {
     display: flex;
@@ -1340,7 +1285,8 @@
     border-radius: 3px;
   }
   .network-graph {
-    flex: 1;
+    height: 400px;
+    min-height: 300px;
     border: 1px solid var(--color-border-light);
     border-radius: var(--radius-sm);
     background: var(--color-surface);
@@ -1351,6 +1297,27 @@
     text-align: center;
     margin-top: var(--space-xs);
   }
+  .network-legend {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+    padding: var(--space-xs) 0;
+    font-size: 11px;
+    color: var(--color-text-secondary);
+  }
+  .legend-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+  .legend-dot.agency { background: #1565c0; border-radius: 0; transform: rotate(45deg); width: 8px; height: 8px; }
+  .legend-dot.contact { background: #0ea5e9; border-radius: 50%; }
+  .legend-dot.solution { background: #10b981; }
 
   /* Modal & Forms */
   .modal-overlay {
@@ -1404,6 +1371,11 @@
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
     outline: none;
     border-color: var(--color-sep);
+  }
+  .form-hint {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-top: var(--space-xs);
   }
   .form-actions { display: flex; justify-content: flex-end; gap: var(--space-sm); margin-top: var(--space-md); }
 
@@ -1742,83 +1714,18 @@
   }
   .milestone-link .material-icons { font-size: 14px; }
 
-  /* Filters Panel */
-  .filters-panel .panel-header { background: rgba(21, 101, 192, 0.1); }
-  .filters-panel .panel-content { padding: var(--space-sm); }
-
-  .quick-filters {
-    margin-bottom: var(--space-md);
-    padding-bottom: var(--space-md);
-    border-bottom: 1px solid var(--color-border-light);
-  }
-  .filter-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    margin-bottom: var(--space-sm);
-  }
-  .filter-row:last-child { margin-bottom: 0; }
-  .filter-row label {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--color-text-secondary);
-    min-width: 80px;
-  }
-  .filter-row select {
-    flex: 1;
-    padding: 4px 8px;
-    font-size: 12px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-  }
-  .toggle-group {
-    display: flex;
-    gap: 2px;
-    background: var(--color-surface-alt);
-    border-radius: var(--radius-sm);
-    padding: 2px;
-  }
-  .toggle-btn {
-    padding: 4px 12px;
-    font-size: 11px;
-    font-weight: 600;
-    border: none;
-    background: transparent;
-    color: var(--color-text-secondary);
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-  }
-  .toggle-btn:hover { color: var(--color-text); }
-  .toggle-btn.active {
-    background: var(--color-sep);
-    color: white;
-  }
-
-  .needs-outreach {
-    background: var(--color-surface-alt);
-    border-radius: var(--radius-sm);
-    padding: var(--space-sm);
-  }
-  .outreach-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    margin-bottom: var(--space-sm);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--color-warning);
-  }
-  .outreach-header .material-icons { font-size: 16px; }
-  .outreach-count {
+  /* Outreach Panel */
+  .outreach-panel .panel-header { background: rgba(255, 152, 0, 0.1); }
+  .outreach-panel .panel-header h3 { color: var(--color-warning); }
+  .outreach-panel .outreach-count {
     background: var(--color-warning);
     color: white;
-    padding: 1px 8px;
-    border-radius: 10px;
-    font-size: 10px;
-    margin-left: auto;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
   }
-  .outreach-list { max-height: 150px; overflow-y: auto; }
+  .outreach-list { max-height: 200px; overflow-y: auto; }
   .outreach-item {
     display: flex;
     align-items: center;
@@ -1848,7 +1755,6 @@
   @media (max-width: 1200px) {
     .pipeline-board { grid-template-columns: repeat(5, 1fr); }
     .bottom-panels { grid-template-columns: 1fr; }
-    .agencies-layout { grid-template-columns: 1fr; }
   }
   @media (max-width: 900px) {
     .pipeline-board { grid-template-columns: repeat(3, 1fr); }
@@ -1857,6 +1763,19 @@
     .stats-row { grid-template-columns: repeat(2, 1fr); }
     .pipeline-board { grid-template-columns: repeat(2, 1fr); }
     .form-row { grid-template-columns: 1fr; }
+    /* Stack search under title on smaller screens */
+    .agency-tree-panel .panel-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-xs);
+    }
+    .agency-tree-panel .search-input-sm {
+      width: 100%;
+    }
+    /* Hide "engagements" text in legend */
+    .tree-legend > span:last-child {
+      display: none;
+    }
   }
 </style>
 
@@ -1866,12 +1785,31 @@ var SEP = (function() {
   // SEP Milestone definitions
   var MILESTONES = ['ws1', 'tp4', 'ws2', 'tp5', 'ws3', 'tp6', 'ws4', 'tp7', 'ws5', 'tp8'];
 
+  // Combined columns: each column contains a WS/TP pair
+  var COLUMNS = [
+    { id: '1', ws: 'ws1', tp: 'tp4', label: 'WS1/TP4' },
+    { id: '2', ws: 'ws2', tp: 'tp5', label: 'WS2/TP5' },
+    { id: '3', ws: 'ws3', tp: 'tp6', label: 'WS3/TP6' },
+    { id: '4', ws: 'ws4', tp: 'tp7', label: 'WS4/TP7' },
+    { id: '5', ws: 'ws5', tp: 'tp8', label: 'WS5/TP8' }
+  ];
+
+  // Map milestone to column
+  var MILESTONE_TO_COLUMN = {
+    'ws1': '1', 'tp4': '1',
+    'ws2': '2', 'tp5': '2',
+    'ws3': '3', 'tp6': '3',
+    'ws4': '4', 'tp7': '4',
+    'ws5': '5', 'tp8': '5'
+  };
+
   var state = {
     solutions: [],
     solutionsByMilestone: {},
     stats: null,
     agencies: [],
     agencyHierarchy: [],
+    agencyEngagementCounts: {},
     engagements: [],
     currentView: 'pipeline',
     selectedAgency: null,
@@ -1899,11 +1837,54 @@ var SEP = (function() {
 
   function init() {
     setDefaultDate();
+    loadDashboardStats();
     loadSolutionsWithProgress();
     loadCycles();
     loadNeedsOutreach();
     loadAgencies();
     loadRecentEngagements();
+  }
+
+  function loadDashboardStats() {
+    google.script.run
+      .withSuccessHandler(function(stats) {
+        if (!stats) return;
+
+        // Populate stat values
+        var engEl = document.getElementById('statEngagementsMonth');
+        var contactsEl = document.getElementById('statContactsEngaged');
+        var solutionsEl = document.getElementById('statSolutionsEngaged');
+        var heatLabelEl = document.getElementById('statHeatLabel');
+        var heatIconEl = document.getElementById('statHeatIcon');
+        var heatCardEl = document.getElementById('statHeatCard');
+
+        if (engEl) engEl.textContent = stats.engagements_this_month || 0;
+        if (contactsEl) contactsEl.textContent = stats.contacts_this_month || 0;
+        if (solutionsEl) solutionsEl.textContent = stats.solutions_this_month || 0;
+
+        if (heatLabelEl && heatIconEl) {
+          var level = stats.heat_level || 'cold';
+          heatLabelEl.textContent = level.charAt(0).toUpperCase() + level.slice(1);
+          heatIconEl.textContent = stats.heat_icon || 'ac_unit';
+
+          // Update card styling based on heat level
+          if (heatCardEl) {
+            heatCardEl.classList.remove('heat-hot', 'heat-warm', 'heat-cold');
+            heatCardEl.classList.add('heat-' + level);
+
+            // Add tooltip with engagement counts
+            var weekCount = stats.last_week_count || 0;
+            var twoWeekCount = stats.last_two_weeks_count || 0;
+            var tooltipText = weekCount + ' engagement' + (weekCount !== 1 ? 's' : '') + ' this week, ' +
+                              twoWeekCount + ' in past 2 weeks';
+            heatCardEl.title = tooltipText;
+          }
+        }
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load dashboard stats:', error);
+      })
+      .getSEPDashboardStats();
   }
 
   function loadSolutionsWithProgress() {
@@ -1919,11 +1900,13 @@ var SEP = (function() {
       })
       .getSolutionsBySEPMilestone();
 
-    // Load full solutions list for dropdown
+    // Load full solutions list (has complete data including dates)
     google.script.run
       .withSuccessHandler(function(solutions) {
         state.solutions = (solutions || []).filter(function(s) { return s && s.core_id; });
         populateSolutionDropdown();
+        // Re-render pipeline to show dates now that full data is available
+        renderPipeline();
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load solutions:', error);
@@ -1955,15 +1938,42 @@ var SEP = (function() {
   }
 
   function loadAgencies() {
+    // Load both agency hierarchy and engagement counts
+    var loadedHierarchy = false;
+    var loadedCounts = false;
+
+    function tryRender() {
+      if (loadedHierarchy && loadedCounts) {
+        renderAgencyTree();
+      }
+    }
+
     google.script.run
       .withSuccessHandler(function(hierarchy) {
         state.agencyHierarchy = hierarchy || [];
-        renderAgencyTree();
+        loadedHierarchy = true;
+        tryRender();
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load agencies:', error);
+        loadedHierarchy = true;
+        tryRender();
       })
       .getAgencyHierarchy();
+
+    google.script.run
+      .withSuccessHandler(function(counts) {
+        state.agencyEngagementCounts = counts || {};
+        loadedCounts = true;
+        tryRender();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load engagement counts:', error);
+        state.agencyEngagementCounts = {};
+        loadedCounts = true;
+        tryRender();
+      })
+      .getEngagementCountsByAgency();
   }
 
   function loadRecentEngagements() {
@@ -1982,36 +1992,61 @@ var SEP = (function() {
 
 
   function renderPipeline() {
-    MILESTONES.forEach(function(ms) {
-      var column = document.querySelector('.pipeline-column[data-milestone="' + ms + '"]');
-      var container = document.getElementById('cards_' + ms);
-      var countEl = document.getElementById('count_' + ms);
+    // Render each combined column
+    COLUMNS.forEach(function(col) {
+      var container = document.getElementById('cards_col' + col.id);
+      var countEl = document.getElementById('count_col' + col.id);
+      if (!container || !countEl) return;
 
-      // Show/hide column based on milestone type filter
-      if (!shouldShowMilestone(ms)) {
-        if (column) column.style.display = 'none';
-        return;
-      } else {
-        if (column) column.style.display = '';
-      }
+      // Get solutions from both WS and TP milestones for this column
+      var wsSolutions = getFilteredSolutions(col.ws);
+      var tpSolutions = getFilteredSolutions(col.tp);
 
-      // Get filtered solutions
-      var solutions = getFilteredSolutions(ms);
+      // Combine and deduplicate (a solution might appear in both WS and TP)
+      var seen = {};
+      var allSolutions = [];
+      wsSolutions.concat(tpSolutions).forEach(function(sol) {
+        if (!seen[sol.core_id]) {
+          seen[sol.core_id] = true;
+          // Determine current milestone for this solution
+          sol._currentMilestone = getCurrentMilestone(sol);
+          allSolutions.push(sol);
+        }
+      });
 
-      countEl.textContent = solutions.length;
+      // Sort by ID
+      allSolutions.sort(function(a, b) {
+        return (a.core_id || '').localeCompare(b.core_id || '');
+      });
 
-      if (solutions.length === 0) {
+      if (countEl) countEl.textContent = allSolutions.length;
+
+      if (allSolutions.length === 0) {
         container.innerHTML = '<div class="empty-state" style="padding: var(--space-sm); font-size: 10px; color: var(--color-text-muted);">No solutions</div>';
       } else {
-        var html = solutions.slice(0, 15).map(function(sol) {
-          return renderSolutionCard(sol);
+        var html = allSolutions.slice(0, 20).map(function(sol) {
+          return renderSolutionCard(sol, col);
         }).join('');
-        if (solutions.length > 15) {
-          html += '<div style="text-align: center; padding: var(--space-xs); font-size: 10px; color: var(--color-text-muted);">+' + (solutions.length - 15) + ' more</div>';
+        if (allSolutions.length > 20) {
+          html += '<div style="text-align: center; padding: var(--space-xs); font-size: 10px; color: var(--color-text-muted);">+' + (allSolutions.length - 20) + ' more</div>';
         }
         container.innerHTML = html;
       }
     });
+  }
+
+  // Determine which milestone a solution is currently at
+  function getCurrentMilestone(sol) {
+    // Check milestones in reverse order - return the latest completed one
+    var order = ['tp8', 'ws5', 'tp7', 'ws4', 'tp6', 'ws3', 'tp5', 'ws2', 'tp4', 'ws1'];
+    for (var i = 0; i < order.length; i++) {
+      var ms = order[i];
+      var dateField = 'sep_' + ms + '_date';
+      if (sol[dateField]) {
+        return ms;
+      }
+    }
+    return 'ws1'; // Default to first milestone
   }
 
   // ========================================================================
@@ -2062,10 +2097,10 @@ var SEP = (function() {
     var countEl = document.getElementById('outreachCount');
     var solutions = state.needsOutreach || [];
 
-    countEl.textContent = solutions.length;
+    if (countEl) countEl.textContent = solutions.length;
 
     if (solutions.length === 0) {
-      container.innerHTML = '<div style="font-size: 10px; color: var(--color-text-muted); padding: 4px; text-align: center;">All solutions have good engagement!</div>';
+      container.innerHTML = '<div style="font-size: 10px; color: var(--color-text-muted); padding: 4px; text-align: center;">All solutions are well engaged</div>';
       return;
     }
 
@@ -2120,15 +2155,182 @@ var SEP = (function() {
     return true;
   }
 
-  function renderSolutionCard(sol) {
-    var html = '<div class="pipeline-card" onclick="SEP.showSolutionDetail(\'' + escapeAttr(sol.core_id) + '\')">';
-    html += '<div class="card-id">' + escapeHtml(sol.core_id) + '</div>';
-    html += '<div class="card-name" title="' + escapeAttr(sol.core_official_name || '') + '">' + escapeHtml(sol.core_official_name || 'Unnamed') + '</div>';
-    if (sol.core_cycle) {
-      html += '<div class="card-cycle">Cycle ' + escapeHtml(String(sol.core_cycle)) + '</div>';
+  function renderSolutionCard(sol, col) {
+    // Get full solution from state.solutions (has date fields)
+    var fullSol = null;
+    if (state.solutions && state.solutions.length > 0) {
+      fullSol = state.solutions.find(function(s) {
+        return s.core_id === sol.core_id;
+      });
     }
+
+    // Fallback to sol if not found
+    if (!fullSol) fullSol = sol;
+
+    // Get dates using confirmed field names
+    var wsDate = fullSol['sep_' + col.ws + '_date'] || '';
+    var tpDate = fullSol['sep_' + col.tp + '_date'] || '';
+    var currentMs = sol._currentMilestone || getCurrentMilestone(fullSol);
+
+    // Determine card border color based on current milestone
+    var borderClass = currentMs.startsWith('ws') ? 'card-ws' : 'card-tp';
+
+    var html = '<div class="pipeline-card ' + borderClass + '" draggable="true" ' +
+      'data-solution-id="' + escapeAttr(sol.core_id) + '" ' +
+      'title="' + escapeAttr(sol.core_official_name || sol.core_id) + '" ' +
+      'ondragstart="SEP.handleDragStart(event, \'' + escapeAttr(sol.core_id) + '\')" ' +
+      'ondragend="SEP.handleDragEnd(event)" ' +
+      'onclick="SEP.showSolutionDetail(\'' + escapeAttr(sol.core_id) + '\')">';
+    html += '<div class="card-id">' + escapeHtml(sol.core_id) + '</div>';
+
+    // Show milestone dates
+    html += '<div class="card-dates">';
+    html += '<span class="date-ws">' + (wsDate ? formatShortDate(wsDate) : '--') + '</span>';
+    html += '<span class="date-tp">' + (tpDate ? formatShortDate(tpDate) : '--') + '</span>';
+    html += '</div>';
     html += '</div>';
     return html;
+  }
+
+  function formatShortDate(dateStr) {
+    if (!dateStr) return '--';
+    try {
+      var d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return (d.getMonth() + 1) + '/' + d.getDate();
+    } catch (e) {
+      return dateStr;
+    }
+  }
+
+  // ========================================================================
+  // DRAG AND DROP
+  // ========================================================================
+
+  var draggedSolutionId = null;
+
+  function handleDragStart(event, solutionId) {
+    draggedSolutionId = solutionId;
+    event.target.classList.add('dragging');
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', solutionId);
+  }
+
+  function handleDragEnd(event) {
+    event.target.classList.remove('dragging');
+    draggedSolutionId = null;
+    // Remove drag-over class from all columns
+    document.querySelectorAll('.pipeline-column').forEach(function(col) {
+      col.classList.remove('drag-over');
+    });
+  }
+
+  function handleDragOver(event) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    var column = event.target.closest('.pipeline-column');
+    if (column) {
+      column.classList.add('drag-over');
+    }
+  }
+
+  function handleDragLeave(event) {
+    var column = event.target.closest('.pipeline-column');
+    if (column && !column.contains(event.relatedTarget)) {
+      column.classList.remove('drag-over');
+    }
+  }
+
+  function handleDrop(event, columnId) {
+    event.preventDefault();
+    var column = event.target.closest('.pipeline-column');
+    if (column) {
+      column.classList.remove('drag-over');
+    }
+
+    var solutionId = event.dataTransfer.getData('text/plain') || draggedSolutionId;
+    if (!solutionId) return;
+
+    // Find the column definition
+    var targetColumn = COLUMNS.find(function(c) { return c.id === columnId; });
+    if (!targetColumn) return;
+
+    // Show milestone selection dialog
+    showMilestoneDropDialog(solutionId, targetColumn);
+  }
+
+  function showMilestoneDropDialog(solutionId, column) {
+    // Find the solution
+    var solution = findSolutionById(solutionId);
+    if (!solution) return;
+
+    var wsLabel = column.ws.toUpperCase();
+    var tpLabel = column.tp.toUpperCase();
+    var wsDate = solution['sep_' + column.ws + '_date'] || '';
+    var tpDate = solution['sep_' + column.tp + '_date'] || '';
+
+    var html = '<div class="drop-dialog">';
+    html += '<p>Move <strong>' + escapeHtml(solutionId) + '</strong> to:</p>';
+    html += '<div class="drop-options">';
+    html += '<button class="btn btn-sm" style="background: #7B1FA2; color: white;" onclick="SEP.setMilestoneDate(\'' + escapeAttr(solutionId) + '\', \'' + column.ws + '\')">';
+    html += wsLabel + (wsDate ? ' (' + formatShortDate(wsDate) + ')' : ' (set date)');
+    html += '</button>';
+    html += '<button class="btn btn-sm" style="background: #1565C0; color: white;" onclick="SEP.setMilestoneDate(\'' + escapeAttr(solutionId) + '\', \'' + column.tp + '\')">';
+    html += tpLabel + (tpDate ? ' (' + formatShortDate(tpDate) + ')' : ' (set date)');
+    html += '</button>';
+    html += '</div>';
+    html += '<button class="btn btn-sm btn-secondary" style="margin-top: var(--space-sm);" onclick="SEP.closeDropDialog()">Cancel</button>';
+    html += '</div>';
+
+    // Create overlay
+    var overlay = document.createElement('div');
+    overlay.id = 'dropDialogOverlay';
+    overlay.className = 'modal-overlay active';
+    overlay.innerHTML = '<div class="modal-content modal-sm" style="max-width: 300px; text-align: center;" onclick="event.stopPropagation()">' + html + '</div>';
+    overlay.onclick = function() { closeDropDialog(); };
+    document.body.appendChild(overlay);
+  }
+
+  function closeDropDialog() {
+    var overlay = document.getElementById('dropDialogOverlay');
+    if (overlay) overlay.remove();
+  }
+
+  function setMilestoneDate(solutionId, milestone) {
+    closeDropDialog();
+
+    // Prompt for date
+    var today = new Date().toISOString().split('T')[0];
+    var dateStr = prompt('Enter date for ' + milestone.toUpperCase() + ' (YYYY-MM-DD):', today);
+    if (!dateStr) return;
+
+    // Validate date format
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      alert('Please use YYYY-MM-DD format');
+      return;
+    }
+
+    // Update via API
+    google.script.run
+      .withSuccessHandler(function() {
+        // Reload pipeline
+        loadSolutionsWithProgress();
+      })
+      .withFailureHandler(function(error) {
+        alert('Failed to update milestone: ' + error.message);
+      })
+      .updateSolutionSEPMilestone(solutionId, milestone, dateStr);
+  }
+
+  function findSolutionById(solutionId) {
+    var solution = state.solutions.find(function(s) { return s.core_id === solutionId; });
+    if (!solution) {
+      for (var ms in state.solutionsByMilestone) {
+        var found = (state.solutionsByMilestone[ms] || []).find(function(s) { return s.core_id === solutionId; });
+        if (found) { solution = found; break; }
+      }
+    }
+    return solution;
   }
 
   // ========================================================================
@@ -2316,19 +2518,20 @@ return;
     var indent = level * 20;
     var isClosed = agency.status && (agency.status.toLowerCase() === 'closed' || agency.status.toLowerCase() === 'merged');
 
-    // Determine heat level from relationship status
+    // Determine heat level from engagement count (not relationship_status)
+    var engagementCount = state.agencyEngagementCounts[agency.agency_id] || 0;
     var heatClass = '';
     var heatDot = 'cold';
-    var relStatus = (agency.relationship_status || '').toLowerCase();
-    if (relStatus === 'strong' || relStatus === 'established') {
+    var heatTooltip = engagementCount + ' engagement' + (engagementCount !== 1 ? 's' : '');
+    if (engagementCount >= 4) {
       heatClass = 'heat-hot';
       heatDot = 'hot';
-    } else if (relStatus === 'developing') {
+    } else if (engagementCount >= 1) {
       heatClass = 'heat-warm';
       heatDot = 'warm';
     }
 
-    var html = '<div class="agency-item' + (hasChildren ? ' has-children' : '') + (isClosed ? ' agency-closed' : '') + (heatClass ? ' ' + heatClass : '') + '" style="padding-left: ' + (indent + 8) + 'px;' + (isClosed ? ' opacity: 0.6;' : '') + '" onclick="SEP.selectAgency(\'' + escapeAttr(agency.agency_id) + '\')">';
+    var html = '<div class="agency-item' + (hasChildren ? ' has-children' : '') + (isClosed ? ' agency-closed' : '') + (heatClass ? ' ' + heatClass : '') + '" style="padding-left: ' + (indent + 8) + 'px;' + (isClosed ? ' opacity: 0.6;' : '') + '" onclick="SEP.selectAgency(\'' + escapeAttr(agency.agency_id) + '\')" title="' + heatTooltip + '">';
     if (hasChildren) {
       html += '<span class="agency-toggle" data-agency="' + escapeAttr(agency.agency_id) + '" onclick="event.stopPropagation(); SEP.toggleAgencyChildren(\'' + escapeAttr(agency.agency_id) + '\')"><span class="material-icons">chevron_right</span></span>';
     } else {
@@ -2339,7 +2542,7 @@ return;
       html += ' <span style="font-size: 9px; color: var(--color-text-muted);">(' + escapeHtml(agency.status) + ')</span>';
     }
     html += '</span>';
-    // Heat indicator dot
+    // Heat indicator dot based on engagement count
     if (!isClosed) {
       html += '<span class="heat-dot ' + heatDot + '"></span>';
     }
@@ -2493,17 +2696,6 @@ return;
     }
     html += '</div></div>';
 
-    // Relationship Health Bar
-    if (agency.relationship_status) {
-      var healthLevel = getRelationshipLevel(agency.relationship_status);
-      html += '<div class="relationship-health">';
-      html += '<div class="health-bar-container">';
-      html += '<span class="health-label">Relationship</span>';
-      html += '<div class="health-bar"><div class="health-bar-fill level-' + healthLevel + '"></div></div>';
-      html += '<span class="health-label">' + escapeHtml(agency.relationship_status) + '</span>';
-      html += '</div></div>';
-    }
-
     // Quick Actions
     html += '<div class="quick-actions">';
     html += '<button class="quick-action-btn" onclick="SEP.showLogEngagementModalForAgency(\'' + escapeAttr(agency.agency_id) + '\')">';
@@ -2531,8 +2723,7 @@ return;
     html += '<div class="metric-card metric-contacts">';
     html += '<div class="metric-value">' + contacts.length + '</div>';
     html += '<div class="metric-label">Contacts</div>';
-    var activeContacts = contacts.filter(function(c) { return c.solution_tags && c.solution_tags.length > 0; }).length;
-    html += '<div class="metric-trend neutral">' + activeContacts + ' engaged</div>';
+    html += '<div class="metric-trend neutral">' + (stats.contacts_engaged || 0) + ' engaged</div>';
     html += '</div>';
 
     html += '<div class="metric-card metric-solutions">';
@@ -2632,7 +2823,7 @@ return;
         if (c.email) {
           html += '<a class="contact-action-btn" href="mailto:' + escapeAttr(c.email) + '" onclick="event.stopPropagation();" title="Send Email"><span class="material-icons">email</span></a>';
         }
-        html += '<button class="contact-action-btn contact-action-remove" onclick="event.stopPropagation(); SEP.removeContactFromAgency(\'' + escapeAttr(c.contact_id || c.email) + '\', \'' + escapeAttr(agency.agency_id) + '\')" title="Remove from Agency"><span class="material-icons">person_remove</span></button>';
+        html += '<button class="contact-action-btn contact-action-remove" onclick="event.stopPropagation(); SEP.removeContactFromAgency(\'' + escapeAttr(c.email) + '\', \'' + escapeAttr(agency.agency_id) + '\')" title="Remove from Agency"><span class="material-icons">person_remove</span></button>';
         html += '</div>';
         html += '</div>';
       });
@@ -2652,7 +2843,7 @@ return;
         html += '<div class="timeline-icon"><span class="material-icons">' + icon + '</span></div>';
         html += '<div class="timeline-content">';
         html += '<div class="timeline-subject">' + escapeHtml(e.subject || e.activity_type || 'Engagement') + '</div>';
-        html += '<div class="timeline-meta">' + escapeHtml(e.date || '') + ' • ' + escapeHtml(e.activity_type || '') + (e.solution_id ? ' • ' + escapeHtml(e.solution_id) : '') + '</div>';
+        html += '<div class="timeline-meta">' + formatDate(e.date) + ' • ' + escapeHtml(e.activity_type || '') + (e.solution_id ? ' • ' + escapeHtml(e.solution_id) : '') + '</div>';
         if (e.matched_contacts && e.matched_contacts.length > 0) {
           var names = e.matched_contacts.map(function(c) { return c.name; }).join(', ');
           html += '<div class="timeline-contacts">' + escapeHtml(names) + '</div>';
@@ -2696,11 +2887,6 @@ return;
     state.currentAgencyContacts = contacts;
 
     document.getElementById('agencyDetail').innerHTML = html;
-  }
-
-  function getRelationshipLevel(status) {
-    var levels = { 'new': 1, 'developing': 2, 'established': 3, 'strong': 4, 'dormant': 1 };
-    return levels[(status || '').toLowerCase()] || 2;
   }
 
   function getCurrentMonth() {
@@ -2754,89 +2940,103 @@ return;
   }
 
   // ========================================================================
-  // NETWORK GRAPH
+  // NETWORK GRAPH - Cross-Agency Collaboration Visualization
   // ========================================================================
 
   function initAgencyNetwork() {
     var container = document.getElementById('agencyNetworkGraph');
-    if (!container || !state.currentAgencyContacts || state.currentAgencyContacts.length === 0) {
+    if (!container || !state.selectedAgency) {
       return;
     }
 
-    var contacts = state.currentAgencyContacts;
-    var nodes = [];
-    var edges = [];
-    var solutionSet = {};
+    // Show loading state
+    container.innerHTML = '<div class="loading-state" style="height: 100%; display: flex; align-items: center; justify-content: center;"><span class="loading-spinner"></span><span style="margin-left: 8px;">Building network...</span></div>';
 
-    // Create contact nodes
-    contacts.forEach(function(contact, idx) {
-      var name = ((contact.first_name || '') + ' ' + (contact.last_name || '')).trim() || contact.email || 'Unknown';
-      nodes.push({
-        id: 'contact_' + idx,
-        label: name.split(' ').map(function(n) { return n.charAt(0); }).join(''),
-        title: name + (contact.title ? '\n' + contact.title : ''),
-        group: 'contact',
-        shape: 'dot',
-        size: 20,
-        color: {
-          background: '#1565c0',
-          border: '#0d47a1',
-          highlight: { background: '#1976d2', border: '#0d47a1' }
-        },
-        font: { color: '#fff', size: 10 }
-      });
+    // Fetch cross-agency network data
+    google.script.run
+      .withSuccessHandler(function(networkData) {
+        renderCrossAgencyNetwork(container, networkData);
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load network data:', error);
+        container.innerHTML = '<div class="empty-state" style="height: 100%; display: flex; align-items: center; justify-content: center;"><p style="color: var(--color-text-muted); font-size: 12px;">Failed to load network data.</p></div>';
+      })
+      .getCrossAgencyNetwork(state.selectedAgency);
+  }
 
-      // Create edges to solutions
-      if (contact.solution_tags && contact.solution_tags.length > 0) {
-        contact.solution_tags.forEach(function(solId) {
-          solutionSet[solId] = true;
-          edges.push({
-            from: 'contact_' + idx,
-            to: 'solution_' + solId,
-            color: { color: '#90caf9', highlight: '#1565c0' },
-            width: 1.5
-          });
-        });
-      }
-    });
-
-    // Create solution nodes
-    Object.keys(solutionSet).forEach(function(solId) {
-      nodes.push({
-        id: 'solution_' + solId,
-        label: solId.toUpperCase(),
-        title: 'Solution: ' + solId,
-        group: 'solution',
-        shape: 'box',
-        size: 15,
-        color: {
-          background: '#10b981',
-          border: '#059669',
-          highlight: { background: '#34d399', border: '#059669' }
-        },
-        font: { color: '#fff', size: 9 }
-      });
-    });
-
-    // If no connections exist, show a message
-    if (edges.length === 0) {
+  function renderCrossAgencyNetwork(container, networkData) {
+    if (!networkData || !networkData.nodes || networkData.nodes.length === 0) {
       container.innerHTML = '<div class="empty-state" style="height: 100%; display: flex; align-items: center; justify-content: center;"><p style="color: var(--color-text-muted); font-size: 12px;">No solution engagements to visualize.<br>Contacts will connect when they engage with solutions.</p></div>';
       return;
     }
 
+    // Style nodes based on type
+    var visNodes = networkData.nodes.map(function(n) {
+      var node = {
+        id: n.id,
+        label: n.label,
+        title: n.title
+      };
+
+      if (n.type === 'agency') {
+        node.shape = 'diamond';
+        node.size = n.isStart ? 30 : 20;
+        node.color = {
+          background: n.isStart ? '#1565c0' : '#6366f1',
+          border: n.isStart ? '#0d47a1' : '#4f46e5',
+          highlight: { background: n.isStart ? '#1976d2' : '#818cf8', border: n.isStart ? '#0d47a1' : '#4f46e5' }
+        };
+        node.font = { color: '#fff', size: 10 };
+      } else if (n.type === 'contact') {
+        node.shape = 'dot';
+        node.size = n.isStart ? 18 : 12;
+        node.color = {
+          background: n.isStart ? '#0ea5e9' : '#94a3b8',
+          border: n.isStart ? '#0284c7' : '#64748b',
+          highlight: { background: n.isStart ? '#38bdf8' : '#cbd5e1', border: n.isStart ? '#0284c7' : '#64748b' }
+        };
+        node.font = { color: '#fff', size: 8 };
+      } else if (n.type === 'solution') {
+        node.shape = 'box';
+        node.size = 15;
+        node.color = {
+          background: '#10b981',
+          border: '#059669',
+          highlight: { background: '#34d399', border: '#059669' }
+        };
+        node.font = { color: '#fff', size: 9 };
+      }
+
+      return node;
+    });
+
+    // Style edges based on type
+    var visEdges = networkData.edges.map(function(e) {
+      return {
+        from: e.from,
+        to: e.to,
+        color: {
+          color: e.type === 'member' ? '#94a3b8' : '#90caf9',
+          highlight: e.type === 'member' ? '#64748b' : '#1565c0'
+        },
+        width: e.type === 'member' ? 1 : 1.5,
+        dashes: e.type === 'member' ? true : false
+      };
+    });
+
     // Create network
-    var data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+    var data = { nodes: new vis.DataSet(visNodes), edges: new vis.DataSet(visEdges) };
     var options = {
       physics: {
         enabled: true,
         solver: 'forceAtlas2Based',
         forceAtlas2Based: {
-          gravitationalConstant: -30,
-          centralGravity: 0.005,
-          springLength: 100,
-          springConstant: 0.08
+          gravitationalConstant: -50,
+          centralGravity: 0.008,
+          springLength: 120,
+          springConstant: 0.05
         },
-        stabilization: { iterations: 100 }
+        stabilization: { iterations: 150 }
       },
       interaction: {
         hover: true,
@@ -2857,19 +3057,33 @@ return;
 
     state.agencyNetwork = new vis.Network(container, data, options);
 
+    // Add network stats legend
+    if (networkData.stats) {
+      var legendHtml = '<div class="network-legend">';
+      legendHtml += '<span class="legend-stat"><span class="legend-dot agency"></span>' + networkData.stats.agencies + ' Agencies</span>';
+      legendHtml += '<span class="legend-stat"><span class="legend-dot contact"></span>' + networkData.stats.contacts + ' Contacts</span>';
+      legendHtml += '<span class="legend-stat"><span class="legend-dot solution"></span>' + networkData.stats.solutions + ' Solutions</span>';
+      legendHtml += '</div>';
+      var legendEl = document.createElement('div');
+      legendEl.innerHTML = legendHtml;
+      container.parentNode.insertBefore(legendEl.firstChild, container.nextSibling);
+    }
+
     // Handle node click
     state.agencyNetwork.on('click', function(params) {
       if (params.nodes.length > 0) {
         var nodeId = params.nodes[0];
         if (nodeId.startsWith('contact_')) {
-          var idx = parseInt(nodeId.replace('contact_', ''));
-          var contact = contacts[idx];
-          if (contact && contact.email) {
-            showContactDetail(contact.email);
-          }
+          var email = nodeId.replace('contact_', '');
+          showContactDetail(email);
         } else if (nodeId.startsWith('solution_')) {
           var solId = nodeId.replace('solution_', '');
           showSolutionDetail(solId);
+        } else if (nodeId.startsWith('agency_')) {
+          var agencyId = nodeId.replace('agency_', '');
+          if (agencyId !== state.selectedAgency) {
+            selectAgency(agencyId);
+          }
         }
       }
     });
@@ -2880,6 +3094,9 @@ return;
       state.agencyNetwork.destroy();
       state.agencyNetwork = null;
     }
+    // Remove legend if exists
+    var legend = document.querySelector('.network-legend');
+    if (legend) legend.remove();
   }
 
   // ========================================================================
@@ -3138,7 +3355,7 @@ return;
     document.querySelectorAll('.view-btn').forEach(function(btn) {
       btn.classList.toggle('active', btn.dataset.view === view);
     });
-    document.getElementById('pipelineView').classList.toggle('active', view === 'pipeline');
+    document.getElementById('dashboardView').classList.toggle('active', view === 'dashboard');
     document.getElementById('agenciesView').classList.toggle('active', view === 'agencies');
   }
 
@@ -3281,9 +3498,8 @@ return;
       direction: document.getElementById('engDirection').value,
       subject: document.getElementById('engSubject').value,
       participants: document.getElementById('engParticipants').value,
-      solution_ids: document.getElementById('engSolution').value,
+      solution_id: document.getElementById('engSolution').value,
       summary: document.getElementById('engSummary').value,
-      touchpoint_reference: document.getElementById('engTouchpoint').value,
       follow_up_date: document.getElementById('engFollowUp').value
     };
 
@@ -3306,11 +3522,10 @@ return;
     };
 
     if (isEditing) {
-      engagement.engagement_id = state.editingEngagementId;
       google.script.run
         .withSuccessHandler(successHandler)
         .withFailureHandler(failureHandler)
-        .updateEngagement(engagement);
+        .updateEngagement(state.editingEngagementId, engagement);
     } else {
       google.script.run
         .withSuccessHandler(successHandler)
@@ -3764,9 +3979,8 @@ return;
     document.getElementById('engDirection').value = e.direction || '';
     document.getElementById('engSubject').value = e.subject || '';
     document.getElementById('engParticipants').value = e.participants || '';
-    document.getElementById('engSolution').value = e.solution_ids || '';
+    document.getElementById('engSolution').value = e.solution_id || '';
     document.getElementById('engSummary').value = e.summary || '';
-    document.getElementById('engTouchpoint').value = e.touchpoint_reference || '';
     document.getElementById('engFollowUp').value = e.follow_up_date || '';
 
     // Store the engagement ID for update
@@ -3855,7 +4069,15 @@ return;
     // Engagement list functions
     showAllEngagements: showAllEngagements,
     filterAllEngagements: filterAllEngagements,
-    showEngagementDetailFromAll: showEngagementDetailFromAll
+    showEngagementDetailFromAll: showEngagementDetailFromAll,
+    // Drag and drop
+    handleDragStart: handleDragStart,
+    handleDragEnd: handleDragEnd,
+    handleDragOver: handleDragOver,
+    handleDragLeave: handleDragLeave,
+    handleDrop: handleDrop,
+    setMilestoneDate: setMilestoneDate,
+    closeDropDialog: closeDropDialog
   };
 })();
 

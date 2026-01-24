@@ -90,3 +90,7 @@ function getContactSolutionTags(email) {
 function getAgencyContactsWithTags(agencyId) {
   return MoApi.getAgencyContactsWithTags(agencyId);
 }
+
+function getCrossAgencyNetwork(agencyId) {
+  return MoApi.getCrossAgencyNetwork(agencyId);
+}

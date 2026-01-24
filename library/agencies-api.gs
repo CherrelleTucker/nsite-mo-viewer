@@ -517,18 +517,41 @@ function getAgencyEngagementStats(agencyId) {
     else if (daysSince <= 90) heatStatus = 'warm';
   }
 
-  // Aggregate by type and solution
+  // Aggregate by type, solution, and month
   var byType = {};
   var bySolution = {};
+  var byMonth = {};
   var solutionsSet = {};
+  var engagedContactEmails = {};
 
   agencyEngagements.forEach(function(e) {
     if (e.activity_type) {
       byType[e.activity_type] = (byType[e.activity_type] || 0) + 1;
     }
-    if (e.solution_id) {
-      bySolution[e.solution_id] = (bySolution[e.solution_id] || 0) + 1;
-      solutionsSet[e.solution_id] = true;
+    // Handle solution_id (can be comma-separated for multiple)
+    var solIds = e.solution_id || '';
+    if (solIds) {
+      solIds.split(',').forEach(function(sid) {
+        var trimmed = sid.trim();
+        if (trimmed) {
+          bySolution[trimmed] = (bySolution[trimmed] || 0) + 1;
+          solutionsSet[trimmed] = true;
+        }
+      });
+    }
+    // Count by month (YYYY-MM format)
+    if (e.date) {
+      var monthKey = e.date.substring(0, 7);
+      byMonth[monthKey] = (byMonth[monthKey] || 0) + 1;
+    }
+    // Track which contacts have engagements
+    if (e.participants) {
+      e.participants.split(',').forEach(function(p) {
+        var email = p.trim().toLowerCase();
+        if (contactEmails.indexOf(email) !== -1) {
+          engagedContactEmails[email] = true;
+        }
+      });
     }
   });
 
@@ -538,8 +561,10 @@ function getAgencyEngagementStats(agencyId) {
     days_since_last: daysSince,
     heat_status: heatStatus,
     solutions_engaged: Object.keys(solutionsSet),
+    contacts_engaged: Object.keys(engagedContactEmails).length,
     by_type: byType,
-    by_solution: bySolution
+    by_solution: bySolution,
+    by_month: byMonth
   };
 }
 
@@ -637,6 +662,183 @@ function getAgencyContactsWithTags(agencyId) {
   });
 
   return JSON.parse(JSON.stringify(contacts));
+}
+
+/**
+ * Get cross-agency network data for visualization
+ * Shows how an agency connects to other agencies through shared solution engagements
+ * @param {string} agencyId - Starting agency ID
+ * @returns {Object} Network data with nodes and edges
+ */
+function getCrossAgencyNetwork(agencyId) {
+  var allContacts = loadAllContacts_();
+  var engagements = loadAllEngagements_();
+  var allAgencies = loadAllAgencies_();
+
+  // Build lookup maps
+  var emailToContact = {};
+  var emailToAgency = {};
+  allContacts.forEach(function(c) {
+    if (c.email) {
+      var emailLower = c.email.toLowerCase();
+      emailToContact[emailLower] = c;
+      if (c.agency_id) {
+        emailToAgency[emailLower] = c.agency_id;
+      }
+    }
+  });
+
+  var agencyById = {};
+  allAgencies.forEach(function(a) {
+    if (a.agency_id) {
+      agencyById[a.agency_id] = a;
+    }
+  });
+
+  // Get starting agency contacts
+  var startAgencyContacts = allContacts.filter(function(c) {
+    return c.agency_id === agencyId;
+  });
+  var startContactEmails = {};
+  startAgencyContacts.forEach(function(c) {
+    if (c.email) startContactEmails[c.email.toLowerCase()] = true;
+  });
+
+  // Build email -> solutions and solution -> emails maps
+  var emailToSolutions = {};
+  var solutionToEmails = {};
+  engagements.forEach(function(e) {
+    if (!e.participants || !e.solution_id) return;
+    var solId = e.solution_id.trim();
+    var participants = e.participants.split(',').map(function(p) { return p.trim().toLowerCase(); });
+    participants.forEach(function(email) {
+      if (!emailToSolutions[email]) emailToSolutions[email] = {};
+      emailToSolutions[email][solId] = true;
+      if (!solutionToEmails[solId]) solutionToEmails[solId] = {};
+      solutionToEmails[solId][email] = true;
+    });
+  });
+
+  // Find solutions the starting agency's contacts engaged with
+  var startAgencySolutions = {};
+  Object.keys(startContactEmails).forEach(function(email) {
+    if (emailToSolutions[email]) {
+      Object.keys(emailToSolutions[email]).forEach(function(sol) {
+        startAgencySolutions[sol] = true;
+      });
+    }
+  });
+
+  // Find all contacts who engaged with those solutions (across all agencies)
+  var connectedEmails = {};
+  Object.keys(startAgencySolutions).forEach(function(solId) {
+    if (solutionToEmails[solId]) {
+      Object.keys(solutionToEmails[solId]).forEach(function(email) {
+        connectedEmails[email] = true;
+      });
+    }
+  });
+
+  // Build network nodes and edges
+  var nodes = [];
+  var edges = [];
+  var addedAgencies = {};
+  var addedContacts = {};
+  var addedSolutions = {};
+
+  // Add starting agency node
+  var startAgency = agencyById[agencyId];
+  if (startAgency) {
+    nodes.push({
+      id: 'agency_' + agencyId,
+      label: startAgency.abbreviation || startAgency.name || agencyId,
+      title: startAgency.full_name || startAgency.name || agencyId,
+      type: 'agency',
+      isStart: true
+    });
+    addedAgencies[agencyId] = true;
+  }
+
+  // Process all connected contacts
+  Object.keys(connectedEmails).forEach(function(email) {
+    var contact = emailToContact[email];
+    var contactAgencyId = emailToAgency[email];
+    if (!contact) return;
+
+    var contactName = ((contact.first_name || '') + ' ' + (contact.last_name || '')).trim() || email;
+    var isStartAgency = startContactEmails[email];
+
+    // Add contact node
+    if (!addedContacts[email]) {
+      nodes.push({
+        id: 'contact_' + email,
+        label: contactName.split(' ').map(function(n) { return n.charAt(0); }).join(''),
+        title: contactName + (contact.title ? '\n' + contact.title : ''),
+        type: 'contact',
+        isStart: isStartAgency
+      });
+      addedContacts[email] = true;
+    }
+
+    // Add contact's agency if not start agency
+    if (contactAgencyId && !addedAgencies[contactAgencyId]) {
+      var contactAgency = agencyById[contactAgencyId];
+      if (contactAgency) {
+        nodes.push({
+          id: 'agency_' + contactAgencyId,
+          label: contactAgency.abbreviation || contactAgency.name || contactAgencyId,
+          title: contactAgency.full_name || contactAgency.name || contactAgencyId,
+          type: 'agency',
+          isStart: false
+        });
+        addedAgencies[contactAgencyId] = true;
+      }
+    }
+
+    // Edge: contact -> agency
+    if (contactAgencyId) {
+      edges.push({
+        from: 'contact_' + email,
+        to: 'agency_' + contactAgencyId,
+        type: 'member'
+      });
+    }
+
+    // Add solution nodes and edges for this contact
+    if (emailToSolutions[email]) {
+      Object.keys(emailToSolutions[email]).forEach(function(solId) {
+        // Only include solutions that connect to the start agency
+        if (!startAgencySolutions[solId]) return;
+
+        if (!addedSolutions[solId]) {
+          nodes.push({
+            id: 'solution_' + solId,
+            label: solId.toUpperCase(),
+            title: 'Solution: ' + solId,
+            type: 'solution'
+          });
+          addedSolutions[solId] = true;
+        }
+
+        // Edge: contact -> solution
+        edges.push({
+          from: 'contact_' + email,
+          to: 'solution_' + solId,
+          type: 'engagement'
+        });
+      });
+    }
+  });
+
+  return {
+    nodes: nodes,
+    edges: edges,
+    stats: {
+      agencies: Object.keys(addedAgencies).length,
+      contacts: Object.keys(addedContacts).length,
+      solutions: Object.keys(addedSolutions).length
+    }
+  };
 }
 
 /**

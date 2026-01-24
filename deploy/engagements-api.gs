@@ -70,8 +70,16 @@ function getEngagementStats() {
   return MoApi.getEngagementStats();
 }
 
+function getSEPDashboardStats() {
+  return MoApi.getSEPDashboardStats();
+}
+
 function getEngagementsByLogger(limit) {
   return MoApi.getEngagementsByLogger(limit);
+}
+
+function getEngagementCountsByAgency() {
+  return MoApi.getEngagementCountsByAgency();
 }
 
 // Helper Functions

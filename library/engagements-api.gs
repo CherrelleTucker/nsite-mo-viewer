@@ -134,11 +134,61 @@ function getEngagementById(engagementId) {
 }
 
 /**
+ * Validate engagement data before write
+ * @param {Object} data - Engagement data to validate
+ * @returns {Object} { valid: boolean, errors: string[] }
+ */
+function validateEngagementData_(data) {
+  var errors = [];
+
+  // Required fields
+  if (!data.subject || !String(data.subject).trim()) {
+    errors.push('Subject is required');
+  }
+
+  if (!data.activity_type || !String(data.activity_type).trim()) {
+    errors.push('Activity type is required');
+  }
+
+  // Valid activity type
+  if (data.activity_type && ENGAGEMENT_ACTIVITY_TYPES.indexOf(data.activity_type) === -1) {
+    errors.push('Invalid activity type: ' + data.activity_type + '. Valid types: ' + ENGAGEMENT_ACTIVITY_TYPES.join(', '));
+  }
+
+  // Valid direction (if provided)
+  if (data.direction && ENGAGEMENT_DIRECTIONS.indexOf(data.direction) === -1) {
+    errors.push('Invalid direction: ' + data.direction + '. Valid directions: ' + ENGAGEMENT_DIRECTIONS.join(', '));
+  }
+
+  // Date format validation (if provided)
+  if (data.date) {
+    var dateStr = String(data.date);
+    if (!/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+      errors.push('Invalid date format. Expected YYYY-MM-DD, got: ' + dateStr);
+    }
+  }
+
+  // Summary length check (optional but good practice)
+  if (data.summary && String(data.summary).length > 2000) {
+    errors.push('Summary exceeds maximum length of 2000 characters');
+  }
+
+  return { valid: errors.length === 0, errors: errors };
+}
+
+/**
  * Create a new engagement
  * @param {Object} engagementData - Engagement data
  * @returns {Object} Created engagement with ID
+ * @throws {Error} If validation fails
  */
 function createEngagement(engagementData) {
+  // Validate input
+  var validation = validateEngagementData_(engagementData);
+  if (!validation.valid) {
+    throw new Error('Validation failed: ' + validation.errors.join('; '));
+  }
+
   var sheet = getEngagementsSheet_();
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 
@@ -210,7 +260,7 @@ function updateEngagement(engagementId, updates) {
 /**
  * Delete an engagement
  * @param {string} engagementId - Engagement ID to delete
- * @returns {boolean} Success status
+ * @returns {Object} Success status object
  */
 function deleteEngagement(engagementId) {
   var sheet = getEngagementsSheet_();
@@ -219,18 +269,18 @@ function deleteEngagement(engagementId) {
 
   var idColIndex = headers.indexOf('engagement_id');
   if (idColIndex === -1) {
-    return false;
+    return { success: false, error: 'engagement_id column not found' };
   }
 
   for (var i = 1; i < data.length; i++) {
     if (data[i][idColIndex] === engagementId) {
       sheet.deleteRow(i + 1);
       clearEngagementsCache_();
-      return true;
+      return { success: true };
     }
   }
 
-  return false;
+  return { success: false, error: 'Engagement not found' };
 }
 
 // ============================================================================
@@ -281,8 +331,8 @@ function getEngagementsByAgency(agencyId) {
 function getEngagementsBySolution(solutionId) {
   var engagements = loadAllEngagements_();
   var results = engagements.filter(function(e) {
-    if (e.solution_ids) {
-      var ids = e.solution_ids.split(',').map(function(id) { return id.trim(); });
+    if (e.solution_id) {
+      var ids = e.solution_id.split(',').map(function(id) { return id.trim(); });
       return ids.indexOf(solutionId) !== -1;
     }
     return false;
@@ -493,6 +543,79 @@ function getEngagementStats() {
 }
 
 /**
+ * Get SEP dashboard statistics (for the main SEP dashboard view)
+ * Returns stats for current month and heat level indicator
+ * @returns {Object} Dashboard statistics
+ */
+function getSEPDashboardStats() {
+  var engagements = loadAllEngagements_();
+
+  // Calculate date ranges
+  var now = new Date();
+  var firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  var oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  var twoWeeksAgo = new Date();
+  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+  // Filter engagements for this month
+  var thisMonthEngagements = engagements.filter(function(e) {
+    return e.date && new Date(e.date) >= firstOfMonth;
+  });
+
+  // Count unique contacts this month (from participants field)
+  var uniqueContacts = {};
+  thisMonthEngagements.forEach(function(e) {
+    if (e.participants) {
+      e.participants.split(',').forEach(function(p) {
+        var email = p.trim().toLowerCase();
+        if (email) uniqueContacts[email] = true;
+      });
+    }
+  });
+
+  // Count unique solutions this month (from solution_id field)
+  var uniqueSolutions = {};
+  thisMonthEngagements.forEach(function(e) {
+    if (e.solution_id) {
+      uniqueSolutions[e.solution_id] = true;
+    }
+  });
+
+  // Calculate heat level based on recent activity
+  // Hot: 5+ engagements in past week
+  // Warm: 3-4 engagements in past week OR 5+ in past 2 weeks
+  // Cold: Less than that
+  var lastWeekCount = engagements.filter(function(e) {
+    return e.date && new Date(e.date) >= oneWeekAgo;
+  }).length;
+
+  var lastTwoWeeksCount = engagements.filter(function(e) {
+    return e.date && new Date(e.date) >= twoWeeksAgo;
+  }).length;
+
+  var heatLevel = 'cold';
+  var heatIcon = 'ac_unit';
+  if (lastWeekCount >= 5) {
+    heatLevel = 'hot';
+    heatIcon = 'whatshot';
+  } else if (lastWeekCount >= 3 || lastTwoWeeksCount >= 5) {
+    heatLevel = 'warm';
+    heatIcon = 'wb_sunny';
+  }
+
+  return {
+    engagements_this_month: thisMonthEngagements.length,
+    contacts_this_month: Object.keys(uniqueContacts).length,
+    solutions_this_month: Object.keys(uniqueSolutions).length,
+    heat_level: heatLevel,
+    heat_icon: heatIcon,
+    last_week_count: lastWeekCount,
+    last_two_weeks_count: lastTwoWeeksCount
+  };
+}
+
+/**
  * Get engagement activity by person (who logged the most)
  * @param {number} limit - Max results
  * @returns {Array} Top loggers
@@ -517,6 +640,44 @@ function getEngagementsByLogger(limit) {
   });
 
   return results.slice(0, limit);
+}
+
+/**
+ * Get engagement counts grouped by agency
+ * Used for agency tree heat indicators
+ * Counts engagements via contact participants (not direct agency_id field)
+ * @returns {Object} Map of agency_id to engagement count
+ */
+function getEngagementCountsByAgency() {
+  var engagements = loadAllEngagements_();
+
+  // Get all contacts to map emails to agencies
+  var contacts = getAllContacts();
+  var emailToAgency = {};
+  contacts.forEach(function(c) {
+    if (c.email && c.agency_id) {
+      emailToAgency[c.email.toLowerCase()] = c.agency_id;
+    }
+  });
+
+  // Count engagements per agency based on participant emails
+  var countsByAgency = {};
+  engagements.forEach(function(e) {
+    if (e.participants) {
+      var participants = e.participants.split(',').map(function(p) { return p.trim().toLowerCase(); });
+      var agenciesCounted = {}; // Avoid double-counting same engagement for same agency
+
+      participants.forEach(function(email) {
+        var agencyId = emailToAgency[email];
+        if (agencyId && !agenciesCounted[agencyId]) {
+          agenciesCounted[agencyId] = true;
+          countsByAgency[agencyId] = (countsByAgency[agencyId] || 0) + 1;
+        }
+      });
+    }
+  });
+
+  return countsByAgency;
 }
 
 // ============================================================================

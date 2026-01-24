@@ -119,8 +119,8 @@
         </div>
         <div class="db-card">
           <div class="db-name">MO-DB_Engagements</div>
-          <div class="db-count">Manual</div>
-          <div class="db-desc">Stakeholder interaction log</div>
+          <div class="db-count">Growing</div>
+          <div class="db-desc">Stakeholder interactions: activity type, direction, participants (emails), solution, touchpoint, notes, follow-up dates</div>
         </div>
         <div class="db-card">
           <div class="db-name">MO-DB_Milestones</div>
@@ -227,30 +227,35 @@
         </div>
         <div class="page-card-body">
           <div class="data-flow-mini">
-            <span class="flow-chip source">Contacts + Agencies</span>
+            <span class="flow-chip source">Engagements + Contacts + Agencies</span>
             <span class="flow-arrow">→</span>
-            <span class="flow-chip output">Pipeline kanban</span>
+            <span class="flow-chip output">Dashboard + Agency Network</span>
           </div>
           <div class="page-details">
             <div class="detail-group">
-              <span class="detail-label">Data:</span>
-              <span>Contacts with touchpoint status; 43 agencies with hierarchy</span>
+              <span class="detail-label">Views:</span>
+              <span>Dashboard (stats, activity feed, milestone summary) and Agencies (hierarchy + detail + network)</span>
             </div>
             <div class="detail-group">
-              <span class="detail-label">Transforms:</span>
-              <span>Pipeline columns by touchpoint (T4→T8), agency tree structure</span>
+              <span class="detail-label">Data:</span>
+              <span>Engagements with participants, solutions, activity types; Contacts linked to agencies; Agency hierarchy</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Features:</span>
+              <span>Log engagements, activity heat indicators, cross-agency network visualization, solution tags per contact</span>
             </div>
             <div class="detail-group">
               <span class="detail-label">Updates:</span>
-              <span>Fresh on load; engagements write to MO-DB_Engagements</span>
+              <span>Fresh on load; CRUD operations write to MO-DB_Engagements and MO-DB_Contacts</span>
             </div>
           </div>
           <div class="next-steps">
-            <span class="next-label">Next Steps:</span>
+            <span class="next-label">Key Features:</span>
             <ul>
-              <li>Populate contact touchpoint_status in MO-DB_Contacts</li>
-              <li>Add drag-and-drop pipeline movement</li>
-              <li>Implement engagement history view per contact</li>
+              <li><strong>Dashboard:</strong> Monthly stats, activity level heat, recent engagements feed, needs attention alerts</li>
+              <li><strong>Agency Tree:</strong> Hierarchical view with engagement-based color coding (hot/warm/cold)</li>
+              <li><strong>Cross-Agency Network:</strong> Visualizes connections between agencies through shared solution engagements</li>
+              <li><strong>Contact Tags:</strong> Auto-generated solution tags based on engagement participation</li>
             </ul>
           </div>
         </div>
