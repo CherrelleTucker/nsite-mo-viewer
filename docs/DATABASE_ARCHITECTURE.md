@@ -1,7 +1,7 @@
 # MO-Viewer Database Architecture
 
-**Version:** 2.0.0
-**Date:** 2026-01-15
+**Version:** 2.1.0
+**Date:** 2026-01-22
 **Status:** Recommendation
 
 ---
@@ -340,6 +340,52 @@ User submits update
 
 ---
 
+## Cross-Workbook Data Validation
+
+Since each MO-DB table is a **separate Google Spreadsheet**, maintaining referential integrity for foreign keys (like `solution_id`) requires IMPORTRANGE lookups.
+
+### Solution ID Dropdown Setup
+
+Any workbook with a `solution_id` column should reference MO-DB_Solutions as the source of valid values.
+
+**Setup for each workbook (Contacts, Actions, Engagements, etc.):**
+
+1. **Create a hidden helper sheet:**
+   - Add a new sheet tab called `_Lookups`
+   - In cell A1, add the IMPORTRANGE formula:
+     ```
+     =IMPORTRANGE("SOLUTIONS_SPREADSHEET_ID", "Sheet1!A2:A")
+     ```
+   - Replace `SOLUTIONS_SPREADSHEET_ID` with the actual ID from MO-DB_Solutions URL
+   - Replace `Sheet1` with the actual tab name in MO-DB_Solutions
+   - `A2:A` skips the header row
+   - Click "Allow access" when prompted (first time only)
+   - Right-click the tab → Hide sheet
+
+2. **Set up data validation:**
+   - Select the `solution_id` column (skip header row)
+   - Data → Data validation → Add rule
+   - Criteria: Dropdown (from a range)
+   - Range: `'_Lookups'!A:A`
+   - Done
+
+**Benefits:**
+- All workbooks reference the same source of truth
+- Adding a new solution to MO-DB_Solutions automatically updates all dropdowns
+- Prevents typos and inconsistent solution_id values
+- Users get autocomplete when entering data
+
+**Workbooks requiring this setup:**
+| Workbook | solution_id Column |
+|----------|-------------------|
+| MO-DB_Contacts | Links contacts to solutions |
+| MO-DB_Actions | Links actions to solutions |
+| MO-DB_Engagements | Links engagements to solutions |
+| MO-DB_Milestones | Links milestones to solutions |
+| MO-DB_Stories | Links stories to solutions |
+
+---
+
 ## Data Flow for MO-Viewer
 
 ```
@@ -495,3 +541,4 @@ The Quick Update Form writes to Meeting Notes. Database fields are updated direc
 |---------|------|---------|
 | 1.0.0 | 2026-01-15 | Initial recommendation (hybrid GitHub + Sheets) |
 | 2.0.0 | 2026-01-15 | Revised to Sheets-only architecture, archive GitHub |
+| 2.1.0 | 2026-01-22 | Added cross-workbook data validation setup for solution_id |

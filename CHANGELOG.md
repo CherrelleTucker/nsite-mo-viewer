@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **SEP Dashboard Redesign** - Restructured page layout based on usage patterns
+  - Added stats row at top: Engagements This Month, Contacts Engaged, Solutions Engaged, Activity Level (heat indicator)
+  - Promoted "Recent Engagements" and "Needs Attention" panels to main content area
+  - Moved milestone pipeline to bottom as "Milestone Summary" (cards move infrequently over time)
+  - Moved cycle filter dropdown to page header for cleaner layout
+  - Renamed view from "Pipeline" to "Dashboard"
+  - New API function `getSEPDashboardStats()` provides stats with heat level calculation
+
+- **CSS Consolidation Phase 1 & 2** - Extracted common patterns to `shared-page-styles.html`
+  - Phase 1: Page header, view toggle, stats row, panels, forms, modals, filter bar
+  - Phase 2: Pipeline board, pipeline cards, card components, badges, data tables, avatars
+  - Pages now use `--page-accent` CSS variable for accent colors (auto-applied to titles, buttons, icons)
+  - Removed ~250+ lines of duplicated CSS from sep.html, team.html, comms.html, implementation.html
+  - Pages retain page-specific style overrides where needed (SEP drag/drop, Comms story status colors)
+
 ### Added
 - **SEP Agencies View Enhancements** - Major upgrade to the Agencies detail panel
   - **Network Graph tab** - Interactive vis.js visualization showing contact-solution relationships

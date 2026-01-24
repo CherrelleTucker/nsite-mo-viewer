@@ -165,6 +165,35 @@ Each export should include a "Methodology & Data Sources" tab with:
 - Calculation explanations
 - Verification instructions
 
+### CSS Pattern (Page Accent Colors)
+
+Each page viewer sets a `--page-accent` CSS variable that controls accent colors throughout shared styles:
+
+```css
+/* In page-specific style block */
+.sep-viewer {
+  --page-accent: var(--color-sep);
+  max-width: 1600px;
+  margin: 0 auto;
+}
+```
+
+This variable is used by shared-page-styles.html for:
+- Page title color (`.page-title h1`)
+- View toggle active state (`.view-btn.active`)
+- Stat icon colors (`.stat-icon`)
+- Panel header colors (`.panel-header h3`)
+- Button primary background (`.btn-primary`)
+- Form focus states
+
+**When adding a new page:**
+1. Add `--page-accent: var(--color-pagename);` to the viewer class
+2. Add the color to styles.html if it doesn't exist (e.g., `--color-newpage: #HEXCODE;`)
+3. Use shared styles from shared-page-styles.html
+4. Only add page-specific CSS for unique components
+
+**Shared styles include:** page header, view toggle, stats row, view panels, section header, panels, buttons, forms, modals, filter bar, empty states, pipeline board, pipeline cards, card components, badges, data tables, avatars
+
 ---
 
 ## Quality Checklist
@@ -250,6 +279,8 @@ When beginning a new session:
 |------|---------|-------------|
 | `deploy/Code.gs` | Main entry, routing, CONFIG_KEYS | Adding config keys, pages |
 | `deploy/index.html` | SPA shell, page routing | Adding new pages |
+| `deploy/styles.html` | CSS variables, base styles | Adding new colors/variables |
+| `deploy/shared-page-styles.html` | Shared page patterns (header, stats, panels, forms, modals) | Adding common patterns |
 | `deploy/navigation.html` | Tab navigation | Adding/changing tabs |
 | `deploy/about.html` | Platform documentation | ANY page changes |
 | `CLAUDE.md` | Development rules | Rarely |
@@ -271,9 +302,82 @@ When beginning a new session:
 
 ## Version Information
 
-- **Current Version:** 1.3.0
-- **Last Updated:** 2026-01-18
+- **Current Version:** 2.1.1
+- **Last Updated:** 2026-01-24
 - **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
+
+---
+
+## IN PROGRESS: Quality Review (2026-01-24)
+
+A full codebase quality audit was conducted. This section tracks progress on implementing the recommendations.
+
+### Completed (Recommendations 1-3)
+
+- [x] **1. Add `_solutionsCache` to solutions-api.gs** - Added caching to `library/solutions-api.gs` following the same pattern as engagements-api.gs. Added `clearSolutionsCache()` function. Added wrapper to `deploy/solutions-api.gs`.
+
+- [x] **2. Remove debug console.log statements** - Removed debug logging block from `deploy/sep.html` (lines 2121-2126 that logged "SEP re-render with data").
+
+- [x] **3. Delete reports.html.bak** - Removed backup file from deploy folder.
+
+**Files changed (need deployment):**
+
+| File | Deploy To |
+|------|-----------|
+| `library/solutions-api.gs` | MO-APIs Library |
+| `library/engagements-api.gs` | MO-APIs Library |
+| `deploy/solutions-api.gs` | NSITE-MO-Viewer |
+| `deploy/sep.html` | NSITE-MO-Viewer |
+| `deploy/comms.html` | NSITE-MO-Viewer |
+| `deploy/team.html` | NSITE-MO-Viewer |
+| `deploy/implementation.html` | NSITE-MO-Viewer |
+| `deploy/index.html` | NSITE-MO-Viewer |
+| `deploy/Code.gs` | NSITE-MO-Viewer |
+
+### Completed (Recommendations 4-7)
+
+- [x] **4. Audit XSS** - Fixed critical vulnerability in `implementation.html` (unescaped `sol.core_id` in onclick handlers). Added escape functions to `team.html`. Added global `escapeHtml()` and `escapeAttr()` to `index.html` for all pages.
+
+- [x] **5. Add input validation to write APIs** - Added `validateEngagementData_()` to `library/engagements-api.gs`. Validates required fields, activity types, directions, date format, and summary length.
+
+- [x] **6. Standardize error handling in client JavaScript** - Enhanced `handleError()` in `index.html` to accept optional user message. Added `createErrorHandler(userMessage)` helper for cleaner API calls.
+
+- [x] **7. Remove duplicate functions from Code.gs** - Replaced `loadConfigFromSheet()`, `getConfigValue()`, and `getDatabaseSheet()` with thin wrappers that delegate to `MoApi.*`. Removed unused `_configCache` variable.
+
+### Completed (Recommendation 8 - Phase 1 & 2)
+
+- [x] **8. CSS Consolidation Phase 1 & 2** - Created `shared-page-styles.html` with common patterns:
+  - **Phase 1:** Page header, view toggle, stats row, view panels, section header, panels, buttons, forms, modals, filter bar, empty states
+  - **Phase 2:** Pipeline board, pipeline cards, card components, badges, data tables, avatars
+  - Pages now use `--page-accent` CSS variable for accent colors
+  - Updated: sep.html, team.html, comms.html, implementation.html, index.html
+  - Removed ~250+ lines of duplicated CSS
+  - **Remaining (optional):** Responsive breakpoint consolidation, further component extraction
+
+### Deferred (Recommendations 9-11) - DO LATER
+
+- [x] **9. Sync Code.gs PAGES icons with navigation.html** - DONE: PAGES.icon values now match navigation.html exactly. Note: These icons are metadata only (not rendered from PAGES), kept in sync for documentation consistency.
+
+- [ ] **10. Add automated tests** - As documented in `docs/TESTING_STRATEGY.md`.
+
+- [ ] **11. SEP Pipeline toolbar cleanup** - The cycle selection dropdown, drag hint, and WS/TP legend look crowded. Consider: simplifying to icons-only, moving to a collapsed menu, or reducing visual weight.
+
+- [ ] **12. Systematic SPA navigation null checks** - Async callbacks (google.script.run handlers) can fire after user navigates away, causing "Cannot set properties of null" errors. Not critical (doesn't break functionality), but clutters console. Pattern: add `if (!element) return;` guards at start of render functions. Affected files: comms.html (partially fixed), potentially others. Consider a systematic audit of all `withSuccessHandler` callbacks.
+
+### Audit Summary (for reference)
+
+**Overall Grade: B+** - Solid architecture, good documentation, consistent patterns. Issues found are refinements, not blockers.
+
+**Strengths:**
+- Library/wrapper pattern correctly implemented
+- Config-driven (no hardcoded IDs)
+- Caching pattern used in most places
+- Documentation thorough and accurate
+
+**Risk Areas:**
+- XSS if untrusted data enters system
+- Performance without caching on some APIs (now fixed for solutions)
+- Code duplication in Code.gs
 
 ---
 

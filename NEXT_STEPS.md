@@ -1,7 +1,7 @@
 # Next Development Steps
 
-**Last Updated:** 2026-01-20
-**Current Version:** 2.0.0
+**Last Updated:** 2026-01-23
+**Current Version:** 2.1.1
 
 ---
 
@@ -64,7 +64,21 @@ See `docs/BUG_TRACKER.md` → "Quick Wins" section
 
 ---
 
-## Completed This Session (2026-01-18) - Report Exports, Comms-NSITE & Database Consolidation
+## Completed This Session (2026-01-22) - Solutions Schema v2
+
+- [x] **MO-DB_SOLUTIONS SCHEMA v2** - Major refactoring with semantic prefixes
+  - Reduced from 76 → 64 columns
+  - Added 9 semantic prefixes: `core_`, `funding_`, `admin_`, `team_`, `earthdata_`, `comms_`, `product_`, `milestone_`, `docs_`
+  - Merged `name` (colloquial) into `core_alternate_names`
+  - Added 5 new presentation URL columns for milestones
+  - Dropped 17 columns (status fields now derived from URL presence)
+  - Column names use underscores for JS dot notation compatibility
+  - Migration script: `scripts/solutions_schema_v2.py`
+  - Output: `MO-DB_Solutions_v2.xlsx`
+
+---
+
+## Completed Previous Session (2026-01-18) - Report Exports, Comms-NSITE & Database Consolidation
 
 - [x] **REPORT EXPORT TO GOOGLE SHEETS** (NEW)
   - All 6 reports now export to multi-tab Google Sheets with methodology documentation
@@ -387,7 +401,7 @@ MO-DB_Actions:
 | MO-DB_Milestones | Yes | `MO-Viewer Databases/` | 185 milestones | **NEW** |
 | MO-DB_Needs | Yes | `MO-Viewer Databases/` | 2,049 responses | **Populated** |
 | MO-DB_Outreach | Yes | `MO-Viewer Databases/` | Events | **Active** |
-| MO-DB_Solutions | Yes | `MO-Viewer Databases/` | 37 solutions (48 cols) | **Consolidated** |
+| MO-DB_Solutions | Yes | `MO-Viewer Databases/` | 48 solutions (64 cols) | **Schema v2** |
 | MO-DB_Stories | Yes | `MO-Viewer Databases/` | 38 stories | **NEW** |
 | MO-DB_Updates | Yes | `MO-Viewer Databases/` | -- | **Ready** |
 

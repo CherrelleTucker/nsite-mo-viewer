@@ -1,7 +1,7 @@
 # MO-Viewer Data Schema
 
-**Version:** 1.2.0
-**Date:** 2026-01-18
+**Version:** 2.1.0
+**Date:** 2026-01-23
 **Reference:** [ARCHITECTURE.md](../ARCHITECTURE.md)
 
 ---
@@ -68,79 +68,133 @@ This document defines the unified data schema for the MO-Viewer platform. The sc
 
 ## Table Definitions
 
-### 1. SOLUTIONS
+### 1. SOLUTIONS (MO-DB_Solutions)
+
+**Status: ACTIVE** - 48 rows, 64 columns (Schema v2)
 
 Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across lifecycle phases.
 
+**Schema v2** uses semantic prefixes for organization:
+
+#### core_ - Identity (6 columns)
 | Column | Type | Required | Description |
 |--------|------|----------|-------------|
-| `solution_id` | STRING | Yes | Primary key (e.g., "SOL_HLS", "SOL_OPERA") |
-| `name` | STRING | Yes | Solution display name (e.g., "HLS", "OPERA") |
-| `full_name` | STRING | No | Full solution name (e.g., "Harmonized Landsat Sentinel-2") |
-| `cycle` | STRING | Yes | Assessment cycle (C1, C2, C3, C4, C5, C6) |
-| `phase` | STRING | Yes | Lifecycle phase (see Phase enum) |
-| `provider` | STRING | No | Provider center (e.g., "MSFC", "GSFC", "JPL") |
-| `daac` | STRING | No | Assigned DAAC (e.g., "LP DAAC", "PO.DAAC") |
-| `ownership` | STRING | No | SEP ownership model (see Ownership enum) |
-| `sep_poc` | STRING | No | SEP Point of Contact name |
-| `status_text` | STRING | No | Current status summary (free text) |
-| `next_steps` | STRING | No | Next steps summary (free text) |
-| `source_doc` | STRING | No | Source document type ('internal' | 'sep') |
-| `source_tab` | STRING | No | Source document tab name (e.g., "01_13") |
-| `show_in_default` | STRING | No | Show in default selection ('Y' = yes, blank = no). Controls which solutions appear selected by default in Implementation-NSITE. |
-| `alternate_names` | STRING | No | Pipe-delimited list of alternate names for matching (e.g., "Harmonized Landsat Sentinel-2\|harmonized landsat\|HLS v2"). Used by sync scripts to match solution names in source documents. |
-| `atp_date` | DATE | No | Authority to Proceed Decision Gate date. Past = completed, future = planned. |
-| `f2i_date` | DATE | No | Formulation to Implementation Decision Gate date. Past = completed, future = planned. |
-| `orr_date` | DATE | No | Operational Readiness Review date. Past = completed, future = planned. |
-| `closeout_date` | DATE | No | Closeout Decision Gate date. Past = completed, future = planned. |
-| `project_plan` | STRING/DATE | No | Project Plan status. Empty = not started, "in_work" = in progress, date = completed. |
-| `science_sow` | STRING/DATE | No | Science SOW status. Empty = not started, "in_work" = in progress, date = completed. |
-| `ipa` | STRING/DATE | No | Interproject Agreement status. Empty = not started, "in_work" = in progress, date = completed. |
-| `icd` | STRING/DATE | No | Interface Control Document status. Empty = not started, "in_work" = in progress, date = completed. |
-| `tta` | STRING/DATE | No | Technical Task Agreement status. Empty = not started, "in_work" = in progress, date = completed. |
-| `atp_memo` | STRING/DATE | No | ATP Decision Gate Memo status. |
-| `f2i_memo` | STRING/DATE | No | F2I Decision Gate Memo status. |
-| `orr_memo` | STRING/DATE | No | ORR Decision Gate Memo status. |
-| `closeout_memo` | STRING/DATE | No | Closeout Decision Gate Memo status. |
-| | | | |
-| **Key Messages Columns** | | | |
-| `key_messages` | STRING | No | Core messaging points for communications |
-| `focus_type` | STRING | No | Primary focus area (e.g., "Climate", "Disasters", "Agriculture") |
-| `industry_connections` | STRING | No | Industry partners and connections |
-| `scientific_advancement` | STRING | No | Key scientific contributions |
-| `agency_use_impact` | STRING | No | How agencies use this solution and its impact |
-| `public_comms_links` | STRING | No | Links to public communications (press releases, etc.) |
-| | | | |
-| `last_updated` | DATE | Yes | Last update timestamp |
-| `created_at` | DATE | Yes | Record creation timestamp |
+| `core_id` | STRING | Yes | Primary key (e.g., "hls", "opera") |
+| `core_official_name` | STRING | Yes | Full official name (e.g., "Harmonized Landsat Sentinel-2") |
+| `core_alternate_names` | STRING | No | Pipe-delimited alternate names including colloquial (e.g., "HLS \| harmonized landsat") |
+| `core_group` | STRING | No | Solution group for categorization |
+| `core_cycle` | STRING | Yes | Assessment cycle (C1, C2, C3, C4, C5, C6) |
+| `core_cycle_year` | INTEGER | No | Year of cycle (e.g., 2016, 2024) |
+
+#### funding_ - Funding Fields (3 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `funding_status` | STRING | Yes | Funding status (Funded, Unfunded, Pending) |
+| `funding_period` | STRING | No | Funding period description |
+| `funding_type` | STRING | No | Funding type (ISON, etc.) |
+
+#### admin_ - Administrative (6 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `admin_lifecycle_phase` | STRING | Yes | Phase (Preformulation, Formulation, Implementation, Operations, Closeout) |
+| `admin_default_in_dashboard` | BOOLEAN | No | Show in default selection |
+| `admin_row_last_updated` | DATE | Yes | Last update timestamp |
+| `admin_drive_folder` | STRING | No | Google Drive folder URL |
+| `admin_solution_notes` | STRING | No | Internal notes |
+| `admin_additional_resources` | STRING | No | Additional resource links |
+
+#### team_ - Team Contacts (7 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `team_lead` | STRING | No | Solution lead name |
+| `team_lead_affiliation` | STRING | No | Lead's organization |
+| `team_ra_rep` | STRING | No | RA Representative name |
+| `team_ra_rep_affiliation` | STRING | No | RA Rep's organization |
+| `team_ea_advocate` | STRING | No | Earth Action Advocate name |
+| `team_ea_affiliation` | STRING | No | EA Advocate's organization |
+| `team_stakeholder_list_url` | STRING | No | URL to stakeholder list spreadsheet |
+
+#### earthdata_ - Earthdata.nasa.gov Content (6 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `earthdata_purpose` | STRING | No | Purpose/mission from earthdata page |
+| `earthdata_background` | STRING | No | Background description |
+| `earthdata_societal_impact` | STRING | No | Societal impact statement |
+| `earthdata_status_summary` | STRING | No | Current status summary |
+| `earthdata_solution_page_url` | STRING | No | URL to earthdata.nasa.gov solution page |
+| `earthdata_last_sync` | DATE | No | Last sync timestamp from earthdata |
+
+#### comms_ - Communications Fields (7 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `comms_key_messages` | STRING | No | Core messaging points |
+| `comms_focus_type` | STRING | No | Primary focus area (Climate, Disasters, etc.) |
+| `comms_thematic_areas` | STRING | No | Thematic areas covered |
+| `comms_industry` | STRING | No | Industry connections |
+| `comms_science` | STRING | No | Scientific advancement contributions |
+| `comms_agency_impact` | STRING | No | Agency use and impact |
+| `comms_public_links` | STRING | No | Links to public communications |
+
+#### product_ - Technical Specifications (6 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `product_platform` | STRING | No | Platform/sensor (e.g., "Landsat 8/9, Sentinel-2") |
+| `product_temporal_freq` | STRING | No | Temporal frequency (e.g., "2-3 days") |
+| `product_horiz_resolution` | STRING | No | Horizontal resolution (e.g., "30m") |
+| `product_geo_domain` | STRING | No | Geographic domain (Global, CONUS, etc.) |
+| `product_assigned_daac` | STRING | No | Assigned DAAC (LP DAAC, PO.DAAC, etc.) |
+| `product_data_products` | STRING | No | URL to data products table |
+
+#### milestone_ - Decision Gates (16 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `milestone_jpl_milestones` | BOOLEAN | No | Uses JPL milestone system |
+| `milestone_atp_date` | DATE | No | ATP Decision Gate date |
+| `milestone_atp_presentation_url` | STRING | No | ATP presentation URL |
+| `milestone_atp_memo_url` | STRING | No | ATP memo URL |
+| `milestone_f2i_date` | DATE | No | F2I Decision Gate date |
+| `milestone_f2i_presentation_url` | STRING | No | F2I presentation URL |
+| `milestone_f2i_memo_url` | STRING | No | F2I memo URL |
+| `milestone_orr_date` | DATE | No | ORR date |
+| `milestone_orr_presentation_url` | STRING | No | ORR presentation URL |
+| `milestone_orr_memo_url` | STRING | No | ORR memo URL |
+| `milestone_closeout_date` | DATE | No | Closeout date |
+| `milestone_closeout_presentation_url` | STRING | No | Closeout presentation URL |
+| `milestone_closeout_memo_url` | STRING | No | Closeout memo URL |
+| `milestone_deep_dive_date` | DATE | No | Deep dive date |
+| `milestone_deep_dive_presentation_url` | STRING | No | Deep dive presentation URL |
+| `milestone_deep_dive_url` | STRING | No | Deep dive URL |
+
+#### docs_ - Key Documents (7 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `docs_project_plan` | STRING | No | Project Plan URL (status derived from presence) |
+| `docs_science_sow` | STRING | No | Science SOW URL |
+| `docs_ipa` | STRING | No | IPA URL |
+| `docs_icd` | STRING | No | ICD URL |
+| `docs_tta` | STRING | No | TTA URL |
+| `docs_fact_sheet` | STRING | No | Fact sheet URL |
+| `docs_risk_register` | STRING | No | Risk register URL |
 
 **Indexes:**
-- Primary: `solution_id`
-- Secondary: `cycle`, `phase`, `provider`
+- Primary: `core_id`
+- Secondary: `core_cycle`, `admin_lifecycle_phase`, `product_assigned_daac`
 
 **Example:**
 ```json
 {
-  "solution_id": "SOL_HLS",
-  "name": "HLS",
-  "full_name": "Harmonized Landsat Sentinel-2",
-  "cycle": "C1",
-  "phase": "Operations",
-  "provider": "MSFC",
-  "daac": "LP DAAC",
-  "ownership": "SEP-Directed",
-  "sep_poc": "Pontus",
-  "status_text": "Product operations ongoing. Version 2.0 in development.",
-  "next_steps": "Schedule deep dive for Q2",
-  "source_doc": "internal",
-  "source_tab": "01_13",
-  "show_in_default": "Y",
-  "atp_date": "2024-03-15",
-  "f2i_date": "2024-09-01",
-  "orr_date": "2025-01-15",
-  "closeout_date": "",
-  "last_updated": "2026-01-14",
-  "created_at": "2024-01-15"
+  "core_id": "hls",
+  "core_official_name": "Harmonized Landsat Sentinel-2",
+  "core_alternate_names": "HLS | harmonized landsat",
+  "core_cycle": "C1",
+  "core_cycle_year": 2016,
+  "admin_lifecycle_phase": "Operations",
+  "admin_default_in_dashboard": true,
+  "product_assigned_daac": "LP DAAC",
+  "milestone_atp_date": "2024-03-15",
+  "milestone_f2i_date": "2024-09-01",
+  "docs_project_plan": "https://drive.google.com/...",
+  "admin_row_last_updated": "2026-01-22"
 }
 ```
 
@@ -163,7 +217,7 @@ Primary contact database for the Contacts Directory. One row per contact-solutio
 | `department` | STRING | No | Standardized department name |
 | `agency` | STRING | No | Agency/bureau |
 | `organization` | STRING | No | Organization name |
-| `solution` | STRING | No | Solution name (denormalized) |
+| `solution_id` | STRING | No | Solution ID (core_id from Solutions DB, validated via _Lookups) |
 | `role` | STRING | No | Role in solution (Primary SME, Secondary SME, Survey Submitter, etc.) |
 | `survey_year` | INTEGER | No | Year of survey participation (2016-2024) |
 | `need_id` | STRING | No | Linked need identifier |
@@ -180,7 +234,7 @@ Primary contact database for the Contacts Directory. One row per contact-solutio
 
 **Indexes:**
 - Primary: `contact_id`
-- Secondary: `email`, `solution`, `role`, `department`, `survey_year`, `is_internal`
+- Secondary: `email`, `solution_id`, `role`, `department`, `survey_year`, `is_internal`
 
 **Data Source:** Extracted from 47 stakeholder Excel files in `DB-Solution Stakeholder Lists/`
 
@@ -196,7 +250,7 @@ Primary contact database for the Contacts Directory. One row per contact-solutio
   "department": "Department of the Interior",
   "agency": "USGS",
   "organization": "",
-  "solution": "HLS",
+  "solution_id": "hls",
   "role": "Primary SME",
   "survey_year": 2022,
   "need_id": "",
@@ -326,7 +380,7 @@ Primary table for Comms-Viewer. Tracks communications pipeline from idea to publ
 {
   "story_id": "STORY_001",
   "title": "HLS Enables Global Agriculture Monitoring",
-  "solution_id": "SOL_HLS",
+  "solution_id": "hls",
   "status": "draft",
   "channel": "web",
   "priority": "high",
@@ -370,7 +424,7 @@ Tracks date-based milestones for solutions. Linked to SOLUTIONS table.
 ```json
 {
   "milestone_id": "MS_HLS_F2I",
-  "solution_id": "SOL_HLS",
+  "solution_id": "hls",
   "type": "F2I",
   "target_date": "2025-01-15",
   "actual_date": "2025-01-15",
@@ -411,7 +465,7 @@ Tracks action items from all source documents.
 {
   "action_id": "ACT_001",
   "description": "Schedule HLS deep dive for Q2",
-  "solution_id": "SOL_HLS",
+  "solution_id": "hls",
   "owner": "John Smith",
   "status": "open",
   "priority": "medium",
@@ -479,7 +533,7 @@ Many-to-many relationship between solutions and stakeholders.
 **Example:**
 ```json
 {
-  "solution_id": "SOL_HLS",
+  "solution_id": "hls",
   "stakeholder_id": "STK_001",
   "relationship_type": "primary",
   "created_at": "2025-06-01"
@@ -641,7 +695,47 @@ Glossary of terms, acronyms, and definitions used across NSITE MO.
 
 ---
 
-### 12. CONFIG (MO-DB_Config)
+### 12. KUDOS (MO-DB_Kudos)
+
+**Status: ACTIVE** - Team Viewer / Peer Recognition
+
+Peer recognition system for the MO team. Feeds into quarterly report staff recognition suggestions. Optionally posts to Slack #odsi-kudos channel.
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `kudos_id` | STRING | Yes | Primary key (e.g., "KUDOS_1706000000000") |
+| `from_name` | STRING | Yes | Name of person giving kudos |
+| `to_name` | STRING | Yes | Name of person receiving kudos |
+| `message` | STRING | Yes | Recognition message (max 280 chars) |
+| `category` | STRING | Yes | Category (see KudosCategory enum) |
+| `created_at` | DATE | Yes | Timestamp when kudos was submitted |
+| `quarter` | STRING | Yes | Fiscal quarter (e.g., "Q1 FY26") |
+| `slack_posted` | BOOLEAN | No | Whether kudos was posted to Slack |
+
+**Indexes:**
+- Primary: `kudos_id`
+- Secondary: `to_name`, `quarter`, `category`
+
+**Slack Integration:**
+Add `SLACK_KUDOS_WEBHOOK_URL` to MO-DB_Config with an incoming webhook URL for your #odsi-kudos channel.
+
+**Example:**
+```json
+{
+  "kudos_id": "KUDOS_1706000000000",
+  "from_name": "Jane Smith",
+  "to_name": "Bob Johnson",
+  "message": "Thanks for staying late to help debug the stakeholder sync issue. Your persistence saved the day!",
+  "category": "above_and_beyond",
+  "created_at": "2026-01-22T15:30:00Z",
+  "quarter": "Q2 FY26",
+  "slack_posted": true
+}
+```
+
+---
+
+### 13. CONFIG (MO-DB_Config)
 
 **Status: ACTIVE** - System Configuration
 
@@ -659,10 +753,11 @@ Central configuration store for all document IDs, sheet IDs, and system settings
 | Category | Keys |
 |----------|------|
 | **Database Sheets** | SOLUTIONS_SHEET_ID, CONTACTS_SHEET_ID, NEEDS_SHEET_ID, AGENCIES_SHEET_ID, ENGAGEMENTS_SHEET_ID, UPDATES_SHEET_ID, ACTIONS_SHEET_ID, STORIES_SHEET_ID, OUTREACH_SHEET_ID |
-| **Team Sheets** | AVAILABILITY_SHEET_ID, MEETINGS_SHEET_ID, GLOSSARY_SHEET_ID |
+| **Team Sheets** | AVAILABILITY_SHEET_ID, MEETINGS_SHEET_ID, GLOSSARY_SHEET_ID, KUDOS_SHEET_ID |
 | **Source Documents** | INTERNAL_AGENDA_ID, SEP_AGENDA_ID, OPERA_MONTHLY_ID, PBL_MONTHLY_ID |
 | **Folders** | MONTHLY_FOLDER_ID |
 | **Directing Documents** | MO_PROJECT_PLAN_DOC_ID, HQ_PROJECT_PLAN_DOC_ID, SEP_PLAN_DOC_ID, SEP_BLUEPRINT_DOC_ID, COMMS_PLAN_DOC_ID, STYLE_GUIDE_DOC_ID, ASSESSEMENT_PROCESS_DOC_ID, ASSESSEMENT_CHEATSHEET_DOC_ID, MO_RISK_REGISTER_DOC_ID, INFO_MANAGEMENT_PLAN_DOC_ID, etc. |
+| **Integrations** | SLACK_KUDOS_WEBHOOK_URL |
 | **System** | API_LIBRARY_ID, ACCESS_FILE_ID |
 
 **Example:**
@@ -771,6 +866,19 @@ MO | Assessment | SEP | Comms | Implementation | Operations | Ad Hoc
 ```
 Planning | Working | Brainstorm | Status/Sync | Review | Training
 ```
+
+### KudosCategory
+```
+teamwork | innovation | above_and_beyond | mentorship | delivery
+```
+
+| Code | Name | Description | Icon |
+|------|------|-------------|------|
+| teamwork | Teamwork | Collaboration and helping others | group |
+| innovation | Innovation | Creative solutions and new ideas | lightbulb |
+| above_and_beyond | Above & Beyond | Going the extra mile | star |
+| mentorship | Mentorship | Teaching and guiding others | school |
+| delivery | Delivery | Getting things done, meeting deadlines | check_circle |
 
 ---
 
@@ -1093,6 +1201,7 @@ The original SolutionFlow schema maps to this unified schema:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.0.0 | 2026-01-22 | **SOLUTIONS Schema v2**: Refactored with 9 semantic prefixes (core_, funding_, admin_, team_, earthdata_, comms_, product_, milestone_, docs_). Reduced from 76 to 64 columns. Added presentation URLs for milestones. Column names use underscores for JS compatibility. |
 | 1.1.0 | 2026-01-18 | Added Team Viewer tables: AVAILABILITY, MEETINGS, GLOSSARY, CONFIG. Added new enumerations for availability and meeting types. |
 | 1.0.1 | 2026-01-17 | Added Data Sources section with Monthly Meeting Presentations sync documentation |
 | 1.0.0 | 2026-01-14 | Initial schema definition |

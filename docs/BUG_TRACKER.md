@@ -177,7 +177,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 ### Contact Detail
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
-| SEP-018 | No way to update touchpoint/engagement/dates from UI | P1 | [ ] | Major missing feature |
+| SEP-018 | No way to update touchpoint/engagement/dates from UI | P1 | [x] | **FIXED** - SEP milestone editor in pipeline view |
 | SEP-019 | Email link fails if email field empty | P2 | [ ] | Add guard clause |
 
 ### Missing Features
