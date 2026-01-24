@@ -29,28 +29,28 @@ function generateQuickLookData(options) {
     // Apply filters
     if (options.cycle) {
       solutions = solutions.filter(function(s) {
-        return String(s.cycle) === String(options.cycle);
+        return String(s.core_cycle) === String(options.cycle);
       });
     }
 
     if (options.phase) {
       solutions = solutions.filter(function(s) {
-        return (s.phase || '').toLowerCase().indexOf(options.phase.toLowerCase()) !== -1;
+        return (s.admin_lifecycle_phase || '').toLowerCase().indexOf(options.phase.toLowerCase()) !== -1;
       });
     }
 
     if (options.defaultOnly) {
       solutions = solutions.filter(function(s) {
-        return s.show_in_default === 'Y';
+        return s.admin_default_in_dashboard === 'Y';
       });
     }
 
-    // Sort by cycle then name
+    // Sort by cycle then ID
     solutions.sort(function(a, b) {
-      var cycleA = parseInt(a.cycle) || 99;
-      var cycleB = parseInt(b.cycle) || 99;
+      var cycleA = parseInt(a.core_cycle) || 99;
+      var cycleB = parseInt(b.core_cycle) || 99;
       if (cycleA !== cycleB) return cycleA - cycleB;
-      return (a.name || '').localeCompare(b.name || '');
+      return (a.core_id || '').localeCompare(b.core_id || '');
     });
 
     // Define headers matching Quick Look format
@@ -71,17 +71,17 @@ function generateQuickLookData(options) {
     // Build rows
     var rows = solutions.map(function(sol) {
       return [
-        sol.name || sol.solution_id || '',
-        'C' + (sol.cycle || '?'),
-        sol.phase || '',
-        formatMilestoneDate(sol.atp_date),
-        formatMilestoneDate(sol.f2i_date),
-        formatMilestoneDate(sol.orr_date),
-        formatMilestoneDate(sol.closeout_date),
-        formatDocStatus(sol.atp_memo),
-        formatDocStatus(sol.f2i_memo),
-        formatDocStatus(sol.orr_memo),
-        formatDocStatus(sol.closeout_memo)
+        sol.core_id || '',
+        'C' + (sol.core_cycle || '?'),
+        sol.admin_lifecycle_phase || '',
+        formatMilestoneDate(sol.milestone_atp_date),
+        formatMilestoneDate(sol.milestone_f2i_date),
+        formatMilestoneDate(sol.milestone_orr_date),
+        formatMilestoneDate(sol.milestone_closeout_date),
+        formatDocStatus(sol.milestone_atp_memo_url),
+        formatDocStatus(sol.milestone_f2i_memo_url),
+        formatDocStatus(sol.milestone_orr_memo_url),
+        formatDocStatus(sol.milestone_closeout_memo_url)
       ];
     });
 
@@ -130,27 +130,18 @@ function formatMilestoneDate(date) {
 
 /**
  * Format document status for display
- * @param {string|Date} status - Status value (empty, "in_work", or date)
+ * In schema v2, status is derived from URL presence
+ * @param {string} url - Document URL (empty = not started, has URL = complete)
  * @returns {string} Formatted status
  */
-function formatDocStatus(status) {
-  if (!status) return '—';
+function formatDocStatus(url) {
+  if (!url) return '—';
 
-  var s = String(status).toLowerCase().trim();
+  var s = String(url).trim();
+  if (!s || s === 'nan' || s === 'NaN') return '—';
 
-  if (s === 'in_work' || s === 'in work' || s === 'in progress') {
-    return 'In Work';
-  }
-
-  // Try to parse as date
-  try {
-    var d = new Date(status);
-    if (!isNaN(d.getTime())) {
-      return formatDate_(d) + ' ✓';
-    }
-  } catch (e) {}
-
-  return status;
+  // Has URL = complete
+  return 'Complete ✓';
 }
 
 /**
@@ -367,13 +358,13 @@ function generateDetailedMilestoneReport(options) {
   // Apply same filters
   if (options.cycle) {
     solutions = solutions.filter(function(s) {
-      return String(s.cycle) === String(options.cycle);
+      return String(s.core_cycle) === String(options.cycle);
     });
   }
 
   if (options.defaultOnly) {
     solutions = solutions.filter(function(s) {
-      return s.show_in_default === 'Y';
+      return s.admin_default_in_dashboard === 'Y';
     });
   }
 
@@ -387,21 +378,20 @@ function generateDetailedMilestoneReport(options) {
     milestonesOverdue: 0,
     milestonesCompleted: 0,
     documentsComplete: 0,
-    documentsInWork: 0,
     documentsNotStarted: 0
   };
 
   solutions.forEach(function(sol) {
     // Phase counts
-    var phase = sol.phase || 'Unknown';
+    var phase = sol.admin_lifecycle_phase || 'Unknown';
     stats.byPhase[phase] = (stats.byPhase[phase] || 0) + 1;
 
     // Cycle counts
-    var cycle = 'C' + (sol.cycle || '?');
+    var cycle = 'C' + (sol.core_cycle || '?');
     stats.byCycle[cycle] = (stats.byCycle[cycle] || 0) + 1;
 
     // Milestone analysis
-    var milestones = [sol.atp_date, sol.f2i_date, sol.orr_date, sol.closeout_date];
+    var milestones = [sol.milestone_atp_date, sol.milestone_f2i_date, sol.milestone_orr_date, sol.milestone_closeout_date];
     milestones.forEach(function(ms) {
       if (ms) {
         var msDate = new Date(ms);
@@ -418,14 +408,12 @@ function generateDetailedMilestoneReport(options) {
       }
     });
 
-    // Document analysis
-    var docs = [sol.atp_memo, sol.f2i_memo, sol.orr_memo, sol.closeout_memo,
-                sol.project_plan, sol.science_sow, sol.ipa, sol.icd, sol.tta];
+    // Document analysis (v2: status derived from URL presence)
+    var docs = [sol.milestone_atp_memo_url, sol.milestone_f2i_memo_url, sol.milestone_orr_memo_url, sol.milestone_closeout_memo_url,
+                sol.docs_project_plan, sol.docs_science_sow, sol.docs_ipa, sol.docs_icd, sol.docs_tta];
     docs.forEach(function(doc) {
-      if (!doc) {
+      if (!doc || String(doc).trim() === '' || String(doc).toLowerCase() === 'nan') {
         stats.documentsNotStarted++;
-      } else if (String(doc).toLowerCase() === 'in_work' || String(doc).toLowerCase() === 'in work') {
-        stats.documentsInWork++;
       } else {
         stats.documentsComplete++;
       }
@@ -521,7 +509,6 @@ function exportDetailedMilestonesToSheet(options) {
     statsData.push(['', '']);
     statsData.push(['DOCUMENT STATUS', '']);
     statsData.push(['Documents Complete', report.stats.documentsComplete]);
-    statsData.push(['Documents In Work', report.stats.documentsInWork]);
     statsData.push(['Documents Not Started', report.stats.documentsNotStarted]);
 
     statsSheet.getRange(1, 1, statsData.length, 2).setValues(statsData);
@@ -548,12 +535,12 @@ function exportDetailedMilestonesToSheet(options) {
       ['   Source:', solutionsSheetUrl || 'Contact MO team for access'],
       ['   Description:', 'Master solution database maintained by MO team'],
       ['', ''],
-      ['   Key Fields Used:', ''],
-      ['   - name/solution_id: Solution identifier', ''],
-      ['   - cycle: Project cycle (1-5)', ''],
-      ['   - phase: Current lifecycle phase', ''],
-      ['   - atp_date, f2i_date, orr_date, closeout_date: Milestone dates', ''],
-      ['   - atp_memo, f2i_memo, orr_memo, closeout_memo: Document status', ''],
+      ['   Key Fields Used (Schema v2):', ''],
+      ['   - core_id: Solution identifier', ''],
+      ['   - core_cycle: Project cycle (1-6)', ''],
+      ['   - admin_lifecycle_phase: Current lifecycle phase', ''],
+      ['   - milestone_atp_date, milestone_f2i_date, etc.: Milestone dates', ''],
+      ['   - milestone_atp_memo_url, milestone_f2i_memo_url, etc.: Memo URLs', ''],
       ['', ''],
       ['═══════════════════════════════════════════════════════════════════════', ''],
       ['MILESTONE DATE INTERPRETATION', ''],
@@ -573,9 +560,8 @@ function exportDetailedMilestonesToSheet(options) {
       ['DOCUMENT STATUS INTERPRETATION', ''],
       ['═══════════════════════════════════════════════════════════════════════', ''],
       ['', ''],
-      ['Date with ✓:', 'Document completed on that date'],
-      ['In Work:', 'Document is being prepared'],
-      ['— (dash):', 'Document not started or not applicable'],
+      ['Complete ✓:', 'Document URL exists (available)'],
+      ['— (dash):', 'Document not yet available'],
       ['', ''],
       ['═══════════════════════════════════════════════════════════════════════', ''],
       ['STATISTICS CALCULATIONS', ''],
@@ -583,8 +569,7 @@ function exportDetailedMilestonesToSheet(options) {
       ['', ''],
       ['Milestones Completed:', 'Count of milestone dates in the past'],
       ['Upcoming (90 days):', 'Milestones with dates within next 90 days'],
-      ['Documents Complete:', 'Fields with completion dates'],
-      ['Documents In Work:', 'Fields marked "in_work" or "in work"'],
+      ['Documents Complete:', 'Fields with URLs (status derived from URL presence)'],
       ['Documents Not Started:', 'Empty document fields'],
       ['', ''],
       ['═══════════════════════════════════════════════════════════════════════', ''],

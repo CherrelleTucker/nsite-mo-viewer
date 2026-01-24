@@ -69,6 +69,10 @@ function clearSolutionNameMapCache() {
   return MoApi.clearSolutionNameMapCache();
 }
 
+function clearSolutionsCache() {
+  return MoApi.clearSolutionsCache();
+}
+
 // Key Messages Functions
 function getKeyMessages(solutionId) {
   return MoApi.getKeyMessages(solutionId);

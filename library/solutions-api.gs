@@ -29,10 +29,27 @@
 // ============================================================================
 
 /**
+ * Cache for solutions data (refreshed per execution)
+ */
+var _solutionsCache = null;
+
+/**
+ * Clear solutions cache (call after mutations)
+ */
+function clearSolutionsCache() {
+  _solutionsCache = null;
+}
+
+/**
  * Get all solutions from MO-DB_Solutions
  * @returns {Object[]} Array of solution objects
  */
 function getAllSolutions() {
+  // Return cached data if available
+  if (_solutionsCache !== null) {
+    return JSON.parse(JSON.stringify(_solutionsCache));
+  }
+
   try {
     var sheetId = getConfigValue('SOLUTIONS_SHEET_ID');
 
@@ -73,7 +90,9 @@ function getAllSolutions() {
       return (a.core_id || '').localeCompare(b.core_id || '');
     });
 
-    return solutions;
+    // Cache the results
+    _solutionsCache = solutions;
+    return JSON.parse(JSON.stringify(solutions));
   } catch (e) {
     Logger.log('Error reading solutions: ' + e.message);
     return getSampleSolutions();

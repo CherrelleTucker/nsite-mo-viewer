@@ -93,55 +93,86 @@ function getAllNeeds() {
 /**
  * Match solution from MO-DB_Solutions to needs in MO-DB_Needs
  *
- * MO-DB_Solutions uses:
- *   - solution_id: Primary identifier (e.g., "HLS", "OPERA DIST")
- *   - name: Common name for meetings (e.g., "HLS")
- *   - full_title: Formal government name
+ * Primary matching: need.core_id === solution.core_id (direct match)
+ * Fallback matching: Parse solution name from parentheses or text patterns
  *
- * MO-DB_Needs has solution column with full names from stakeholder files:
- *   - "Harmonized Landsat and Sentinel-2 (HLS)"
- *   - "OPERA Surface Disturbance (DIST) Product"
+ * MO-DB_Solutions uses (Schema v2):
+ *   - core_id: Primary identifier (e.g., "hls", "opera-dist")
  *
- * Matching priority:
- *   1. solution_id in parentheses: "(HLS)" at end of needs solution
- *   2. solution_id exact match
- *   3. solution_id substring match (min 3 chars)
- *   4. name-based matching as fallback
+ * MO-DB_Needs should have:
+ *   - core_id: Foreign key to MO-DB_Solutions (e.g., "hls")
+ *   - solution: Full survey name for display
  */
 function matchSolutionToNeeds_(solution, allNeeds) {
   // Support both object and string input
-  var solId, solName;
+  var solId, solName, altNames;
   if (typeof solution === 'object') {
-    solId = (solution.solution_id || '').toLowerCase().trim();
-    solName = (solution.name || '').toLowerCase().trim();
+    solId = (solution.core_id || '').toLowerCase().trim();
+    solName = (solution.core_id || '').toLowerCase().trim();
+    // Get alternate names from solution if available
+    altNames = (solution.core_alternate_names || '').toLowerCase().split('|').map(function(n) { return n.trim(); }).filter(function(n) { return n; });
   } else {
     solId = (solution || '').toLowerCase().trim();
     solName = solId;
+    altNames = [];
   }
 
   if (!solId && !solName) return [];
 
   return allNeeds.filter(function(need) {
+    // PRIMARY: Direct core_id match (preferred method)
+    var needCoreId = (need.core_id || '').toLowerCase().trim();
+    if (needCoreId && solId && needCoreId === solId) return true;
+
+    // FALLBACK: Parse solution name if core_id not set
     var needSol = (need.solution || '').toLowerCase().trim();
     if (!needSol) return false;
 
-    // 1. solution_id appears in parentheses: "Something (HLS)" matches solution_id "HLS"
-    if (solId) {
-      var parenMatch = needSol.match(/\(([^)]+)\)\s*$/);
-      if (parenMatch && parenMatch[1].toLowerCase() === solId) return true;
+    // Extract abbreviation from parentheses: "Something (HLS) Product" -> "hls"
+    // Look for short uppercase abbreviations in parentheses (2-10 chars)
+    var parenMatch = needSol.match(/\(([a-z0-9][-a-z0-9]{1,9})\)/i);
+    var needAbbrev = parenMatch ? parenMatch[1].toLowerCase().trim() : null;
+
+    // 1. EXACT match on parenthesized abbreviation
+    // "(HLS)" matches core_id "hls" exactly
+    if (needAbbrev && solId && needAbbrev === solId) return true;
+
+    // 2. core_id ends with the abbreviation (handles "opera_dist" matching "(DIST)")
+    if (needAbbrev && solId) {
+      // Check if solId ends with _abbrev or -abbrev
+      if (solId.endsWith('_' + needAbbrev) || solId.endsWith('-' + needAbbrev)) return true;
+      // Check normalized versions (remove separators)
+      var solIdNormalized = solId.replace(/[-_]/g, '');
+      var abbrevNormalized = needAbbrev.replace(/[-_]/g, '');
+      if (abbrevNormalized === solIdNormalized) return true;
+      // Check if normalized solId ends with normalized abbrev
+      if (solIdNormalized.endsWith(abbrevNormalized)) return true;
     }
 
-    // 2. Exact match on solution_id
-    if (solId && needSol === solId) return true;
-
-    // 3. solution_id substring match (min 3 chars to avoid false positives)
-    if (solId && solId.length >= 3 && needSol.indexOf(solId) !== -1) return true;
-
-    // 4. Name-based matching as fallback
-    if (solName && solName !== solId) {
-      if (needSol === solName) return true;
-      if (solName.length >= 3 && needSol.indexOf(solName) !== -1) return true;
+    // 3. Check core_alternate_names from MO-DB_Solutions (explicit mappings)
+    for (var i = 0; i < altNames.length; i++) {
+      var alt = altNames[i];
+      if (!alt) continue;
+      // Exact match on alternate name
+      if (needSol === alt) return true;
+      // Abbreviation matches alternate name
+      if (needAbbrev && needAbbrev === alt) return true;
+      // Need's solution contains the alternate name (for longer alt names)
+      if (alt.length >= 8 && needSol.indexOf(alt) !== -1) return true;
     }
+
+    // 4. Exact match on full solution name
+    if (solName && needSol === solName) return true;
+
+    // 5. Full name match (solution name appears in need's solution)
+    // Require exact word match or long enough to be specific
+    if (solName && solName.length >= 10) {
+      if (needSol.indexOf(solName) !== -1) return true;
+    }
+
+    // 6. core_id match in need's solution text (only for very specific IDs)
+    // e.g., "global-et" (9 chars) appearing in the need's solution text
+    if (solId && solId.length >= 8 && needSol.indexOf(solId) !== -1) return true;
 
     return false;
   });
@@ -180,13 +211,13 @@ function generateNeedAlignmentReport(options) {
     // Apply filters
     if (options.cycle) {
       solutions = solutions.filter(function(s) {
-        return String(s.cycle) === String(options.cycle);
+        return String(s.core_cycle) === String(options.cycle);
       });
     }
 
     if (options.defaultOnly) {
       solutions = solutions.filter(function(s) {
-        return s.show_in_default === 'Y';
+        return s.admin_default_in_dashboard === 'Y';
       });
     }
 
@@ -194,20 +225,27 @@ function generateNeedAlignmentReport(options) {
 
     // Build alignment data for each solution
     var alignments = solutions.map(function(sol) {
-      // Use solution_id as primary identifier, name for display
-      var solId = sol.solution_id || '';
-      var solName = sol.name || solId;
+      // Use core_id as primary identifier
+      var solId = sol.core_id || '';
+      var solName = solId;
 
-      // Get needs for this solution using solution_id-based matching
+      // Get needs for this solution using core_id-based matching
       var solutionNeeds = matchSolutionToNeeds_(sol, allNeeds);
+
+      // Debug: log matching results
+      Logger.log('Solution "' + solId + '" (' + solName + ') matched ' + solutionNeeds.length + ' needs');
+      if (solutionNeeds.length > 0) {
+        var sampleSolutions = solutionNeeds.slice(0, 3).map(function(n) { return n.solution || 'no solution'; });
+        Logger.log('  Sample need.solution values: ' + sampleSolutions.join(', '));
+      }
 
       // Solution characteristics (what it delivers)
       var solutionProvides = {
-        horizontal_resolution: sol.horizontal_resolution || '',
-        temporal_frequency: sol.temporal_frequency || '',
-        geographic_domain: sol.geographic_domain || '',
-        platform: sol.platform || '',
-        thematic_areas: sol.thematic_areas || ''
+        horizontal_resolution: sol.product_horiz_resolution || '',
+        temporal_frequency: sol.product_temporal_freq || '',
+        geographic_domain: sol.product_geo_domain || '',
+        platform: sol.product_platform || '',
+        thematic_areas: sol.comms_thematic_areas || ''
       };
 
       // Aggregate stakeholder needs
@@ -218,14 +256,15 @@ function generateNeedAlignmentReport(options) {
 
       return {
         solution_id: solId,
-        solution: solName,  // Display name
-        fullName: sol.full_title || '',
-        cycle: 'C' + (sol.cycle || '?'),
-        phase: sol.phase || '',
+        solution: solName,  // core_id
+        officialName: sol.core_official_name || solId.toUpperCase(),  // Display name
+        fullName: sol.core_official_name || '',  // Keep for backwards compat
+        cycle: 'C' + (sol.core_cycle || '?'),
+        phase: sol.admin_lifecycle_phase || '',
 
         // What the solution provides
         solutionProvides: solutionProvides,
-        purpose: sol.purpose_mission || sol.status_text || '',
+        purpose: sol.earthdata_purpose || sol.earthdata_status_summary || '',
 
         // What stakeholders need (aggregated from surveys)
         stakeholderNeeds: {
@@ -688,10 +727,10 @@ function generateStakeholderCoverageReport(options) {
     // Identify coverage gaps
     var solutionCoverage = {};
     solutions.forEach(function(s) {
-      solutionCoverage[s.name] = {
-        solution: s.name,
-        cycle: s.cycle,
-        phase: s.phase,
+      solutionCoverage[s.core_id] = {
+        solution: s.core_id,
+        cycle: s.core_cycle,
+        phase: s.admin_lifecycle_phase,
         departments: [],
         contactCount: 0
       };
@@ -832,7 +871,7 @@ function generateEngagementFunnelReport(options) {
 
     solutions.forEach(function(sol) {
       var solContacts = contacts.filter(function(c) {
-        return c.solution === sol.name;
+        return c.solution === sol.core_id;
       });
 
       var hasPrimarySME = solContacts.some(function(c) {
@@ -841,9 +880,9 @@ function generateEngagementFunnelReport(options) {
 
       if (!hasPrimarySME && solContacts.length > 0) {
         solutionsNeedingSMEs.push({
-          solution: sol.name,
-          cycle: sol.cycle,
-          phase: sol.phase,
+          solution: sol.core_id,
+          cycle: sol.core_cycle,
+          phase: sol.admin_lifecycle_phase,
           submitterCount: solContacts.filter(function(c) {
             return c.role === 'Survey Submitter';
           }).length
@@ -910,11 +949,11 @@ function generateDepartmentReachReport(options) {
     var matrix = {};
 
     solutions.forEach(function(sol) {
-      matrix[sol.name] = {
-        solution: sol.name,
-        fullName: sol.full_name || '',
-        cycle: 'C' + (sol.cycle || '?'),
-        phase: sol.phase || '',
+      matrix[sol.core_id] = {
+        solution: sol.core_id,
+        fullName: sol.core_official_name || '',
+        cycle: 'C' + (sol.core_cycle || '?'),
+        phase: sol.admin_lifecycle_phase || '',
         departments: {},
         agencies: {},
         totalContacts: 0
@@ -1042,29 +1081,29 @@ function getSolutionContent_() {
   }
 
   // Fallback: Build content map from MO-DB_Solutions database
-  // This uses fields already in the database (purpose_mission, thematic_areas, etc.)
+  // This uses fields already in the database (earthdata_purpose, comms_thematic_areas, etc.)
   try {
     var solutions = getAllSolutions();
     var contentMap = {};
 
     solutions.forEach(function(sol) {
-      var key = sol.name || sol.solution_id;
+      var key = sol.core_id;
       contentMap[key] = {
-        name: sol.full_title || sol.name || '',
-        purpose_mission: sol.purpose_mission || sol.status_summary || '',
-        societal_impact: sol.societal_impact || '',
+        name: sol.core_official_name || sol.core_id || '',
+        purpose_mission: sol.earthdata_purpose || sol.earthdata_status_summary || '',
+        societal_impact: sol.earthdata_societal_impact || '',
         solution_characteristics: {
-          platform: sol.platform || '',
-          temporal_frequency: sol.temporal_frequency || '',
-          horizontal_resolution: sol.horizontal_resolution || '',
-          geographic_domain: sol.geographic_domain || '',
-          thematic_areas: sol.thematic_areas || ''
+          platform: sol.product_platform || '',
+          temporal_frequency: sol.product_temporal_freq || '',
+          horizontal_resolution: sol.product_horiz_resolution || '',
+          geographic_domain: sol.product_geo_domain || '',
+          thematic_areas: sol.comms_thematic_areas || ''
         }
       };
 
-      // Also map by full_title if different
-      if (sol.full_title && sol.full_title !== key) {
-        contentMap[sol.full_title] = contentMap[key];
+      // Also map by core_official_name if different
+      if (sol.core_official_name && sol.core_official_name !== key) {
+        contentMap[sol.core_official_name] = contentMap[key];
       }
     });
 
@@ -1138,7 +1177,7 @@ function checkSolutionContent() {
   try {
     var solutions = getAllSolutions();
     var hasContent = solutions.some(function(sol) {
-      return sol.purpose_mission || sol.thematic_areas;
+      return sol.earthdata_purpose || sol.comms_thematic_areas;
     });
     return {
       loaded: hasContent,
@@ -1176,6 +1215,76 @@ function formatTopN_(countObj, n) {
     })
     .sort(function(a, b) { return b.count - a.count; })
     .slice(0, n);
+}
+
+// ============================================================================
+// DIAGNOSTIC FUNCTION
+// ============================================================================
+
+/**
+ * Diagnose Need Alignment matching issues
+ * Run this from Apps Script editor to see what's happening
+ */
+function diagnoseNeedAlignment() {
+  var solutions = getAllSolutions();
+  var allNeeds = getAllNeeds();
+
+  Logger.log('=== NEED ALIGNMENT DIAGNOSTIC ===');
+  Logger.log('Total solutions: ' + solutions.length);
+  Logger.log('Total needs: ' + allNeeds.length);
+
+  // Show unique solution values in needs with their parenthesized abbreviations
+  var uniqueNeedSolutions = {};
+  allNeeds.forEach(function(n) {
+    var sol = n.solution || 'EMPTY';
+    uniqueNeedSolutions[sol] = (uniqueNeedSolutions[sol] || 0) + 1;
+  });
+  Logger.log('\nUnique solution values in MO-DB_Needs (' + Object.keys(uniqueNeedSolutions).length + ' unique):');
+  Object.keys(uniqueNeedSolutions).sort().slice(0, 15).forEach(function(sol) {
+    var parenMatch = sol.match(/\(([^)]+)\)\s*$/);
+    var abbrev = parenMatch ? parenMatch[1] : 'no abbrev';
+    Logger.log('  "' + sol + '" [' + abbrev + ']: ' + uniqueNeedSolutions[sol] + ' needs');
+  });
+
+  // Test matching for solutions that should have needs (based on known MO-DB_Needs data)
+  Logger.log('\n=== MATCHING RESULTS (all solutions with matches) ===');
+  var matchSummary = [];
+  solutions.forEach(function(sol) {
+    var matched = matchSolutionToNeeds_(sol, allNeeds);
+    matchSummary.push({
+      name: sol.core_id,
+      id: sol.core_id,
+      altNames: sol.core_alternate_names || '',
+      count: matched.length,
+      matchedTo: matched.length > 0 ? matched[0].solution : null
+    });
+  });
+
+  // Sort by match count descending to show successful matches first
+  matchSummary.sort(function(a, b) { return b.count - a.count; });
+
+  matchSummary.forEach(function(m) {
+    if (m.count > 0) {
+      Logger.log('✓ "' + m.name + '" (id: ' + m.id + ') → ' + m.count + ' needs from "' + m.matchedTo + '"');
+    }
+  });
+
+  Logger.log('\n=== UNMATCHED SOLUTIONS ===');
+  matchSummary.forEach(function(m) {
+    if (m.count === 0) {
+      Logger.log('✗ "' + m.name + '" (id: ' + m.id + ', alt: ' + (m.altNames || 'none') + ')');
+    }
+  });
+
+  // Summary stats
+  var totalMatched = matchSummary.filter(function(m) { return m.count > 0; }).length;
+  var totalUnmatched = matchSummary.filter(function(m) { return m.count === 0; }).length;
+  Logger.log('\n=== SUMMARY ===');
+  Logger.log('Solutions with matching needs: ' + totalMatched);
+  Logger.log('Solutions without matching needs: ' + totalUnmatched);
+  Logger.log('Total needs matched: ' + matchSummary.reduce(function(sum, m) { return sum + m.count; }, 0) + ' / ' + allNeeds.length);
+
+  return 'Check the Apps Script logs for diagnostic output';
 }
 
 // ============================================================================
@@ -1509,13 +1618,13 @@ function exportNeedAlignmentToSheet(options) {
       ['   Source:', solutionsSheetUrl || 'Contact MO team for access'],
       ['   Description:', 'Solution specifications from NASA ESD'],
       ['', ''],
-      ['   Key Fields Used:', ''],
-      ['   - solution_id: Unique identifier for matching', ''],
-      ['   - name: Display name used in meetings', ''],
-      ['   - horizontal_resolution: What the solution provides', ''],
-      ['   - temporal_frequency: Data delivery frequency', ''],
-      ['   - geographic_domain: Coverage area', ''],
-      ['   - cycle, phase: Project lifecycle stage', ''],
+      ['   Key Fields Used (Schema v2):', ''],
+      ['   - core_id: Unique identifier for matching', ''],
+      ['   - core_official_name: Full solution name', ''],
+      ['   - product_horiz_resolution: What the solution provides', ''],
+      ['   - product_temporal_freq: Data delivery frequency', ''],
+      ['   - product_geo_domain: Coverage area', ''],
+      ['   - core_cycle, admin_lifecycle_phase: Project lifecycle stage', ''],
       ['', ''],
       ['═══════════════════════════════════════════════════════════════════════', ''],
       ['MATCHING LOGIC', ''],
@@ -1524,14 +1633,14 @@ function exportNeedAlignmentToSheet(options) {
       ['How survey responses are matched to solutions:', ''],
       ['', ''],
       ['1. Parenthetical Match (Primary)', ''],
-      ['   Survey "Harmonized Landsat and Sentinel-2 (HLS)" matches solution_id "HLS"', ''],
-      ['   Looks for solution_id in parentheses at end of survey solution field', ''],
+      ['   Survey "Harmonized Landsat and Sentinel-2 (HLS)" matches core_id "hls"', ''],
+      ['   Looks for core_id in parentheses at end of survey solution field', ''],
       ['', ''],
       ['2. Exact Match', ''],
-      ['   Survey solution field exactly equals solution_id or name', ''],
+      ['   Survey solution field exactly equals core_id', ''],
       ['', ''],
       ['3. Substring Match (min 3 characters)', ''],
-      ['   Solution_id appears within the survey solution field', ''],
+      ['   core_id appears within the survey solution field', ''],
       ['   Example: "HLS" found in "HLS Data Products"', ''],
       ['', ''],
       ['═══════════════════════════════════════════════════════════════════════', ''],

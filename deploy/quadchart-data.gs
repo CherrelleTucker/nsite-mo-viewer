@@ -71,7 +71,7 @@ function getQuadrantUpdates_(daysBack, defaultOnly) {
 
   if (defaultOnly) {
     solutions = solutions.filter(function(s) {
-      return s.show_in_default === 'Y';
+      return s.admin_default_in_dashboard === 'Y';
     });
   }
 
@@ -94,10 +94,10 @@ function getQuadrantUpdates_(daysBack, defaultOnly) {
   // Format for display
   var items = updated.map(function(sol) {
     return {
-      solution: sol.name || sol.solution_id,
-      cycle: 'C' + (sol.cycle || '?'),
-      phase: sol.phase || '',
-      summary: sol.status_summary || sol.purpose_mission || '',
+      solution: sol.core_id,
+      cycle: 'C' + (sol.core_cycle || '?'),
+      phase: sol.admin_lifecycle_phase || '',
+      summary: sol.earthdata_status_summary || sol.earthdata_purpose || '',
       lastUpdated: formatDateShort_(sol.last_updated)
     };
   });
@@ -125,7 +125,7 @@ function getQuadrantMilestones_(daysAhead, defaultOnly) {
 
   if (defaultOnly) {
     solutions = solutions.filter(function(s) {
-      return s.show_in_default === 'Y';
+      return s.admin_default_in_dashboard === 'Y';
     });
   }
 
@@ -134,10 +134,10 @@ function getQuadrantMilestones_(daysAhead, defaultOnly) {
   // Extract milestones from each solution
   solutions.forEach(function(sol) {
     var solutionMilestones = [
-      { type: 'ATP DG', date: sol.atp_date },
-      { type: 'F2I DG', date: sol.f2i_date },
-      { type: 'ORR', date: sol.orr_date },
-      { type: 'Closeout', date: sol.closeout_date }
+      { type: 'ATP DG', date: sol.milestone_atp_date },
+      { type: 'F2I DG', date: sol.milestone_f2i_date },
+      { type: 'ORR', date: sol.milestone_orr_date },
+      { type: 'Closeout', date: sol.milestone_closeout_date }
     ];
 
     solutionMilestones.forEach(function(ms) {
@@ -147,8 +147,8 @@ function getQuadrantMilestones_(daysAhead, defaultOnly) {
           msDate.setHours(0, 0, 0, 0);
           if (msDate >= today && msDate <= futureDate) {
             milestones.push({
-              solution: sol.name || sol.solution_id,
-              cycle: 'C' + (sol.cycle || '?'),
+              solution: sol.core_id,
+              cycle: 'C' + (sol.core_cycle || '?'),
               type: ms.type,
               date: msDate,
               dateStr: formatDateShort_(msDate),
@@ -200,7 +200,7 @@ function getQuadrantActions_(defaultOnly) {
 
   if (defaultOnly) {
     solutions = solutions.filter(function(s) {
-      return s.show_in_default === 'Y';
+      return s.admin_default_in_dashboard === 'Y';
     });
   }
 
@@ -211,17 +211,17 @@ function getQuadrantActions_(defaultOnly) {
   var items = [];
 
   solutions.forEach(function(sol) {
-    var text = (sol.status_summary || '') + ' ' + (sol.next_steps || '');
+    var text = (sol.earthdata_status_summary || '') + ' ' + (sol.next_steps || '');
 
     if (actionPatterns.test(text)) {
       // Extract the action text
       var actionText = extractActionText_(text);
       if (actionText) {
         items.push({
-          solution: sol.name || sol.solution_id,
-          cycle: 'C' + (sol.cycle || '?'),
+          solution: sol.core_id,
+          cycle: 'C' + (sol.core_cycle || '?'),
           action: actionText,
-          owner: sol.solution_lead || '',
+          owner: sol.team_lead || '',
           priority: 'medium'
         });
       }
@@ -277,7 +277,7 @@ function getQuadrantDecisions_(defaultOnly) {
 
   if (defaultOnly) {
     solutions = solutions.filter(function(s) {
-      return s.show_in_default === 'Y';
+      return s.admin_default_in_dashboard === 'Y';
     });
   }
 
@@ -289,9 +289,9 @@ function getQuadrantDecisions_(defaultOnly) {
 
     // Check for upcoming decision gates
     var gates = [
-      { type: 'ATP DG', date: sol.atp_date, memo: sol.atp_memo },
-      { type: 'F2I DG', date: sol.f2i_date, memo: sol.f2i_memo },
-      { type: 'ORR', date: sol.orr_date, memo: sol.orr_memo }
+      { type: 'ATP DG', date: sol.milestone_atp_date, memo: sol.milestone_atp_memo_url },
+      { type: 'F2I DG', date: sol.milestone_f2i_date, memo: sol.milestone_f2i_memo_url },
+      { type: 'ORR', date: sol.milestone_orr_date, memo: sol.milestone_orr_memo_url }
     ];
 
     gates.forEach(function(gate) {
@@ -328,9 +328,9 @@ function getQuadrantDecisions_(defaultOnly) {
 
     if (decisions.length > 0) {
       items.push({
-        solution: sol.name || sol.solution_id,
-        cycle: 'C' + (sol.cycle || '?'),
-        phase: sol.phase || '',
+        solution: sol.core_id,
+        cycle: 'C' + (sol.core_cycle || '?'),
+        phase: sol.admin_lifecycle_phase || '',
         decisions: decisions,
         count: decisions.length
       });
