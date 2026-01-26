@@ -1,26 +1,25 @@
 <!-- Actions-NSITE: Action Item Tracking -->
 
-<div class="page-content" id="actions-page">
-  <!-- Header -->
-  <div class="actions-header">
-    <div class="header-title">
+<div class="actions-viewer" id="actions-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-title">
       <h1>Actions</h1>
-      <span class="header-badge" id="open-count">0 open</span>
     </div>
-    <div class="header-controls">
+    <div class="page-actions">
       <div class="view-toggle">
         <button class="view-btn active" data-view="assignee" onclick="ActionsModule.setView('assignee')">
-          <span class="material-icons">group</span> By Person
+          <span class="material-icons">group</span>
+          <span>By Person</span>
         </button>
         <button class="view-btn" data-view="status" onclick="ActionsModule.setView('status')">
-          <span class="material-icons">view_column</span> By Status
+          <span class="material-icons">view_column</span>
+          <span>By Status</span>
         </button>
       </div>
-      <button class="btn-primary btn-add" onclick="ActionsModule.showAddModal()">
-        <span class="material-icons">add</span> Add Action
-      </button>
-      <button class="btn-icon" onclick="ActionsModule.refreshData()" title="Refresh">
-        <span class="material-icons">refresh</span>
+      <button class="btn btn-primary" onclick="ActionsModule.showAddModal()">
+        <span class="material-icons">add</span>
+        Add Action
       </button>
     </div>
   </div>
@@ -195,101 +194,24 @@
 }
 
 /* Header */
-.actions-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+/* Actions Viewer - matches other page styling */
+.actions-viewer {
+  --page-accent: var(--color-primary);
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.actions-header h1 {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--text-primary, #1a1a2e);
-  margin: 0;
-}
-
-.header-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.header-badge {
-  background: #eef2ff;
-  color: #4f46e5;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.header-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.view-toggle {
-  display: flex;
-  background: #f1f5f9;
-  border-radius: 8px;
-  padding: 4px;
-}
-
-.view-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border: none;
-  background: transparent;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.view-btn:hover {
-  color: #334155;
-}
-
-.view-btn.active {
-  background: white;
-  color: #1e293b;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.view-btn svg {
-  width: 16px;
-  height: 16px;
-}
-
-.btn-icon {
-  width: 40px;
-  height: 40px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  border-radius: 8px;
+.btn-icon-only {
+  width: 36px;
+  height: 36px;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  color: #64748b;
-  transition: all 0.2s;
 }
 
-.btn-icon:hover {
-  background: #f8fafc;
-  color: #334155;
-  border-color: #cbd5e1;
-}
-
-.btn-icon svg {
-  width: 18px;
-  height: 18px;
+.btn-icon-only .material-icons {
+  margin: 0;
 }
 
 /* Filters */

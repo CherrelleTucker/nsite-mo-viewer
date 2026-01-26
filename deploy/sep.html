@@ -524,7 +524,7 @@
   .column-divider { opacity: 0.5; }
 
   /* SEP count badge */
-  .sep-viewer .column-count { font-size: 10px; }
+  .sep-viewer .column-count { font-size: var(--font-size-xs); }
 
   /* Drag and drop states */
   .pipeline-column.drag-over {
@@ -545,14 +545,14 @@
     user-select: none;
   }
   .pipeline-card:active { cursor: grabbing; }
-  .card-id { font-weight: 700; font-size: 11px; color: var(--color-sep); text-transform: uppercase; }
+  .card-id { font-weight: 700; font-size: var(--font-size-sm); color: var(--color-sep); text-transform: uppercase; }
 
   /* Card milestone dates */
   .card-dates {
     display: flex;
     justify-content: space-between;
     margin-top: 4px;
-    font-size: 10px;
+    font-size: var(--font-size-xs);
     font-weight: 500;
   }
   .date-ws { color: #7B1FA2; }
@@ -572,7 +572,7 @@
 
   /* SEP card meta uses smaller spacing */
   .sep-viewer .card-meta {
-    font-size: 10px;
+    font-size: var(--font-size-xs);
     color: var(--color-text-muted);
     margin-top: 4px;
     padding-top: 4px;
@@ -662,7 +662,7 @@
     border-radius: var(--radius-sm);
   }
   .engagement-detail-label {
-    font-size: 10px;
+    font-size: var(--font-size-xs);
     text-transform: uppercase;
     color: var(--color-text-muted);
     margin-bottom: 2px;
@@ -724,7 +724,7 @@
     display: flex;
     gap: var(--space-sm);
     padding: var(--space-xs) var(--space-md);
-    font-size: 10px;
+    font-size: var(--font-size-xs);
     color: var(--color-text-muted);
     border-bottom: 1px solid var(--color-border-light);
   }
@@ -762,17 +762,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: var(--font-size-xl);
     font-weight: 700;
     color: white;
     flex-shrink: 0;
   }
   .agency-info { flex: 1; min-width: 0; }
-  .agency-full-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; line-height: 1.2; }
-  .agency-type { font-size: 11px; color: var(--color-text-secondary); }
+  .agency-full-name { font-size: var(--font-size-md); font-weight: 600; margin-bottom: 2px; line-height: 1.2; }
+  .agency-type { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
   .agency-website { margin-top: 2px; }
   .agency-website a {
-    font-size: 11px;
+    font-size: var(--font-size-sm);
     color: var(--color-primary);
     text-decoration: none;
     display: inline-flex;
@@ -790,7 +790,7 @@
     border-left: 3px solid var(--color-sep);
   }
   .mission-text {
-    font-size: 12px;
+    font-size: var(--font-size-sm);
     color: var(--color-text);
     line-height: 1.4;
     font-style: italic;
@@ -803,8 +803,8 @@
     margin-bottom: 8px;
   }
   .detail-item { margin-bottom: 2px; }
-  .detail-label { font-size: 10px; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 1px; }
-  .detail-value { font-size: 12px; color: var(--color-text); }
+  .detail-label { font-size: var(--font-size-xs); color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 1px; }
+  .detail-value { font-size: var(--font-size-sm); color: var(--color-text); }
 
   .data-interests, .mission-areas, .relationship-notes {
     background: var(--color-bg-subtle);
@@ -817,13 +817,13 @@
   .relationship-notes .detail-label { margin-bottom: 2px; }
   .data-interests .detail-value,
   .mission-areas .detail-value,
-  .relationship-notes .detail-value { font-size: 11px; line-height: 1.4; }
+  .relationship-notes .detail-value { font-size: var(--font-size-sm); line-height: 1.4; }
 
   .status-badge {
     display: inline-block;
     padding: 2px 6px;
-    border-radius: 3px;
-    font-size: 10px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
     font-weight: 500;
   }
   .status-badge.status-established { background: #dcfce7; color: #166534; }
@@ -848,15 +848,15 @@
     text-align: center;
     padding: var(--space-xs);
   }
-  .engagement-stat-value { font-size: 18px; font-weight: 700; color: var(--color-text); }
-  .engagement-stat-label { font-size: 9px; color: var(--color-text-muted); text-transform: uppercase; }
+  .engagement-stat-value { font-size: var(--font-size-xl); font-weight: 700; color: var(--color-text); }
+  .engagement-stat-label { font-size: var(--font-size-xs); color: var(--color-text-muted); text-transform: uppercase; }
   .heat-indicator {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     padding: 2px 8px;
     border-radius: 10px;
-    font-size: 10px;
+    font-size: var(--font-size-xs);
     font-weight: 600;
   }
   .heat-indicator.heat-hot { background: #fecaca; color: #dc2626; }
@@ -876,9 +876,9 @@
     padding: 1px 5px;
     background: rgba(21, 101, 192, 0.15);
     color: var(--color-sep);
-    font-size: 9px;
+    font-size: var(--font-size-xs);
     font-weight: 600;
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     text-transform: uppercase;
   }
 
@@ -895,7 +895,7 @@
     margin-bottom: var(--space-xs);
   }
   .agency-contacts-header h4 {
-    font-size: 11px;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     color: var(--color-text-secondary);
     text-transform: uppercase;
@@ -920,14 +920,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     color: white;
     flex-shrink: 0;
   }
   .contact-card-info { flex: 1; min-width: 0; }
-  .contact-card-name { font-size: 12px; font-weight: 500; }
-  .contact-card-role { font-size: 10px; color: var(--color-text-muted); }
+  .contact-card-name { font-size: var(--font-size-sm); font-weight: 500; }
+  .contact-card-role { font-size: var(--font-size-xs); color: var(--color-text-muted); }
 
   /* Link Contact Modal */
   .contact-search-results {
@@ -963,7 +963,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     color: white;
     flex-shrink: 0;
@@ -971,7 +971,7 @@
   .contact-search-info { flex: 1; }
   .contact-search-name { font-weight: 500; font-size: var(--font-size-sm); }
   .contact-search-email { font-size: var(--font-size-xs); color: var(--color-text-muted); }
-  .contact-search-agency { font-size: 10px; color: var(--color-text-secondary); }
+  .contact-search-agency { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
   .link-contact-divider {
     display: flex;
     align-items: center;
@@ -1002,7 +1002,7 @@
     margin-bottom: var(--space-xs);
   }
   .agency-timeline-header h4 {
-    font-size: 11px;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     color: var(--color-text-secondary);
     text-transform: uppercase;
@@ -1032,9 +1032,9 @@
   }
   .timeline-icon .material-icons { font-size: 14px; color: var(--color-sep); }
   .timeline-content { flex: 1; min-width: 0; }
-  .timeline-subject { font-size: 11px; font-weight: 500; }
-  .timeline-meta { font-size: 9px; color: var(--color-text-muted); }
-  .timeline-contacts { font-size: 9px; color: var(--color-text-secondary); margin-top: 2px; }
+  .timeline-subject { font-size: var(--font-size-sm); font-weight: 500; }
+  .timeline-meta { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+  .timeline-contacts { font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-top: 2px; }
 
   /* Agency Tree Heat Map */
   .agency-item.heat-hot { background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444; }
@@ -1060,7 +1060,7 @@
   }
   .agency-tab {
     padding: var(--space-sm) var(--space-md);
-    font-size: 12px;
+    font-size: var(--font-size-sm);
     font-weight: 500;
     color: var(--color-text-muted);
     cursor: pointer;
@@ -1096,7 +1096,7 @@
     align-items: center;
     gap: 4px;
     padding: 6px 12px;
-    font-size: 11px;
+    font-size: var(--font-size-sm);
     font-weight: 500;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
@@ -1140,13 +1140,13 @@
   .metric-card.metric-contacts::before { background: #22c55e; }
   .metric-card.metric-solutions::before { background: #f59e0b; }
   .metric-card.metric-heat::before { background: #ef4444; }
-  .metric-value { font-size: 24px; font-weight: 700; color: var(--color-text); line-height: 1.2; }
-  .metric-label { font-size: 10px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .metric-value { font-size: var(--font-size-xxl); font-weight: 700; color: var(--color-text); line-height: 1.2; }
+  .metric-label { font-size: var(--font-size-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
   .metric-trend {
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    font-size: 10px;
+    font-size: var(--font-size-xs);
     margin-top: 4px;
   }
   .metric-trend.up { color: #22c55e; }
@@ -1179,7 +1179,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     color: white;
     flex-shrink: 0;
@@ -1190,9 +1190,9 @@
     align-items: center;
     gap: var(--space-xs);
   }
-  .contact-name { font-size: 13px; font-weight: 500; }
+  .contact-name { font-size: var(--font-size-sm); font-weight: 500; }
   .contact-engagement-badge {
-    font-size: 9px;
+    font-size: var(--font-size-xs);
     padding: 1px 6px;
     border-radius: 10px;
     font-weight: 500;
@@ -1200,8 +1200,8 @@
   .contact-engagement-badge.high { background: #dcfce7; color: #166534; }
   .contact-engagement-badge.medium { background: #fef3c7; color: #92400e; }
   .contact-engagement-badge.low { background: #fee2e2; color: #991b1b; }
-  .contact-role-title { font-size: 11px; color: var(--color-text-muted); }
-  .contact-last-engagement { font-size: 10px; color: var(--color-text-secondary); margin-top: 2px; }
+  .contact-role-title { font-size: var(--font-size-sm); color: var(--color-text-muted); }
+  .contact-last-engagement { font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-top: 2px; }
   .contact-actions {
     display: flex;
     gap: 4px;
@@ -1239,7 +1239,7 @@
     padding: var(--space-sm);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
-    font-size: 12px;
+    font-size: var(--font-size-sm);
     line-height: 1.5;
     resize: vertical;
   }
@@ -1272,7 +1272,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 11px;
+    font-size: var(--font-size-sm);
     color: var(--color-text-muted);
   }
   .legend-node {
@@ -1285,7 +1285,7 @@
   }
   .legend-node.solution-node {
     background: #10b981;
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
   }
   .network-graph {
     height: 400px;
@@ -1295,7 +1295,7 @@
     background: var(--color-surface);
   }
   .network-help {
-    font-size: 10px;
+    font-size: var(--font-size-xs);
     color: var(--color-text-muted);
     text-align: center;
     margin-top: var(--space-xs);
@@ -1305,7 +1305,7 @@
     justify-content: center;
     gap: var(--space-md);
     padding: var(--space-xs) 0;
-    font-size: 11px;
+    font-size: var(--font-size-sm);
     color: var(--color-text-secondary);
   }
   .legend-stat {
@@ -1602,7 +1602,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 32px;
+    font-size: var(--font-size-xxxl);
     font-weight: 700;
     color: white;
     flex-shrink: 0;
@@ -1656,7 +1656,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: var(--font-size-xxl);
     font-weight: 700;
     color: white;
     flex-shrink: 0;
@@ -1695,16 +1695,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     margin-bottom: var(--space-xs);
   }
   .milestone-content { width: 100%; }
-  .milestone-label { font-size: 11px; font-weight: 700; color: var(--color-text); }
-  .milestone-name { font-size: 9px; color: var(--color-text-muted); margin-bottom: var(--space-xs); line-height: 1.2; }
+  .milestone-label { font-size: var(--font-size-sm); font-weight: 700; color: var(--color-text); }
+  .milestone-name { font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: var(--space-xs); line-height: 1.2; }
   .milestone-date-row { display: flex; align-items: center; justify-content: center; gap: 4px; }
   .milestone-date-input {
-    font-size: 10px;
+    font-size: var(--font-size-xs);
     padding: 2px 4px;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
@@ -1725,7 +1725,7 @@
     color: white;
     padding: 2px 8px;
     border-radius: 12px;
-    font-size: 11px;
+    font-size: var(--font-size-sm);
     font-weight: 600;
   }
   .outreach-list { max-height: 200px; overflow-y: auto; }
@@ -1741,10 +1741,10 @@
     margin-bottom: 4px;
   }
   .outreach-item:hover { background: var(--color-surface); }
-  .outreach-id { font-weight: 700; font-size: 10px; color: var(--color-sep); }
-  .outreach-name { font-size: 10px; color: var(--color-text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .outreach-id { font-weight: 700; font-size: var(--font-size-xs); color: var(--color-sep); }
+  .outreach-name { font-size: var(--font-size-xs); color: var(--color-text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .outreach-count-badge {
-    font-size: 9px;
+    font-size: var(--font-size-xs);
     background: var(--color-surface);
     padding: 1px 6px;
     border-radius: 8px;

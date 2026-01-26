@@ -9,6 +9,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Quick Update Page Redesign** - Transformed from form submission to Agenda Viewer
+  - Embedded viewer for 5 agendas: Internal, SEP, OPERA, PBL, Monthly Presentation
+  - Tab-based navigation with compact toolbar
+  - "Add updates with 🆕" hint and "Open in new tab" link
+  - Monthly tab auto-labels with current month/year from latest presentation
+
+- **Style Audit & Consistency Fixes** - Comprehensive cleanup across all pages
+  - Fixed CSS variable names: `--spacing-*` → `--space-*`, `--bg-*` → `--color-surface`
+  - Converted 50+ hardcoded pixel font sizes to design system variables
+  - Added `--font-size-xxxl: 32px` to design system for large avatar initials
+  - Fixed hardcoded border-radius values to use `var(--radius-sm)`, `var(--radius-md)`
+  - All pages now use `--page-accent` CSS variable for consistent accent colors
+
+- **Page Header Consistency** - Unified header styling across all pages
+  - Removed duplicate `.page-header` and `.page-title` CSS from individual pages
+  - All pages now use shared-page-styles.html for headers
+  - Removed page subtitles (Contacts, Reports, Team, Schedule) for cleaner look
+  - Added `--page-accent` to reports.html and schedule.html
+
+- **View Toggle Consistency** - Standardized view toggle across all multi-view pages
+  - Schedule: Changed `toggle-btn` to `view-btn` class
+  - Actions: Restructured header to use standard `page-header`/`page-title` pattern
+  - Removed duplicate view-toggle CSS from schedule.html and actions.html
+  - Added `.view-btn .material-icons` sizing to shared-page-styles.html
+  - All view toggles (Comms, SEP, Team, Schedule, Actions) now identical
+
+- **Actions Page Cleanup** - Simplified header
+  - Removed "0 open" badge from header bar
+  - Removed redundant refresh button
+  - Uses standard page-header styling
+
 ### Added
 - **System Architecture Documentation** - Comprehensive data flow map added to CLAUDE.md
   - Documents: Source Docs → Sync Scripts → Databases → API Library → Deploy Wrappers → Viewer Pages

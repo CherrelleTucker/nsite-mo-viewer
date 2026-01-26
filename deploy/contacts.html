@@ -6,7 +6,6 @@
   <div class="page-header">
     <div class="page-title">
       <h1>Contacts Directory</h1>
-      <p class="page-subtitle">Stakeholder relationships across all solutions</p>
     </div>
     <div class="page-actions">
       <button class="btn btn-secondary" onclick="Contacts.exportList()">
@@ -139,13 +138,11 @@
 
 <!-- Contacts Styles -->
 <style>
-  .contacts-viewer { max-width: 1400px; margin: 0 auto; }
-
-  /* Page Header */
-  .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg); }
-  .page-title h1 { font-size: var(--font-size-xxl); color: var(--color-primary); margin-bottom: var(--space-xs); }
-  .page-subtitle { color: var(--color-text-secondary); font-size: var(--font-size-md); }
-  .page-actions { display: flex; gap: var(--space-sm); }
+  .contacts-viewer {
+    --page-accent: var(--color-primary);
+    max-width: 1400px;
+    margin: 0 auto;
+  }
 
   /* Stats Row */
   .stats-row {
@@ -354,9 +351,9 @@
     color: var(--color-text-secondary);
   }
 
-  .role-tag.role-primary { background: rgba(16, 185, 129, 0.1); color: #059669; }
-  .role-tag.role-secondary { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
-  .role-tag.role-submitter { background: rgba(249, 115, 22, 0.1); color: #ea580c; }
+  .role-tag.role-primary { background: rgba(46, 125, 50, 0.1); color: var(--color-success); }
+  .role-tag.role-secondary { background: rgba(21, 101, 192, 0.1); color: var(--color-sep); }
+  .role-tag.role-submitter { background: rgba(237, 108, 2, 0.1); color: var(--color-warning); }
 
   /* Contacts Container - Table View */
   .contacts-container.view-table {

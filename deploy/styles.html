@@ -37,6 +37,7 @@
   --font-size-lg: 16px;
   --font-size-xl: 20px;
   --font-size-xxl: 24px;
+  --font-size-xxxl: 32px;
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -83,8 +84,12 @@ button {
   background: none;
 }
 
-/* Header */
+/* Header - fixed at top */
 .header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   height: var(--header-height);
   background: var(--color-primary);
   color: white;
@@ -94,6 +99,11 @@ button {
   padding: 0 var(--space-lg);
   box-shadow: var(--shadow-md);
   z-index: 100;
+}
+
+/* Spacer for fixed header */
+.header-spacer {
+  height: var(--header-height);
 }
 
 .header-left {
@@ -173,6 +183,19 @@ button {
   font-size: var(--font-size-sm);
   font-weight: 500;
   transition: all var(--transition-fast);
+}
+
+/* Secondary tabs are icon-only */
+.nav-secondary .nav-tab {
+  padding: var(--space-sm);
+}
+
+.nav-secondary .nav-label {
+  display: none;
+}
+
+.nav-secondary .nav-tab .material-icons {
+  font-size: 20px;
 }
 
 .nav-tab:hover {

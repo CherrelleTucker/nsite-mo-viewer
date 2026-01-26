@@ -120,7 +120,7 @@ var PAGES = {
   },
   'quick-update': {
     title: 'Quick Update',
-    icon: 'edit'
+    icon: 'description'
   },
   'contacts': {
     title: 'Contacts',
@@ -522,6 +522,78 @@ function getDocumentId(docType) {
   }
 
   return getConfigValue(key);
+}
+
+/**
+ * Get agenda URLs for embedding in Agenda Viewer page
+ * Returns URLs for Internal Planning, SEP, OPERA Monthly, and PBL Monthly agendas
+ *
+ * @returns {Object} Object with agenda URLs (embedded and edit)
+ */
+function getAgendaUrls() {
+  var internalId = getConfigValue(CONFIG_KEYS.INTERNAL_AGENDA_ID);
+  var sepId = getConfigValue(CONFIG_KEYS.SEP_AGENDA_ID);
+  var operaId = getConfigValue(CONFIG_KEYS.OPERA_MONTHLY_ID);
+  var pblId = getConfigValue(CONFIG_KEYS.PBL_MONTHLY_ID);
+
+  // Get most recent monthly presentation from folder
+  var monthlyPresentation = getLatestMonthlyPresentation();
+
+  return {
+    internal: internalId ? 'https://docs.google.com/document/d/' + internalId + '/edit?embedded=true' : '',
+    sep: sepId ? 'https://docs.google.com/document/d/' + sepId + '/edit?embedded=true' : '',
+    opera: operaId ? 'https://docs.google.com/document/d/' + operaId + '/edit?embedded=true' : '',
+    pbl: pblId ? 'https://docs.google.com/document/d/' + pblId + '/edit?embedded=true' : '',
+    monthly: monthlyPresentation.embed,
+    internalEdit: internalId ? 'https://docs.google.com/document/d/' + internalId + '/edit' : '',
+    sepEdit: sepId ? 'https://docs.google.com/document/d/' + sepId + '/edit' : '',
+    operaEdit: operaId ? 'https://docs.google.com/document/d/' + operaId + '/edit' : '',
+    pblEdit: pblId ? 'https://docs.google.com/document/d/' + pblId + '/edit' : '',
+    monthlyEdit: monthlyPresentation.edit,
+    monthlyTitle: monthlyPresentation.title
+  };
+}
+
+/**
+ * Get the most recent monthly presentation from the Monthly folder
+ * @returns {Object} Object with embed URL, edit URL, and title
+ */
+function getLatestMonthlyPresentation() {
+  try {
+    var folderId = getConfigValue(CONFIG_KEYS.MONTHLY_FOLDER_ID);
+    if (!folderId) {
+      return { embed: '', edit: '', title: '' };
+    }
+
+    var folder = DriveApp.getFolderById(folderId);
+    var files = folder.getFilesByType(MimeType.GOOGLE_SLIDES);
+
+    var latestFile = null;
+    var latestDate = null;
+
+    while (files.hasNext()) {
+      var file = files.next();
+      var created = file.getDateCreated();
+      if (!latestDate || created > latestDate) {
+        latestDate = created;
+        latestFile = file;
+      }
+    }
+
+    if (!latestFile) {
+      return { embed: '', edit: '', title: '' };
+    }
+
+    var fileId = latestFile.getId();
+    return {
+      embed: 'https://docs.google.com/presentation/d/' + fileId + '/embed?start=false&loop=false&delayms=3000',
+      edit: 'https://docs.google.com/presentation/d/' + fileId + '/edit',
+      title: latestFile.getName()
+    };
+  } catch (e) {
+    Logger.log('Error getting latest monthly presentation: ' + e);
+    return { embed: '', edit: '', title: '' };
+  }
 }
 
 /**

@@ -1,241 +1,345 @@
-<!-- Quick Update Form Component -->
-<div class="quick-update-container">
-  <div class="quick-update-header">
-    <h2>Submit Solution Update</h2>
-    <p class="text-muted">Add updates to weekly meeting notes</p>
+<!-- Quick Update Page - Redesigned -->
+<div class="qu-page">
+  <!-- Page Header -->
+  <div class="qu-page-header">
+    <h1>Quick Update</h1>
+    <p>Submit solution updates and view current agendas</p>
   </div>
 
-  <div id="qu-success-message" class="qu-message qu-success"></div>
-  <div id="qu-error-message" class="qu-message qu-error"></div>
+  <!-- Main Content - Two Column Layout -->
+  <div class="qu-layout">
 
-  <div id="qu-form-container">
-    <form id="quick-update-form">
-      <!-- Update Text - PRIMARY FIELD AT TOP -->
-      <div class="form-group qu-main-input">
-        <label for="qu-update-text">Update: <span class="required">*</span></label>
-        <textarea id="qu-update-text" class="form-textarea"
-                  placeholder="What's your status update?" required></textarea>
+    <!-- Left Column: Submit Form -->
+    <div class="qu-card qu-form-card">
+      <div class="qu-card-header">
+        <span class="material-icons">edit_note</span>
+        <h2>Submit Update</h2>
       </div>
 
-      <!-- Options Row -->
-      <div class="qu-options-row">
-        <!-- Solution Selection -->
-        <div class="form-group qu-solution-group">
-          <label for="qu-solution">Solution: <span class="required">*</span></label>
-          <select id="qu-solution" class="form-select" required>
-            <option value="">-- Select --</option>
-          </select>
-        </div>
+      <div id="qu-success-message" class="qu-message qu-success"></div>
+      <div id="qu-error-message" class="qu-message qu-error"></div>
 
-        <!-- Meeting Selection -->
-        <div class="form-group qu-meeting-group">
-          <label>Submit to: <span class="required">*</span></label>
-          <div class="qu-checkbox-group">
-            <label class="qu-checkbox-item">
-              <input type="checkbox" id="qu-meeting-internal" value="internal-planning">
-              <span>Internal (Mon)</span>
-            </label>
-            <label class="qu-checkbox-item">
-              <input type="checkbox" id="qu-meeting-sep" value="sep-strategy">
-              <span>SEP (Tue)</span>
-            </label>
+      <div id="qu-form-container">
+        <form id="quick-update-form">
+          <!-- Update Text -->
+          <div class="form-group">
+            <label for="qu-update-text">What's your update?</label>
+            <textarea id="qu-update-text" class="qu-textarea" maxlength="2000"
+                      placeholder="Enter your status update here..." required></textarea>
           </div>
-        </div>
 
-        <!-- Update Type -->
-        <div class="form-group qu-type-group">
-          <label>Type:</label>
-          <div class="qu-checkbox-group">
-            <label class="qu-checkbox-item">
-              <input type="checkbox" id="qu-type-milestone" value="milestone">
-              <span>Milestone</span>
-            </label>
-            <label class="qu-checkbox-item">
-              <input type="checkbox" id="qu-type-action" value="action">
-              <span>Action</span>
-            </label>
-            <label class="qu-checkbox-item">
-              <input type="checkbox" id="qu-type-general" value="general" checked>
-              <span>General</span>
-            </label>
+          <!-- Compact Options Grid -->
+          <div class="qu-options-grid">
+            <!-- Solution -->
+            <div class="qu-option">
+              <label for="qu-solution">Solution</label>
+              <select id="qu-solution" class="qu-select" required>
+                <option value="">Select...</option>
+              </select>
+            </div>
+
+            <!-- Submit To -->
+            <div class="qu-option">
+              <label>Submit to</label>
+              <div class="qu-pills">
+                <label class="qu-pill">
+                  <input type="checkbox" id="qu-meeting-internal" value="internal-planning">
+                  <span>Internal</span>
+                </label>
+                <label class="qu-pill">
+                  <input type="checkbox" id="qu-meeting-sep" value="sep-strategy">
+                  <span>SEP</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Type -->
+            <div class="qu-option">
+              <label>Type</label>
+              <div class="qu-pills">
+                <label class="qu-pill">
+                  <input type="checkbox" id="qu-type-general" value="general" checked>
+                  <span>General</span>
+                </label>
+                <label class="qu-pill">
+                  <input type="checkbox" id="qu-type-milestone" value="milestone">
+                  <span>Milestone</span>
+                </label>
+                <label class="qu-pill">
+                  <input type="checkbox" id="qu-type-action" value="action">
+                  <span>Action</span>
+                </label>
+              </div>
+            </div>
           </div>
+
+          <!-- Submit Button -->
+          <div class="qu-actions">
+            <button type="button" class="qu-btn-text" onclick="QuickUpdate.resetForm()">Clear</button>
+            <button type="submit" class="qu-btn-primary" id="qu-submit-btn">
+              <span class="material-icons">send</span>
+              Submit Update
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div id="qu-loading" class="qu-loading">
+        <span class="loading-spinner"></span>
+        <p>Submitting...</p>
+      </div>
+    </div>
+
+    <!-- Right Column: Agenda Viewer -->
+    <div class="qu-card qu-agenda-card">
+      <div class="qu-card-header">
+        <span class="material-icons">description</span>
+        <h2>Current Agenda</h2>
+        <div class="qu-agenda-controls">
+          <div class="qu-toggle-group">
+            <button type="button" id="qu-agenda-internal-btn" class="qu-toggle active" onclick="QuickUpdate.showAgenda('internal')">
+              Internal
+            </button>
+            <button type="button" id="qu-agenda-sep-btn" class="qu-toggle" onclick="QuickUpdate.showAgenda('sep')">
+              SEP
+            </button>
+          </div>
+          <a id="qu-agenda-edit-link" href="#" target="_blank" class="qu-icon-btn" title="Open in Google Docs">
+            <span class="material-icons">open_in_new</span>
+          </a>
         </div>
       </div>
 
-      <!-- Buttons - Separated -->
-      <div class="qu-button-group">
-        <button type="button" class="btn btn-text btn-clear" onclick="QuickUpdate.resetForm()">Clear Form</button>
-        <button type="submit" class="btn btn-primary btn-submit" id="qu-submit-btn">
-          <span data-feather="send"></span>
-          Submit Update
-        </button>
+      <div class="qu-agenda-body">
+        <div id="qu-agenda-loading" class="qu-agenda-loading">
+          <span class="loading-spinner"></span>
+          <p>Loading agenda...</p>
+        </div>
+        <iframe id="qu-agenda-frame" class="qu-agenda-frame" src="" frameborder="0"></iframe>
       </div>
-    </form>
-  </div>
+    </div>
 
-  <div id="qu-loading" class="qu-loading">
-    <span class="loading-spinner"></span>
-    <p>Submitting your update...</p>
-  </div>
-
-  <!-- Security notice at bottom -->
-  <div class="qu-security-notice">
-    <span data-feather="lock" class="qu-lock-icon"></span>
-    All submissions are logged and added to the next meeting's agenda.
-  </div>
-
-  <!-- Future features notice -->
-  <div class="qu-future-notice">
-    <span data-feather="info" class="qu-info-icon"></span>
-    <span><strong>Coming soon:</strong> Multiple solution updates per submission, Comms updates</span>
   </div>
 </div>
 
 <style>
-  .quick-update-container {
-    max-width: 800px;
+  /* Page Layout */
+  .qu-page {
+    max-width: 1400px;
     margin: 0 auto;
+    padding: var(--space-md);
   }
 
-  .quick-update-header {
-    margin-bottom: var(--space-md);
-  }
-
-  .quick-update-header h2 {
-    font-size: var(--font-size-xxl);
-    color: var(--color-primary);
-    margin-bottom: var(--space-xs);
-  }
-
-  /* Main update textarea - prominent at top */
-  .qu-main-input {
+  .qu-page-header {
     margin-bottom: var(--space-lg);
   }
 
-  .qu-main-input label {
-    font-size: var(--font-size-lg);
+  .qu-page-header h1 {
+    font-size: var(--font-size-xxl);
     font-weight: 600;
-    color: var(--color-primary);
+    color: var(--color-text);
+    margin: 0 0 var(--space-xs) 0;
   }
 
-  #qu-update-text {
-    width: 100%;
-    min-height: 180px;
+  .qu-page-header p {
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  /* Two Column Layout */
+  .qu-layout {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: var(--space-lg);
+    align-items: start;
+  }
+
+  /* Cards */
+  .qu-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+
+  .qu-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+  }
+
+  .qu-card-header .material-icons {
+    color: var(--color-primary);
+    font-size: 22px;
+  }
+
+  .qu-card-header h2 {
     font-size: var(--font-size-md);
-    padding: var(--space-md);
-    border: 2px solid var(--color-border);
-    border-radius: var(--radius-md);
-    transition: border-color 0.2s;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+  }
+
+  /* Form Card */
+  .qu-form-card {
+    position: sticky;
+    top: var(--space-md);
+  }
+
+  #qu-form-container {
+    padding: var(--space-lg);
+  }
+
+  .qu-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: var(--font-size-sm);
+    resize: vertical;
+    transition: border-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
   }
 
-  #qu-update-text:focus {
-    border-color: var(--color-primary);
+  .qu-textarea:focus {
     outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
   }
 
-  /* Options row - compact horizontal layout */
-  .qu-options-row {
+  .qu-textarea::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  /* Options Grid */
+  .qu-options-grid {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-lg);
-    padding: var(--space-md);
-    background: var(--color-bg-secondary, #f8f9fa);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--space-lg);
+    flex-direction: column;
+    gap: var(--space-md);
+    margin-top: var(--space-md);
   }
 
-  .qu-solution-group {
-    flex: 1;
-    min-width: 200px;
-  }
-
-  .qu-meeting-group {
-    flex: 1;
-    min-width: 180px;
-  }
-
-  .qu-type-group {
-    flex: 1;
-    min-width: 200px;
-  }
-
-  .qu-options-row .form-group {
-    margin-bottom: 0;
-  }
-
-  .qu-options-row label {
-    font-size: var(--font-size-sm);
+  .qu-option label:first-child {
+    display: block;
+    font-size: var(--font-size-xs);
     font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     margin-bottom: var(--space-xs);
   }
 
-  #qu-solution {
+  .qu-select {
     width: 100%;
+    padding: var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    background: var(--color-bg);
+    cursor: pointer;
   }
 
-  .qu-checkbox-group {
+  .qu-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+
+  /* Pills (checkbox toggles) */
+  .qu-pills {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-sm);
-    margin-top: var(--space-xs);
+    gap: var(--space-xs);
   }
 
-  .qu-checkbox-item {
-    display: flex;
+  .qu-pill {
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
     cursor: pointer;
-    font-weight: normal;
-    margin-bottom: 0;
-    font-size: var(--font-size-sm);
+    margin: 0;
   }
 
-  .qu-checkbox-item input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    accent-color: var(--color-primary);
-    cursor: pointer;
+  .qu-pill input {
+    display: none;
   }
 
-  .required {
-    color: var(--color-error);
+  .qu-pill span {
+    padding: 6px 12px;
+    font-size: var(--font-size-xs);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    background: var(--color-bg);
+    color: var(--color-text-secondary);
+    transition: all 0.2s;
   }
 
-  /* Button group - Clear on left (subtle), Submit on right (prominent) */
-  .qu-button-group {
+  .qu-pill:hover span {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .qu-pill input:checked + span {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+  }
+
+  /* Action Buttons */
+  .qu-actions {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: var(--space-md);
+    margin-top: var(--space-lg);
     padding-top: var(--space-md);
     border-top: 1px solid var(--color-border);
   }
 
-  .btn-clear {
-    background: transparent;
+  .qu-btn-text {
+    background: none;
     border: none;
     color: var(--color-text-muted);
-    padding: var(--space-sm) var(--space-md);
-    cursor: pointer;
     font-size: var(--font-size-sm);
+    cursor: pointer;
+    padding: var(--space-sm);
   }
 
-  .btn-clear:hover {
+  .qu-btn-text:hover {
     color: var(--color-error);
-    text-decoration: underline;
   }
 
-  .btn-submit {
-    padding: var(--space-sm) var(--space-xl);
-    font-size: var(--font-size-md);
+  .qu-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .qu-btn-primary:hover {
+    background: var(--color-primary-dark, #1565c0);
+  }
+
+  .qu-btn-primary .material-icons {
+    font-size: 18px;
   }
 
   /* Messages */
   .qu-message {
     padding: var(--space-md);
+    margin: var(--space-md) var(--space-lg) 0;
     border-radius: var(--radius-sm);
-    margin-bottom: var(--space-md);
     display: none;
     animation: slideDown 0.3s ease;
   }
@@ -257,70 +361,144 @@
     color: var(--color-error);
   }
 
-  /* Security notice - subtle at bottom */
-  .qu-security-notice {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    margin-top: var(--space-xl);
-    padding-top: var(--space-md);
-    font-size: var(--font-size-xs);
-    color: var(--color-text-muted);
-    border-top: 1px solid var(--color-border);
-  }
-
-  .qu-lock-icon {
-    width: 14px;
-    height: 14px;
-    opacity: 0.6;
-  }
-
-  /* Future features notice */
-  .qu-future-notice {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    margin-top: var(--space-sm);
-    font-size: var(--font-size-xs);
-    color: var(--color-text-muted);
-  }
-
-  .qu-info-icon {
-    width: 14px;
-    height: 14px;
-    opacity: 0.6;
-  }
-
   .qu-loading {
     display: none;
     text-align: center;
     padding: var(--space-xxl);
-    color: var(--color-text-secondary);
+    color: var(--color-text-muted);
   }
 
-  /* Mobile responsive */
-  @media (max-width: 600px) {
-    .qu-options-row {
-      flex-direction: column;
-      gap: var(--space-md);
+  /* Agenda Card */
+  .qu-agenda-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-left: auto;
+  }
+
+  .qu-toggle-group {
+    display: flex;
+    background: var(--color-bg);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    border: 1px solid var(--color-border);
+  }
+
+  .qu-toggle {
+    padding: 6px 14px;
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-radius: var(--radius-xs);
+    transition: all 0.2s;
+  }
+
+  .qu-toggle:hover {
+    color: var(--color-text);
+  }
+
+  .qu-toggle.active {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  .qu-icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .qu-icon-btn:hover {
+    background: var(--color-bg);
+    color: var(--color-primary);
+  }
+
+  .qu-icon-btn .material-icons {
+    font-size: 18px;
+  }
+
+  .qu-agenda-body {
+    position: relative;
+    min-height: 600px;
+  }
+
+  .qu-agenda-frame {
+    width: 100%;
+    height: 700px;
+    border: none;
+    display: block;
+  }
+
+  .qu-agenda-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+  }
+
+  .qu-agenda-loading.hidden {
+    display: none;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .qu-layout {
+      grid-template-columns: 1fr;
     }
 
-    .qu-checkbox-group {
-      flex-direction: column;
-      gap: var(--space-xs);
+    .qu-form-card {
+      position: static;
     }
 
-    .qu-button-group {
-      flex-direction: column-reverse;
-      gap: var(--space-md);
+    .qu-agenda-frame {
+      height: 500px;
+    }
+  }
+
+  @media (max-width: 500px) {
+    .qu-card-header {
+      flex-wrap: wrap;
+      gap: var(--space-sm);
     }
 
-    .btn-submit {
+    .qu-agenda-controls {
       width: 100%;
+      justify-content: space-between;
     }
 
-    .btn-clear {
-      align-self: center;
+    .qu-toggle-group {
+      flex: 1;
+    }
+
+    .qu-toggle {
+      flex: 1;
+      text-align: center;
+    }
+
+    .qu-actions {
+      flex-direction: column-reverse;
+      gap: var(--space-sm);
+    }
+
+    .qu-btn-primary {
+      width: 100%;
+      justify-content: center;
     }
   }
 </style>
@@ -329,6 +507,9 @@
   var QuickUpdate = {
     initialized: false,
     submitting: false,
+    submitTimeout: null,
+    agendaUrls: null,
+    currentAgenda: 'internal',
     solutions: [
       'Walk on',
       '3D Topographic Mapping',
@@ -365,12 +546,12 @@
       this.initialized = true;
       this.populateSolutions();
       this.bindEvents();
-      feather.replace();
+      this.loadAgendaUrls();
     },
 
     populateSolutions: function() {
       var select = document.getElementById('qu-solution');
-      select.innerHTML = '<option value="">-- Select Solution --</option>';
+      select.innerHTML = '<option value="">Select solution...</option>';
 
       this.solutions.sort().forEach(function(solution) {
         var option = document.createElement('option');
@@ -389,10 +570,7 @@
     },
 
     submit: function() {
-      // Prevent double submission
-      if (this.submitting) {
-        return;
-      }
+      if (this.submitting) return;
 
       var solution = document.getElementById('qu-solution').value;
       var updateText = document.getElementById('qu-update-text').value.trim();
@@ -406,7 +584,7 @@
       }
 
       if (meetingTypes.length === 0) {
-        this.showError('Please select at least one meeting type');
+        this.showError('Please select at least one meeting (Internal or SEP)');
         return;
       }
 
@@ -425,10 +603,16 @@
       if (document.getElementById('qu-type-action').checked) types.push('action');
       if (document.getElementById('qu-type-general').checked) types.push('general');
 
-      // Lock submission
       this.submitting = true;
       document.getElementById('qu-form-container').style.display = 'none';
       document.getElementById('qu-loading').style.display = 'block';
+
+      var self = this;
+      this.submitTimeout = setTimeout(function() {
+        if (self.submitting) {
+          self.onError({ message: 'Request timed out. Please try again.' });
+        }
+      }, 60000);
 
       google.script.run
         .withSuccessHandler(this.onSuccess.bind(this))
@@ -437,22 +621,19 @@
     },
 
     onSuccess: function(response) {
+      if (this.submitTimeout) clearTimeout(this.submitTimeout);
       this.submitting = false;
       document.getElementById('qu-loading').style.display = 'none';
       document.getElementById('qu-form-container').style.display = 'block';
 
-      // Reset form first (this hides messages)
       this.resetForm();
 
-      // Build success message with links
       var successDiv = document.getElementById('qu-success-message');
       successDiv.innerHTML = '';
 
-      // Handle both old string format and new object format
       if (typeof response === 'string') {
         successDiv.textContent = response;
       } else {
-        // New format with links
         var messageText = document.createElement('div');
         messageText.textContent = response.message;
         successDiv.appendChild(messageText);
@@ -460,7 +641,7 @@
         if (response.links && response.links.length > 0) {
           var linksDiv = document.createElement('div');
           linksDiv.style.marginTop = '8px';
-          linksDiv.innerHTML = '<strong>Verify in document:</strong> ';
+          linksDiv.innerHTML = '<strong>View in document:</strong> ';
 
           response.links.forEach(function(link, index) {
             if (index > 0) linksDiv.appendChild(document.createTextNode(' | '));
@@ -478,17 +659,26 @@
 
       successDiv.style.display = 'block';
 
-      // Hide success message after 8 seconds (longer to allow clicking links)
       setTimeout(function() {
         successDiv.style.display = 'none';
       }, 8000);
     },
 
     onError: function(error) {
+      if (this.submitTimeout) clearTimeout(this.submitTimeout);
       this.submitting = false;
       document.getElementById('qu-loading').style.display = 'none';
       document.getElementById('qu-form-container').style.display = 'block';
-      this.showError('Error: ' + error.message);
+
+      var errorMessage = 'An unexpected error occurred';
+      if (error) {
+        if (typeof error === 'string') {
+          errorMessage = error;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+      }
+      this.showError(errorMessage);
     },
 
     showError: function(message) {
@@ -506,6 +696,49 @@
       document.getElementById('qu-type-general').checked = true;
       document.getElementById('qu-success-message').style.display = 'none';
       document.getElementById('qu-error-message').style.display = 'none';
+    },
+
+    loadAgendaUrls: function() {
+      var self = this;
+      google.script.run
+        .withSuccessHandler(function(urls) {
+          self.agendaUrls = urls;
+          self.showAgenda('internal');
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load agenda URLs:', error);
+          document.getElementById('qu-agenda-loading').innerHTML =
+            '<span class="material-icons">error_outline</span><p>Could not load agendas</p>';
+        })
+        .getAgendaUrls();
+    },
+
+    showAgenda: function(type) {
+      if (!this.agendaUrls) return;
+
+      this.currentAgenda = type;
+
+      // Update toggle buttons
+      document.getElementById('qu-agenda-internal-btn').classList.toggle('active', type === 'internal');
+      document.getElementById('qu-agenda-sep-btn').classList.toggle('active', type === 'sep');
+
+      // Get URLs
+      var previewUrl = type === 'internal' ? this.agendaUrls.internal : this.agendaUrls.sep;
+      var editUrl = type === 'internal' ? this.agendaUrls.internalEdit : this.agendaUrls.sepEdit;
+
+      // Update edit link
+      document.getElementById('qu-agenda-edit-link').href = editUrl;
+
+      // Show loading
+      var loadingEl = document.getElementById('qu-agenda-loading');
+      loadingEl.classList.remove('hidden');
+
+      // Load iframe
+      var iframe = document.getElementById('qu-agenda-frame');
+      iframe.onload = function() {
+        loadingEl.classList.add('hidden');
+      };
+      iframe.src = previewUrl;
     }
   };
 

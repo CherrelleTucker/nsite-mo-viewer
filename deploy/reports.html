@@ -6,7 +6,6 @@
   <div class="page-header">
     <div class="page-title">
       <h1>Reports</h1>
-      <p class="page-subtitle">Analytical reports and data visualizations</p>
     </div>
   </div>
 
@@ -36,7 +35,7 @@
     <!-- Quad Chart -->
     <div class="report-card">
       <div class="report-card-header">
-        <div class="report-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+        <div class="report-icon icon-info">
           <span class="material-icons">grid_view</span>
         </div>
         <div class="report-title-area">
@@ -89,7 +88,7 @@
     <!-- Detailed Milestone Report -->
     <div class="report-card">
       <div class="report-card-header">
-        <div class="report-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+        <div class="report-icon icon-accent">
           <span class="material-icons">bar_chart</span>
         </div>
         <div class="report-title-area">
@@ -124,7 +123,7 @@
     <!-- Historical Updates -->
     <div class="report-card">
       <div class="report-card-header">
-        <div class="report-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+        <div class="report-icon icon-accent">
           <span class="material-icons">schedule</span>
         </div>
         <div class="report-title-area">
@@ -177,7 +176,7 @@
     <!-- Need Alignment -->
     <div class="report-card">
       <div class="report-card-header">
-        <div class="report-icon" style="background: rgba(46, 125, 50, 0.1); color: #2E7D32;">
+        <div class="report-icon icon-implementation">
           <span class="material-icons">merge</span>
         </div>
         <div class="report-title-area">
@@ -219,7 +218,7 @@
     <!-- Stakeholder Coverage -->
     <div class="report-card">
       <div class="report-card-header">
-        <div class="report-icon" style="background: rgba(21, 101, 192, 0.1); color: #1565C0;">
+        <div class="report-icon icon-sep">
           <span class="material-icons">map</span>
         </div>
         <div class="report-title-area">
@@ -253,7 +252,7 @@
     <!-- Engagement Funnel -->
     <div class="report-card">
       <div class="report-card-header">
-        <div class="report-icon" style="background: rgba(21, 101, 192, 0.1); color: #1565C0;">
+        <div class="report-icon icon-sep">
           <span class="material-icons">filter_list</span>
         </div>
         <div class="report-title-area">
@@ -289,7 +288,7 @@
     <!-- Department Reach -->
     <div class="report-card">
       <div class="report-card-header">
-        <div class="report-icon" style="background: rgba(123, 31, 162, 0.1); color: #7B1FA2;">
+        <div class="report-icon icon-comms">
           <span class="material-icons">share</span>
         </div>
         <div class="report-title-area">
@@ -332,28 +331,9 @@
 <!-- Reports Styles -->
 <style>
   .reports-viewer {
+    --page-accent: var(--color-info);
     max-width: 1200px;
     margin: 0 auto;
-  }
-
-  /* Page Header */
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: var(--space-lg);
-  }
-
-  .page-title h1 {
-    font-size: var(--font-size-xxl);
-    font-weight: 600;
-    color: var(--color-text);
-    margin-bottom: var(--space-xs);
-  }
-
-  .page-subtitle {
-    font-size: var(--font-size-md);
-    color: var(--color-text-secondary);
   }
 
   /* Report Cards Grid - 4 across */
@@ -406,6 +386,37 @@
     height: 16px;
   }
 
+  /* Icon color variants */
+  .report-icon.icon-info {
+    background: rgba(2, 136, 209, 0.1);
+    color: var(--color-info);
+  }
+
+  .report-icon.icon-primary {
+    background: rgba(11, 61, 145, 0.1);
+    color: var(--color-primary);
+  }
+
+  .report-icon.icon-implementation {
+    background: rgba(46, 125, 50, 0.1);
+    color: var(--color-implementation);
+  }
+
+  .report-icon.icon-sep {
+    background: rgba(21, 101, 192, 0.1);
+    color: var(--color-sep);
+  }
+
+  .report-icon.icon-comms {
+    background: rgba(123, 31, 162, 0.1);
+    color: var(--color-comms);
+  }
+
+  .report-icon.icon-accent {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+  }
+
   .report-title-area {
     flex: 1;
     min-width: 0;
@@ -447,17 +458,17 @@
     align-items: center;
     gap: var(--space-xs);
     padding: var(--space-xs) var(--space-sm);
-    background: #fef3c7;
-    border: 1px solid #f59e0b;
+    background: rgba(237, 108, 2, 0.1);
+    border: 1px solid var(--color-warning);
     border-radius: var(--radius-sm);
     font-size: var(--font-size-xs);
-    color: #92400e;
+    color: var(--color-warning);
     margin-bottom: var(--space-sm);
   }
 
   .report-notice .material-icons {
     font-size: 16px;
-    color: #d97706;
+    color: var(--color-warning);
   }
 
   .report-options {
@@ -847,11 +858,11 @@
   }
 
   .quad-badge.urgent {
-    background: #ef4444;
+    background: var(--color-error);
   }
 
   .quad-badge.soon {
-    background: #f97316;
+    background: var(--color-warning);
   }
 
   /* Stats Preview */
@@ -932,17 +943,17 @@
 
   .report-badge.implementation {
     background: rgba(46, 125, 50, 0.1);
-    color: #2E7D32;
+    color: var(--color-implementation);
   }
 
   .report-badge.sep {
     background: rgba(21, 101, 192, 0.1);
-    color: #1565C0;
+    color: var(--color-sep);
   }
 
   .report-badge.comms {
     background: rgba(123, 31, 162, 0.1);
-    color: #7B1FA2;
+    color: var(--color-comms);
   }
 
   /* Alignment Score */
@@ -958,17 +969,17 @@
 
   .alignment-score.high {
     background: rgba(46, 125, 50, 0.1);
-    color: #2E7D32;
+    color: var(--color-success);
   }
 
   .alignment-score.medium {
     background: rgba(237, 108, 2, 0.1);
-    color: #ED6C02;
+    color: var(--color-warning);
   }
 
   .alignment-score.low {
     background: rgba(211, 47, 47, 0.1);
-    color: #D32F2F;
+    color: var(--color-error);
   }
 
   /* Funnel visualization */
@@ -1059,7 +1070,7 @@
   .methodology-content code {
     background: var(--color-surface-alt);
     padding: 1px 4px;
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     font-family: monospace;
     font-size: var(--font-size-xs);
     color: var(--color-primary);
