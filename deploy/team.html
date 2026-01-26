@@ -24,6 +24,10 @@
           <span class="material-icons">description</span>
           <span>Documents</span>
         </button>
+        <button class="view-btn" data-view="parkingLot" onclick="Team.setView('parkingLot')">
+          <span class="material-icons">lightbulb</span>
+          <span>Parking Lot</span>
+        </button>
       </div>
       <button class="btn btn-primary" id="addEntryBtn" onclick="Team.showAddModal()">
         <span class="material-icons">add</span>
@@ -301,6 +305,140 @@
         <div class="documents-grid" id="directingDocsList">
           <div class="loading-state">
             <span class="loading-spinner"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Parking Lot View -->
+    <div class="view-panel" id="parkingLotView">
+      <div class="parking-lot-layout">
+        <!-- Left: Add Item + Stats -->
+        <div class="parking-lot-sidebar">
+          <!-- Quick Add Card -->
+          <div class="parking-lot-add-card">
+            <div class="parking-lot-add-header">
+              <span class="material-icons">lightbulb</span>
+              <div>
+                <h2>Drop an Idea</h2>
+                <p>Capture thoughts that don't have a home yet</p>
+              </div>
+            </div>
+            <form id="parkingLotForm" onsubmit="return false;">
+              <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="plTitle" placeholder="Brief description..." required maxlength="100">
+              </div>
+              <div class="form-group">
+                <label>Type</label>
+                <div class="pl-type-picker" id="plTypePicker">
+                  <button type="button" class="pl-type-btn" data-type="idea" onclick="Team.selectPLType('idea')">
+                    <span class="material-icons">lightbulb</span>
+                    <span>Idea</span>
+                  </button>
+                  <button type="button" class="pl-type-btn" data-type="discussion_topic" onclick="Team.selectPLType('discussion_topic')">
+                    <span class="material-icons">forum</span>
+                    <span>Discussion</span>
+                  </button>
+                  <button type="button" class="pl-type-btn" data-type="stakeholder_connection" onclick="Team.selectPLType('stakeholder_connection')">
+                    <span class="material-icons">people</span>
+                    <span>Connection</span>
+                  </button>
+                  <button type="button" class="pl-type-btn" data-type="follow_up" onclick="Team.selectPLType('follow_up')">
+                    <span class="material-icons">flag</span>
+                    <span>Follow-up</span>
+                  </button>
+                  <button type="button" class="pl-type-btn" data-type="process_suggestion" onclick="Team.selectPLType('process_suggestion')">
+                    <span class="material-icons">settings</span>
+                    <span>Process</span>
+                  </button>
+                  <button type="button" class="pl-type-btn" data-type="random_info" onclick="Team.selectPLType('random_info')">
+                    <span class="material-icons">info</span>
+                    <span>Info</span>
+                  </button>
+                </div>
+                <input type="hidden" id="plType" value="idea">
+              </div>
+              <div class="form-group">
+                <label>Details (optional)</label>
+                <textarea id="plDescription" rows="3" placeholder="More context..."></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group form-group-half">
+                  <label>Priority</label>
+                  <select id="plPriority">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+                <div class="form-group form-group-half">
+                  <label>Solution (optional)</label>
+                  <select id="plSolution">
+                    <option value="">-- None --</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Tags (comma-separated)</label>
+                <input type="text" id="plTags" placeholder="e.g., comms, sep, process">
+              </div>
+              <button type="button" class="btn btn-primary btn-full" onclick="Team.submitParkingLotItem()">
+                <span class="material-icons">add</span>
+                Add to Parking Lot
+              </button>
+            </form>
+          </div>
+
+          <!-- Stats Card -->
+          <div class="parking-lot-stats-card">
+            <h3><span class="material-icons">insights</span> Parking Lot Stats</h3>
+            <div class="pl-mini-stats">
+              <div class="pl-mini-stat">
+                <span class="stat-num" id="plStatTotal">--</span>
+                <span class="stat-desc">Total Items</span>
+              </div>
+              <div class="pl-mini-stat">
+                <span class="stat-num" id="plStatNew">--</span>
+                <span class="stat-desc">New</span>
+              </div>
+              <div class="pl-mini-stat stat-warning">
+                <span class="stat-num" id="plStatHighPriority">--</span>
+                <span class="stat-desc">High Priority</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Items Feed -->
+        <div class="parking-lot-feed-section">
+          <div class="parking-lot-feed-header">
+            <h2>Parking Lot Items</h2>
+            <div class="pl-filters">
+              <select id="plFilterType" onchange="Team.filterParkingLot()">
+                <option value="all">All Types</option>
+                <option value="idea">Ideas</option>
+                <option value="discussion_topic">Discussion Topics</option>
+                <option value="stakeholder_connection">Connections</option>
+                <option value="follow_up">Follow-ups</option>
+                <option value="process_suggestion">Process</option>
+                <option value="random_info">Info</option>
+              </select>
+              <select id="plFilterStatus" onchange="Team.filterParkingLot()">
+                <option value="active">Active</option>
+                <option value="new">New</option>
+                <option value="assigned">Assigned</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="all">All Statuses</option>
+              </select>
+            </div>
+          </div>
+          <div class="parking-lot-feed" id="parkingLotFeed">
+            <div class="loading-state">
+              <span class="loading-spinner"></span>
+              <span>Loading parking lot...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -614,6 +752,100 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="Team.closeModal('memberDetailModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Parking Lot Item Detail Modal -->
+<div class="modal" id="plItemDetailModal">
+  <div class="modal-content modal-md">
+    <div class="modal-header">
+      <h3 id="plItemDetailTitle">Item Details</h3>
+      <button class="modal-close" onclick="Team.closeModal('plItemDetailModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="pl-detail-header">
+        <span class="pl-type-badge" id="plDetailTypeBadge">
+          <span class="material-icons">lightbulb</span>
+          <span>Idea</span>
+        </span>
+        <span class="pl-priority-badge" id="plDetailPriorityBadge">Medium</span>
+        <span class="pl-status-badge" id="plDetailStatusBadge">New</span>
+      </div>
+
+      <div class="pl-detail-content">
+        <div class="pl-detail-description" id="plDetailDescription">
+          No description provided.
+        </div>
+
+        <div class="pl-detail-meta">
+          <div class="pl-meta-item">
+            <span class="material-icons">person</span>
+            <span>Submitted by: <strong id="plDetailSubmitter">--</strong></span>
+          </div>
+          <div class="pl-meta-item">
+            <span class="material-icons">schedule</span>
+            <span>Created: <strong id="plDetailCreated">--</strong></span>
+          </div>
+          <div class="pl-meta-item" id="plDetailSolutionRow" style="display:none;">
+            <span class="material-icons">widgets</span>
+            <span>Solution: <strong id="plDetailSolution">--</strong></span>
+          </div>
+          <div class="pl-meta-item" id="plDetailAssigneeRow" style="display:none;">
+            <span class="material-icons">assignment_ind</span>
+            <span>Assigned to: <strong id="plDetailAssignee">--</strong></span>
+          </div>
+          <div class="pl-meta-item" id="plDetailTagsRow" style="display:none;">
+            <span class="material-icons">label</span>
+            <span>Tags: <strong id="plDetailTags">--</strong></span>
+          </div>
+        </div>
+
+        <div class="pl-detail-notes" id="plDetailNotesSection" style="display:none;">
+          <h4>Notes</h4>
+          <div id="plDetailNotes" class="pl-notes-content"></div>
+        </div>
+      </div>
+
+      <!-- Actions Section -->
+      <div class="pl-detail-actions">
+        <h4>Actions</h4>
+        <div class="form-row">
+          <div class="form-group form-group-half">
+            <label>Update Status</label>
+            <select id="plDetailStatusSelect" onchange="Team.updatePLItemStatus()">
+              <option value="new">New</option>
+              <option value="discussed">Discussed</option>
+              <option value="assigned">Assigned</option>
+              <option value="in_progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+          <div class="form-group form-group-half">
+            <label>Assign To</label>
+            <select id="plDetailAssignSelect" onchange="Team.assignPLItem()">
+              <option value="">-- Unassigned --</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Add Note</label>
+          <div class="pl-note-input">
+            <input type="text" id="plDetailNoteInput" placeholder="Add a note...">
+            <button class="btn btn-sm btn-primary" onclick="Team.addPLNote()">
+              <span class="material-icons">add</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="Team.deletePLItem()">
+        <span class="material-icons">delete</span>
+        Delete
+      </button>
+      <button class="btn btn-secondary" onclick="Team.closeModal('plItemDetailModal')">Close</button>
     </div>
   </div>
 </div>
@@ -1873,16 +2105,445 @@
     box-shadow: 0 0 20px rgba(233, 30, 99, 0.3);
   }
 
+  /* ============================================
+     PARKING LOT STYLES
+     ============================================ */
+
+  .parking-lot-layout {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: var(--space-lg);
+  }
+
+  .parking-lot-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .parking-lot-add-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border);
+  }
+
+  .parking-lot-add-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+
+  .parking-lot-add-header > .material-icons {
+    font-size: 32px;
+    color: #FFC107;
+    background: rgba(255, 193, 7, 0.15);
+    padding: var(--space-sm);
+    border-radius: var(--radius-md);
+  }
+
+  .parking-lot-add-header h2 {
+    margin: 0 0 4px 0;
+    font-size: var(--font-size-lg);
+  }
+
+  .parking-lot-add-header p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  /* Type Picker */
+  .pl-type-picker {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-xs);
+  }
+
+  .pl-type-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .pl-type-btn .material-icons {
+    font-size: 20px;
+    color: var(--color-text-muted);
+  }
+
+  .pl-type-btn span:last-child {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .pl-type-btn:hover {
+    border-color: var(--color-primary);
+    background: rgba(99, 102, 241, 0.05);
+  }
+
+  .pl-type-btn.selected {
+    border-color: var(--color-primary);
+    background: rgba(99, 102, 241, 0.1);
+  }
+
+  .pl-type-btn.selected .material-icons {
+    color: var(--color-primary);
+  }
+
+  .pl-type-btn[data-type="idea"].selected { border-color: #FFC107; background: rgba(255, 193, 7, 0.1); }
+  .pl-type-btn[data-type="idea"].selected .material-icons { color: #FFC107; }
+
+  .pl-type-btn[data-type="discussion_topic"].selected { border-color: #2196F3; background: rgba(33, 150, 243, 0.1); }
+  .pl-type-btn[data-type="discussion_topic"].selected .material-icons { color: #2196F3; }
+
+  .pl-type-btn[data-type="stakeholder_connection"].selected { border-color: #4CAF50; background: rgba(76, 175, 80, 0.1); }
+  .pl-type-btn[data-type="stakeholder_connection"].selected .material-icons { color: #4CAF50; }
+
+  .pl-type-btn[data-type="follow_up"].selected { border-color: #FF5722; background: rgba(255, 87, 34, 0.1); }
+  .pl-type-btn[data-type="follow_up"].selected .material-icons { color: #FF5722; }
+
+  .pl-type-btn[data-type="process_suggestion"].selected { border-color: #9C27B0; background: rgba(156, 39, 176, 0.1); }
+  .pl-type-btn[data-type="process_suggestion"].selected .material-icons { color: #9C27B0; }
+
+  .pl-type-btn[data-type="random_info"].selected { border-color: #607D8B; background: rgba(96, 125, 139, 0.1); }
+  .pl-type-btn[data-type="random_info"].selected .material-icons { color: #607D8B; }
+
+  /* Stats Card */
+  .parking-lot-stats-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border);
+  }
+
+  .parking-lot-stats-card h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin: 0 0 var(--space-md) 0;
+    font-size: var(--font-size-md);
+  }
+
+  .parking-lot-stats-card h3 .material-icons {
+    color: var(--color-text-muted);
+  }
+
+  .pl-mini-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-sm);
+    text-align: center;
+  }
+
+  .pl-mini-stat {
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+  }
+
+  .pl-mini-stat .stat-num {
+    display: block;
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .pl-mini-stat .stat-desc {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .pl-mini-stat.stat-warning .stat-num {
+    color: #FF5722;
+  }
+
+  /* Feed Section */
+  .parking-lot-feed-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border);
+  }
+
+  .parking-lot-feed-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .parking-lot-feed-header h2 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+  }
+
+  .pl-filters {
+    display: flex;
+    gap: var(--space-sm);
+  }
+
+  .pl-filters select {
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    font-size: var(--font-size-sm);
+  }
+
+  .parking-lot-feed {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    max-height: 600px;
+    overflow-y: auto;
+  }
+
+  /* Parking Lot Item Card */
+  .pl-item-card {
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .pl-item-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .pl-item-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .pl-item-icon .material-icons {
+    font-size: 20px;
+    color: white;
+  }
+
+  .pl-item-icon.idea { background: #FFC107; }
+  .pl-item-icon.discussion_topic { background: #2196F3; }
+  .pl-item-icon.stakeholder_connection { background: #4CAF50; }
+  .pl-item-icon.follow_up { background: #FF5722; }
+  .pl-item-icon.process_suggestion { background: #9C27B0; }
+  .pl-item-icon.random_info { background: #607D8B; }
+
+  .pl-item-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pl-item-title {
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 4px;
+  }
+
+  .pl-item-description {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .pl-item-meta {
+    display: flex;
+    gap: var(--space-md);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .pl-item-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .pl-item-meta .material-icons {
+    font-size: 14px;
+  }
+
+  .pl-item-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+
+  .pl-status-badge, .pl-priority-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+  }
+
+  .pl-status-badge {
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+  }
+
+  .pl-status-badge.new { background: #E3F2FD; color: #1976D2; }
+  .pl-status-badge.discussed { background: #FFF3E0; color: #F57C00; }
+  .pl-status-badge.assigned { background: #F3E5F5; color: #7B1FA2; }
+  .pl-status-badge.in_progress { background: #E0F7FA; color: #00838F; }
+  .pl-status-badge.resolved { background: #E8F5E9; color: #388E3C; }
+  .pl-status-badge.archived { background: #ECEFF1; color: #546E7A; }
+
+  .pl-priority-badge.high { background: #FFEBEE; color: #C62828; }
+  .pl-priority-badge.medium { background: #FFF3E0; color: #EF6C00; }
+  .pl-priority-badge.low { background: #E8F5E9; color: #2E7D32; }
+
+  /* Detail Modal */
+  .pl-detail-header {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+  }
+
+  .pl-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+  }
+
+  .pl-type-badge .material-icons {
+    font-size: 16px;
+  }
+
+  .pl-type-badge.idea { background: rgba(255, 193, 7, 0.15); color: #F57F17; }
+  .pl-type-badge.discussion_topic { background: rgba(33, 150, 243, 0.15); color: #1565C0; }
+  .pl-type-badge.stakeholder_connection { background: rgba(76, 175, 80, 0.15); color: #2E7D32; }
+  .pl-type-badge.follow_up { background: rgba(255, 87, 34, 0.15); color: #D84315; }
+  .pl-type-badge.process_suggestion { background: rgba(156, 39, 176, 0.15); color: #7B1FA2; }
+  .pl-type-badge.random_info { background: rgba(96, 125, 139, 0.15); color: #455A64; }
+
+  .pl-detail-content {
+    margin-bottom: var(--space-lg);
+  }
+
+  .pl-detail-description {
+    padding: var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    white-space: pre-wrap;
+  }
+
+  .pl-detail-meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .pl-meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .pl-meta-item .material-icons {
+    font-size: 18px;
+    color: var(--color-text-muted);
+  }
+
+  .pl-detail-notes {
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .pl-detail-notes h4 {
+    margin: 0 0 var(--space-sm) 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .pl-notes-content {
+    padding: var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    white-space: pre-wrap;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  .pl-detail-actions {
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .pl-detail-actions h4 {
+    margin: 0 0 var(--space-md) 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .pl-note-input {
+    display: flex;
+    gap: var(--space-sm);
+  }
+
+  .pl-note-input input {
+    flex: 1;
+  }
+
+  .pl-empty-state {
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--color-text-muted);
+  }
+
+  .pl-empty-state .material-icons {
+    font-size: 48px;
+    margin-bottom: var(--space-md);
+    opacity: 0.5;
+  }
+
   /* Responsive */
   @media (max-width: 1200px) {
     .team-grid { grid-template-columns: 1fr; }
     .kudos-layout { grid-template-columns: 1fr; }
+    .parking-lot-layout { grid-template-columns: 1fr; }
   }
   @media (max-width: 768px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
     .weekly-grid { grid-template-columns: repeat(3, 1fr); }
     .form-row { grid-template-columns: 1fr; }
     .kudos-category-picker { justify-content: center; }
+    .pl-type-picker { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
 
@@ -2373,6 +3034,12 @@
         addLabel.textContent = 'Add Meeting';
       } else if (view === 'kudos') {
         addBtn.style.display = 'none'; // Kudos has inline form
+      } else if (view === 'parkingLot') {
+        addBtn.style.display = 'none'; // Parking Lot has inline form
+        // Load parking lot data if not already loaded
+        if (Team.parkingLotItems.length === 0) {
+          Team.loadParkingLot();
+        }
       } else {
         addBtn.style.display = 'none'; // Hide for documents view
       }
@@ -3013,6 +3680,412 @@
         })
         .withFailureHandler(handleError)
         .addMeeting(data);
+    },
+
+    // ============================================
+    // PARKING LOT FUNCTIONS
+    // ============================================
+
+    parkingLotItems: [],
+    currentPLItem: null,
+    selectedPLType: 'idea',
+
+    loadParkingLot: function() {
+      // Set default type selection
+      Team.selectPLType('idea');
+
+      google.script.run
+        .withSuccessHandler(function(items) {
+          Team.parkingLotItems = items || [];
+          Team.renderParkingLot();
+          Team.updatePLStats();
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load parking lot:', error);
+          Team.parkingLotItems = [];
+          Team.renderParkingLot();
+        })
+        .getAllParkingLotItems();
+
+      // Load solutions for dropdown
+      google.script.run
+        .withSuccessHandler(function(solutions) {
+          Team.populatePLSolutionDropdown(solutions || []);
+        })
+        .withFailureHandler(handleError)
+        .getAllSolutions();
+
+      // Populate assignee dropdown with team members
+      Team.populatePLAssigneeDropdown();
+    },
+
+    populatePLSolutionDropdown: function(solutions) {
+      var select = document.getElementById('plSolution');
+      if (!select) return;
+
+      select.innerHTML = '<option value="">-- None --</option>';
+      solutions.forEach(function(sol) {
+        var opt = document.createElement('option');
+        opt.value = sol.core_id;
+        opt.textContent = (sol.core_id || '').toUpperCase() + ' - ' + (sol.core_official_name || '');
+        select.appendChild(opt);
+      });
+    },
+
+    populatePLAssigneeDropdown: function() {
+      var select = document.getElementById('plDetailAssignSelect');
+      if (!select || !Team.members) return;
+
+      select.innerHTML = '<option value="">-- Unassigned --</option>';
+      Team.members.forEach(function(m) {
+        if (m.email) {
+          var opt = document.createElement('option');
+          opt.value = m.email;
+          opt.textContent = (m.first_name || '') + ' ' + (m.last_name || '');
+          select.appendChild(opt);
+        }
+      });
+    },
+
+    selectPLType: function(type) {
+      Team.selectedPLType = type;
+      document.getElementById('plType').value = type;
+
+      document.querySelectorAll('.pl-type-btn').forEach(function(btn) {
+        btn.classList.remove('selected');
+      });
+      var selectedBtn = document.querySelector('.pl-type-btn[data-type="' + type + '"]');
+      if (selectedBtn) selectedBtn.classList.add('selected');
+    },
+
+    submitParkingLotItem: function() {
+      var title = document.getElementById('plTitle').value.trim();
+      if (!title) {
+        alert('Please enter a title');
+        return;
+      }
+
+      var itemData = {
+        title: title,
+        description: document.getElementById('plDescription').value.trim(),
+        item_type: Team.selectedPLType || 'idea',
+        priority: document.getElementById('plPriority').value,
+        solution_id: document.getElementById('plSolution').value || '',
+        tags: document.getElementById('plTags').value.trim(),
+        submitted_by: window.currentUserName || 'Anonymous',
+        submitted_by_email: ''
+      };
+
+      google.script.run
+        .withSuccessHandler(function(newItem) {
+          // Clear form
+          document.getElementById('plTitle').value = '';
+          document.getElementById('plDescription').value = '';
+          document.getElementById('plPriority').value = 'medium';
+          document.getElementById('plSolution').value = '';
+          document.getElementById('plTags').value = '';
+          Team.selectPLType('idea');
+
+          // Reload
+          Team.loadParkingLot();
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to create parking lot item:', error);
+          alert('Failed to add item. Please try again.');
+        })
+        .createParkingLotItem(itemData);
+    },
+
+    renderParkingLot: function() {
+      var feed = document.getElementById('parkingLotFeed');
+      if (!feed) return;
+
+      var items = Team.getFilteredPLItems();
+
+      if (items.length === 0) {
+        feed.innerHTML = '<div class="pl-empty-state">' +
+          '<span class="material-icons">lightbulb</span>' +
+          '<p>No items in the parking lot yet.</p>' +
+          '<p>Add your first idea above!</p>' +
+          '</div>';
+        return;
+      }
+
+      var typeIcons = {
+        'idea': 'lightbulb',
+        'discussion_topic': 'forum',
+        'stakeholder_connection': 'people',
+        'follow_up': 'flag',
+        'process_suggestion': 'settings',
+        'random_info': 'info'
+      };
+
+      var html = '';
+      items.forEach(function(item) {
+        var icon = typeIcons[item.item_type] || 'help';
+        var createdDate = item.created_at ? new Date(item.created_at).toLocaleDateString() : '--';
+
+        html += '<div class="pl-item-card" onclick="Team.showPLItemDetail(\'' + escapeAttr(item.item_id) + '\')">';
+        html += '<div class="pl-item-icon ' + escapeAttr(item.item_type) + '">';
+        html += '<span class="material-icons">' + icon + '</span>';
+        html += '</div>';
+        html += '<div class="pl-item-content">';
+        html += '<div class="pl-item-title">' + escapeHtml(item.title) + '</div>';
+        if (item.description) {
+          html += '<div class="pl-item-description">' + escapeHtml(item.description) + '</div>';
+        }
+        html += '<div class="pl-item-meta">';
+        html += '<span><span class="material-icons">person</span>' + escapeHtml(item.submitted_by || 'Unknown') + '</span>';
+        html += '<span><span class="material-icons">schedule</span>' + createdDate + '</span>';
+        if (item.solution_id) {
+          html += '<span><span class="material-icons">widgets</span>' + escapeHtml(item.solution_id).toUpperCase() + '</span>';
+        }
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="pl-item-badges">';
+        html += '<span class="pl-status-badge ' + escapeAttr(item.status) + '">' + Team.formatPLStatus(item.status) + '</span>';
+        html += '<span class="pl-priority-badge ' + escapeAttr(item.priority) + '">' + Team.formatPLPriority(item.priority) + '</span>';
+        html += '</div>';
+        html += '</div>';
+      });
+
+      feed.innerHTML = html;
+    },
+
+    getFilteredPLItems: function() {
+      var typeFilter = document.getElementById('plFilterType').value;
+      var statusFilter = document.getElementById('plFilterStatus').value;
+
+      return Team.parkingLotItems.filter(function(item) {
+        if (typeFilter !== 'all' && item.item_type !== typeFilter) return false;
+
+        if (statusFilter === 'active') {
+          return item.status !== 'resolved' && item.status !== 'archived';
+        } else if (statusFilter !== 'all' && item.status !== statusFilter) {
+          return false;
+        }
+
+        return true;
+      });
+    },
+
+    filterParkingLot: function() {
+      Team.renderParkingLot();
+    },
+
+    formatPLStatus: function(status) {
+      var names = {
+        'new': 'New',
+        'discussed': 'Discussed',
+        'assigned': 'Assigned',
+        'in_progress': 'In Progress',
+        'resolved': 'Resolved',
+        'archived': 'Archived'
+      };
+      return names[status] || status;
+    },
+
+    formatPLPriority: function(priority) {
+      return (priority || '').charAt(0).toUpperCase() + (priority || '').slice(1);
+    },
+
+    formatPLType: function(type) {
+      var names = {
+        'idea': 'Idea',
+        'discussion_topic': 'Discussion Topic',
+        'stakeholder_connection': 'Stakeholder Connection',
+        'follow_up': 'Follow-up',
+        'process_suggestion': 'Process Suggestion',
+        'random_info': 'Random Info'
+      };
+      return names[type] || type;
+    },
+
+    updatePLStats: function() {
+      var items = Team.parkingLotItems.filter(function(i) {
+        return i.status !== 'archived';
+      });
+
+      var newItems = items.filter(function(i) { return i.status === 'new'; });
+      var highPriority = items.filter(function(i) {
+        return i.priority === 'high' && i.status !== 'resolved';
+      });
+
+      document.getElementById('plStatTotal').textContent = items.length;
+      document.getElementById('plStatNew').textContent = newItems.length;
+      document.getElementById('plStatHighPriority').textContent = highPriority.length;
+    },
+
+    showPLItemDetail: function(itemId) {
+      var item = Team.parkingLotItems.find(function(i) { return i.item_id === itemId; });
+      if (!item) return;
+
+      Team.currentPLItem = item;
+
+      // Update modal content
+      document.getElementById('plItemDetailTitle').textContent = item.title;
+
+      // Type badge
+      var typeIcons = {
+        'idea': 'lightbulb',
+        'discussion_topic': 'forum',
+        'stakeholder_connection': 'people',
+        'follow_up': 'flag',
+        'process_suggestion': 'settings',
+        'random_info': 'info'
+      };
+      var typeBadge = document.getElementById('plDetailTypeBadge');
+      typeBadge.className = 'pl-type-badge ' + item.item_type;
+      typeBadge.innerHTML = '<span class="material-icons">' + (typeIcons[item.item_type] || 'help') + '</span><span>' + Team.formatPLType(item.item_type) + '</span>';
+
+      // Status & priority badges
+      var statusBadge = document.getElementById('plDetailStatusBadge');
+      statusBadge.className = 'pl-status-badge ' + item.status;
+      statusBadge.textContent = Team.formatPLStatus(item.status);
+
+      var priorityBadge = document.getElementById('plDetailPriorityBadge');
+      priorityBadge.className = 'pl-priority-badge ' + item.priority;
+      priorityBadge.textContent = Team.formatPLPriority(item.priority);
+
+      // Description
+      document.getElementById('plDetailDescription').textContent = item.description || 'No description provided.';
+
+      // Meta info
+      document.getElementById('plDetailSubmitter').textContent = item.submitted_by || 'Unknown';
+      document.getElementById('plDetailCreated').textContent = item.created_at ? new Date(item.created_at).toLocaleString() : '--';
+
+      // Solution
+      var solutionRow = document.getElementById('plDetailSolutionRow');
+      if (item.solution_id) {
+        solutionRow.style.display = '';
+        document.getElementById('plDetailSolution').textContent = item.solution_id.toUpperCase();
+      } else {
+        solutionRow.style.display = 'none';
+      }
+
+      // Assignee
+      var assigneeRow = document.getElementById('plDetailAssigneeRow');
+      if (item.assigned_to) {
+        assigneeRow.style.display = '';
+        document.getElementById('plDetailAssignee').textContent = item.assigned_to;
+      } else {
+        assigneeRow.style.display = 'none';
+      }
+
+      // Tags
+      var tagsRow = document.getElementById('plDetailTagsRow');
+      if (item.tags) {
+        tagsRow.style.display = '';
+        document.getElementById('plDetailTags').textContent = item.tags;
+      } else {
+        tagsRow.style.display = 'none';
+      }
+
+      // Notes
+      var notesSection = document.getElementById('plDetailNotesSection');
+      if (item.notes) {
+        notesSection.style.display = '';
+        document.getElementById('plDetailNotes').textContent = item.notes;
+      } else {
+        notesSection.style.display = 'none';
+      }
+
+      // Set form values
+      document.getElementById('plDetailStatusSelect').value = item.status || 'new';
+      document.getElementById('plDetailAssignSelect').value = item.assigned_to || '';
+      document.getElementById('plDetailNoteInput').value = '';
+
+      // Show modal
+      document.getElementById('plItemDetailModal').classList.add('show');
+    },
+
+    updatePLItemStatus: function() {
+      if (!Team.currentPLItem) return;
+
+      var newStatus = document.getElementById('plDetailStatusSelect').value;
+
+      google.script.run
+        .withSuccessHandler(function() {
+          Team.currentPLItem.status = newStatus;
+          Team.loadParkingLot();
+
+          // Update modal badge
+          var statusBadge = document.getElementById('plDetailStatusBadge');
+          statusBadge.className = 'pl-status-badge ' + newStatus;
+          statusBadge.textContent = Team.formatPLStatus(newStatus);
+        })
+        .withFailureHandler(handleError)
+        .updateParkingLotItemStatus(Team.currentPLItem.item_id, newStatus);
+    },
+
+    assignPLItem: function() {
+      if (!Team.currentPLItem) return;
+
+      var assignee = document.getElementById('plDetailAssignSelect').value;
+
+      if (assignee) {
+        google.script.run
+          .withSuccessHandler(function() {
+            Team.currentPLItem.assigned_to = assignee;
+            Team.currentPLItem.status = 'assigned';
+            Team.loadParkingLot();
+
+            // Update modal
+            document.getElementById('plDetailAssigneeRow').style.display = '';
+            document.getElementById('plDetailAssignee').textContent = assignee;
+            document.getElementById('plDetailStatusSelect').value = 'assigned';
+            var statusBadge = document.getElementById('plDetailStatusBadge');
+            statusBadge.className = 'pl-status-badge assigned';
+            statusBadge.textContent = 'Assigned';
+          })
+          .withFailureHandler(handleError)
+          .assignParkingLotItem(Team.currentPLItem.item_id, assignee);
+      } else {
+        // Unassign
+        google.script.run
+          .withSuccessHandler(function() {
+            Team.currentPLItem.assigned_to = '';
+            Team.loadParkingLot();
+            document.getElementById('plDetailAssigneeRow').style.display = 'none';
+          })
+          .withFailureHandler(handleError)
+          .updateParkingLotItem(Team.currentPLItem.item_id, { assigned_to: '' });
+      }
+    },
+
+    addPLNote: function() {
+      if (!Team.currentPLItem) return;
+
+      var note = document.getElementById('plDetailNoteInput').value.trim();
+      if (!note) return;
+
+      google.script.run
+        .withSuccessHandler(function(updatedItem) {
+          if (updatedItem) {
+            Team.currentPLItem = updatedItem;
+            document.getElementById('plDetailNotesSection').style.display = '';
+            document.getElementById('plDetailNotes').textContent = updatedItem.notes;
+            document.getElementById('plDetailNoteInput').value = '';
+            Team.loadParkingLot();
+          }
+        })
+        .withFailureHandler(handleError)
+        .addNoteToParkingLotItem(Team.currentPLItem.item_id, note);
+    },
+
+    deletePLItem: function() {
+      if (!Team.currentPLItem) return;
+
+      if (!confirm('Are you sure you want to delete this item?')) return;
+
+      google.script.run
+        .withSuccessHandler(function() {
+          Team.closeModal('plItemDetailModal');
+          Team.currentPLItem = null;
+          Team.loadParkingLot();
+        })
+        .withFailureHandler(handleError)
+        .deleteParkingLotItem(Team.currentPLItem.item_id);
     },
 
   };

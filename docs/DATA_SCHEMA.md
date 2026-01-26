@@ -1,7 +1,7 @@
 # MO-Viewer Data Schema
 
-**Version:** 2.1.0
-**Date:** 2026-01-23
+**Version:** 2.1.3
+**Date:** 2026-01-26
 **Reference:** [ARCHITECTURE.md](../ARCHITECTURE.md)
 
 ---
@@ -752,7 +752,7 @@ Central configuration store for all document IDs, sheet IDs, and system settings
 
 | Category | Keys |
 |----------|------|
-| **Database Sheets** | SOLUTIONS_SHEET_ID, CONTACTS_SHEET_ID, NEEDS_SHEET_ID, AGENCIES_SHEET_ID, ENGAGEMENTS_SHEET_ID, UPDATES_SHEET_ID, ACTIONS_SHEET_ID, STORIES_SHEET_ID, OUTREACH_SHEET_ID |
+| **Database Sheets** | SOLUTIONS_SHEET_ID, CONTACTS_SHEET_ID, NEEDS_SHEET_ID, AGENCIES_SHEET_ID, ENGAGEMENTS_SHEET_ID, UPDATES_SHEET_ID, ACTIONS_SHEET_ID, STORIES_SHEET_ID, OUTREACH_SHEET_ID, TEMPLATES_SHEET_ID |
 | **Team Sheets** | AVAILABILITY_SHEET_ID, MEETINGS_SHEET_ID, GLOSSARY_SHEET_ID, KUDOS_SHEET_ID |
 | **Source Documents** | INTERNAL_AGENDA_ID, SEP_AGENDA_ID, OPERA_MONTHLY_ID, PBL_MONTHLY_ID |
 | **Folders** | MONTHLY_FOLDER_ID |
@@ -768,6 +768,67 @@ Central configuration store for all document IDs, sheet IDs, and system settings
 | INTERNAL_AGENDA_ID     | 1def...uvw                         | Internal Planning agenda   |
 | MO_PROJECT_PLAN_DOC_ID | 1ghi...rst                         | MO Project Plan document   |
 ```
+
+---
+
+### 14. TEMPLATES (MO-DB_Templates)
+
+**Status: NEW** - Email/Meeting Templates for SEP and Comms
+
+Comprehensive email and meeting templates for stakeholder engagement and communications.
+56 templates across 6 categories extracted from the Meeting Invite Language PDF.
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `template_id` | STRING | Yes | Primary key (e.g., "SEP_TP1", "IMPL_ATP_DG") |
+| `category` | STRING | Yes | Category: Assessment, Implementation, SEP, Supplementary, Outreach, Blurbs |
+| `subcategory` | STRING | No | Sub-grouping (Workshops, Kickoff, Decision Gate, Touchpoint, Working Session, etc.) |
+| `phase` | STRING | No | Lifecycle phase: Assessment, Pre-Formulation, Formulation, Implementation, Operations, Closeout |
+| `name` | STRING | Yes | Template display name |
+| `meeting_title` | STRING | No | Meeting title for calendar invites |
+| `attendees` | STRING | No | Typical attendees list |
+| `key_points` | STRING | No | Agenda points / key discussion items |
+| `email_subject` | STRING | No | Email subject line template with {placeholders} |
+| `email_body` | STRING | No | Email body template with {placeholders} |
+| `attachments_notes` | STRING | No | Notes about attachments or follow-up materials |
+| `is_active` | BOOLEAN | Yes | Whether template is active |
+| `sort_order` | INTEGER | No | Display order within category |
+
+**Template Categories:**
+
+| Category | Count | Description |
+|----------|-------|-------------|
+| Assessment | 3 | Solution assessment workshops (Asana/Interview, Solution, Report-Writing) |
+| Implementation | 22 | Kickoff meetings, Decision Gates (ATP, F2I, ORR), DAAC, Closeout, Recurring |
+| SEP | 13 | Touchpoints 1-8, Working Sessions 1-5, Milestone Notification, Prototype Feedback |
+| Supplementary | 5 | Deep Dive sessions, NASA SNWG Lunch & Learn |
+| Outreach | 5 | Introduction, Follow-up, Meeting Request, Update, Thank You |
+| Blurbs | 6 | ODSI reporting blurbs for milestones |
+
+**Placeholder Variables:**
+
+| Placeholder | Description | Example |
+|-------------|-------------|---------|
+| `{solution}` | Solution name | "OPERA Land Surface Disturbance" |
+| `{firstName}` | Recipient's first name | "John" |
+| `{agency}` | Stakeholder's agency name | "USGS" |
+| `{date}` | Relevant date | "January 15, 2026" |
+| `{deadline}` | Response deadline | "January 22, 2026" |
+| `{milestone}` | Milestone name | "ATP Decision Gate" |
+| `{DAAC}` | Assigned DAAC name | "LP DAAC" |
+| `{solutionContext}` | Solution description paragraph | "OPERA provides..." |
+| `{capabilities}` | Solution capabilities summary | "land surface disturbance monitoring" |
+
+**API Functions:**
+- `getAllTemplates()`, `getTemplateById(templateId)`
+- `getTemplatesByCategory(category)`, `getTemplatesBySubcategory(subcategory)`, `getTemplatesByPhase(phase)`
+- `getSEPTemplates()`, `getSEPTouchpointTemplates(touchpointId)`, `getSEPWorkingSessionTemplates(sessionId)`
+- `getImplementationTemplates()`, `getDecisionGateTemplates(gateType)`, `getKickoffTemplates()`
+- `getOutreachTemplates()`, `getBlurbTemplates()`, `getBlurbForMilestone(milestoneType)`
+- `applyTemplate(templateId, variables)` - Variable substitution
+- `searchTemplates(query)`, `getTemplateStats()`, `getTemplateCategories()`
+- `getEmailTemplatesForSEP()` - Backward compatible with existing SEP email modal
+- `getCommsTemplates()` - Templates organized for Comms page
 
 ---
 

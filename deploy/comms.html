@@ -261,11 +261,21 @@
         <div class="calendar-grid" id="calendarGrid">
           <!-- Calendar will be rendered here -->
         </div>
-        <div class="upcoming-targets">
-          <h4>Upcoming Targets</h4>
-          <div id="upcomingTargetsList">
-            <div class="loading-state">
-              <span class="loading-spinner"></span>
+        <div class="calendar-sidebar">
+          <div class="upcoming-targets">
+            <h4>Upcoming Targets</h4>
+            <div id="upcomingTargetsList">
+              <div class="loading-state">
+                <span class="loading-spinner"></span>
+              </div>
+            </div>
+          </div>
+          <div class="comms-due-section">
+            <h4><span class="material-icons" style="font-size: 18px; vertical-align: text-bottom;">notification_important</span> Communications Due</h4>
+            <div id="commsDueList">
+              <div class="loading-state">
+                <span class="loading-spinner"></span>
+              </div>
             </div>
           </div>
         </div>
@@ -832,6 +842,10 @@
               <span class="material-icons">description</span>
               Generate Prep Report
             </button>
+            <button class="btn btn-secondary" id="exportPrepBtn" onclick="COMMS.exportPrepToDoc()" style="display:none;">
+              <span class="material-icons">open_in_new</span>
+              Export to Doc
+            </button>
           </div>
           <div id="prepReportBody">
             <div class="empty-state">
@@ -1169,7 +1183,32 @@
   .status-badge.uncovered { background: rgba(244, 67, 54, 0.1); color: var(--color-error); }
 
   /* Calendar View */
-  .calendar-layout { padding: var(--space-md); }
+  .calendar-layout {
+    padding: var(--space-md);
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    grid-template-rows: auto 1fr;
+    gap: var(--space-md);
+  }
+  .calendar-layout .calendar-header {
+    grid-column: 1 / -1;
+  }
+  .calendar-layout .calendar-grid {
+    grid-column: 1;
+  }
+  .calendar-layout .calendar-sidebar {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  @media (max-width: 1000px) {
+    .calendar-layout {
+      grid-template-columns: 1fr;
+    }
+    .calendar-layout .calendar-sidebar {
+      grid-column: 1;
+      grid-row: 3;
+    }
+  }
   .calendar-header {
     display: flex;
     align-items: center;
@@ -1241,6 +1280,67 @@
   .target-info { flex: 1; }
   .target-title { font-weight: 500; font-size: var(--font-size-sm); }
   .target-date { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+
+  /* Calendar Sidebar */
+  .calendar-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  /* Comms Due Section */
+  .comms-due-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    box-shadow: var(--shadow-sm);
+  }
+  .comms-due-section h4 {
+    margin: 0 0 var(--space-md) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    color: var(--color-warning);
+  }
+  .comms-due-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+  }
+  .comms-due-item:hover { background: var(--color-border-light); }
+  .comms-due-item.urgent { border-left: 3px solid var(--color-error); }
+  .comms-due-item.warning { border-left: 3px solid var(--color-warning); }
+  .comms-due-info { flex: 1; min-width: 0; }
+  .comms-due-solution {
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .comms-due-days {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+  .comms-due-days.urgent { color: var(--color-error); font-weight: 500; }
+  .comms-due-days.warning { color: var(--color-warning); }
+  .comms-due-action {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-xs);
+    background: var(--color-comms);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .comms-due-action:hover { background: #6a1b9a; }
 
   /* Modal & Forms */
   .modal-overlay {
@@ -1365,34 +1465,73 @@
     font-weight: 600;
   }
   .event-card {
-    padding: var(--space-sm);
-    border-left: 3px solid var(--color-comms);
-    background: var(--color-surface-alt);
-    border-radius: var(--radius-sm);
-    margin-bottom: var(--space-sm);
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
     cursor: pointer;
-    transition: background var(--transition-fast);
+    transition: all var(--transition-fast);
+    border: 1px solid var(--color-border-light);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
-  .event-card:hover { background: var(--color-border-light); }
-  .event-card.status-confirmed { border-left-color: var(--color-warning); }
-  .event-card.status-attended { border-left-color: var(--color-success); }
-  .event-card.status-potential { border-left-color: var(--color-text-muted); }
-  .event-card-name { font-weight: 600; font-size: var(--font-size-sm); margin-bottom: 2px; }
-  .event-card-date { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
-  .event-card-location { font-size: var(--font-size-xs); color: var(--color-text-muted); }
-  .event-card-meta {
+  .event-card:hover {
+    border-color: var(--color-border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+  }
+  .event-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+  }
+  .event-type-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(123, 31, 162, 0.08);
+    border-radius: var(--radius-sm);
+    color: var(--color-comms);
+  }
+  .event-type-icon .material-icons {
+    font-size: 18px;
+  }
+  .event-card-title {
+    font-weight: 600;
+    font-size: var(--font-size-md);
+    color: var(--color-text);
+    line-height: 1.3;
+    margin-bottom: var(--space-sm);
+  }
+  .event-card-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .event-card-date,
+  .event-card-location {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+  .event-card-date .material-icons,
+  .event-card-location .material-icons {
+    font-size: 16px;
+    color: var(--color-text-muted);
+  }
+  .event-card-actions {
     display: flex;
     gap: var(--space-sm);
-    margin-top: var(--space-xs);
-    font-size: 10px;
+    margin-top: var(--space-md);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--color-border-light);
   }
-  .event-type-badge {
-    padding: 1px 6px;
-    background: rgba(123, 31, 162, 0.1);
-    color: var(--color-comms);
-    border-radius: var(--radius-sm);
-    text-transform: uppercase;
-    font-weight: 500;
+  .event-card-actions .btn {
+    flex: 1;
   }
   .events-table-container {
     background: var(--color-surface);
@@ -1417,17 +1556,66 @@
     border-bottom: 1px solid var(--color-border-light);
   }
   .events-table tr:hover { background: var(--color-surface-alt); }
-  .event-status-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
+
+  /* Event Status - uses shared badge pattern */
+  .event-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: var(--radius-sm);
     font-size: var(--font-size-xs);
     font-weight: 500;
+    text-transform: capitalize;
   }
-  .event-status-badge.potential { background: rgba(158, 158, 158, 0.2); color: #616161; }
-  .event-status-badge.considering { background: rgba(33, 150, 243, 0.2); color: #1976D2; }
-  .event-status-badge.confirmed { background: rgba(255, 152, 0, 0.2); color: #F57C00; }
-  .event-status-badge.attended { background: rgba(76, 175, 80, 0.2); color: #388E3C; }
+  .event-status.potential {
+    background: var(--color-surface-alt);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+  }
+  .event-status.considering {
+    background: rgba(33, 150, 243, 0.12);
+    color: #1565C0;
+  }
+  .event-status.confirmed {
+    background: rgba(76, 175, 80, 0.12);
+    color: #2E7D32;
+  }
+  .event-status.attended {
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+  }
+  .event-status.cancelled {
+    background: rgba(158, 158, 158, 0.12);
+    color: var(--color-text-muted);
+    text-decoration: line-through;
+  }
+
+  /* Event Detail Modal Header */
+  .event-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .event-detail-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .event-type-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+  .event-detail-actions {
+    display: flex;
+    gap: var(--space-xs);
+  }
+  .event-detail-actions .btn .material-icons {
+    font-size: 16px;
+  }
 
   /* Discover Events */
   .discover-search { margin-bottom: var(--space-lg); }
@@ -2543,6 +2731,7 @@ var COMMS = (function() {
     if (view === 'calendar') {
       renderCalendar();
       loadUpcomingTargets();
+      renderCommsDue();
     }
 
     if (view === 'events') {
@@ -3164,6 +3353,93 @@ return;
       .getUpcomingTargets(60);
   }
 
+  function renderCommsDue() {
+    var container = document.getElementById('commsDueList');
+    var coverage = state.coverage;
+
+    if (!coverage) {
+      // Coverage not loaded yet, load it
+      google.script.run
+        .withSuccessHandler(function(cov) {
+          state.coverage = cov;
+          renderCommsDue();
+        })
+        .withFailureHandler(function(error) {
+          container.innerHTML = '<div class="empty-state-sm">Could not load coverage data</div>';
+        })
+        .getCoverageAnalysis(90);
+      return;
+    }
+
+    // Combine gaps and uncovered solutions
+    var needsAttention = [];
+
+    if (coverage.gaps && coverage.gaps.length > 0) {
+      coverage.gaps.forEach(function(g) {
+        needsAttention.push({
+          solution_name: g.solution_name || g.solution_id,
+          solution_id: g.solution_id,
+          days_since: g.days_since_story,
+          last_date: g.last_story_date,
+          type: 'gap'
+        });
+      });
+    }
+
+    if (coverage.uncovered && coverage.uncovered.length > 0) {
+      coverage.uncovered.forEach(function(u) {
+        needsAttention.push({
+          solution_name: u.solution_name || u.solution_id,
+          solution_id: u.solution_id,
+          days_since: null,
+          last_date: null,
+          type: 'uncovered'
+        });
+      });
+    }
+
+    // Sort by urgency (uncovered first, then by days_since descending)
+    needsAttention.sort(function(a, b) {
+      if (a.type === 'uncovered' && b.type !== 'uncovered') return -1;
+      if (a.type !== 'uncovered' && b.type === 'uncovered') return 1;
+      var aDays = a.days_since || 9999;
+      var bDays = b.days_since || 9999;
+      return bDays - aDays;
+    });
+
+    if (needsAttention.length === 0) {
+      container.innerHTML = '<div class="empty-state-sm"><span class="material-icons" style="color: var(--color-success);">check_circle</span> All solutions have recent coverage!</div>';
+      return;
+    }
+
+    var html = '';
+    needsAttention.slice(0, 8).forEach(function(item) {
+      var isUrgent = item.type === 'uncovered' || (item.days_since && item.days_since > 180);
+      var isWarning = !isUrgent && item.days_since && item.days_since > 90;
+      var urgencyClass = isUrgent ? 'urgent' : (isWarning ? 'warning' : '');
+      var daysClass = isUrgent ? 'urgent' : (isWarning ? 'warning' : '');
+
+      var daysText = item.type === 'uncovered' ? 'No stories ever' :
+                     (item.days_since ? item.days_since + ' days since last story' : 'Needs coverage');
+
+      html += '<div class="comms-due-item ' + urgencyClass + '">';
+      html += '<div class="comms-due-info">';
+      html += '<div class="comms-due-solution">' + escapeHtml(item.solution_name) + '</div>';
+      html += '<div class="comms-due-days ' + daysClass + '">' + daysText + '</div>';
+      html += '</div>';
+      html += '<button class="comms-due-action" onclick="event.stopPropagation(); COMMS.suggestStory(\'' + escapeAttr(item.solution_id || item.solution_name) + '\')">+ Story</button>';
+      html += '</div>';
+    });
+
+    if (needsAttention.length > 8) {
+      html += '<div style="text-align: center; margin-top: var(--space-sm);">';
+      html += '<button class="btn btn-sm btn-secondary" onclick="COMMS.setView(\'coverage\')">';
+      html += 'View all ' + needsAttention.length + ' solutions</button></div>';
+    }
+
+    container.innerHTML = html;
+  }
+
   function closeModal(modalId, event) {
     if (!event || event.target === document.getElementById(modalId)) {
       document.getElementById(modalId).classList.remove('active');
@@ -3258,30 +3534,33 @@ return;
     };
     var icon = typeIcons[event.event_type] || 'calendar';
 
-    var statusColors = {
-      'confirmed': '#4CAF50',
-      'potential': '#FF9800',
-      'considering': '#2196F3',
-      'attended': '#9E9E9E',
-      'cancelled': '#F44336'
-    };
-    var statusColor = statusColors[event.status] || '#9E9E9E';
+    var statusClass = event.status || 'potential';
 
     var html = '<div class="event-card" onclick="COMMS.showEventDetail(\'' + escapeAttr(event.event_id) + '\')">';
+
+    // Header: type icon + status
     html += '<div class="event-card-header">';
     html += '<span class="event-type-icon"><span class="material-icons">' + icon + '</span></span>';
-    html += '<span class="event-status" style="background: ' + statusColor + ';">' + capitalizeFirst(event.status) + '</span>';
+    html += '<span class="event-status ' + statusClass + '">' + (event.status || 'potential') + '</span>';
     html += '</div>';
+
+    // Title
     html += '<div class="event-card-title">' + escapeHtml(event.name) + '</div>';
 
-    if (event.start_date) {
-      html += '<div class="event-card-date"><span class="material-icons">calendar_today</span> ' + formatDate(event.start_date) + '</div>';
+    // Details (date & location)
+    var hasDetails = event.start_date || event.location;
+    if (hasDetails) {
+      html += '<div class="event-card-details">';
+      if (event.start_date) {
+        html += '<div class="event-card-date"><span class="material-icons">event</span>' + formatDate(event.start_date) + '</div>';
+      }
+      if (event.location) {
+        html += '<div class="event-card-location"><span class="material-icons">place</span>' + escapeHtml(event.location.substring(0, 35)) + '</div>';
+      }
+      html += '</div>';
     }
 
-    if (event.location) {
-      html += '<div class="event-card-location"><span class="material-icons">place</span> ' + escapeHtml(event.location.substring(0, 30)) + '</div>';
-    }
-
+    // Actions for potential events
     if (showActions && (event.status === 'potential' || event.status === 'considering')) {
       html += '<div class="event-card-actions">';
       html += '<button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); COMMS.updateEventStatus(\'' + escapeAttr(event.event_id) + '\', \'confirmed\')">Confirm</button>';
@@ -3325,7 +3604,7 @@ return;
       html += '<td><span class="material-icons">' + icon + '</span> ' + capitalizeFirst(e.event_type || 'event') + '</td>';
       html += '<td>' + (e.start_date ? formatDate(e.start_date) : '--') + '</td>';
       html += '<td>' + escapeHtml(e.location || '--').substring(0, 25) + '</td>';
-      html += '<td><span class="status-badge ' + statusClass + '">' + capitalizeFirst(e.status) + '</span></td>';
+      html += '<td><span class="event-status ' + (e.status || 'potential') + '">' + (e.status || 'potential') + '</span></td>';
       html += '<td>' + escapeHtml(e.team_members || '--').substring(0, 20) + '</td>';
       html += '<td>';
       if (e.event_url) {
@@ -3377,6 +3656,7 @@ return;
 
     // Reset prep report
     document.getElementById('prepReportBody').innerHTML = '<div class="empty-state"><span class="material-icons">assignment</span><p>Click "Generate Prep Report" to create a preparation report for this event</p></div>';
+    document.getElementById('exportPrepBtn').style.display = 'none';
 
     // Reset guest search
     document.getElementById('guestSearchInput').value = '';
@@ -3399,26 +3679,19 @@ return;
   function renderEventViewMode(event) {
     currentEventDetail = event;
 
-    var statusColors = {
-      'confirmed': '#4CAF50',
-      'potential': '#FF9800',
-      'considering': '#2196F3',
-      'attended': '#9E9E9E',
-      'cancelled': '#F44336'
-    };
-    var statusColor = statusColors[event.status] || '#9E9E9E';
+    var statusClass = event.status || 'potential';
 
     var html = '<div class="event-detail">';
 
     // Header with type, status, and edit/delete buttons
-    html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); padding-bottom: var(--space-md); border-bottom: 1px solid var(--color-border-light);">';
-    html += '<div style="display: flex; align-items: center; gap: var(--space-sm);">';
-    html += '<span style="font-size: var(--font-size-sm); color: var(--color-text-muted);">' + capitalizeFirst(event.event_type || 'Event') + '</span>';
-    html += '<span style="padding: 4px 12px; background: ' + statusColor + '; color: white; border-radius: 12px; font-size: var(--font-size-sm);">' + capitalizeFirst(event.status) + '</span>';
+    html += '<div class="event-detail-header">';
+    html += '<div class="event-detail-meta">';
+    html += '<span class="event-type-label">' + capitalizeFirst(event.event_type || 'Event') + '</span>';
+    html += '<span class="event-status ' + statusClass + '">' + (event.status || 'potential') + '</span>';
     html += '</div>';
-    html += '<div style="display: flex; gap: var(--space-xs);">';
-    html += '<button class="btn btn-sm btn-secondary" onclick="COMMS.showEventEditForm()" title="Edit"><span class="material-icons" style="font-size: 16px;">edit</span></button>';
-    html += '<button class="btn btn-sm btn-danger" onclick="COMMS.deleteEvent(\'' + escapeAttr(event.event_id) + '\')" title="Delete"><span class="material-icons" style="font-size: 16px;">delete</span></button>';
+    html += '<div class="event-detail-actions">';
+    html += '<button class="btn btn-sm btn-secondary" onclick="COMMS.showEventEditForm()" title="Edit"><span class="material-icons">edit</span></button>';
+    html += '<button class="btn btn-sm btn-danger" onclick="COMMS.deleteEvent(\'' + escapeAttr(event.event_id) + '\')" title="Delete"><span class="material-icons">delete</span></button>';
     html += '</div>';
     html += '</div>';
 
@@ -4309,6 +4582,35 @@ return;
     html += '</div>';
 
     container.innerHTML = html;
+
+    // Show export button now that report is generated
+    document.getElementById('exportPrepBtn').style.display = 'inline-flex';
+  }
+
+  function exportPrepToDoc() {
+    var exportBtn = document.getElementById('exportPrepBtn');
+    var originalText = exportBtn.innerHTML;
+    exportBtn.disabled = true;
+    exportBtn.innerHTML = '<span class="loading-spinner"></span> Exporting...';
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        exportBtn.disabled = false;
+        exportBtn.innerHTML = originalText;
+
+        if (result.success) {
+          // Open the doc in a new tab
+          window.open(result.url, '_blank');
+        } else {
+          alert('Export failed: ' + (result.error || 'Unknown error'));
+        }
+      })
+      .withFailureHandler(function(error) {
+        exportBtn.disabled = false;
+        exportBtn.innerHTML = originalText;
+        alert('Export failed: ' + error.message);
+      })
+      .exportPrepReportToDoc(currentEventId);
   }
 
   function showNewContactFromEvent() {
@@ -4411,6 +4713,7 @@ return;
     removeGuest: removeGuest,
     toggleAttendance: toggleAttendance,
     generatePrepReport: generatePrepReport,
+    exportPrepToDoc: exportPrepToDoc,
     showNewContactFromEvent: showNewContactFromEvent,
     submitNewContactFromEvent: submitNewContactFromEvent
   };

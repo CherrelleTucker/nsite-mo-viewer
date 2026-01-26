@@ -1163,6 +1163,238 @@ function findPotentialConnections_(guests) {
 }
 
 /**
+ * Export prep report to Google Doc
+ * @param {string} eventId - Event ID
+ * @returns {Object} Result with document URL
+ */
+function exportPrepReportToDoc(eventId) {
+  try {
+    var report = getEventPrepReport(eventId);
+    if (report.error) {
+      return { success: false, error: report.error };
+    }
+
+    var event = report.event;
+    var docTitle = 'Event Prep Report - ' + (event.name || 'Unnamed Event');
+
+    // Format date for title
+    if (event.start_date) {
+      var startDate = new Date(event.start_date);
+      var dateStr = Utilities.formatDate(startDate, Session.getScriptTimeZone(), 'MMM d, yyyy');
+      docTitle += ' (' + dateStr + ')';
+    }
+
+    // Create the document
+    var doc = DocumentApp.create(docTitle);
+    var body = doc.getBody();
+
+    // Set up styles
+    var titleStyle = {};
+    titleStyle[DocumentApp.Attribute.FONT_SIZE] = 18;
+    titleStyle[DocumentApp.Attribute.BOLD] = true;
+    titleStyle[DocumentApp.Attribute.FOREGROUND_COLOR] = '#1a73e8';
+
+    var heading1Style = {};
+    heading1Style[DocumentApp.Attribute.FONT_SIZE] = 14;
+    heading1Style[DocumentApp.Attribute.BOLD] = true;
+    heading1Style[DocumentApp.Attribute.FOREGROUND_COLOR] = '#202124';
+
+    var heading2Style = {};
+    heading2Style[DocumentApp.Attribute.FONT_SIZE] = 12;
+    heading2Style[DocumentApp.Attribute.BOLD] = true;
+
+    var normalStyle = {};
+    normalStyle[DocumentApp.Attribute.FONT_SIZE] = 11;
+    normalStyle[DocumentApp.Attribute.BOLD] = false;
+
+    var labelStyle = {};
+    labelStyle[DocumentApp.Attribute.FONT_SIZE] = 10;
+    labelStyle[DocumentApp.Attribute.FOREGROUND_COLOR] = '#5f6368';
+    labelStyle[DocumentApp.Attribute.BOLD] = true;
+
+    // Title
+    var title = body.appendParagraph('Event Prep Report');
+    title.setAttributes(titleStyle);
+    title.setSpacingAfter(4);
+
+    // Event name
+    var eventName = body.appendParagraph(event.name || 'Unnamed Event');
+    eventName.setAttributes(heading1Style);
+    eventName.setSpacingAfter(12);
+
+    // Event details
+    var detailsTable = body.appendTable();
+    detailsTable.setBorderWidth(0);
+
+    if (event.start_date) {
+      var row = detailsTable.appendTableRow();
+      var cell1 = row.appendTableCell('Date:');
+      cell1.setWidth(80);
+      cell1.getChild(0).asText().setAttributes(labelStyle);
+      var dateVal = Utilities.formatDate(new Date(event.start_date), Session.getScriptTimeZone(), 'EEEE, MMMM d, yyyy');
+      if (event.end_date && event.end_date !== event.start_date) {
+        dateVal += ' - ' + Utilities.formatDate(new Date(event.end_date), Session.getScriptTimeZone(), 'MMMM d, yyyy');
+      }
+      row.appendTableCell(dateVal);
+    }
+
+    if (event.location) {
+      var row = detailsTable.appendTableRow();
+      var cell1 = row.appendTableCell('Location:');
+      cell1.setWidth(80);
+      cell1.getChild(0).asText().setAttributes(labelStyle);
+      row.appendTableCell(event.location);
+    }
+
+    if (event.event_type) {
+      var row = detailsTable.appendTableRow();
+      var cell1 = row.appendTableCell('Type:');
+      cell1.setWidth(80);
+      cell1.getChild(0).asText().setAttributes(labelStyle);
+      row.appendTableCell(event.event_type.charAt(0).toUpperCase() + event.event_type.slice(1));
+    }
+
+    body.appendParagraph('').setSpacingAfter(8);
+
+    // Summary Stats
+    var summaryHeading = body.appendParagraph('Summary');
+    summaryHeading.setAttributes(heading1Style);
+    summaryHeading.setSpacingAfter(8);
+
+    var summary = report.summary;
+    var summaryText = summary.total_guests + ' Guests • ' +
+                      summary.total_agencies + ' Agencies • ' +
+                      summary.total_connections + ' Connections';
+    if (summary.linked_solutions > 0) {
+      summaryText += ' • ' + summary.linked_solutions + ' Linked Solutions';
+    }
+    var summaryPara = body.appendParagraph(summaryText);
+    summaryPara.setAttributes(normalStyle);
+    summaryPara.setSpacingAfter(16);
+
+    // Agencies Represented
+    if (report.agencies_represented && report.agencies_represented.length > 0) {
+      var agenciesHeading = body.appendParagraph('Agencies Represented');
+      agenciesHeading.setAttributes(heading1Style);
+      agenciesHeading.setSpacingAfter(8);
+
+      var agencyList = report.agencies_represented.map(function(a) {
+        return a.name + ' (' + a.count + ')';
+      }).join(', ');
+      var agencyPara = body.appendParagraph(agencyList);
+      agencyPara.setAttributes(normalStyle);
+      agencyPara.setSpacingAfter(16);
+    }
+
+    // Potential Connections
+    if (report.potential_connections && report.potential_connections.length > 0) {
+      var connHeading = body.appendParagraph('Potential Connections');
+      connHeading.setAttributes(heading1Style);
+      connHeading.setSpacingAfter(8);
+
+      report.potential_connections.forEach(function(conn) {
+        var connPara = body.appendParagraph('• ' + conn.contact1.name + ' & ' + conn.contact2.name);
+        connPara.setAttributes(normalStyle);
+        var reasonPara = body.appendParagraph('  ' + conn.reason);
+        reasonPara.setAttributes(labelStyle);
+        reasonPara.setSpacingAfter(4);
+      });
+      body.appendParagraph('').setSpacingAfter(12);
+    }
+
+    // Conversation Starters
+    if (report.conversation_starters && report.conversation_starters.length > 0) {
+      var startersHeading = body.appendParagraph('Conversation Starters');
+      startersHeading.setAttributes(heading1Style);
+      startersHeading.setSpacingAfter(8);
+
+      report.conversation_starters.forEach(function(starter) {
+        var namePara = body.appendParagraph(starter.name);
+        namePara.setAttributes(heading2Style);
+        namePara.setSpacingAfter(2);
+
+        starter.topics.forEach(function(topic) {
+          var topicPara = body.appendParagraph('• ' + topic.text);
+          topicPara.setAttributes(normalStyle);
+        });
+        body.appendParagraph('').setSpacingAfter(8);
+      });
+    }
+
+    // Linked Solutions
+    if (event.linked_solutions && event.linked_solutions.length > 0) {
+      var solHeading = body.appendParagraph('Linked Solutions');
+      solHeading.setAttributes(heading1Style);
+      solHeading.setSpacingAfter(8);
+
+      var solPara = body.appendParagraph(event.linked_solutions.join(', '));
+      solPara.setAttributes(normalStyle);
+      solPara.setSpacingAfter(16);
+    }
+
+    // Guest Profiles
+    var profilesHeading = body.appendParagraph('Guest Profiles');
+    profilesHeading.setAttributes(heading1Style);
+    profilesHeading.setSpacingAfter(12);
+
+    report.guests.forEach(function(guest) {
+      // Guest name
+      var guestName = body.appendParagraph(guest.name);
+      guestName.setAttributes(heading2Style);
+      guestName.setSpacingAfter(2);
+
+      // Title and agency
+      var subtitle = [];
+      if (guest.title) subtitle.push(guest.title);
+      if (guest.agency) subtitle.push(guest.agency);
+      if (subtitle.length > 0) {
+        var subtitlePara = body.appendParagraph(subtitle.join(' | '));
+        subtitlePara.setAttributes(labelStyle);
+        subtitlePara.setSpacingAfter(4);
+      }
+
+      // Profile details
+      var details = [];
+      if (guest.education) details.push({ label: 'Education', value: guest.education });
+      if (guest.hobbies) details.push({ label: 'Hobbies', value: guest.hobbies });
+      if (guest.goals) details.push({ label: 'Goals', value: guest.goals });
+      if (guest.early_job) details.push({ label: 'First Job', value: guest.early_job });
+      if (guest.relax) details.push({ label: 'Unwinds By', value: guest.relax });
+      if (guest.solutions && guest.solutions.length > 0) {
+        details.push({ label: 'Solutions', value: guest.solutions.join(', ') });
+      }
+
+      if (details.length > 0) {
+        details.forEach(function(d) {
+          var detailPara = body.appendParagraph(d.label + ': ' + d.value);
+          detailPara.setAttributes(normalStyle);
+        });
+      }
+
+      body.appendParagraph('').setSpacingAfter(12);
+    });
+
+    // Footer with generation timestamp
+    body.appendParagraph('').setSpacingAfter(20);
+    var footerPara = body.appendParagraph('Generated ' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMMM d, yyyy \'at\' h:mm a') + ' via MO-Viewer');
+    footerPara.setAttributes(labelStyle);
+
+    // Save and close
+    doc.saveAndClose();
+
+    return {
+      success: true,
+      url: doc.getUrl(),
+      docId: doc.getId(),
+      title: docTitle
+    };
+  } catch (e) {
+    Logger.log('Error exporting prep report: ' + e);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
  * Find potential guests based on solution engagements
  * Looks for contacts who have engaged with the event's linked solutions
  * @param {Array} linkedSolutions - Solutions linked to the event

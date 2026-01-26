@@ -135,3 +135,7 @@ function markGuestAttended(eventId, contactEmail, attended) {
 function getEventPrepReport(eventId) {
   return MoApi.getEventPrepReport(eventId);
 }
+
+function exportPrepReportToDoc(eventId) {
+  return MoApi.exportPrepReportToDoc(eventId);
+}

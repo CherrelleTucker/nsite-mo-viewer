@@ -132,3 +132,12 @@ function getDirectingDocumentsByCategory() {
 function getDirectingDocumentsCount() {
   return MoApi.getDirectingDocumentsCount();
 }
+
+// Email Templates
+function getEmailTemplatesDocUrl() {
+  return MoApi.getEmailTemplatesDocUrl();
+}
+
+function getEmailTemplates() {
+  return MoApi.getEmailTemplates();
+}

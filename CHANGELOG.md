@@ -10,6 +10,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Add Contact Form** - New contact creation from Contacts Directory page
+  - "Add Contact" button in page header opens modal form
+  - Required fields: First Name, Last Name, Email
+  - Organization section: Phone, Title, Department, Agency (with autocomplete), Organization, Region
+  - Collapsible "Solution & Engagement" section: Solution dropdown, Role, SEP Touchpoint, Engagement Level
+  - Collapsible "Notes" section: Relationship notes
+  - Email validation prevents duplicates, normalizes to lowercase
+  - Toast notifications for success/error feedback
+
+- **Export Prep Report to Google Doc** - Event preparation reports can be exported
+  - "Export to Doc" button appears after generating a prep report
+  - Creates formatted Google Doc with event details, summary stats, agencies represented
+  - Includes potential connections, conversation starters, linked solutions
+  - Full guest profiles with education, hobbies, goals, etc.
+  - Footer with generation timestamp
+  - Opens document in new tab automatically
+
+- **Parking Lot Database** - New MO-DB_Parking for capturing team ideas and topics
+  - Item types: idea, discussion_topic, stakeholder_connection, follow_up, process_suggestion, random_info
+  - Status workflow: new → discussed → assigned → in_progress → resolved → archived
+  - Assignable to team members with owner tracking
+  - Pre-populated with 11 team retreat items
+
+- **Templates Database** - New MO-DB_Templates for email/meeting templates
+  - 56 templates organized by category (SEP stages, Comms, Events)
+  - Templates API for retrieval and filtering
+
+### Changed
+- **Event Cards Redesign** - Cleaner, more spacious event card design
+  - Increased padding and margins for breathing room
+  - Subtle shadow and border instead of heavy left border
+  - Smooth hover effect with slight elevation
+  - Type icon displayed in circular badge
+  - Better visual hierarchy with prominent title
+  - Details (date, location) grouped in neat column layout
+  - Action buttons separated by subtle divider
+
+- **Event Status Badges** - Consistent styling across all views
+  - Replaced inline styles with CSS classes (.event-status.{status})
+  - Unified design: potential (subtle gray), considering (blue), confirmed (green), attended (muted), cancelled (strikethrough)
+  - Updated event cards, events table, and event detail modal
+  - Removed redundant .event-status-badge CSS
+
+- **Calendar Communications Due Alerts** - New sidebar section in Comms Calendar view
+  - Shows solutions needing communications attention (no coverage ever or >90 days since last story)
+  - Color-coded urgency: red for critical (uncovered or >180 days), orange for warning (>90 days)
+  - Quick "+ Story" button to create story for any solution directly
+  - "View all" link to Coverage view when more than 8 solutions need attention
+  - Responsive layout: calendar grid with sidebar on larger screens, stacked on mobile
+
+- **Email Templates for SEP** - Compose stakeholder outreach emails from templates
+  - New "Email" button in SEP page header
+  - Templates loaded from MO-DB_EmailTemplates sheet (EMAIL_TEMPLATES_SHEET_ID in config)
+  - Columns: template_id, name, category, subject, body, is_active, sort_order, notes
+  - Select template, recipient (from contacts), and solution context
+  - Placeholders auto-filled: {firstName}, {solution}, {agency}, {solutionContext}
+  - Copy to clipboard or open in email client (mailto link)
+  - "Edit Templates" link to open the templates spreadsheet
+
+- **SEP Overview Table** - Collapsible summary table in Dashboard view
+  - Shows all solutions with current SEP milestone, last engagement date, and comms due
+  - Click any row to open solution detail
+  - Collapsible to save screen space; toggle with header click
+  - Comms due calculated as 30 days from last engagement (color-coded overdue/due-soon)
+
+- **SEP Solutions View** - New "quad card" view for solution-by-solution browsing
+  - Card for each solution showing: ID, name, current milestone
+  - Implementation progress: WS completed count, TP completed count
+  - Recent engagements list (up to 3)
+  - Next comms due with color-coded urgency
+  - Quick actions: Log Engagement, View Engagements
+
 - **Getting Started Tutorial** - Task-oriented tutorial section in About page
   - 8 real-world scenarios: "I just met someone...", "What's new with X?", etc.
   - Step-by-step instructions for common workflows

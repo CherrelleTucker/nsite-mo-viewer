@@ -10,11 +10,11 @@
     <div class="page-actions">
       <button class="btn btn-secondary" onclick="Contacts.exportList()">
         <span class="material-icons">download</span>
-        Export
+        Download Contact List
       </button>
-      <button class="btn btn-primary" onclick="Contacts.refresh()">
-        <span class="material-icons">refresh</span>
-        Refresh
+      <button class="btn btn-primary" onclick="Contacts.showAddModal()">
+        <span class="material-icons">person_add</span>
+        Add Contact
       </button>
     </div>
   </div>
@@ -132,6 +132,169 @@
     </div>
     <div class="modal-body" id="modalBody">
       <!-- Dynamic content -->
+    </div>
+  </div>
+</div>
+
+<!-- Add Contact Modal -->
+<div class="modal-overlay" id="addContactModal" onclick="Contacts.closeAddModal(event)">
+  <div class="modal-content modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Add New Contact</h2>
+      <button class="modal-close" onclick="Contacts.closeAddModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="addContactForm" onsubmit="return Contacts.submitNewContact(event)">
+        <!-- Essential Information -->
+        <div class="form-section">
+          <h3 class="form-section-title">Contact Information</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newFirstName">First Name <span class="required">*</span></label>
+              <input type="text" id="newFirstName" name="first_name" required>
+            </div>
+            <div class="form-group">
+              <label for="newLastName">Last Name <span class="required">*</span></label>
+              <input type="text" id="newLastName" name="last_name" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newEmail">Email <span class="required">*</span></label>
+              <input type="email" id="newEmail" name="email" required placeholder="name@agency.gov">
+            </div>
+            <div class="form-group">
+              <label for="newPhone">Phone</label>
+              <input type="tel" id="newPhone" name="phone" placeholder="(555) 555-5555">
+            </div>
+          </div>
+        </div>
+
+        <!-- Organization Information -->
+        <div class="form-section">
+          <h3 class="form-section-title">Organization</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newTitle">Title / Position</label>
+              <input type="text" id="newTitle" name="title" placeholder="Program Manager">
+            </div>
+            <div class="form-group">
+              <label for="newDepartment">Department</label>
+              <input type="text" id="newDepartment" name="department" placeholder="Earth Science Division">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newAgency">Agency</label>
+              <input type="text" id="newAgency" name="agency" placeholder="NASA" list="agencyList">
+              <datalist id="agencyList"></datalist>
+            </div>
+            <div class="form-group">
+              <label for="newOrganization">Organization</label>
+              <input type="text" id="newOrganization" name="organization" placeholder="Goddard Space Flight Center">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newRegion">Region</label>
+              <select id="newRegion" name="region">
+                <option value="">-- Select Region --</option>
+                <option value="National">National</option>
+                <option value="Northeast">Northeast</option>
+                <option value="Southeast">Southeast</option>
+                <option value="Midwest">Midwest</option>
+                <option value="Southwest">Southwest</option>
+                <option value="West">West</option>
+                <option value="Pacific">Pacific</option>
+                <option value="International">International</option>
+              </select>
+            </div>
+            <div class="form-group"></div>
+          </div>
+        </div>
+
+        <!-- Solution & Role (Collapsible) -->
+        <div class="form-section collapsible">
+          <h3 class="form-section-title" onclick="Contacts.toggleFormSection(this)">
+            <span class="material-icons section-toggle">expand_more</span>
+            Solution & Engagement
+            <span class="optional-label">(Optional)</span>
+          </h3>
+          <div class="form-section-content">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newSolution">Solution</label>
+                <select id="newSolution" name="solution_id">
+                  <option value="">-- Select Solution --</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="newRole">Role</label>
+                <select id="newRole" name="role">
+                  <option value="">-- Select Role --</option>
+                  <option value="Primary SME">Primary SME</option>
+                  <option value="Secondary SME">Secondary SME</option>
+                  <option value="Additional SME">Additional SME</option>
+                  <option value="Survey Submitter">Survey Submitter</option>
+                  <option value="Stakeholder">Stakeholder</option>
+                  <option value="Decision Maker">Decision Maker</option>
+                  <option value="Technical Contact">Technical Contact</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newTouchpoint">SEP Touchpoint</label>
+                <select id="newTouchpoint" name="touchpoint_status">
+                  <option value="">-- Select Touchpoint --</option>
+                  <option value="T4">T4 - Outreach</option>
+                  <option value="W1">W1 - Assessment</option>
+                  <option value="W2">W2 - Deep Dive</option>
+                  <option value="T5">T5 - Transition</option>
+                  <option value="T6">T6 - Training</option>
+                  <option value="T7">T7 - Adoption</option>
+                  <option value="T8">T8 - Impact</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="newEngagement">Engagement Level</label>
+                <select id="newEngagement" name="engagement_level">
+                  <option value="">-- Select Level --</option>
+                  <option value="Could benefit">Could benefit</option>
+                  <option value="Interested">Interested</option>
+                  <option value="Info & Feedback">Info & Feedback</option>
+                  <option value="Collaborate">Collaborate</option>
+                  <option value="CoOwners">Co-Owners</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes (Collapsible) -->
+        <div class="form-section collapsible">
+          <h3 class="form-section-title" onclick="Contacts.toggleFormSection(this)">
+            <span class="material-icons section-toggle">expand_more</span>
+            Notes
+            <span class="optional-label">(Optional)</span>
+          </h3>
+          <div class="form-section-content">
+            <div class="form-group full-width">
+              <label for="newNotes">Relationship Notes</label>
+              <textarea id="newNotes" name="relationship_notes" rows="3" placeholder="How did you meet? Key interests? Follow-up context?"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="Contacts.closeAddModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitContactBtn">
+            <span class="material-icons">person_add</span>
+            Add Contact
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -561,12 +724,167 @@
     color: var(--color-text-muted);
   }
 
+  /* Add Contact Form Styles */
+  .form-section {
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .form-section:last-of-type {
+    border-bottom: none;
+  }
+
+  .form-section-title {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0 0 var(--space-md) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .form-section.collapsible .form-section-title {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .form-section.collapsible .form-section-title:hover {
+    color: var(--color-primary);
+  }
+
+  .section-toggle {
+    transition: transform var(--transition-fast);
+  }
+
+  .form-section.collapsed .section-toggle {
+    transform: rotate(-90deg);
+  }
+
+  .form-section.collapsed .form-section-content {
+    display: none;
+  }
+
+  .optional-label {
+    font-size: var(--font-size-sm);
+    font-weight: 400;
+    color: var(--color-text-muted);
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .form-group.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .form-group label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+
+  .form-group label .required {
+    color: var(--color-error);
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .form-group input::placeholder,
+  .form-group textarea::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-md);
+    margin-top: var(--space-lg);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-border-light);
+  }
+
+  .form-actions .btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  /* Toast Notification */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-md);
+    background: var(--color-text);
+    color: white;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    z-index: 2000;
+  }
+
+  .toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .toast.success {
+    background: var(--color-success);
+  }
+
+  .toast.error {
+    background: var(--color-error);
+  }
+
+  .toast.info {
+    background: var(--color-primary);
+  }
+
   /* Responsive */
   @media (max-width: 768px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
     .filter-row { flex-direction: column; align-items: stretch; }
     .filter-group { justify-content: space-between; }
     .contact-detail-header { flex-direction: column; align-items: center; text-align: center; }
+    .form-row { grid-template-columns: 1fr; }
   }
 </style>
 
@@ -1000,6 +1318,144 @@ renderPagination();
     loadStats();
   }
 
+  // ============================================
+  // Add Contact Modal Functions
+  // ============================================
+
+  function showAddModal() {
+    document.getElementById('addContactForm').reset();
+    // Collapse optional sections by default
+    document.querySelectorAll('#addContactModal .form-section.collapsible').forEach(function(section) {
+      section.classList.add('collapsed');
+    });
+    loadSolutionsForDropdown();
+    loadAgenciesForDatalist();
+    document.getElementById('addContactModal').classList.add('active');
+    // Focus first field
+    setTimeout(function() {
+      document.getElementById('newFirstName').focus();
+    }, 100);
+  }
+
+  function closeAddModal(event) {
+    if (!event || event.target === document.getElementById('addContactModal')) {
+      document.getElementById('addContactModal').classList.remove('active');
+    }
+  }
+
+  function toggleFormSection(titleElement) {
+    var section = titleElement.closest('.form-section');
+    section.classList.toggle('collapsed');
+  }
+
+  function loadSolutionsForDropdown() {
+    google.script.run
+      .withSuccessHandler(function(solutions) {
+        var select = document.getElementById('newSolution');
+        select.innerHTML = '<option value="">-- Select Solution --</option>';
+        (solutions || []).forEach(function(sol) {
+          var opt = document.createElement('option');
+          opt.value = sol.core_id || sol.solution_id || sol.name;
+          opt.textContent = sol.core_name || sol.name || sol.core_id;
+          select.appendChild(opt);
+        });
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load solutions:', error);
+      })
+      .getAllSolutions();
+  }
+
+  function loadAgenciesForDatalist() {
+    google.script.run
+      .withSuccessHandler(function(agencies) {
+        var datalist = document.getElementById('agencyList');
+        datalist.innerHTML = '';
+        (agencies || []).forEach(function(agency) {
+          var opt = document.createElement('option');
+          opt.value = agency.name || agency.agency_name;
+          datalist.appendChild(opt);
+        });
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load agencies:', error);
+      })
+      .getAllAgencies();
+  }
+
+  function submitNewContact(event) {
+    event.preventDefault();
+
+    var form = document.getElementById('addContactForm');
+    var submitBtn = document.getElementById('submitContactBtn');
+    var originalText = submitBtn.innerHTML;
+
+    // Show loading state
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="loading-spinner"></span> Saving...';
+
+    // Gather form data
+    var contactData = {
+      first_name: form.first_name.value.trim(),
+      last_name: form.last_name.value.trim(),
+      email: form.email.value.trim().toLowerCase(),
+      phone: form.phone.value.trim(),
+      title: form.title.value.trim(),
+      department: form.department.value.trim(),
+      agency: form.agency.value.trim(),
+      organization: form.organization.value.trim(),
+      region: form.region.value,
+      solution_id: form.solution_id.value,
+      role: form.role.value,
+      touchpoint_status: form.touchpoint_status.value,
+      engagement_level: form.engagement_level.value,
+      relationship_notes: form.relationship_notes.value.trim()
+    };
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+
+        if (result && result.success) {
+          closeAddModal();
+          // Show success message
+          showToast('Contact added successfully!', 'success');
+          // Refresh contacts list
+          refresh();
+        } else {
+          showToast(result && result.error ? result.error : 'Failed to add contact', 'error');
+        }
+      })
+      .withFailureHandler(function(error) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+        showToast('Error: ' + error.message, 'error');
+      })
+      .createContact(contactData);
+
+    return false;
+  }
+
+  function showToast(message, type) {
+    // Create toast if doesn't exist
+    var toast = document.getElementById('contactsToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'contactsToast';
+      toast.className = 'toast';
+      document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+    toast.className = 'toast ' + (type || 'info');
+    toast.classList.add('show');
+
+    setTimeout(function() {
+      toast.classList.remove('show');
+    }, 3000);
+  }
+
   function exportList() {
     // Export current filtered list
     if (state.filteredContacts.length === 0) {
@@ -1053,7 +1509,11 @@ renderPagination();
     showDetail: showDetail,
     closeModal: closeModal,
     refresh: refresh,
-    exportList: exportList
+    exportList: exportList,
+    showAddModal: showAddModal,
+    closeAddModal: closeAddModal,
+    toggleFormSection: toggleFormSection,
+    submitNewContact: submitNewContact
   };
 })();
 

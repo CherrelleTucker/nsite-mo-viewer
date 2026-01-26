@@ -1080,3 +1080,108 @@ function getDirectingDocumentsByCategory() {
 function getDirectingDocumentsCount() {
   return getDirectingDocuments().length;
 }
+
+// ============================================================================
+// EMAIL TEMPLATES (delegates to templates-api.gs if TEMPLATES_SHEET_ID configured)
+// ============================================================================
+
+/**
+ * Get the email templates sheet URL for editing
+ * Prefers TEMPLATES_SHEET_ID, falls back to EMAIL_TEMPLATES_SHEET_ID
+ * @returns {Object} { url: string, configured: boolean }
+ */
+function getEmailTemplatesDocUrl() {
+  // Try new templates database first
+  var templatesSheetId = getConfigValue('TEMPLATES_SHEET_ID');
+  if (templatesSheetId) {
+    return {
+      url: 'https://docs.google.com/spreadsheets/d/' + templatesSheetId + '/edit',
+      configured: true
+    };
+  }
+
+  // Fall back to legacy email templates
+  var sheetId = getConfigValue('EMAIL_TEMPLATES_SHEET_ID');
+  if (!sheetId) {
+    return { url: null, configured: false };
+  }
+  return {
+    url: 'https://docs.google.com/spreadsheets/d/' + sheetId + '/edit',
+    configured: true
+  };
+}
+
+/**
+ * Get all active email templates from the database
+ * Prefers TEMPLATES_SHEET_ID (comprehensive), falls back to EMAIL_TEMPLATES_SHEET_ID (legacy)
+ * @returns {Array} Array of { id, name, category, subject, body }
+ */
+function getEmailTemplates() {
+  // Try new comprehensive templates database first
+  var templatesSheetId = getConfigValue('TEMPLATES_SHEET_ID');
+  if (templatesSheetId) {
+    try {
+      return getEmailTemplatesForSEP();
+    } catch (e) {
+      Logger.log('Error loading from TEMPLATES_SHEET_ID, falling back: ' + e);
+    }
+  }
+
+  // Fall back to legacy EMAIL_TEMPLATES_SHEET_ID
+  var sheetId = getConfigValue('EMAIL_TEMPLATES_SHEET_ID');
+  if (!sheetId) {
+    Logger.log('Neither TEMPLATES_SHEET_ID nor EMAIL_TEMPLATES_SHEET_ID configured');
+    return [];
+  }
+
+  try {
+    var ss = SpreadsheetApp.openById(sheetId);
+    var sheet = ss.getSheets()[0];
+    var data = sheet.getDataRange().getValues();
+
+    if (data.length < 2) return [];
+
+    var headers = data[0];
+    var colMap = {};
+    headers.forEach(function(h, i) {
+      colMap[h.toLowerCase().trim()] = i;
+    });
+
+    var templates = [];
+
+    for (var i = 1; i < data.length; i++) {
+      var row = data[i];
+
+      // Skip inactive templates
+      var isActive = row[colMap['is_active']];
+      if (isActive === false || isActive === 'FALSE' || isActive === 0) {
+        continue;
+      }
+
+      var templateId = row[colMap['template_id']];
+      if (!templateId) continue;
+
+      templates.push({
+        id: String(templateId),
+        name: row[colMap['name']] || templateId,
+        category: row[colMap['category']] || 'General',
+        subject: row[colMap['subject']] || '',
+        body: row[colMap['body']] || '',
+        sort_order: row[colMap['sort_order']] || 999
+      });
+    }
+
+    // Sort by sort_order, then by name
+    templates.sort(function(a, b) {
+      if (a.sort_order !== b.sort_order) {
+        return a.sort_order - b.sort_order;
+      }
+      return a.name.localeCompare(b.name);
+    });
+
+    return templates;
+  } catch (e) {
+    Logger.log('Error loading email templates: ' + e);
+    return [];
+  }
+}

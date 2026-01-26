@@ -156,6 +156,11 @@ function updateContactAgency(email, agencyId) {
   return MoApi.updateContactAgency(email, agencyId);
 }
 
+// Contact Creation
+function createContact(contactData) {
+  return MoApi.createContact(contactData);
+}
+
 function createContactForAgency(contactData) {
   return MoApi.createContactForAgency(contactData);
 }

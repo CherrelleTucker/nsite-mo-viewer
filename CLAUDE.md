@@ -139,6 +139,8 @@ Design notes for improving the Reports > Historical Updates feature:
 │  milestones-api.gs  │ Milestone queries                                      │
 │  stories-api.gs     │ Story/narrative queries                                │
 │  kudos-api.gs       │ Recognition/kudos queries                              │
+│  templates-api.gs   │ Email/meeting templates for SEP & Comms                │
+│  parking-lot-api.gs │ Parking lot ideas/topics capture                       │
 └──────────────────────────────┬──────────────────────────────────────────────┘
                                │
                                ▼
@@ -406,6 +408,8 @@ nsite-mo-viewer/
 | MO-DB_Actions | ACTIONS_SHEET_ID | Action items |
 | MO-DB_Team | TEAM_SHEET_ID | Team members |
 | MO-DB_Meetings | MEETINGS_SHEET_ID | Recurring meetings |
+| MO-DB_Templates | TEMPLATES_SHEET_ID | Email/meeting templates for SEP & Comms |
+| MO-DB_Parking | PARKING_LOT_SHEET_ID | Ideas, topics, follow-ups capture |
 | MO-DB_Access | ACCESS_SHEET_ID | Auth whitelist |
 | MO-DB_Config | (Script Property) | All configuration |
 

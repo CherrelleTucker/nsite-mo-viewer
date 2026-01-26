@@ -1,7 +1,7 @@
 # Next Development Steps
 
-**Last Updated:** 2026-01-25
-**Current Version:** 2.1.2
+**Last Updated:** 2026-01-26
+**Current Version:** 2.1.4
 
 ---
 
@@ -9,7 +9,7 @@
 
 V2 is feature-complete with:
 - 9 viewer pages
-- 13 databases
+- 15 databases (added MO-DB_Templates, MO-DB_Parking)
 - Passphrase + whitelist authentication
 - MO-APIs shared library architecture
 - All P0 bugs resolved
@@ -64,7 +64,119 @@ See `docs/BUG_TRACKER.md` → "Quick Wins" section
 
 ---
 
-## Completed This Session (2026-01-25) - Bug Fixes & Historical Updates Report
+## Completed This Session (2026-01-26) - Contacts, Comms Enhancements
+
+- [x] **ADD CONTACT FORM** (Contacts Directory)
+  - "Add Contact" button in page header opens modal form
+  - Required fields: First Name, Last Name, Email (with duplicate check)
+  - Organization section: Phone, Title, Department, Agency (autocomplete), Organization, Region
+  - Collapsible "Solution & Engagement" section: Solution dropdown, Role, SEP Touchpoint, Engagement Level
+  - Collapsible "Notes" section for relationship notes
+  - Toast notifications for success/error feedback
+  - Files updated: `deploy/contacts.html`, `deploy/contacts-api.gs`, `library/contacts-api.gs`
+
+- [x] **EXPORT PREP REPORT TO GOOGLE DOC** (Comms Events)
+  - "Export to Doc" button appears after generating prep report
+  - Creates formatted Google Doc with:
+    - Event details (name, date, location, type)
+    - Summary stats (guests, agencies, connections, solutions)
+    - Agencies represented, potential connections, conversation starters
+    - Linked solutions, full guest profiles
+    - Footer with generation timestamp
+  - Opens document in new tab automatically
+  - Files updated: `deploy/comms.html`, `deploy/outreach-api.gs`, `library/outreach-api.gs`
+
+- [x] **EVENT CARD REDESIGN** (Comms Events)
+  - Cleaner, more spacious design with increased padding
+  - Subtle shadow and border instead of heavy left border
+  - Smooth hover effect with slight elevation
+  - Type icon in circular badge, prominent title
+  - Details (date, location) grouped in neat column layout
+  - Action buttons separated by subtle divider
+
+- [x] **EVENT STATUS BADGES CLEANUP** (Comms Events)
+  - Replaced inline styles with CSS classes (.event-status.{status})
+  - Consistent design across cards, table, and modal
+  - Status colors: potential (gray), considering (blue), confirmed (green), attended (muted), cancelled (strikethrough)
+
+---
+
+## Completed Earlier (2026-01-26) - Templates Database & API
+
+- [x] **MO-DB_TEMPLATES DATABASE** (NEW)
+  - Comprehensive email/meeting templates for SEP and Comms integration
+  - 56 templates across 6 categories: Assessment, Implementation, SEP, Supplementary, Outreach, Blurbs
+  - Schema: template_id, category, subcategory, phase, name, meeting_title, attendees, key_points, email_subject, email_body, attachments_notes, is_active, sort_order
+  - Source: Meeting Invite Language PDF (NSITE MO C0 2025)
+  - Files created:
+    - `source-archives/MO-DB_Templates.xlsx` - Full Excel database
+    - `database-files/templates-schema.csv` - CSV for Google Sheets import
+
+- [x] **TEMPLATES API** (NEW)
+  - Created `library/templates-api.gs` - Full implementation
+  - Created `deploy/templates-api.gs` - Thin wrapper
+  - Functions include:
+    - `getAllTemplates()`, `getTemplateById()`, `getTemplatesByCategory()`
+    - `getSEPTemplates()`, `getSEPTouchpointTemplates()`, `getSEPWorkingSessionTemplates()`
+    - `getImplementationTemplates()`, `getDecisionGateTemplates()`, `getKickoffTemplates()`
+    - `getOutreachTemplates()`, `getBlurbTemplates()`, `getBlurbForMilestone()`
+    - `applyTemplate(templateId, variables)` - Variable substitution
+    - `searchTemplates(query)`, `getTemplateStats()`, `getTemplateCategories()`
+    - `getEmailTemplatesForSEP()` - Backward compatible with existing SEP email modal
+    - `getCommsTemplates()` - Templates organized for Comms page
+
+- [x] **BACKWARD COMPATIBILITY**
+  - Updated `team-api.gs` `getEmailTemplates()` to use new TEMPLATES_SHEET_ID
+  - Falls back to EMAIL_TEMPLATES_SHEET_ID if new database not configured
+  - Existing SEP email modal will work with both old and new templates
+
+- [x] **DOCUMENTATION UPDATES**
+  - Updated CLAUDE.md with new database and API file
+  - Updated database count in NEXT_STEPS.md
+
+### Deployment Steps (Templates)
+1. Create Google Sheet from `source-archives/MO-DB_Templates.xlsx` or `database-files/templates-schema.csv`
+2. Add `TEMPLATES_SHEET_ID` to MO-DB_Config
+3. Deploy `library/templates-api.gs` to MO-APIs Library
+4. Deploy `deploy/templates-api.gs` to NSITE-MO-Viewer
+
+---
+
+- [x] **MO-DB_PARKING DATABASE** (NEW)
+  - Parking Lot feature for capturing ideas, discussion topics, stakeholder connections, etc.
+  - Item types: Idea, Discussion Topic, Stakeholder Connection, Follow-up, Process Suggestion, Random Info
+  - Status workflow: New → Discussed → Assigned → In Progress → Resolved → Archived
+  - Assignable to team members with owner tracking
+  - Schema: item_id, title, description, item_type, status, priority, submitted_by, assigned_to, solution_id, contact_id, tags, notes, created_at, updated_at
+  - Files created:
+    - `database-files/parking-lot-schema.csv` - CSV for Google Sheets import
+
+- [x] **PARKING LOT API** (NEW)
+  - Created `library/parking-lot-api.gs` - Full implementation
+  - Created `deploy/parking-lot-api.gs` - Thin wrapper
+  - Functions include:
+    - `getAllParkingLotItems()`, `getParkingLotItemById()`, `createParkingLotItem()`, `updateParkingLotItem()`, `deleteParkingLotItem()`
+    - `getParkingLotItemsByType()`, `getParkingLotItemsByStatus()`, `getParkingLotItemsByAssignee()`
+    - `assignParkingLotItem()`, `updateParkingLotItemStatus()`, `addNoteToParkingLotItem()`
+    - `searchParkingLotItems()`, `getParkingLotStats()`
+
+- [x] **TEAM PAGE - PARKING LOT TAB** (NEW)
+  - Added "Parking Lot" tab to Team page view toggle
+  - Quick add form with type picker, priority, solution link, tags
+  - Item feed with type/status filtering
+  - Item detail modal with status updates, assignment, notes
+  - Stats card showing total items, new items, high priority
+
+### Deployment Steps (Parking Lot)
+1. Create Google Sheet from `database-files/parking-lot-schema.csv`
+2. Add `PARKING_LOT_SHEET_ID` to MO-DB_Config
+3. Deploy `library/parking-lot-api.gs` to MO-APIs Library
+4. Deploy `deploy/parking-lot-api.gs` to NSITE-MO-Viewer
+5. Deploy updated `deploy/team.html` to NSITE-MO-Viewer
+
+---
+
+## Completed Previous Session (2026-01-25) - Bug Fixes & Historical Updates Report
 
 - [x] **CONTACTS API BUG FIX** - Fixed `solution_id_id` → `solution_id` column name mismatch
   - `getContactsBySolution()`, `getContactsBySolutionId()`, `getContactsMultiFilter()` all fixed
@@ -360,7 +472,9 @@ library/
 ├── actions-api.gs          # Actions tracking with bi-directional agenda sync
 ├── milestones-api.gs       # Milestone tracking
 ├── outreach-api.gs         # Event/outreach tracking
-└── stories-api.gs          # Communications story pipeline
+├── stories-api.gs          # Communications story pipeline
+├── templates-api.gs        # Email/meeting templates for SEP & Comms
+└── parking-lot-api.gs      # Parking lot ideas/topics capture
 ```
 
 ### NSITE-MO-Viewer (main web app)
@@ -393,6 +507,8 @@ deploy/
 ├── historical-updates-export.gs       # Historical Updates report export
 ├── solutions-api.gs        # THIN WRAPPER → MoApi.getAllSolutions(), etc.
 ├── stories-api.gs          # THIN WRAPPER → MoApi.getAllStories(), etc.
+├── templates-api.gs        # THIN WRAPPER → MoApi.getAllTemplates(), etc.
+├── parking-lot-api.gs      # THIN WRAPPER → MoApi.getAllParkingLotItems(), etc.
 ├── styles.html             # Shared CSS
 ├── team.html               # Team-NSITE UI (profiles, meetings, availability, docs)
 ├── team-api.gs             # THIN WRAPPER → MoApi.getInternalTeam(), etc.
@@ -434,6 +550,8 @@ MO-DB_Actions:
 | MO-DB_Outreach | Yes | `MO-Viewer Databases/` | Events | **Active** |
 | MO-DB_Solutions | Yes | `MO-Viewer Databases/` | 48 solutions (64 cols) | **Schema v2** |
 | MO-DB_Stories | Yes | `MO-Viewer Databases/` | 38 stories | **NEW** |
+| MO-DB_Templates | Yes | `MO-Viewer Databases/` | 56 templates | **NEW** |
+| MO-DB_Parking | Yes | `MO-Viewer Databases/` | -- | **NEW** |
 | MO-DB_Updates | Yes | `MO-Viewer Databases/` | -- | **Ready** |
 
 **Local Database Files:** `C:\...\MO-development\database-files\MO-Viewer Databases\`
