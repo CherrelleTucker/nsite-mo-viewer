@@ -2101,8 +2101,6 @@
       // Pass selected years and solution filter to API
       google.script.run
         .withSuccessHandler(function(data) {
-          console.log('getAllHistoricalUpdatesForReport response:', data);
-
           if (data && data.solutions && data.solutions.length > 0) {
             previewData = data;
             var html = renderHistoricalUpdatesPreview(data);
