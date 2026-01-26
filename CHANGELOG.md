@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Getting Started Tutorial** - Task-oriented tutorial section in About page
+  - 8 real-world scenarios: "I just met someone...", "What's new with X?", etc.
+  - Step-by-step instructions for common workflows
+  - Tips and cross-references to related features
+  - New nav link in About page quick navigation
+
 ### Changed
 - **Quick Update Page Redesign** - Transformed from form submission to Agenda Viewer
   - Embedded viewer for 5 agendas: Internal, SEP, OPERA, PBL, Monthly Presentation
@@ -68,6 +75,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Limited to 10 recent + 10 extended updates
   - Text truncated to 300 chars for card display
   - Prevents google.script.run ~5MB limit exceeded
+
+### Removed
+- **Project Cleanup** - Removed 26 legacy/duplicate files for cleaner repository
+  - Empty placeholder folders: `config/`, `parsers/`, `tests/`
+  - Legacy folders: `storage/`, `src/`, `reports/`
+  - Outdated duplicate: `library/team.html`
+  - Debug code: `console.log` statement in reports.html
+  - Canonical code now in `deploy/` (Apps Script) and `library/` (API library)
 
 ### Changed
 - **Documentation Consolidation** - Merged claude-instructions.md into CLAUDE.md

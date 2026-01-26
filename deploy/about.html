@@ -14,6 +14,7 @@
   <!-- Quick Links -->
   <nav class="about-nav">
     <a href="javascript:void(0)" onclick="document.getElementById('overview').scrollIntoView({behavior:'smooth'})">Overview</a>
+    <a href="javascript:void(0)" onclick="document.getElementById('getting-started').scrollIntoView({behavior:'smooth'})">Getting Started</a>
     <a href="javascript:void(0)" onclick="document.getElementById('databases').scrollIntoView({behavior:'smooth'})">Databases</a>
     <a href="javascript:void(0)" onclick="document.getElementById('pages').scrollIntoView({behavior:'smooth'})">Page Documentation</a>
     <a href="javascript:void(0)" onclick="document.getElementById('security').scrollIntoView({behavior:'smooth'})">Security</a>
@@ -77,6 +78,150 @@
             <span class="material-icons">security</span>
             <span class="tech-name">Auth</span>
             <span class="tech-value">Passphrase + Whitelist</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Getting Started - Common Tasks -->
+  <section class="about-section about-tutorials" id="getting-started">
+    <div class="section-header">
+      <span class="material-icons">school</span>
+      <h3>Getting Started: Common Tasks</h3>
+    </div>
+    <div class="about-content">
+      <p>Real-world scenarios and how to accomplish them in MO Viewer.</p>
+
+      <div class="tutorial-grid">
+        <!-- Scenario 1: Met someone new -->
+        <div class="tutorial-card">
+          <div class="tutorial-icon"><span class="material-icons">person_add</span></div>
+          <h4>"I just met someone at DHS who could be a useful contact"</h4>
+          <ol class="tutorial-steps">
+            <li>Go to <strong>SEP-NSITE</strong></li>
+            <li>Click <strong>Log Engagement</strong></li>
+            <li>Fill in: Date, Activity Type (Meeting/Conference), their email</li>
+            <li>Add notes about the conversation and potential follow-up</li>
+            <li>Their contact will auto-appear in Contacts once engagement is logged</li>
+          </ol>
+          <div class="tutorial-tip">
+            <span class="material-icons">lightbulb</span>
+            <span>If you're at an event, also add them to the event's Guest List in Comms > Events for tracking who attended.</span>
+          </div>
+        </div>
+
+        <!-- Scenario 2: Solution updates -->
+        <div class="tutorial-card">
+          <div class="tutorial-icon"><span class="material-icons">update</span></div>
+          <h4>"What's new with TEMPO NRT?"</h4>
+          <ol class="tutorial-steps">
+            <li>Use <strong>Ctrl+K</strong> (global search) and type "TEMPO"</li>
+            <li>Or go to <strong>Implementation</strong> and find the TEMPO card</li>
+            <li>Click the card to see: recent updates, stakeholders, milestones</li>
+            <li>For historical updates, go to <strong>Reports > Historical Updates</strong> and filter by solution</li>
+          </ol>
+          <div class="tutorial-tip">
+            <span class="material-icons">lightbulb</span>
+            <span>Updates are synced from the weekly Internal and SEP agenda documents.</span>
+          </div>
+        </div>
+
+        <!-- Scenario 3: Find agency contacts -->
+        <div class="tutorial-card">
+          <div class="tutorial-icon"><span class="material-icons">apartment</span></div>
+          <h4>"Who are our contacts at NOAA?"</h4>
+          <ol class="tutorial-steps">
+            <li>Go to <strong>Contacts Directory</strong></li>
+            <li>Type "NOAA" in the search box</li>
+            <li>Or go to <strong>SEP-NSITE > Agencies</strong> view</li>
+            <li>Expand NOAA in the agency tree to see all contacts and engagement history</li>
+          </ol>
+          <div class="tutorial-tip">
+            <span class="material-icons">lightbulb</span>
+            <span>The heat indicators (hot/warm/cold) show recent engagement activity per agency.</span>
+          </div>
+        </div>
+
+        <!-- Scenario 4: Prepare for conference -->
+        <div class="tutorial-card">
+          <div class="tutorial-icon"><span class="material-icons">event</span></div>
+          <h4>"I'm going to AGU next week - how do I prepare?"</h4>
+          <ol class="tutorial-steps">
+            <li>Go to <strong>Comms-NSITE > Events</strong></li>
+            <li>Find AGU (or create it if not listed)</li>
+            <li>Click the event, then go to <strong>Guest List</strong> tab</li>
+            <li>Search and add expected attendees from Contacts</li>
+            <li>Click <strong>Generate Prep Report</strong> for attendee profiles, talking points, and potential connections</li>
+          </ol>
+          <div class="tutorial-tip">
+            <span class="material-icons">lightbulb</span>
+            <span>Contact profiles include hobbies, interests, and goals - great for conversation starters.</span>
+          </div>
+        </div>
+
+        <!-- Scenario 5: Track an action -->
+        <div class="tutorial-card">
+          <div class="tutorial-icon"><span class="material-icons">task_alt</span></div>
+          <h4>"I was assigned an action in Monday's meeting"</h4>
+          <ol class="tutorial-steps">
+            <li>Actions are automatically synced from agenda documents</li>
+            <li>Go to <strong>Actions-NSITE</strong> to see your assigned items</li>
+            <li>Filter by your name or by solution</li>
+            <li>Mark items complete when done - status syncs back to the agenda</li>
+          </ol>
+          <div class="tutorial-tip">
+            <span class="material-icons">lightbulb</span>
+            <span>Use Quick Update to add new action items directly to the agenda document.</span>
+          </div>
+        </div>
+
+        <!-- Scenario 6: Milestone status -->
+        <div class="tutorial-card">
+          <div class="tutorial-icon"><span class="material-icons">flag</span></div>
+          <h4>"When is OPERA's ORR?"</h4>
+          <ol class="tutorial-steps">
+            <li>Go to <strong>Schedule</strong> for the timeline view</li>
+            <li>Find OPERA to see ATP, F2I, ORR, and Closeout dates</li>
+            <li>Or use <strong>Ctrl+K</strong> and search "OPERA" to go directly to its card</li>
+            <li>Click the card to see milestone details and memo links</li>
+          </ol>
+          <div class="tutorial-tip">
+            <span class="material-icons">lightbulb</span>
+            <span>Milestone dates come from MO-DB_Solutions and are displayed across multiple views.</span>
+          </div>
+        </div>
+
+        <!-- Scenario 7: Story/comms -->
+        <div class="tutorial-card">
+          <div class="tutorial-icon"><span class="material-icons">article</span></div>
+          <h4>"We have a great story about HLS - how do I track it?"</h4>
+          <ol class="tutorial-steps">
+            <li>Go to <strong>Comms-NSITE > Pipeline</strong> (Story Pipeline)</li>
+            <li>Click <strong>New Story</strong></li>
+            <li>Fill in: Title, Solution, Status (Identified/In Progress/Published)</li>
+            <li>Add target publication and any notes</li>
+            <li>Track it through the pipeline stages</li>
+          </ol>
+          <div class="tutorial-tip">
+            <span class="material-icons">lightbulb</span>
+            <span>Use Coverage view to see which solutions have comms coverage and identify gaps.</span>
+          </div>
+        </div>
+
+        <!-- Scenario 8: Export data -->
+        <div class="tutorial-card">
+          <div class="tutorial-icon"><span class="material-icons">download</span></div>
+          <h4>"I need a list of contacts for a mailing"</h4>
+          <ol class="tutorial-steps">
+            <li>Go to <strong>Contacts Directory</strong></li>
+            <li>Use search/filters to narrow down (agency, solution, role)</li>
+            <li>Click <strong>Export</strong> to download as CSV</li>
+            <li>The export includes: name, email, agency, title, solutions</li>
+          </ol>
+          <div class="tutorial-tip">
+            <span class="material-icons">lightbulb</span>
+            <span>For analytical reports, use Reports page - exports go to Google Sheets with methodology documentation.</span>
           </div>
         </div>
       </div>
@@ -671,11 +816,11 @@
     <div class="version-info">
       <div class="version-item">
         <span class="version-label">Version</span>
-        <span class="version-value">2.0.0</span>
+        <span class="version-value">2.1.3</span>
       </div>
       <div class="version-item">
         <span class="version-label">Updated</span>
-        <span class="version-value">January 22, 2026</span>
+        <span class="version-value">January 26, 2026</span>
       </div>
       <div class="version-item">
         <span class="version-label">Repository</span>
@@ -893,6 +1038,82 @@
     font-size: 0.8rem;
     font-weight: 600;
     color: var(--text-primary);
+  }
+
+  /* Tutorial Grid */
+  .tutorial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-lg);
+  }
+
+  .tutorial-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    border: 1px solid var(--border-color);
+  }
+
+  .tutorial-card h4 {
+    margin: 0 0 var(--space-md) 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+
+  .tutorial-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background: var(--primary-color);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-bottom: var(--space-sm);
+  }
+
+  .tutorial-icon .material-icons {
+    font-size: 18px;
+  }
+
+  .tutorial-steps {
+    margin: 0 0 var(--space-md) 0;
+    padding-left: var(--space-lg);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .tutorial-steps li {
+    margin-bottom: var(--space-xs);
+  }
+
+  .tutorial-steps strong {
+    color: var(--primary-color);
+  }
+
+  .tutorial-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: rgba(11, 61, 145, 0.08);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-left: 3px solid var(--primary-color);
+  }
+
+  .tutorial-tip .material-icons {
+    font-size: 16px;
+    color: var(--primary-color);
+    flex-shrink: 0;
+    margin-top: 2px;
   }
 
   /* Database Grid */
