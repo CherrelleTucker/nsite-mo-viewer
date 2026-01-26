@@ -759,20 +759,20 @@
           <li>Execute as: <em>Me</em></li>
           <li>Who has access: <em>Anyone with Google account</em></li>
         </ol>
-        <p style="margin-top: 12px;"><strong>Configuration required (MO-DB_Config):</strong></p>
+        <p style="margin-top: var(--space-md);"><strong>Configuration required (MO-DB_Config):</strong></p>
         <ul>
           <li><code>SITE_PASSPHRASE</code> — shared team passphrase (case-sensitive)</li>
           <li><code>ACCESS_SHEET_ID</code> — ID of the MO-DB_Access spreadsheet</li>
           <li><code>ADMIN_EMAIL</code> — email for access request notifications</li>
         </ul>
-        <p style="margin-top: 12px;"><strong>Managing user access:</strong></p>
+        <p style="margin-top: var(--space-md);"><strong>Managing user access:</strong></p>
         <ol>
           <li>Open the <strong>MO-DB_Access</strong> spreadsheet</li>
           <li>Add or remove email addresses in the <em>access_email</em> column</li>
           <li>Changes take effect immediately (no deployment needed)</li>
           <li>Share the passphrase with new users via Slack/email</li>
         </ol>
-        <p style="margin-top: 12px;"><strong>Changing the passphrase:</strong></p>
+        <p style="margin-top: var(--space-md);"><strong>Changing the passphrase:</strong></p>
         <ol>
           <li>Update <code>SITE_PASSPHRASE</code> in MO-DB_Config</li>
           <li>Notify all team members of the new passphrase</li>
@@ -783,25 +783,17 @@
       <h4>Technical Notes</h4>
       <div class="admin-note">
         <p><strong>Why passphrase authentication?</strong></p>
-        <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
-          Google Apps Script has limitations that prevent standard OAuth-based user identification when deployed as "Execute as: Me":
-        </p>
-        <ul style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+        <p>Google Apps Script has limitations that prevent standard OAuth-based user identification when deployed as "Execute as: Me":</p>
+        <ul>
           <li><code>Session.getActiveUser()</code> returns empty for external users</li>
           <li><code>Session.getEffectiveUser()</code> returns the script owner, not the visitor</li>
           <li>Google Identity Services is blocked because GAS serves HTML from sandboxed googleusercontent.com subdomains</li>
         </ul>
-        <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
-          The passphrase approach lets users self-identify while the passphrase prevents unauthorized access. Sessions are stored in ScriptCache with unique tokens per user.
-        </p>
-        <p style="margin-top: 12px;"><strong>Iframe sandbox navigation:</strong></p>
-        <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
-          Google Apps Script web apps run in a sandboxed iframe with <code>allow-top-navigation-by-user-activation</code>. This means programmatic redirects (like <code>window.top.location.href</code>) only work when triggered directly by a user gesture (click). After login verification completes asynchronously, we display a "Continue to Dashboard" button instead of auto-redirecting, since the async callback no longer has user activation.
-        </p>
-        <p style="margin-top: 12px;"><strong>SPA session persistence:</strong></p>
-        <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
-          Session tokens are extracted from the URL on page load and stored in <code>Platform.sessionToken</code>. During SPA navigation, the token is included in <code>google.script.history.push()</code> calls so it persists in the browser history. This prevents users from being logged out when navigating between pages or using back/forward buttons.
-        </p>
+        <p>The passphrase approach lets users self-identify while the passphrase prevents unauthorized access. Sessions are stored in ScriptCache with unique tokens per user.</p>
+        <p style="margin-top: var(--space-md);"><strong>Iframe sandbox navigation:</strong></p>
+        <p>Google Apps Script web apps run in a sandboxed iframe with <code>allow-top-navigation-by-user-activation</code>. This means programmatic redirects (like <code>window.top.location.href</code>) only work when triggered directly by a user gesture (click). After login verification completes asynchronously, we display a "Continue to Dashboard" button instead of auto-redirecting, since the async callback no longer has user activation.</p>
+        <p style="margin-top: var(--space-md);"><strong>SPA session persistence:</strong></p>
+        <p>Session tokens are extracted from the URL on page load and stored in <code>Platform.sessionToken</code>. During SPA navigation, the token is included in <code>google.script.history.push()</code> calls so it persists in the browser history. This prevents users from being logged out when navigating between pages or using back/forward buttons.</p>
       </div>
     </div>
   </section>
@@ -1386,6 +1378,28 @@
     border-left: 3px solid var(--primary-color);
     border-radius: var(--radius-sm);
     font-size: 0.85rem;
+  }
+
+  .admin-note ol,
+  .admin-note ul {
+    margin: var(--space-xs) 0;
+    padding-left: var(--space-lg);
+  }
+
+  .admin-note li {
+    margin-bottom: var(--space-xs);
+    color: var(--text-secondary);
+  }
+
+  .admin-note p {
+    margin: 0;
+  }
+
+  .admin-note code {
+    background: rgba(0,0,0,0.06);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 0.8rem;
   }
 
   /* Version Info */
