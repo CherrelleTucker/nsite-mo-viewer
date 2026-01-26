@@ -9,7 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **System Architecture Documentation** - Comprehensive data flow map added to CLAUDE.md
+  - Documents: Source Docs → Sync Scripts → Databases → API Library → Deploy Wrappers → Viewer Pages
+  - Database → API → Page dependencies table
+  - Critical column name dependencies (must match exactly)
+  - Response size limits and mitigations (~5MB google.script.run limit)
+  - Deployment checklist and order
+
+- **Historical Updates Report Improvements** (Reports page)
+  - Updates grouped by date under single headers
+  - Dates link to source documents when source_url available
+  - Increased text limit from 500 to 1000 characters (preserves URLs)
+  - Bullet points (•, ○, ■) render as line breaks for readability
+  - Cleaner layout with shared background per date group
+
+- **Markdown Link Rendering** - Implementation solution detail modals now render markdown links as clickable
+- **Animated Loading Spinner** - Solution detail modals show spinning loader while fetching data
+
+### Fixed
+- **Contacts API Column Name Bug** - Fixed `solution_id_id` → `solution_id` in contacts-api.gs
+  - `getContactsBySolution()`, `getContactsBySolutionId()`, `getContactsMultiFilter()` now use correct column name
+  - This was causing "No stakeholder data" for all solutions
+
+- **Updates API Response Size** - Fixed null responses from `getUpdatesForSolutionCard()`
+  - Limited to 10 recent + 10 extended updates
+  - Text truncated to 300 chars for card display
+  - Prevents google.script.run ~5MB limit exceeded
+
 ### Changed
+- **Documentation Consolidation** - Merged claude-instructions.md into CLAUDE.md
+  - Single comprehensive reference file
+  - Session start checklist, common mistakes, quality checklist all in one place
+
 - **SEP Dashboard Redesign** - Restructured page layout based on usage patterns
   - Added stats row at top: Engagements This Month, Contacts Engaged, Solutions Engaged, Activity Level (heat indicator)
   - Promoted "Recent Engagements" and "Needs Attention" panels to main content area

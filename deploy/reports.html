@@ -144,13 +144,14 @@
             </select>
           </div>
           <div class="filter-inline">
-            <label>Range:</label>
-            <select id="updatesReportRange" class="form-select form-select-sm">
-              <option value="all">All</option>
-              <option value="365">1yr</option>
-              <option value="180">6mo</option>
-              <option value="90">3mo</option>
-            </select>
+            <label>Years:</label>
+            <div class="year-checkboxes" id="updatesYearSelection">
+              <label class="checkbox-label"><input type="checkbox" name="updateYear" value="2026" checked> 2026</label>
+              <label class="checkbox-label"><input type="checkbox" name="updateYear" value="2025"> 2025</label>
+              <label class="checkbox-label"><input type="checkbox" name="updateYear" value="2024"> 2024</label>
+              <label class="checkbox-label"><input type="checkbox" name="updateYear" value="Archive"> Archive</label>
+            </div>
+            <span class="year-limit-hint">(max 2)</span>
           </div>
         </div>
         <details class="methodology-details">
@@ -494,6 +495,36 @@
     background: var(--color-surface);
   }
 
+  .year-checkboxes {
+    display: flex;
+    gap: 8px;
+  }
+
+  .year-checkboxes .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    color: var(--color-text-primary);
+  }
+
+  .year-checkboxes input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .year-checkboxes input[type="checkbox"]:disabled + span,
+  .year-checkboxes .checkbox-label:has(input:disabled) {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .year-limit-hint {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+    margin-left: 4px;
+  }
+
   .report-card-actions {
     display: flex;
     gap: var(--space-xs);
@@ -653,33 +684,110 @@
   }
 
   .solution-updates-section {
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-md);
+    margin-bottom: var(--space-lg);
   }
 
   .solution-updates-section h3.solution-name {
     font-size: var(--font-size-md);
     font-weight: 600;
     color: var(--color-primary);
-    margin: 0 0 var(--space-xs) 0;
-    display: inline;
+    margin: 0 0 var(--space-sm) 0;
+    padding-bottom: var(--space-xs);
+    border-bottom: 2px solid var(--color-primary);
   }
 
   .solution-updates-section .update-count {
     font-size: var(--font-size-sm);
+    font-weight: 400;
     color: var(--color-text-secondary);
-    margin-left: var(--space-sm);
   }
 
-  .solution-updates-section .preview-table {
-    margin-top: var(--space-md);
+  .updates-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
   }
 
-  .update-text-cell {
-    max-width: 500px;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+  .update-item {
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .update-item:last-child {
+    border-bottom: none;
+  }
+
+  .update-date {
+    flex-shrink: 0;
+    width: 100px;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    font-weight: 500;
+  }
+
+  .update-text {
+    flex: 1;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    color: var(--color-text-primary);
+  }
+
+  .update-text a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  .update-text a:hover {
+    text-decoration: underline;
+  }
+
+  /* Date-grouped updates layout */
+  .updates-by-date {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  .date-group {
+    margin-bottom: var(--space-sm);
+  }
+
+  .date-header {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: var(--space-sm);
+  }
+
+  .date-link {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  .date-link:hover {
+    text-decoration: underline;
+  }
+
+  .date-updates {
+    margin-left: var(--space-lg);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    line-height: 1.6;
+  }
+
+  .date-updates .update-text {
+    margin-bottom: var(--space-sm);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .date-updates .update-text:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
   }
 
   .preview-empty {
@@ -1937,88 +2045,196 @@
     // HISTORICAL UPDATES REPORT
     // ========================================================================
 
+    // Enforce max 2 year selection
+    function initYearCheckboxes() {
+      var checkboxes = document.querySelectorAll('input[name="updateYear"]');
+      checkboxes.forEach(function(cb) {
+        cb.addEventListener('change', function() {
+          var checked = document.querySelectorAll('input[name="updateYear"]:checked');
+          if (checked.length > 2) {
+            // Uncheck this one - too many selected
+            this.checked = false;
+            return;
+          }
+          // Disable unchecked boxes if 2 are selected
+          checkboxes.forEach(function(box) {
+            if (!box.checked) {
+              box.disabled = checked.length >= 2;
+            }
+          });
+        });
+      });
+    }
+
+    function getSelectedYears() {
+      var checked = document.querySelectorAll('input[name="updateYear"]:checked');
+      var years = [];
+      checked.forEach(function(cb) {
+        years.push(cb.value);
+      });
+      return years;
+    }
+
     function previewHistoricalUpdates() {
       currentReportType = 'historicalUpdates';
       var solution = document.getElementById('updatesReportSolution').value;
-      var range = document.getElementById('updatesReportRange').value;
+      var selectedYears = getSelectedYears();
+
+      if (selectedYears.length === 0) {
+        showPreview('Historical Updates Report', '<div class="preview-empty">Please select at least one year.</div>', '');
+        return;
+      }
 
       showPreview('Historical Updates Report', '<div class="loading-state"><span class="loading-spinner"></span><p>Loading updates...</p></div>', '');
 
+      // Pass selected years and solution filter to API
       google.script.run
         .withSuccessHandler(function(data) {
-          if (data && data.solutions) {
+          console.log('getAllHistoricalUpdatesForReport response:', data);
+
+          if (data && data.solutions && data.solutions.length > 0) {
             previewData = data;
-            var html = renderHistoricalUpdatesPreview(data, solution, range);
-            var meta = data.stats.total + ' total updates across ' + data.stats.solutionCount + ' solutions';
+            var html = renderHistoricalUpdatesPreview(data);
+            var meta = data.stats.total + ' updates';
+            if (data.stats.wasLimited) {
+              meta += ' (showing ' + data.stats.total + ' of ' + data.stats.totalFound + ')';
+            }
+            meta += ' across ' + data.stats.solutionCount + ' solutions';
+            meta += ' (' + data.stats.yearTabs + ')';
+            if (data.stats.error) {
+              meta += ' - Error: ' + data.stats.error;
+            }
             showPreview('Historical Updates Report', html, meta);
+          } else if (data && data.stats && data.stats.error) {
+            showPreview('Historical Updates Report', '<div class="preview-empty">Error: ' + data.stats.error + '</div>', '');
           } else {
-            showPreview('Historical Updates Report', '<div class="preview-empty">No updates found. Make sure MO-DB_Updates is configured and populated.</div>', '');
+            var msg = solution
+              ? 'No updates found for "' + escapeHtml(solution) + '" in the selected years.'
+              : 'No updates found. Make sure MO-DB_Updates is configured and populated.';
+            showPreview('Historical Updates Report', '<div class="preview-empty">' + msg + '</div>', '');
           }
         })
         .withFailureHandler(function(error) {
           showPreview('Error', '<p style="color: var(--color-error);">Failed to load updates: ' + error + '</p>', '');
         })
-        .getAllHistoricalUpdatesForReport();
+        .getAllHistoricalUpdatesForReport(selectedYears, solution || null);
     }
 
-    function renderHistoricalUpdatesPreview(data, filterSolution, filterRange) {
+    // Safely render text with markdown links
+    // Extracts links first, escapes remaining text, converts bullets to line breaks, then reinserts links
+    function renderUpdateText(text) {
+      if (!text) return '';
+
+      // Find all markdown links and store them with placeholders
+      var links = [];
+      var placeholder = '\u0000LINK';
+      var processed = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, linkText, url) {
+        var index = links.length;
+        links.push({ text: linkText, url: url });
+        return placeholder + index + '\u0000';
+      });
+
+      // Escape the remaining text
+      processed = escapeHtml(processed);
+
+      // Convert bullet points to line breaks (bullet = new line)
+      // Replace bullet characters with newline
+      processed = processed.replace(/[•○■◦▪‣]\s*/g, '\n');
+
+      // Convert newlines to <br>
+      processed = processed.replace(/\n+/g, '<br>');
+
+      // Clean up leading <br> and multiple <br>
+      processed = processed.replace(/^(<br>)+/, '');
+      processed = processed.replace(/(<br>)+/g, '<br>');
+
+      // Reinsert links as HTML
+      links.forEach(function(link, index) {
+        var safeUrl = escapeHtml(link.url);
+        var safeText = escapeHtml(link.text);
+        var anchor = '<a href="' + safeUrl + '" target="_blank" rel="noopener">' + safeText + '</a>';
+        processed = processed.replace(placeholder + index + '\u0000', anchor);
+      });
+
+      return processed;
+    }
+
+    function renderHistoricalUpdatesPreview(data) {
       var html = '<div class="updates-report">';
 
-      // Filter by solution if specified
-      var solutions = data.solutions;
-      if (filterSolution) {
-        solutions = solutions.filter(function(s) {
-          return s.name === filterSolution;
-        });
-      }
+      // Solutions already filtered server-side
+      var solutions = data.solutions || [];
 
-      // Filter by date range
-      var daysBack = filterRange === 'all' ? null : parseInt(filterRange, 10);
-      var cutoffDate = null;
-      if (daysBack) {
-        cutoffDate = new Date();
-        cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+      if (!solutions || solutions.length === 0) {
+        html += '<div class="preview-empty">No updates found.</div>';
+        return html + '</div>';
       }
 
       solutions.forEach(function(sol) {
         var updates = sol.updates;
-
-        // Filter by date if range specified
-        if (cutoffDate) {
-          updates = updates.filter(function(u) {
-            if (!u.meeting_date) return true;
-            return new Date(u.meeting_date) >= cutoffDate;
-          });
-        }
-
-        if (updates.length === 0) return;
+        if (!updates || updates.length === 0) return;
 
         html += '<div class="solution-updates-section">';
-        html += '<h3 class="solution-name">' + escapeHtml(sol.core_id) + '</h3>';
-        html += '<span class="update-count">' + updates.length + ' updates</span>';
+        html += '<h3 class="solution-name">' + escapeHtml(sol.name) + ' <span class="update-count">(' + updates.length + ')</span></h3>';
 
-        html += '<table class="preview-table">';
-        html += '<thead><tr><th>Date</th><th>Update</th><th>Source</th></tr></thead>';
-        html += '<tbody>';
-
+        // Group updates by date
+        var updatesByDate = {};
         updates.forEach(function(update) {
-          html += '<tr>';
-          html += '<td>' + escapeHtml(update.meeting_date || '') + '</td>';
-          html += '<td class="update-text-cell">' + escapeHtml(update.update_text || '').replace(/\n/g, '<br>') + '</td>';
-          html += '<td>' + escapeHtml(update.source_document || '');
-          if (update.source_tab) {
-            html += ' (' + escapeHtml(update.source_tab) + ')';
+          var dateKey = update.meeting_date || 'Unknown';
+          if (!updatesByDate[dateKey]) {
+            updatesByDate[dateKey] = {
+              date: dateKey,
+              source_url: update.source_url || '',
+              items: []
+            };
           }
-          html += '</td>';
-          html += '</tr>';
+          updatesByDate[dateKey].items.push(update);
         });
 
-        html += '</tbody></table>';
+        // Sort dates descending (newest first)
+        var sortedDates = Object.keys(updatesByDate).sort(function(a, b) {
+          if (a === 'Unknown') return 1;
+          if (b === 'Unknown') return -1;
+          return new Date(b) - new Date(a);
+        });
+
+        html += '<div class="updates-by-date">';
+        sortedDates.forEach(function(dateKey) {
+          var group = updatesByDate[dateKey];
+          var dateStr = dateKey;
+
+          // Format date nicely
+          if (dateKey && dateKey !== 'Unknown') {
+            var d = new Date(dateKey);
+            if (!isNaN(d.getTime())) {
+              dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            }
+          }
+
+          html += '<div class="date-group">';
+
+          // Date header - link to source if available
+          if (group.source_url) {
+            html += '<div class="date-header"><a href="' + escapeHtml(group.source_url) + '" target="_blank" rel="noopener" class="date-link">' + escapeHtml(dateStr) + ' <span class="material-icons" style="font-size: 14px; vertical-align: middle;">open_in_new</span></a></div>';
+          } else {
+            html += '<div class="date-header">' + escapeHtml(dateStr) + '</div>';
+          }
+
+          // All updates for this date
+          html += '<div class="date-updates">';
+          group.items.forEach(function(update) {
+            html += '<div class="update-text">' + renderUpdateText(update.update_text) + '</div>';
+          });
+          html += '</div>';
+
+          html += '</div>';
+        });
+        html += '</div>';
+
         html += '</div>';
       });
 
       html += '</div>';
-
       return html;
     }
 
@@ -2028,6 +2244,10 @@
         .withSuccessHandler(function(solutions) {
           var select = document.getElementById('updatesReportSolution');
           if (select && solutions) {
+            // Sort alphabetically by core_id
+            solutions.sort(function(a, b) {
+              return (a.core_id || '').localeCompare(b.core_id || '');
+            });
             solutions.forEach(function(sol) {
               var option = document.createElement('option');
               option.value = sol.core_id;
@@ -2044,9 +2264,13 @@
 
     // Initialize on load
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', loadUpdatesReportSolutions);
+      document.addEventListener('DOMContentLoaded', function() {
+        loadUpdatesReportSolutions();
+        initYearCheckboxes();
+      });
     } else {
       loadUpdatesReportSolutions();
+      initYearCheckboxes();
     }
 
     // Public API

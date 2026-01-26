@@ -87,7 +87,7 @@ function getContactsBySolutionId(solutionId) {
   var contacts = loadAllContacts_();
   var idLower = solutionId.toLowerCase();
   var results = contacts.filter(function(c) {
-    return c.solution_id_id && c.solution_id_id.toLowerCase() === idLower;
+    return c.solution_id && c.solution_id.toLowerCase() === idLower;
   });
   return JSON.parse(JSON.stringify(results));
 }
@@ -104,11 +104,11 @@ function getContactsBySolution(solutionId, exactMatch) {
 
   var results = contacts.filter(function(c) {
     // Match solution_id (core_id from Solutions DB)
-    if (!c.solution_id_id) return false;
+    if (!c.solution_id) return false;
     if (exactMatch) {
-      return c.solution_id_id.toLowerCase() === searchLower;
+      return c.solution_id.toLowerCase() === searchLower;
     }
-    return c.solution_id_id.toLowerCase().indexOf(searchLower) !== -1;
+    return c.solution_id.toLowerCase().indexOf(searchLower) !== -1;
   });
   return JSON.parse(JSON.stringify(results));
 }
@@ -212,7 +212,7 @@ function getContactsMultiFilter(criteria) {
 
   var results = contacts.filter(function(c) {
     if (criteria.solution_id &&
-        (!c.solution_id_id || c.solution_id_id.toLowerCase().indexOf(criteria.solution_id.toLowerCase()) === -1)) {
+        (!c.solution_id || c.solution_id.toLowerCase().indexOf(criteria.solution_id.toLowerCase()) === -1)) {
       return false;
     }
     if (criteria.role &&

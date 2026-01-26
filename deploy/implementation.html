@@ -1028,6 +1028,35 @@
     .cycle-solutions { grid-template-columns: 1fr; }
     .detail-grid { grid-template-columns: 1fr; }
   }
+
+  /* Modal Loading */
+  .modal-loading-simple {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xxl);
+    min-height: 200px;
+  }
+
+  .modal-loading-simple p {
+    margin-top: var(--space-lg);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+  }
+
+  .modal-loading-simple .loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
 </style>
 
 <!-- Implementation-NSITE JavaScript -->
@@ -1601,8 +1630,8 @@ return;
 
     document.getElementById('modalTitle').textContent = (sol.core_id || '').toUpperCase();
 
-    // Show loading state first
-    document.getElementById('modalBody').innerHTML = '<div style="text-align:center;padding:40px;"><span class="loading-spinner"></span><p>Loading details...</p></div>';
+    // Show loading state with animated spinner
+    document.getElementById('modalBody').innerHTML = '<div class="modal-loading-simple"><div class="loading-spinner"></div><p>Loading solution details...</p></div>';
     document.getElementById('solutionModal').classList.add('active');
 
     // Build milestone data from solution fields
@@ -1931,6 +1960,37 @@ return;
     document.getElementById('modalBody').innerHTML = html;
 }
 
+  // Safely render text with markdown links
+  // Extracts links first, escapes remaining text, then reinserts links
+  function renderUpdateText(text) {
+    if (!text) return '';
+
+    // Find all markdown links and store them with placeholders
+    var links = [];
+    var placeholder = '\u0000LINK';
+    var processed = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, linkText, url) {
+      var index = links.length;
+      links.push({ text: linkText, url: url });
+      return placeholder + index + '\u0000';
+    });
+
+    // Escape the remaining text
+    processed = escapeHtml(processed);
+
+    // Convert newlines to <br>
+    processed = processed.replace(/\n/g, '<br>');
+
+    // Reinsert links as HTML
+    links.forEach(function(link, index) {
+      var safeUrl = escapeHtml(link.url);
+      var safeText = escapeHtml(link.text);
+      var anchor = '<a href="' + safeUrl + '" target="_blank" rel="noopener">' + safeText + '</a>';
+      processed = processed.replace(placeholder + index + '\u0000', anchor);
+    });
+
+    return processed;
+  }
+
   function renderUpdateItem(update) {
     var html = '<div class="update-item">';
     html += '<div class="update-date">';
@@ -1940,10 +2000,8 @@ return;
     }
     html += '</div>';
     html += '<div class="update-content">';
-    // Handle multiline updates (from children)
-    var text = escapeHtml(update.update_text || '');
-    text = text.replace(/\n/g, '<br>');
-    html += text;
+    // Render with clickable markdown links
+    html += renderUpdateText(update.update_text);
     html += '</div>';
     if (update.source_document) {
       html += '<div class="update-source">' + escapeHtml(update.source_document);

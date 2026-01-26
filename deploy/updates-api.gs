@@ -11,13 +11,13 @@ function clearUpdatesCache() {
 }
 
 // Core Data Access
-function getAllUpdates(limit) {
-  return MoApi.getAllUpdates(limit);
+function getAllUpdates(limit, daysBack) {
+  return MoApi.getAllUpdates(limit, daysBack);
 }
 
 // Solution-Specific Queries
-function getUpdatesBySolution(solutionName, limit) {
-  return MoApi.getUpdatesBySolution(solutionName, limit);
+function getUpdatesBySolution(solutionName, limit, daysBack) {
+  return MoApi.getUpdatesBySolution(solutionName, limit, daysBack);
 }
 
 function getRecentUpdatesBySolution(solutionName, days) {
@@ -37,13 +37,13 @@ function getRecentUpdates(days, limit) {
   return MoApi.getRecentUpdates(days, limit);
 }
 
-function getUpdatesGroupedBySolution() {
-  return MoApi.getUpdatesGroupedBySolution();
+function getUpdatesGroupedBySolution(daysBack) {
+  return MoApi.getUpdatesGroupedBySolution(daysBack);
 }
 
 // Statistics
-function getUpdatesStats() {
-  return MoApi.getUpdatesStats();
+function getUpdatesStats(daysBack) {
+  return MoApi.getUpdatesStats(daysBack);
 }
 
 // Report Data
@@ -51,6 +51,12 @@ function getHistoricalUpdatesForReport(solutionName) {
   return MoApi.getHistoricalUpdatesForReport(solutionName);
 }
 
-function getAllHistoricalUpdatesForReport() {
-  return MoApi.getAllHistoricalUpdatesForReport();
+function getAllHistoricalUpdatesForReport(yearTabs, solutionFilter, maxUpdates) {
+  // Query specific year tabs and filter by solution server-side
+  return MoApi.getAllHistoricalUpdatesForReport(yearTabs, solutionFilter, maxUpdates || 500);
+}
+
+// Debug
+function debugUpdatesData() {
+  return MoApi.debugUpdatesData();
 }

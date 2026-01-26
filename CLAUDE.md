@@ -1,6 +1,253 @@
 # Claude Code Instructions for MO-Viewer
 
+**Version:** 2.1.2 | **Updated:** 2026-01-25 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
+
+---
+
+## Session Start Checklist
+
+When beginning a new session:
+1. **Read this file** - Understand project rules and architecture
+2. **Check the System Architecture section** - Know how components interconnect
+3. **Review "Common Mistakes to Avoid"** - Prevent known issues
+4. **Ask about context** - If user mentions prior work, ask for specifics
+
+---
+
+## Development Status (January 2026)
+
+### Current Phase: Data Infrastructure
+
+**Completed:**
+- Framework and architecture established
+- All viewer pages functional (Implementation, SEP, Comms, Team, Contacts, Reports, Schedule)
+- "Wow" features demonstrated:
+  - Event guest list and prep report system (Comms)
+  - SEP pipeline with milestone tracking
+  - Agency engagement heat mapping
+  - View-then-edit modal patterns
+- Shared styling and component library
+- Access control with passphrase + whitelist authentication
+
+**In Progress:**
+1. **Database population** - Backfilling historical data from meeting notes
+2. **Maintenance scripts** - Automated sync from weekly/monthly agendas to databases
+
+### Sync Scripts (MO-DB_Updates container)
+
+| Script | Purpose | Trigger |
+|--------|---------|---------|
+| `sync-common.gs` | Shared parsing and database functions | N/A |
+| `sync-weekly-current.gs` | Internal + SEP latest tab | Weekly after meetings |
+| `sync-weekly-internal-historical.gs` | Internal all tabs backfill | Once |
+| `sync-weekly-sep-historical.gs` | SEP all tabs backfill | Once |
+| `sync-monthly-current.gs` | OPERA + PBL latest tab | Monthly |
+| `sync-monthly-historical.gs` | OPERA + PBL all tabs backfill | Once |
+| `sync-menu.gs` | Custom menu UI | N/A |
+
+### Agenda Format for Sync
+
+Updates in agendas should use:
+```
+● Solution Name (Provider) [solution_id]
+  ○ Sub-solution [sub_solution_id]
+    ■ 🆕 Update text captured by sync
+```
+
+- `[solution_id]` in square brackets links to MO-DB_Solutions.core_id
+- 🆕 emoji marks new updates to capture
+- Nested bullets are included in update text
+
+### Next Steps
+- Complete historical backfill for all agenda sources
+- Build Actions sync script (similar pattern)
+- Test automated triggers for weekly/monthly syncs
+- Continue Comms page improvements (event guest list UI)
+
+### Future Development: Historical Updates Report
+
+Design notes for improving the Reports > Historical Updates feature:
+
+1. **Group updates by date** - Updates with the same meeting_date should be shown together under a single date header, not as separate entries
+2. **Link date to source** - The date should be a clickable link to the source document (source_url field)
+3. **Increase character limit** - Current 500 char truncation cuts off URLs. Increase to ~1000 chars or implement smarter truncation that preserves complete URLs
+4. **Render bullet points** - Update text often contains bullet characters (•, ○, ■). Render these as proper HTML bulleted lists (`<ul><li>`) instead of plain text
+
+---
+
+## System Architecture & Data Flow
+
+**CRITICAL: This project is highly interconnected. Changes to any component can break others.**
+
+### Complete Data Flow Map
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           SOURCE DOCUMENTS                                   │
+│  (Google Docs - Meeting Notes, Agendas, Reports)                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Weekly Internal Planning Meeting Notes                                      │
+│  Weekly SEP Meeting Notes                                                    │
+│  Monthly OPERA Meeting Notes                                                 │
+│  Monthly PBL Meeting Notes                                                   │
+└──────────────────────────────┬──────────────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           SYNC SCRIPTS                                       │
+│  (Apps Script in MO-DB_Updates container)                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  sync-weekly-current.gs      → MO-DB_Updates (current year tab)             │
+│  sync-weekly-historical.gs   → MO-DB_Updates (all year tabs)                │
+│  sync-monthly-current.gs     → MO-DB_Updates (current year tab)             │
+│  sync-common.gs              → Shared parsing functions                      │
+└──────────────────────────────┬──────────────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           DATABASES                                          │
+│  (Google Sheets)                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  MO-DB_Config      │ Configuration key-value pairs, sheet IDs               │
+│  MO-DB_Access      │ User whitelist for authentication                      │
+│  MO-DB_Solutions   │ Solution master data (core_id is primary key)          │
+│  MO-DB_Contacts    │ Stakeholder contacts (solution_id links to Solutions)  │
+│  MO-DB_Updates     │ Solution updates by year (2026, 2025, 2024, Archive)   │
+│  MO-DB_Engagements │ Contact engagement records                              │
+│  MO-DB_Agencies    │ Agency/organization master data                         │
+│  MO-DB_Outreach    │ Events, stories, comms activities                       │
+│  MO-DB_Actions     │ Action items and tasks                                  │
+│  MO-DB_Team        │ Team member information                                 │
+│  MO-DB_Meetings    │ Meeting schedule data                                   │
+│  MO-DB_Milestones  │ Milestone definitions                                   │
+└──────────────────────────────┬──────────────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           MO-APIs LIBRARY                                    │
+│  (Standalone Apps Script Library - identifier: MoApi)                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  config-helpers.gs  │ getConfigValue(), database connection helpers         │
+│  solutions-api.gs   │ getAllSolutions(), getSolutionById()                  │
+│  contacts-api.gs    │ getContactsBySolution(), getSolutionStakeholderSummary│
+│  updates-api.gs     │ getUpdatesForSolutionCard(), getAllHistoricalUpdates  │
+│  agencies-api.gs    │ getAgencyEngagementStats(), agency queries            │
+│  engagements-api.gs │ Engagement tracking and statistics                     │
+│  outreach-api.gs    │ Events, stories, comms queries                         │
+│  actions-api.gs     │ Action item queries                                    │
+│  team-api.gs        │ Team member queries                                    │
+│  milestones-api.gs  │ Milestone queries                                      │
+│  stories-api.gs     │ Story/narrative queries                                │
+│  kudos-api.gs       │ Recognition/kudos queries                              │
+└──────────────────────────────┬──────────────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           DEPLOY WRAPPERS                                    │
+│  (NSITE-MO-Viewer Apps Script project)                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  *-api.gs files     │ Thin wrappers: function X() { return MoApi.X(); }     │
+│  Code.gs            │ Routing, auth, session management                      │
+└──────────────────────────────┬──────────────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           VIEWER PAGES                                       │
+│  (HTML/CSS/JS served by Apps Script)                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  implementation.html │ Solutions, Stakeholders, Updates, Milestones         │
+│  sep.html            │ SEP pipeline, touchpoints, working sessions          │
+│  comms.html          │ Stories, events, coverage, messaging                  │
+│  contacts.html       │ Contact directory and search                          │
+│  team.html           │ Team info, documents, meetings                        │
+│  reports.html        │ Historical updates report, data exports               │
+│  schedule.html       │ Meeting schedule and availability                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Database → API → Page Dependencies
+
+| Database | API File | Key Functions | Used By Pages |
+|----------|----------|---------------|---------------|
+| MO-DB_Solutions | solutions-api.gs | `getAllSolutions()`, `getSolutionById()` | Implementation, SEP, Reports |
+| MO-DB_Contacts | contacts-api.gs | `getContactsBySolution()`, `getSolutionStakeholderSummary()` | Implementation, SEP, Contacts |
+| MO-DB_Updates | updates-api.gs | `getUpdatesForSolutionCard()`, `getAllHistoricalUpdatesForReport()` | Implementation, Reports |
+| MO-DB_Agencies | agencies-api.gs | `getAgencyEngagementStats()` | Contacts, SEP |
+| MO-DB_Engagements | engagements-api.gs | `getEngagementsByContact()` | Contacts, SEP |
+| MO-DB_Outreach | outreach-api.gs | `getEvents()`, `getStories()` | Comms |
+| MO-DB_Actions | actions-api.gs | `getOpenActions()` | Implementation, Team |
+| MO-DB_Team | team-api.gs | `getTeamMembers()` | Team |
+| MO-DB_Meetings | Code.gs (direct) | `getMeetings()` | Schedule, Team |
+
+### Critical Column Name Dependencies
+
+**These column names MUST match exactly between database headers and API code:**
+
+| Database | Column | Used In | API Function |
+|----------|--------|---------|--------------|
+| MO-DB_Contacts | `solution_id` | contacts-api.gs | `getContactsBySolution()` |
+| MO-DB_Contacts | `email` | contacts-api.gs | All contact queries |
+| MO-DB_Updates | `solution_id` | updates-api.gs | `getUpdatesBySolution()` |
+| MO-DB_Updates | `meeting_date` | updates-api.gs | Date filtering |
+| MO-DB_Solutions | `core_id` | solutions-api.gs | Primary key for solutions |
+
+### Response Size Limits
+
+**google.script.run has a ~5MB response limit. Large responses return null.**
+
+| Function | Risk | Mitigation |
+|----------|------|------------|
+| `getUpdatesForSolutionCard()` | High - many updates with long text | Limited to 10 recent + 10 extended, text truncated to 300 chars |
+| `getAllHistoricalUpdatesForReport()` | High - full history | Limited to 500 updates, text truncated to 500 chars |
+| `getAllContacts()` | Medium | Use pagination or filtering |
+
+### Deployment Checklist
+
+When modifying code, deploy in this order:
+
+1. **MO-APIs Library** (library/*.gs) → Updates shared by all projects
+2. **NSITE-MO-Viewer** (deploy/*.gs, deploy/*.html) → Web app code
+3. **Verify library version** → Check if using HEAD or versioned reference
+
+**After library changes:**
+- Clear any server-side caches
+- Test API functions directly in Apps Script editor before browser testing
+- Check browser console for null responses (indicates size limit exceeded)
+
+---
+
 ## Development Rules
+
+### File Deployment
+
+After making changes, ALWAYS provide complete Windows paths for files that need to be copied to Google Apps Script:
+
+```
+Files to deploy to NSITE-MO-Viewer (Google Apps Script):
+C:\Users\cjtucke3\Documents\Personal\MO-development\nsite-mo-viewer\deploy\<filename>
+
+Files to deploy to MO-APIs Library (Google Apps Script):
+C:\Users\cjtucke3\Documents\Personal\MO-development\nsite-mo-viewer\library\<filename>
+```
+
+### MO-APIs Library Architecture
+
+The project uses a **thin wrapper pattern**:
+
+1. **library/*.gs** - Full implementations in a standalone Apps Script Library (identifier: `MoApi`)
+2. **deploy/*-api.gs** - Thin wrappers that delegate to the library: `function X() { return MoApi.X(); }`
+
+**When updating API functions:**
+1. Edit the `library/<name>-api.gs` file with the full implementation
+2. The `deploy/<name>-api.gs` wrapper does NOT need changes (unless adding new functions)
+3. If adding a NEW function, add the wrapper: `function newFunc(x) { return MoApi.newFunc(x); }`
+4. Copy library file to MO-APIs Library project, deploy file to NSITE-MO-Viewer project
+
+**Library files:**
+- config-helpers.gs (library only - provides getConfigValue(), getDatabaseSheet())
+- solutions-api.gs, contacts-api.gs, agencies-api.gs, updates-api.gs
+- engagements-api.gs, team-api.gs, actions-api.gs, milestones-api.gs
+- outreach-api.gs, stories-api.gs, kudos-api.gs
 
 ### About Page Maintenance
 
@@ -11,20 +258,13 @@ The About page documents:
 - How data is stored and transformed
 - Update mechanisms and frequency
 
-When modifying any viewer page (Implementation-NSITE, SEP-NSITE, Actions-NSITE, Comms-NSITE, Team-NSITE, Contacts, Reports, Schedule, Quick Update):
-1. Update the corresponding section in `deploy/about.html`
-2. If adding a new data source, update the Databases section
-3. If changing data flow, update the data flow diagram for that page
+### Documentation Updates
 
-### File Deployment
-
-After making changes to files in `deploy/`, provide the user with the full file paths to copy:
-
-```
-C:\Users\cjtucke3\Documents\Personal\MO-development\nsite-mo-viewer\deploy\<filename>
-```
-
-This is required because the Google Apps Script project is separate from the git repository.
+When making significant changes, update ALL relevant files:
+- `CHANGELOG.md` - Add entry under correct version section
+- `NEXT_STEPS.md` - Update completed items, add new tasks
+- `docs/DATA_SCHEMA.md` - If database schema changes
+- `deploy/about.html` - If page functionality changes
 
 ### Commit Guidelines
 
@@ -33,49 +273,114 @@ This is required because the Google Apps Script project is separate from the git
 - **NEVER push to GitHub until user confirms the fix/feature is working**
 - Wait for explicit "push" instruction from user
 
-## Design System
+---
 
-### Icons
-- **Use Material Icons** - NOT Feather icons
-- Syntax: `<span class="material-icons">icon_name</span>`
-- Icon names use underscores (e.g., `calendar_today`, `chevron_right`)
-- Reference: https://fonts.google.com/icons
+## Common Mistakes to Avoid
 
-### CSS Variables
-- Colors, spacing, and typography defined in `shared-styles.html`
-- Page-specific accent colors (e.g., `--color-comms`, `--color-sep`)
+1. **Wrong column name in API** - Column names in code MUST match database headers exactly. Example: `solution_id` not `solution_id_id`. Always verify column names against actual database.
 
-### Components
-- Modals use `.modal-overlay` and `.modal-content` classes
-- Buttons: `.btn`, `.btn-primary`, `.btn-secondary`
-- Cards: `.stat-card`, `.content-card`
+2. **Forgetting library sync** - When updating an API, edit `library/*-api.gs` (full implementation). Deploy wrappers rarely need changes.
+
+3. **Response too large** - If `google.script.run` returns null, the response exceeded ~5MB. Add limits and truncation.
+
+4. **Hardcoding IDs** - Never hardcode Google Doc/Sheet IDs. Always use `getConfigValue('KEY_NAME')`.
+
+5. **Missing file paths** - Always provide full Windows paths after changes.
+
+6. **Incomplete documentation** - Update ALL relevant docs, not just code.
+
+7. **Forgetting about.html** - This is the user-facing documentation. Keep it current.
+
+8. **Editing deploy instead of library** - For API logic changes, edit `library/*-api.gs` files.
+
+---
+
+## Code Patterns
+
+### API Function Pattern
+
+All API functions should:
+1. Use caching where appropriate (`_cacheVariableName`)
+2. Return deep copies of cached data (`JSON.parse(JSON.stringify(...))`)
+3. Handle errors gracefully with try/catch
+4. Log errors with `Logger.log()`
+
+```javascript
+var _solutionsCache = null;
+
+function getAllSolutions() {
+  if (_solutionsCache !== null) {
+    return JSON.parse(JSON.stringify(_solutionsCache));
+  }
+
+  try {
+    var sheetId = getConfigValue('SOLUTIONS_SHEET_ID');
+    // ... implementation
+    _solutionsCache = results;
+    return JSON.parse(JSON.stringify(results));
+  } catch (e) {
+    Logger.log('Error in getAllSolutions: ' + e);
+    return [];
+  }
+}
+```
+
+### HTML Page Pattern
+
+Each page should:
+1. Have a main object (e.g., `var Team = { ... }`)
+2. Call `init()` on page load
+3. Load data via `google.script.run` calls
+4. Handle errors with `withFailureHandler(handleError)`
+
+### CSS Pattern (Page Accent Colors)
+
+Each page viewer sets a `--page-accent` CSS variable:
+
+```css
+.sep-viewer {
+  --page-accent: var(--color-sep);
+  max-width: 1600px;
+  margin: 0 auto;
+}
+```
+
+This variable is used by shared-page-styles.html for page title, buttons, form focus states, etc.
+
+---
+
+## Quality Checklist
+
+Before completing any task, verify:
+
+### Code Changes
+- [ ] Library file updated (if API change)
+- [ ] No hardcoded IDs (use getConfigValue())
+- [ ] Error handling in place
+- [ ] Column names match database headers exactly
+
+### Documentation
+- [ ] about.html updated (if page changed)
+- [ ] CHANGELOG.md updated (if significant)
+
+### Deployment
+- [ ] Full file paths provided for ALL changed files
+- [ ] Clear indication of which Google Apps Script project each goes to
+- [ ] Deployment order specified if it matters (library first)
+
+---
 
 ## Project Structure
 
-- `deploy/` - Files to copy to Google Apps Script Web App (NSITE-MO-Viewer project)
-- `library/` - Source files for MO-APIs Library (separate Apps Script project)
-- `scripts/` - Python import/processing scripts
-- `database-files/` - Local Excel/CSV database files
-- `docs/` - Documentation
-- `.claude/` - Claude-specific reference files
-
-## MO-APIs Library Architecture
-
-The project uses a **thin wrapper pattern**:
-
-1. **library/*.gs** - Full implementations in a standalone Apps Script Library (identifier: `MoApi`)
-2. **deploy/*-api.gs** - Thin wrappers that delegate to the library: `function X() { return MoApi.X(); }`
-
-When updating API functions:
-1. Update the implementation in `library/*.gs`
-2. Copy to MO-APIs Library project in Apps Script
-3. If adding new functions, add thin wrapper to `deploy/*-api.gs`
-4. Copy to NSITE-MO-Viewer project in Apps Script
-
-**Library files:**
-- config-helpers.gs, solutions-api.gs, contacts-api.gs, agencies-api.gs
-- updates-api.gs, engagements-api.gs, team-api.gs, actions-api.gs
-- milestones-api.gs, outreach-api.gs, stories-api.gs
+```
+nsite-mo-viewer/
+├── deploy/           # Files to copy to NSITE-MO-Viewer (Apps Script)
+├── library/          # Files to copy to MO-APIs Library (Apps Script)
+├── scripts/          # Python import/processing scripts
+├── database-files/   # Local Excel/CSV database backups
+├── docs/             # Technical documentation
+└── tests/            # Testing files
+```
 
 ## Key Files
 
@@ -85,245 +390,94 @@ When updating API functions:
 | `deploy/index.html` | Page routing conditionals, SPA navigation |
 | `deploy/navigation.html` | Navigation tabs |
 | `deploy/about.html` | Platform documentation (KEEP UPDATED) |
-| `deploy/auth-landing.html` | Sign-in page (email + passphrase form) |
-| `deploy/access-denied.html` | Shown to unauthorized users, includes Request Access |
+| `deploy/shared-page-styles.html` | Shared CSS patterns |
+| `deploy/styles.html` | CSS variables, base styles |
+
+## Database Reference
+
+| Database | Config Key | Purpose |
+|----------|------------|---------|
+| MO-DB_Solutions | SOLUTIONS_SHEET_ID | Solution metadata |
+| MO-DB_Contacts | CONTACTS_SHEET_ID | Stakeholder contacts |
+| MO-DB_Updates | UPDATES_SHEET_ID | Updates by year (2026, 2025, 2024, Archive) |
+| MO-DB_Agencies | AGENCIES_SHEET_ID | Organization hierarchy |
+| MO-DB_Engagements | ENGAGEMENTS_SHEET_ID | Interaction logging |
+| MO-DB_Outreach | OUTREACH_SHEET_ID | Events and conferences |
+| MO-DB_Actions | ACTIONS_SHEET_ID | Action items |
+| MO-DB_Team | TEAM_SHEET_ID | Team members |
+| MO-DB_Meetings | MEETINGS_SHEET_ID | Recurring meetings |
+| MO-DB_Access | ACCESS_SHEET_ID | Auth whitelist |
+| MO-DB_Config | (Script Property) | All configuration |
+
+---
+
+## Design System
+
+### Icons
+- **Use Material Icons** - NOT Feather icons
+- Syntax: `<span class="material-icons">icon_name</span>`
+- Reference: https://fonts.google.com/icons
+
+### CSS Variables
+- Colors, spacing, typography in `shared-styles.html`
+- Page-specific accents (e.g., `--color-comms`, `--color-sep`)
+
+### Components
+- Modals: `.modal-overlay`, `.modal-content`
+- Buttons: `.btn`, `.btn-primary`, `.btn-secondary`
+- Cards: `.stat-card`, `.content-card`
+
+---
 
 ## Access Control
 
-MO-Viewer uses **passphrase + whitelist authentication** to support mixed account types (NASA.gov and personal Google accounts).
+MO-Viewer uses **passphrase + whitelist authentication**.
 
 ### How It Works
-
 1. User visits MO-Viewer → sees sign-in page
 2. User enters email + team passphrase
 3. Server verifies passphrase matches `SITE_PASSPHRASE` in config
 4. Server checks if email is in `MO-DB_Access` whitelist
 5. If both pass → creates session token (6-hour expiry) → redirects to app
-6. Session token is passed in URL and verified on each page load
 
-### Configuration Required (MO-DB_Config)
-
+### Configuration (MO-DB_Config)
 | Key | Purpose |
 |-----|---------|
-| `SITE_PASSPHRASE` | Shared team passphrase (case-sensitive) |
+| `SITE_PASSPHRASE` | Shared team passphrase |
 | `ACCESS_SHEET_ID` | ID of MO-DB_Access spreadsheet |
 | `ADMIN_EMAIL` | Email for access request notifications |
 
-### Deployment Settings
+---
 
-- **Execute as**: Me (script owner)
-- **Who has access**: Anyone with Google account
-
-### Key Functions (in Code.gs)
-
-| Function | Purpose |
-|----------|---------|
-| `verifyPassphraseAccess(email, passphrase)` | Main auth function - verifies passphrase and whitelist |
-| `createSessionToken(email)` | Creates UUID token, stores in ScriptCache (6hr) |
-| `verifySessionToken(token)` | Validates token and re-checks whitelist |
-| `validateUserAccess(email, sheetId)` | Checks if email exists in whitelist |
-| `submitAccessRequest(email, reason)` | Logs access request (attempts email if MailApp available) |
-
-### Managing Access
-
-**Adding users:**
-1. Open MO-DB_Access spreadsheet
-2. Add email to `access_email` column
-3. Share the passphrase with the user (via Slack, email, etc.)
-4. Changes take effect immediately
-
-**Changing passphrase:**
-1. Update `SITE_PASSPHRASE` in MO-DB_Config
-2. Notify team of new passphrase
-3. Existing sessions continue working until they expire (6 hours)
-
-### Why This Approach?
-
-**Approaches that DON'T work with Google Apps Script:**
-
-| Approach | Why It Fails |
-|----------|--------------|
-| `Session.getActiveUser()` | Returns empty for external users when deployed as "Execute as: Me" |
-| `Session.getEffectiveUser()` | Returns script owner's email, not visitor's |
-| `ScriptApp.getOAuthToken()` | Returns owner's token when "Execute as: Me" |
-| Google Identity Services | Blocked - GAS serves HTML from `googleusercontent.com` subdomains which Google forbids as OAuth origins |
-| Deploy as "User accessing" | Requires app verification for sensitive scopes; users need access to all underlying sheets |
-
-**The passphrase approach works because:**
-- User self-identifies by entering their email
-- Passphrase prevents unauthorized access (only team members know it)
-- Whitelist provides granular control over who can access
-- Session tokens (ScriptCache) provide proper per-user isolation
-- No OAuth, no Google Cloud project, no app verification needed
-
-### Session Management Details
-
-- Sessions stored in `ScriptCache` (not `UserProperties` - that's shared when "Execute as: Me")
-- Token format: UUID stored as `session_{token}` → `{email, created}`
-- Expiry: 6 hours (21600 seconds)
-- On each page load, token is re-verified and whitelist is re-checked
-- Sessions are isolated per-user (different users get different tokens)
-
-## Google Sheets Database Requirements
+## Google Sheets Requirements
 
 ### Column Formatting (CRITICAL)
 
-**All columns containing text that will be displayed in the UI must be formatted as "Plain Text" in Google Sheets.**
+**All text columns must be formatted as "Plain Text" in Google Sheets.**
 
-Why this matters:
-- Google Sheets auto-formats dates, times, and numbers
-- A time like `14:00` may be converted to a Date object, which renders incorrectly
-- The API passes values as-is; if Sheets converts them, the UI receives unexpected types
+Why: Google Sheets auto-formats dates/numbers. A time like `14:00` becomes a Date object and renders incorrectly.
 
-**How to set Plain Text format:**
-1. Select the column(s)
-2. Format → Number → Plain Text
-3. Re-enter any values that were already auto-formatted
+**How to set:** Format → Number → Plain Text
 
-**Columns that MUST be Plain Text:**
-| Database | Columns |
-|----------|---------|
-| MO-DB_Meetings | `time`, `day_of_week`, `cadence`, `name` |
-| MO-DB_Availability | `start_date`, `end_date` (if stored as strings) |
-| All databases | Any column with free-form text that might look like dates/numbers |
+---
 
-### MO-DB_Meetings Schema
+## Quality Review Status
 
-| Column | Type | Expected Values | Notes |
-|--------|------|-----------------|-------|
-| `meeting_id` | Text | MTG_0001, etc. | Auto-generated on add |
-| `name` | Text | Meeting name | Displayed in UI |
-| `day_of_week` | Text | `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` | **Case-sensitive, exact match required** |
-| `time` | Text | `10:00 AM`, `14:00`, etc. | Displayed as-is, use Plain Text format |
-| `cadence` | Text | `Weekly`, `4th Monday`, `Biweekly`, `1st & 3rd Tuesday` | Recurrence pattern for display |
-| `is_active` | Boolean | `TRUE` / `FALSE` | Only active meetings display |
-| `category` | Text | `MO`, `Assessment`, `SEP`, `Comms`, etc. | For filtering/badges |
-| `type` | Text | `Internal`, `External`, etc. | Meeting type |
-| `description` | Text | Meeting description | Shown in detail modal |
-| `meeting_link` | URL | Teams/Zoom link | Clickable in detail modal |
-| `notes_link` | URL | Link to meeting notes | Clickable in detail modal |
+### Completed
+- [x] Add caching to solutions-api.gs
+- [x] Remove debug console.log statements
+- [x] XSS audit and fixes
+- [x] Input validation for write APIs
+- [x] Standardize error handling
+- [x] Remove duplicate functions from Code.gs
+- [x] CSS consolidation (shared-page-styles.html)
+- [x] Sync Code.gs PAGES icons
 
-### Directing Documents (MO-DB_Config)
+### Deferred
+- [ ] Add automated tests (see docs/TESTING_STRATEGY.md)
+- [ ] SEP Pipeline toolbar cleanup
+- [ ] Systematic SPA navigation null checks
 
-Team > Documents displays governing documents and templates. Document IDs are stored in MO-DB_Config.
-Categories only display if at least one document in that category has an ID configured.
+---
 
-**Categories & Config Keys:**
-
-| Category | Config Key | Document Name |
-|----------|------------|---------------|
-| Core | `MO_PROJECT_PLAN_DOC_ID` | MO Project Plan |
-| Core | `HQ_PROJECT_PLAN_DOC_ID` | HQ Project Plan |
-| Core | `SOLUTION_REQUIREMENTS_EXPECTATIONS_DOC_ID` | Solution Requirements & Expectations |
-| SEP | `SEP_PLAN_DOC_ID` | SEP Plan |
-| SEP | `SEP_BLUEPRINT_DOC_ID` | SEP Blueprint |
-| SEP | `CODESIGN_PIPELINE_DOC_ID` | CoDesign Pipeline |
-| Comms | `COMMS_PLAN_DOC_ID` | Communications Plan |
-| Comms | `STYLE_GUIDE_DOC_ID` | Style Guide |
-| Comms | `HIGHLIGHTER_BLURBS_DOC_ID` | Highlighter Blurbs |
-| Comms | `WEBPAGE_LOG_DOC_ID` | Webpage Log |
-| Assessment | `ASSESSEMENT_PROCESS_DOC_ID` | Assessment Process |
-| Assessment | `ASSESSEMENT_CHEATSHEET_DOC_ID` | Assessment Cheatsheet |
-| Operations | `MO_RISK_REGISTER_DOC_ID` | MO Risk Register |
-| Operations | `RISK_REGISTER_DOC_ID` | Risk Register |
-| Operations | `INFO_MANAGEMENT_PLAN_DOC_ID` | Information Management Plan |
-| Operations | `AUDIT_LOG_DOC_ID` | Audit Log |
-| Templates | `TEMPLATE_MEETING_NOTES_DOC_ID` | Meeting Notes Template |
-| Templates | `TEMPLATE_SOLUTION_BRIEF_DOC_ID` | Solution Brief Template |
-| Templates | `TEMPLATE_STAKEHOLDER_REPORT_DOC_ID` | Stakeholder Report Template |
-| Templates | `TEMPLATE_PRESENTATION_DOC_ID` | Presentation Template |
-| Templates | `TEMPLATE_EMAIL_OUTREACH_DOC_ID` | Email Outreach Templates |
-| Templates | `TEMPLATE_ONE_PAGER_DOC_ID` | One-Pager Template |
-
-### MO-DB_Agencies Schema
-
-| Column | Type | Values | Notes |
-|--------|------|--------|-------|
-| `agency_id` | Text | AGY_*, e.g. AGY_NASA | Unique identifier |
-| `name` | Text | Short name | e.g. "NASA", "NOAA" |
-| `full_name` | Text | Full organization name | e.g. "National Aeronautics and Space Administration" |
-| `abbreviation` | Text | Common abbreviation | For display |
-| `parent_agency_id` | Text | AGY_* | Parent in hierarchy |
-| `type` | Text | Federal Agency, Bureau, Office, Lab | Organization type |
-| `status` | Text | Active, Closed, Merged | **For tracking closed agencies** |
-| `closed_date` | Date | YYYY-MM-DD | When agency closed |
-| `successor_agency_id` | Text | AGY_* | Where people/functions moved |
-| `relationship_status` | Text | New, Developing, Established, Strong, Dormant | Current relationship health |
-| `geographic_scope` | Text | National, Regional, State, Local, International | Coverage area |
-| `headquarters_state` | Text | 2-letter state code | **For Map view** - e.g. "DC", "MD", "CA" |
-| `mission_statement` | Text | Mission text | Agency mission |
-| `data_interests` | Text | Interest areas | Earth observation interests |
-| `website_url` | URL | Agency website | External link |
-
-**API Functions:**
-- `getAgencyEngagementStats(agencyId)` - Total engagements, last date, heat status (hot/warm/cold)
-- `getAgencyEngagementTimeline(agencyId, limit)` - Engagement history for agency contacts
-- `getAgencyContactsWithTags(agencyId)` - Contacts with solution_tags array
-- `getContactSolutionTags(email)` - Solutions a contact has engaged with
-
-### MO-DB_Solutions SEP Milestone Schema
-
-Solutions have two types of milestones:
-1. **Implementation Milestones** (milestone_ prefix): ATP, F2I, ORR, Closeout
-2. **SEP Milestones** (sep_ prefix): Working Sessions and Touchpoints
-
-**SEP Active Column:**
-| Column | Type | Values | Notes |
-|--------|------|--------|-------|
-| `sep_active` | Boolean | `TRUE` / `FALSE` | Only TRUE solutions appear in SEP pipeline |
-
-**SEP Milestone Flow:**
-```
-WS1 → TP4 → WS2 → TP5 → WS3 → TP6 → WS4 → TP7 → WS5 → TP8
-```
-
-- **Working Sessions (WS)**: NSITE SEP team prepares solution teams for touchpoints
-- **Touchpoints (TP)**: Solution teams engage directly with stakeholders
-
-| Milestone | Type | Full Name | Date Column | URL Column |
-|-----------|------|-----------|-------------|------------|
-| WS1 | Working Session | Working Session 1 | `sep_ws1_date` | `sep_ws1_url` |
-| TP4 | Touchpoint | Touchpoint 4 - Outreach | `sep_tp4_date` | `sep_tp4_url` |
-| WS2 | Working Session | Working Session 2 | `sep_ws2_date` | `sep_ws2_url` |
-| TP5 | Touchpoint | Touchpoint 5 - Transition | `sep_tp5_date` | `sep_tp5_url` |
-| WS3 | Working Session | Working Session 3 | `sep_ws3_date` | `sep_ws3_url` |
-| TP6 | Touchpoint | Touchpoint 6 - Training | `sep_tp6_date` | `sep_tp6_url` |
-| WS4 | Working Session | Working Session 4 | `sep_ws4_date` | `sep_ws4_url` |
-| TP7 | Touchpoint | Touchpoint 7 - Adoption | `sep_tp7_date` | `sep_tp7_url` |
-| WS5 | Working Session | Working Session 5 | `sep_ws5_date` | `sep_ws5_url` |
-| TP8 | Touchpoint | Touchpoint 8 - Impact | `sep_tp8_date` | `sep_tp8_url` |
-
-**API Functions:**
-- `getSEPMilestones()` - Get milestone definitions
-- `getSolutionsWithSEPProgress()` - Solutions with progress info (filtered by sep_active)
-- `getSolutionsBySEPMilestone()` - Solutions grouped by current milestone
-- `getSEPPipelineStats()` - Dashboard statistics
-- `updateSolutionSEPMilestone(solutionId, milestoneId, date)` - Update milestone date
-- `getSEPCycles()` - Get unique cycles from SEP-active solutions (for filter dropdown)
-- `getSolutionsNeedingOutreach(threshold)` - Solutions with low engagement count
-
-## Documentation
-
-| Document | Purpose |
-|----------|---------|
-| `docs/BUG_TRACKER.md` | Known bugs and improvement tracking |
-| `docs/TESTING_STRATEGY.md` | Testing approach for portability |
-| `docs/SCHEMA_REFINEMENT.md` | Database schema documentation |
-
-## Testing (Planned)
-
-See `docs/TESTING_STRATEGY.md` for the full testing plan.
-
-**Summary**: The project needs a testing suite before it can be packaged for other organizations.
-
-**Recommended Approach**:
-1. **Phase 1**: In-GAS configuration and schema validation tests
-2. **Phase 2**: Jest tests for pure JavaScript logic + API contract tests
-3. **Phase 3**: Playwright E2E tests for critical user flows
-
-**Test Files** (when implemented):
-- `deploy/test-runner.gs` - Test execution framework
-- `deploy/test-config.gs` - Configuration validation
-- `deploy/test-schema.gs` - Database schema validation
-- `tests/local/` - Jest tests for extracted JS
-- `tests/e2e/` - Playwright browser tests
+*This file should be updated when new patterns emerge or mistakes are identified.*

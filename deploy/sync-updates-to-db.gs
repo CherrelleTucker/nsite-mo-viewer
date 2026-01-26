@@ -17,7 +17,7 @@
  *    - Trigger: syncAllUpdatesHistorical()
  *
  * DATABASE COLUMNS:
- * update_id, solution, update_text, source_document, source_category,
+ * update_id, solution_id, update_text, source_document, source_category,
  * source_url, source_tab, meeting_date, created_at, created_by
  *
  * SETUP:
@@ -74,6 +74,9 @@ var UPDATE_SOURCES = {
 
 // The :new: emoji marker
 var NEW_MARKER = '🆕';
+
+// Pattern to detect [core_id] in square brackets
+var CORE_ID_BRACKET_PATTERN = /\[([^\]]+)\]$/;
 
 // Cache for config values
 var _configCache = null;
@@ -387,39 +390,64 @@ function parseUpdatesFromBody_(body, source, docUrl, meetingDate, tabName) {
           }
         }
 
+        // Track current solution - items with [core_id] set the solution directly
+        var currentSolution = null;
+        var currentSolutionNestingLevel = null;
+
         for (var j = 0; j < listItems.length; j++) {
           var item = listItems[j];
 
           if (!item.text) continue;
 
-          if (currentSolution === null || item.nesting <= currentSolutionNestingLevel) {
+          // Check if this item has a [core_id] marker
+          var hasCoreId = CORE_ID_BRACKET_PATTERN.test(item.text);
+
+          // Check if this item is a legacy sub-solution marker (ends with ":")
+          var isLegacySubSolutionMarker = /^[A-Za-z0-9\s\-\.]+:\s*$/.test(item.text);
+
+          // Items with [core_id] become the current solution at any nesting level
+          if (hasCoreId) {
             currentSolution = extractSolutionName_(item.text);
             currentSolutionNestingLevel = item.nesting;
           }
-          else if (item.nesting > currentSolutionNestingLevel) {
-            if (item.text.indexOf(NEW_MARKER) !== -1) {
-              var updateNestingLevel = item.nesting;
-              var updateParts = [item.text.replace(NEW_MARKER, '').trim()];
-
-              for (var k = j + 1; k < listItems.length; k++) {
-                var childItem = listItems[k];
-                if (childItem.nesting <= updateNestingLevel) break;
-                if (childItem.text) {
-                  var indent = '  '.repeat(childItem.nesting - updateNestingLevel);
-                  updateParts.push(indent + '• ' + childItem.text);
-                }
-              }
-
-              updates.push({
-                solution: currentSolution,
-                update_text: updateParts.join('\n'),
-                source_document: source.displayName,
-                source_category: source.category,
-                source_url: docUrl,
-                source_tab: tabName,
-                meeting_date: meetingDate
-              });
+          // Items at base nesting or shallower reset the solution (grouping headers)
+          else if (currentSolution === null || item.nesting <= currentSolutionNestingLevel) {
+            // Only set as solution if it's not a 🆕 update itself
+            if (item.text.indexOf(NEW_MARKER) === -1) {
+              currentSolution = extractSolutionName_(item.text);
+              currentSolutionNestingLevel = item.nesting;
             }
+          }
+          // Legacy support: items ending with ":" at deeper nesting are sub-solutions
+          else if (isLegacySubSolutionMarker && item.nesting > currentSolutionNestingLevel) {
+            var subSolutionName = item.text.replace(/:$/, '').trim();
+            currentSolution = currentSolution + ' - ' + subSolutionName;
+            currentSolutionNestingLevel = item.nesting;
+          }
+
+          // Check for 🆕 updates
+          if (item.text.indexOf(NEW_MARKER) !== -1 && currentSolution) {
+            var updateNestingLevel = item.nesting;
+            var updateParts = [item.text.replace(NEW_MARKER, '').trim()];
+
+            for (var k = j + 1; k < listItems.length; k++) {
+              var childItem = listItems[k];
+              if (childItem.nesting <= updateNestingLevel) break;
+              if (childItem.text) {
+                var indent = '  '.repeat(childItem.nesting - updateNestingLevel);
+                updateParts.push(indent + '• ' + childItem.text);
+              }
+            }
+
+            updates.push({
+              solution: currentSolution,
+              update_text: updateParts.join('\n'),
+              source_document: source.displayName,
+              source_category: source.category,
+              source_url: docUrl,
+              source_tab: tabName,
+              meeting_date: meetingDate
+            });
           }
         }
       }
@@ -435,7 +463,6 @@ function parseUpdatesFromBody_(body, source, docUrl, meetingDate, tabName) {
  */
 function parseUpdatesFromBodyParagraph_(body, source, docUrl, meetingDate, tabName) {
   var updates = [];
-  var currentSolution = null;
 
   var numElements = body.getNumChildren();
   var elements = [];
@@ -473,13 +500,44 @@ function parseUpdatesFromBodyParagraph_(body, source, docUrl, meetingDate, tabNa
     }
   }
 
+  // Track current solution - items with [core_id] set the solution directly
+  var currentSolution = null;
+  var currentSolutionNestingLevel = null;
+
   for (var j = 0; j < elements.length; j++) {
     var elem = elements[j];
 
     if (!elem.text) continue;
 
+    // Check if this item has a [core_id] marker
+    var hasCoreId = CORE_ID_BRACKET_PATTERN.test(elem.text);
+
+    // Check if this item is a legacy sub-solution marker (ends with ":")
+    var isLegacySubSolutionMarker = elem.type === 'list_item' && /^[A-Za-z0-9\s\-\.]+:\s*$/.test(elem.text);
+
+    // Headings set the solution (grouping or with [core_id])
     if (elem.isHeading) {
       currentSolution = extractSolutionName_(elem.text);
+      currentSolutionNestingLevel = 0;
+      continue;
+    }
+
+    // Items with [core_id] become the current solution at any nesting level
+    if (hasCoreId) {
+      currentSolution = extractSolutionName_(elem.text);
+      currentSolutionNestingLevel = elem.nesting;
+      continue;
+    }
+
+    // Legacy support: items ending with ":" are sub-solutions (create composite name)
+    if (currentSolution && isLegacySubSolutionMarker) {
+      var subSolutionName = elem.text.replace(/:$/, '').trim();
+      // Only create composite if current solution doesn't already have this sub-solution
+      if (currentSolution.indexOf(' - ' + subSolutionName) === -1) {
+        var baseSolution = currentSolution.split(' - ')[0];
+        currentSolution = baseSolution + ' - ' + subSolutionName;
+      }
+      currentSolutionNestingLevel = elem.nesting;
       continue;
     }
 
@@ -601,51 +659,67 @@ function parseUpdatesFromTableFormat_(doc, source, docUrl, docName) {
 
           if (!item.text) continue;
 
-          // First LIST_ITEM at base level is typically the solution name
-          if (currentSolution === null || item.nesting <= currentSolutionNestingLevel) {
+          // Check if this item has a [core_id] marker
+          var hasCoreId = CORE_ID_BRACKET_PATTERN.test(item.text);
+
+          // Check if this item is a legacy sub-solution marker (ends with ":")
+          var isLegacySubSolutionMarker = /^[A-Za-z0-9\s\-\.]+:\s*$/.test(item.text);
+
+          // Items with [core_id] become the current solution at any nesting level
+          if (hasCoreId) {
             currentSolution = extractSolutionName_(item.text);
             currentSolutionNestingLevel = item.nesting;
-            Logger.log('Found solution: ' + currentSolution);
           }
-          // Nested items under the solution - check for :new: marker
-          else if (item.nesting > currentSolutionNestingLevel) {
-            if (item.text.indexOf(NEW_MARKER) !== -1) {
-              var updateNestingLevel = item.nesting;
-              var updateParts = [item.text.replace(NEW_MARKER, '').trim()];
+          // Items at base nesting or shallower reset the solution (grouping headers)
+          else if (currentSolution === null || item.nesting <= currentSolutionNestingLevel) {
+            // Only set as solution if it's not a 🆕 update itself
+            if (item.text.indexOf(NEW_MARKER) === -1) {
+              currentSolution = extractSolutionName_(item.text);
+              currentSolutionNestingLevel = item.nesting;
+            }
+          }
+          // Legacy support: items ending with ":" at deeper nesting are sub-solutions
+          else if (isLegacySubSolutionMarker && item.nesting > currentSolutionNestingLevel) {
+            var subSolutionName = item.text.replace(/:$/, '').trim();
+            var baseSolution = currentSolution.split(' - ')[0];
+            currentSolution = baseSolution + ' - ' + subSolutionName;
+            currentSolutionNestingLevel = item.nesting;
+          }
 
-              // Collect all children at deeper nesting levels
-              for (var k = j + 1; k < listItems.length; k++) {
-                var childItem = listItems[k];
+          // Check for 🆕 updates
+          if (item.text.indexOf(NEW_MARKER) !== -1 && currentSolution) {
+            var updateNestingLevel = item.nesting;
+            var updateParts = [item.text.replace(NEW_MARKER, '').trim()];
 
-                // Stop if we reach same or shallower nesting (sibling or parent)
-                if (childItem.nesting <= updateNestingLevel) {
-                  break;
-                }
+            // Collect all children at deeper nesting levels
+            for (var k = j + 1; k < listItems.length; k++) {
+              var childItem = listItems[k];
 
-                // This is a child of the :new: item
-                if (childItem.text) {
-                  // Indent children with bullet for readability
-                  var indent = '  '.repeat(childItem.nesting - updateNestingLevel);
-                  updateParts.push(indent + '• ' + childItem.text);
-                }
+              // Stop if we reach same or shallower nesting (sibling or parent)
+              if (childItem.nesting <= updateNestingLevel) {
+                break;
               }
 
-              // Combine the update headline with its children
-              var fullUpdateText = updateParts.join('\n');
-
-              updates.push({
-                solution: currentSolution,
-                update_text: fullUpdateText,
-                source_document: source.displayName,
-                source_category: source.category,
-                source_url: docUrl,
-                source_tab: tabName,
-                meeting_date: meetingDate
-              });
-
-              Logger.log('  Found :new: update with ' + (updateParts.length - 1) + ' children: ' +
-                         updateParts[0].substring(0, 50) + '...');
+              // This is a child of the :new: item
+              if (childItem.text) {
+                // Indent children with bullet for readability
+                var indent = '  '.repeat(childItem.nesting - updateNestingLevel);
+                updateParts.push(indent + '• ' + childItem.text);
+              }
             }
+
+            // Combine the update headline with its children
+            var fullUpdateText = updateParts.join('\n');
+
+            updates.push({
+              solution: currentSolution,
+              update_text: fullUpdateText,
+              source_document: source.displayName,
+              source_category: source.category,
+              source_url: docUrl,
+              source_tab: tabName,
+              meeting_date: meetingDate
+            });
           }
         }
       }
@@ -740,16 +814,41 @@ function parseUpdatesFromParagraphFormat_(doc, source, docUrl, docName) {
     }
   }
 
+  // Track current solution - items with [core_id] set the solution directly
+  var currentSolutionNestingLevel = null;
+
   // Second pass: process elements and capture :new: updates with children
   for (var j = 0; j < elements.length; j++) {
     var elem = elements[j];
 
     if (!elem.text) continue;
 
-    // Check for solution heading
+    // Check if this item has a [core_id] marker
+    var hasCoreId = CORE_ID_BRACKET_PATTERN.test(elem.text);
+
+    // Check if this item is a legacy sub-solution marker (ends with ":")
+    var isLegacySubSolutionMarker = elem.type === 'list_item' && /^[A-Za-z0-9\s\-\.]+:\s*$/.test(elem.text);
+
+    // Headings set the solution (grouping or with [core_id])
     if (elem.isHeading) {
       currentSolution = extractSolutionName_(elem.text);
-      Logger.log('Found solution: ' + currentSolution);
+      currentSolutionNestingLevel = 0;
+      continue;
+    }
+
+    // Items with [core_id] become the current solution at any nesting level
+    if (hasCoreId) {
+      currentSolution = extractSolutionName_(elem.text);
+      currentSolutionNestingLevel = elem.nesting;
+      continue;
+    }
+
+    // Legacy support: items ending with ":" are sub-solutions (create composite name)
+    if (currentSolution && isLegacySubSolutionMarker) {
+      var subSolutionName = elem.text.replace(/:$/, '').trim();
+      var baseSolution = currentSolution.split(' - ')[0];
+      currentSolution = baseSolution + ' - ' + subSolutionName;
+      currentSolutionNestingLevel = elem.nesting;
       continue;
     }
 
@@ -981,17 +1080,47 @@ function extractMeetingDateFromDoc_(doc) {
 }
 
 /**
- * Extract solution name from text, removing provider info in parentheses
- * @param {string} text - Raw text
- * @returns {string} Clean solution name
+ * Extract solution identifier from text
+ * Supports formats:
+ * 1. "Solution Name [core_id]" - extracts core_id from square brackets (preferred)
+ * 2. "Solution Name (Provider)" - removes provider info in parentheses, returns solution name
+ * 3. "Solution Name" - returns as-is
+ *
+ * Square brackets are used for core_id to avoid confusion with provider info in parentheses.
+ * Database core_id pattern: lowercase letters, numbers, underscores, hyphens, dots
+ * Examples: aq_gmao, hls_vi, opera_dswx, aq_pm2.5, 3d-topo
+ *
+ * @param {string} text - Raw text like "GMAO [aq_gmao]" or "PBL (JPL)" or "Air Quality"
+ * @returns {string} The core_id if found in brackets, otherwise the cleaned solution name
  */
 function extractSolutionName_(text) {
-  // Remove provider info in parentheses
-  var providerMatch = text.match(/^(.+?)\s*\([^)]+\)$/);
-  if (providerMatch) {
-    return providerMatch[1].trim();
+  if (!text) return '';
+
+  text = text.trim();
+
+  // Check for core_id in square brackets [core_id]
+  // Pattern 1: "Solution Name [core_id]" - text before brackets
+  var bracketMatch = text.match(/^(.+?)\s*\[([^\]]+)\]$/);
+  if (bracketMatch) {
+    var coreId = bracketMatch[2].trim();
+    // Return the core_id directly
+    return coreId;
   }
-  return text.trim();
+
+  // Pattern 2: "[core_id]" - just the brackets with no preceding text
+  var onlyBracketMatch = text.match(/^\[([^\]]+)\]$/);
+  if (onlyBracketMatch) {
+    return onlyBracketMatch[1].trim();
+  }
+
+  // Check for provider info in parentheses (JPL, GSFC, etc.) - strip it
+  var parenMatch = text.match(/^(.+?)\s*\([^)]+\)$/);
+  if (parenMatch) {
+    return parenMatch[1].trim();
+  }
+
+  // No brackets or parentheses - return as-is
+  return text;
 }
 
 // ============================================================================
@@ -1019,7 +1148,7 @@ function syncUpdatesToDatabase_(updates) {
   for (var r = 1; r < data.length; r++) {
     var row = data[r];
     var key = createUpdateKey_(
-      row[colIndex['solution']] || '',
+      row[colIndex['solution_id']] || '',
       row[colIndex['update_text']] || ''
     );
     existingUpdates[key] = {
@@ -1075,7 +1204,7 @@ function appendNewUpdate_(sheet, headers, update) {
   var newRow = headers.map(function(header) {
     switch (header) {
       case 'update_id': return updateId;
-      case 'solution': return update.solution || '';
+      case 'solution_id': return update.solution || '';
       case 'update_text': return update.update_text || '';
       case 'source_document': return update.source_document || '';
       case 'source_category': return update.source_category || '';

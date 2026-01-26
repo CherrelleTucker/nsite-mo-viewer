@@ -1,7 +1,7 @@
 # Next Development Steps
 
-**Last Updated:** 2026-01-23
-**Current Version:** 2.1.1
+**Last Updated:** 2026-01-25
+**Current Version:** 2.1.2
 
 ---
 
@@ -64,7 +64,38 @@ See `docs/BUG_TRACKER.md` → "Quick Wins" section
 
 ---
 
-## Completed This Session (2026-01-22) - Solutions Schema v2
+## Completed This Session (2026-01-25) - Bug Fixes & Historical Updates Report
+
+- [x] **CONTACTS API BUG FIX** - Fixed `solution_id_id` → `solution_id` column name mismatch
+  - `getContactsBySolution()`, `getContactsBySolutionId()`, `getContactsMultiFilter()` all fixed
+  - Stakeholders now display correctly in Implementation solution detail modals
+
+- [x] **UPDATES API RESPONSE SIZE FIX** - Fixed null responses exceeding ~5MB limit
+  - `getUpdatesForSolutionCard()` now limited to 10 recent + 10 extended updates
+  - Text truncated to 300 chars for card display
+  - Updates now load correctly in solution detail modals
+
+- [x] **HISTORICAL UPDATES REPORT IMPROVEMENTS** (Reports page)
+  - Updates grouped by date under single headers
+  - Dates link to source documents (source_url field)
+  - Increased text limit from 500 to 1000 characters
+  - Bullet points render as line breaks
+  - Shared background per date group for readability
+
+- [x] **IMPLEMENTATION PAGE ENHANCEMENTS**
+  - Markdown links in Recent Updates now clickable
+  - Animated loading spinner during modal load
+
+- [x] **DOCUMENTATION CONSOLIDATION**
+  - Merged claude-instructions.md into CLAUDE.md
+  - Added System Architecture & Data Flow section
+  - Complete data flow map: Source Docs → Databases → APIs → Pages
+  - Critical column name dependencies documented
+  - Response size limits documented
+
+---
+
+## Completed Previous Session (2026-01-22) - Solutions Schema v2
 
 - [x] **MO-DB_SOLUTIONS SCHEMA v2** - Major refactoring with semantic prefixes
   - Reduced from 76 → 64 columns
