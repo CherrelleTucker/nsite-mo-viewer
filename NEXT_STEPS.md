@@ -1,7 +1,7 @@
 # Next Development Steps
 
 **Last Updated:** 2026-01-26
-**Current Version:** 2.1.4
+**Current Version:** 2.1.5
 
 ---
 
@@ -64,7 +64,38 @@ See `docs/BUG_TRACKER.md` → "Quick Wins" section
 
 ---
 
-## Completed This Session (2026-01-26) - Contacts, Comms Enhancements
+## Completed This Session (2026-01-26) - SEP Email & Solution Detail Improvements
+
+- [x] **SEP SOLUTION DETAIL MODAL REDESIGN**
+  - Reordered sections: Name, Cycle/Phase, Recent Engagements (+Log button), Team, Stakeholders, Agencies, Milestone Timeline
+  - Lighter design with reduced font weights, subtle dividers, more whitespace
+  - Clickable engagements open full engagement detail modal
+  - Modal return navigation - closing engagement detail returns to solution modal
+  - Agencies displayed as pills/chips, stakeholders as simple list
+
+- [x] **EMAIL ALL STAKEHOLDERS** (SEP Solution Detail)
+  - "Email All" button in Stakeholders section header
+  - Collects all stakeholder emails for the solution
+  - Opens email composer with recipients pre-filled
+  - Solution context auto-selected
+
+- [x] **LOG EMAIL AS ENGAGEMENT** (Email Composer)
+  - "Log as Engagement" button creates engagement record
+  - Activity type: Email, Direction: Outbound
+  - Captures recipients, subject, solution, and email body
+
+- [x] **EMAIL COMPOSER UX IMPROVEMENTS**
+  - "Add Recipient" dropdown appends to To field (not replaces)
+  - Prevents duplicate email addresses
+  - Fixed engagement_id property check (was `id`, now `engagement_id`)
+
+- [x] **SEP OVERVIEW TABLE - MILESTONE COLUMN**
+  - Shows Last → Next milestone names (e.g., "TP4 → WS2")
+  - Calculated from milestone dates relative to today
+
+---
+
+## Completed Earlier (2026-01-26) - Contacts, Comms Enhancements
 
 - [x] **ADD CONTACT FORM** (Contacts Directory)
   - "Add Contact" button in page header opens modal form

@@ -319,6 +319,42 @@
         <button class="btn btn-secondary btn-sm" onclick="Reports.previewDepartmentReach()"><span class="material-icons">visibility</span> View</button>
       </div>
     </div>
+
+    <!-- Reference Documents -->
+    <div class="report-card">
+      <div class="report-card-header">
+        <div class="report-icon icon-team">
+          <span class="material-icons">description</span>
+        </div>
+        <div class="report-title-area">
+          <h3>Reference Documents</h3>
+          <p class="report-description">Blurbs and talking points</p>
+        </div>
+      </div>
+      <div class="report-card-body">
+        <div class="report-info">
+          <p><strong>Quick access:</strong> Standard blurbs for communications and briefings</p>
+        </div>
+        <div class="doc-links">
+          <a href="#" id="nsiteBlurbsLink" class="doc-link" target="_blank">
+            <span class="material-icons">article</span>
+            <div class="doc-link-text">
+              <span class="doc-link-title">NSITE Highlighter Blurbs</span>
+              <span class="doc-link-desc">Solution descriptions for slides and emails</span>
+            </div>
+            <span class="material-icons">open_in_new</span>
+          </a>
+          <a href="#" id="odsiBlurbsLink" class="doc-link" target="_blank">
+            <span class="material-icons">article</span>
+            <div class="doc-link-text">
+              <span class="doc-link-title">ODSI Weekly Blurbs</span>
+              <span class="doc-link-desc">Weekly talking points and updates</span>
+            </div>
+            <span class="material-icons">open_in_new</span>
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Coming Soon Notice -->
@@ -908,6 +944,51 @@
     width: 16px;
     height: 16px;
     color: var(--color-info);
+  }
+
+  /* Document Links */
+  .doc-links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+  }
+  .doc-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all var(--transition-fast);
+  }
+  .doc-link:hover {
+    background: var(--color-surface-alt);
+    border-color: var(--page-accent);
+  }
+  .doc-link > .material-icons:first-child {
+    color: var(--page-accent);
+    font-size: 24px;
+  }
+  .doc-link-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .doc-link-title {
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+  }
+  .doc-link-desc {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+  .doc-link > .material-icons:last-child {
+    color: var(--color-text-muted);
+    font-size: 16px;
   }
 
   /* Section Header */
@@ -2303,4 +2384,27 @@
   if (typeof Reports === 'undefined') {
     console.error('ERROR: Reports object is undefined!');
   }
+
+  // Load document links from config
+  (function loadDocumentLinks() {
+    // Load NSITE Highlighter Blurbs link
+    google.script.run
+      .withSuccessHandler(function(docId) {
+        if (docId) {
+          var link = document.getElementById('nsiteBlurbsLink');
+          if (link) link.href = 'https://docs.google.com/document/d/' + docId;
+        }
+      })
+      .getConfigValue('HIGHLIGHTER_BLURBS_DOC_ID');
+
+    // Load ODSI Weekly Blurbs link
+    google.script.run
+      .withSuccessHandler(function(docId) {
+        if (docId) {
+          var link = document.getElementById('odsiBlurbsLink');
+          if (link) link.href = 'https://docs.google.com/document/d/' + docId;
+        }
+      })
+      .getConfigValue('ODSI_BLURB_DOC_ID');
+  })();
 </script>

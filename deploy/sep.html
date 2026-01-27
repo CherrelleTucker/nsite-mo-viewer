@@ -13,11 +13,19 @@
           <span class="material-icons">dashboard</span>
           <span>Dashboard</span>
         </button>
+        <button class="view-btn" data-view="solutions" onclick="SEP.setView('solutions')">
+          <span class="material-icons">grid_view</span>
+          <span>Solutions</span>
+        </button>
         <button class="view-btn" data-view="agencies" onclick="SEP.setView('agencies')">
           <span class="material-icons">account_tree</span>
           <span>Agencies</span>
         </button>
       </div>
+      <button class="btn btn-secondary" onclick="SEP.showEmailTemplateModal()">
+        <span class="material-icons">email</span>
+        Email
+      </button>
       <button class="btn btn-primary" onclick="SEP.showLogEngagementModal()">
         <span class="material-icons">add</span>
         Log Engagement
@@ -59,6 +67,40 @@
             <span class="stat-value" id="statHeatLabel">--</span>
             <span class="stat-label">Activity Level</span>
           </div>
+        </div>
+      </div>
+
+      <!-- SEP Overview Table (collapsible) -->
+      <div class="overview-section" id="overviewSection">
+        <div class="overview-header">
+          <div class="overview-header-left" onclick="SEP.toggleOverview()">
+            <h3>
+              <span class="material-icons overview-toggle-icon" id="overviewToggleIcon">expand_more</span>
+              SEP Overview
+            </h3>
+          </div>
+          <div class="overview-header-right">
+            <select class="overview-filter" id="overviewFilter" onchange="SEP.filterOverview()">
+              <option value="sep" selected>SEP Solutions</option>
+              <option value="all">All Solutions</option>
+            </select>
+            <span class="overview-count" id="overviewCount">0 solutions</span>
+          </div>
+        </div>
+        <div class="overview-content" id="overviewContent">
+          <table class="overview-table">
+            <thead>
+              <tr>
+                <th>Solution</th>
+                <th>SEP Milestone</th>
+                <th>Last Engagement</th>
+                <th>Comms Due</th>
+              </tr>
+            </thead>
+            <tbody id="overviewTableBody">
+              <tr><td colspan="4" class="loading-cell"><span class="loading-spinner"></span></td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -157,6 +199,13 @@
       </div>
     </div>
 
+    <!-- Solutions View (Quad Cards) -->
+    <div class="view-panel" id="solutionsView">
+      <div class="solutions-grid" id="solutionsGrid">
+        <div class="loading-state"><span class="loading-spinner"></span></div>
+      </div>
+    </div>
+
     <!-- Agencies View -->
     <div class="view-panel" id="agenciesView">
       <div class="agencies-layout">
@@ -250,8 +299,18 @@
           <input type="text" id="engSubject" placeholder="Brief subject line" required>
         </div>
         <div class="form-group">
-          <label>Participants (emails, comma-separated)</label>
-          <input type="text" id="engParticipants" placeholder="email1@example.com, email2@example.com">
+          <label>Participants</label>
+          <div class="contact-picker" id="contactPicker">
+            <div class="selected-contacts" id="selectedContacts"></div>
+            <input type="text" id="contactSearchInput" class="contact-search"
+                   placeholder="Search contacts by name or email..."
+                   autocomplete="off"
+                   oninput="SEP.searchContacts(this.value)"
+                   onfocus="SEP.showContactResults()"
+                   onblur="SEP.hideContactResults()">
+            <div class="contact-results" id="contactResults"></div>
+          </div>
+          <input type="hidden" id="engParticipants">
         </div>
         <div class="form-group">
           <label>Solution</label>
@@ -413,6 +472,68 @@
         <button class="btn btn-primary" id="addNewContactBtn" onclick="SEP.addNewContactToAgency()">
           <span class="material-icons">person_add</span> Create New Contact
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Email Template Modal -->
+<div class="modal-overlay" id="emailTemplateModal" onclick="SEP.closeModal('emailTemplateModal', event)">
+  <div class="modal-content modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Compose Email</h2>
+      <button class="modal-close" onclick="SEP.closeModal('emailTemplateModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="email-composer">
+        <!-- Template Selection -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Template <a href="#" id="emailTemplateDocLink" target="_blank" style="font-size: var(--font-size-xs); font-weight: normal; margin-left: var(--space-xs);">Edit Templates</a></label>
+            <select id="emailTemplate" onchange="SEP.applyEmailTemplate()">
+              <option value="">-- Select Template --</option>
+              <!-- Populated dynamically from templates doc -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Add Recipient</label>
+            <select id="emailRecipient" onchange="SEP.addRecipientToEmail()">
+              <option value="">-- Add from contacts --</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Solution Context</label>
+          <select id="emailSolution" onchange="SEP.updateEmailPreview()">
+            <option value="">-- Select Solution (optional) --</option>
+          </select>
+        </div>
+
+        <!-- Email Preview/Edit -->
+        <div class="form-group">
+          <label>To</label>
+          <input type="email" id="emailTo" placeholder="recipient@agency.gov">
+        </div>
+        <div class="form-group">
+          <label>Subject</label>
+          <input type="text" id="emailSubject" placeholder="Email subject...">
+        </div>
+        <div class="form-group">
+          <label>Message</label>
+          <textarea id="emailBody" rows="12" placeholder="Compose your message..."></textarea>
+        </div>
+
+        <div class="email-actions">
+          <button class="btn btn-secondary" onclick="SEP.copyEmailToClipboard()">
+            <span class="material-icons">content_copy</span> Copy
+          </button>
+          <button class="btn btn-secondary" onclick="SEP.openInEmailClient()">
+            <span class="material-icons">open_in_new</span> Open in Client
+          </button>
+          <button class="btn btn-primary" onclick="SEP.logEmailAsEngagement(event)">
+            <span class="material-icons">add_task</span> Log as Engagement
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -988,6 +1109,47 @@
     background: var(--color-border);
   }
   .new-contact-form { margin-top: var(--space-sm); }
+
+  /* Email Composer Modal */
+  .email-composer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  .email-composer .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+  }
+  .email-composer select,
+  .email-composer input,
+  .email-composer textarea {
+    width: 100%;
+    padding: var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    font-family: inherit;
+  }
+  .email-composer select:focus,
+  .email-composer input:focus,
+  .email-composer textarea:focus {
+    outline: none;
+    border-color: var(--color-sep);
+  }
+  .email-composer textarea {
+    resize: vertical;
+    min-height: 200px;
+    line-height: 1.5;
+  }
+  .email-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-border-light);
+  }
 
   /* Agency Timeline */
   .agency-timeline-section {
@@ -1780,6 +1942,425 @@
       display: none;
     }
   }
+
+  /* SEP Overview Section (collapsible) */
+  .overview-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .overview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .overview-header-left {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  .overview-header-left:hover h3 { color: var(--color-sep); }
+  .overview-header-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+  .overview-filter {
+    padding: 4px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    background: var(--color-surface);
+    cursor: pointer;
+  }
+  .overview-filter:focus { outline: none; border-color: var(--color-sep); }
+  .overview-header h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin: 0;
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    transition: color var(--transition-fast);
+  }
+  .overview-toggle-icon {
+    transition: transform var(--transition-fast);
+    font-size: 20px;
+  }
+  .overview-section.collapsed .overview-toggle-icon { transform: rotate(-90deg); }
+  .overview-count { font-size: var(--font-size-sm); color: var(--color-text-muted); }
+  .overview-content {
+    max-height: 500px;
+    overflow-y: auto;
+    transition: max-height var(--transition-fast);
+  }
+  .overview-section.collapsed .overview-content { max-height: 0; overflow: hidden; }
+  .overview-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+  .overview-table th {
+    text-align: left;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    border-bottom: 2px solid var(--color-border);
+    position: sticky;
+    top: 0;
+  }
+  .overview-table td {
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .overview-table tbody tr { cursor: pointer; transition: background var(--transition-fast); }
+  .overview-table tbody tr:hover { background: var(--color-surface-alt); }
+  .overview-table .loading-cell, .overview-table .empty-cell {
+    text-align: center;
+    padding: var(--space-lg);
+    color: var(--color-text-muted);
+  }
+  .overview-table td.comms-overdue { color: var(--color-error); font-weight: 500; }
+  .overview-table td.comms-soon { color: var(--color-warning); font-weight: 500; }
+
+  /* Solutions Grid (Quad Cards) */
+  .solutions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-md);
+  }
+  .quad-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid var(--color-sep);
+    padding: var(--space-sm) var(--space-md);
+  }
+  .quad-card:hover { box-shadow: var(--shadow-md); }
+  .quad-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xs);
+  }
+  .quad-header-main {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+  }
+  .quad-id {
+    font-weight: 700;
+    color: var(--color-sep);
+    text-transform: uppercase;
+    font-size: var(--font-size-md);
+  }
+  .quad-name {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-sm);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .quad-stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .quad-stat { display: flex; align-items: center; gap: 4px; }
+  .quad-stat .material-icons { font-size: 14px; }
+  .quad-stat.comms-overdue { color: var(--color-error); }
+  .quad-stat.comms-soon { color: var(--color-warning); }
+  .quad-stat.comms-ok { color: var(--color-success); }
+  .quad-section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    margin-top: var(--space-sm);
+  }
+  .quad-stakeholders { display: flex; flex-direction: column; gap: 2px; margin-bottom: var(--space-xs); }
+  .quad-stakeholder { display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-xs); }
+  .stakeholder-name { color: var(--color-text); }
+  .stakeholder-agency { color: var(--color-text-muted); font-size: 10px; }
+  .quad-more { font-size: 10px; color: var(--color-text-muted); font-style: italic; }
+  .quad-engagements { display: flex; flex-direction: column; gap: 2px; }
+  .quad-eng-row { display: flex; align-items: center; gap: var(--space-sm); font-size: var(--font-size-xs); }
+  .eng-date { color: var(--color-text-muted); min-width: 40px; }
+  .eng-contact { color: var(--color-text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .eng-type { color: var(--color-text-muted); font-size: 10px; text-align: right; }
+  .quad-empty { font-size: var(--font-size-xs); color: var(--color-text-muted); font-style: italic; }
+  .btn-icon { padding: 4px; min-width: auto; }
+  .btn-icon .material-icons { font-size: 18px; }
+
+  /* Solution Detail Card (modal content) */
+  .solution-detail-card {
+    border-left: 4px solid var(--color-sep);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+  }
+  .detail-header { margin-bottom: var(--space-md); }
+  .detail-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 4px;
+  }
+  .detail-meta {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+  .detail-meta-row {
+    display: flex;
+    gap: var(--space-lg);
+    padding: var(--space-sm) 0 var(--space-md) 0;
+    border-bottom: 1px solid var(--color-border-light);
+    margin-bottom: var(--space-md);
+  }
+  .meta-item {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+  }
+  .meta-label {
+    color: var(--color-text-muted);
+    margin-right: 4px;
+  }
+  .detail-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-sm);
+  }
+  .detail-section-header .detail-section-title {
+    margin-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .detail-section-header .btn-sm {
+    padding: 4px 10px;
+    font-size: var(--font-size-xs);
+  }
+  .detail-section-header .btn-sm .material-icons {
+    font-size: 14px;
+  }
+  .detail-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+    padding: var(--space-md) 0;
+    margin-bottom: var(--space-lg);
+  }
+  .detail-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .detail-stat .stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    letter-spacing: 0.3px;
+  }
+  .milestone-stat .milestone-dates {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .milestone-date-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--font-size-sm);
+  }
+  .milestone-date-item .ms-label {
+    font-weight: 500;
+    min-width: 32px;
+    color: var(--color-text-secondary);
+  }
+  .milestone-date-item .ms-date {
+    color: var(--color-text-muted);
+  }
+  .milestone-date-item.next .ms-label {
+    color: var(--color-sep);
+  }
+  .detail-stat span:last-child { font-size: var(--font-size-sm); }
+  .detail-stat .comms-overdue { color: var(--color-error); }
+  .detail-stat .comms-soon { color: var(--color-warning); }
+  .detail-stat .comms-ok { color: var(--color-success); }
+  .detail-section { margin-bottom: var(--space-lg); }
+  .detail-section-title {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-sm);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .detail-team { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+  .team-member {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+  .team-member .material-icons { font-size: 16px; color: var(--color-text-muted); }
+  .team-role { color: var(--color-text-muted); font-size: var(--font-size-xs); }
+  .detail-stakeholders { display: flex; flex-direction: column; gap: 6px; }
+  .detail-stakeholder {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: var(--font-size-sm);
+    padding: 4px 0;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .detail-stakeholder:last-child { border-bottom: none; }
+  .detail-stakeholder .stakeholder-name { color: var(--color-text); }
+  .detail-stakeholder .stakeholder-title { color: var(--color-text-muted); font-size: var(--font-size-xs); }
+  .detail-stakeholder .stakeholder-agency { color: var(--color-text-muted); font-size: var(--font-size-xs); margin-left: auto; }
+  .detail-agencies { display: flex; flex-wrap: wrap; gap: 6px; }
+  .detail-agency {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+  }
+  .detail-agency .agency-name { color: var(--color-text-secondary); }
+  .detail-agency .agency-contact-count { color: var(--color-text-muted); }
+  .detail-engagements { display: flex; flex-direction: column; gap: 2px; }
+  .detail-engagement {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: 8px 0;
+    font-size: var(--font-size-sm);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .detail-engagement:last-child { border-bottom: none; }
+  .detail-engagement.clickable {
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    margin: 0 -8px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    border-bottom: none;
+  }
+  .detail-engagement.clickable:hover {
+    background: var(--color-surface-alt);
+  }
+  .detail-engagement .eng-date { color: var(--color-text-muted); min-width: 45px; font-size: var(--font-size-xs); }
+  .detail-engagement .eng-contact { flex: 1; color: var(--color-text); }
+  .detail-engagement .eng-arrow { color: var(--color-text-muted); font-size: 16px; }
+  .detail-engagement .eng-type { color: var(--color-text-muted); font-size: var(--font-size-xs); }
+  .detail-empty { font-size: var(--font-size-sm); color: var(--color-text-muted); padding: var(--space-sm) 0; }
+  .detail-more { font-size: var(--font-size-xs); color: var(--color-sep); padding: 4px 0; cursor: pointer; }
+  .detail-actions { margin-top: var(--space-lg); padding-top: var(--space-md); border-top: 1px solid var(--color-border-light); }
+  @media (max-width: 600px) {
+    .detail-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Contact Picker */
+  .contact-picker {
+    position: relative;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    padding: 4px;
+    min-height: 38px;
+  }
+  .contact-picker:focus-within {
+    border-color: var(--color-sep);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+  }
+  .selected-contacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+  .selected-contacts:empty { margin-bottom: 0; }
+  .contact-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--color-sep);
+    color: white;
+    padding: 2px 6px 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    max-width: 200px;
+  }
+  .contact-chip-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .contact-chip-remove {
+    cursor: pointer;
+    opacity: 0.7;
+    font-size: 14px;
+    line-height: 1;
+  }
+  .contact-chip-remove:hover { opacity: 1; }
+  .contact-search {
+    border: none;
+    outline: none;
+    width: 100%;
+    padding: 4px;
+    font-size: var(--font-size-sm);
+    background: transparent;
+  }
+  .contact-results {
+    position: absolute;
+    top: 100%;
+    left: -1px;
+    right: -1px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+    box-shadow: var(--shadow-md);
+  }
+  .contact-results.active { display: block; }
+  .contact-result-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--font-size-sm);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .contact-result-item:last-child { border-bottom: none; }
+  .contact-result-item:hover { background: var(--color-surface-alt); }
+  .contact-result-item.selected { background: rgba(99, 102, 241, 0.1); }
+  .contact-result-name { font-weight: 500; color: var(--color-text); }
+  .contact-result-email { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+  .contact-result-agency { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+  .contact-no-results {
+    padding: 12px;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
 </style>
 
 <!-- SEP JavaScript -->
@@ -1825,6 +2406,9 @@ var SEP = (function() {
     needsOutreach: [],
     // Link Contact modal
     linkContactAgencyId: null,
+    // Contact picker
+    allContacts: [],
+    selectedContacts: [],
     // Network graph
     currentAgencyContacts: [],
     agencyNetwork: null,
@@ -1847,6 +2431,126 @@ var SEP = (function() {
     loadNeedsOutreach();
     loadAgencies();
     loadRecentEngagements();
+    loadAllContacts();
+  }
+
+  function loadAllContacts() {
+    google.script.run
+      .withSuccessHandler(function(contacts) {
+        state.allContacts = contacts || [];
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load contacts:', error);
+        state.allContacts = [];
+      })
+      .getAllContacts();
+  }
+
+  // Contact picker functions
+  function searchContacts(query) {
+    var resultsEl = document.getElementById('contactResults');
+    if (!resultsEl) return;
+
+    query = (query || '').toLowerCase().trim();
+    if (query.length < 2) {
+      resultsEl.classList.remove('active');
+      return;
+    }
+
+    var filtered = state.allContacts.filter(function(c) {
+      // Don't show already selected contacts
+      if (state.selectedContacts.some(function(s) { return s.email === c.email; })) {
+        return false;
+      }
+      var name = ((c.first_name || '') + ' ' + (c.last_name || '')).toLowerCase();
+      var email = (c.email || '').toLowerCase();
+      var agency = (c.agency || '').toLowerCase();
+      return name.indexOf(query) !== -1 || email.indexOf(query) !== -1 || agency.indexOf(query) !== -1;
+    }).slice(0, 10);
+
+    if (filtered.length === 0) {
+      resultsEl.innerHTML = '<div class="contact-no-results">No contacts found</div>';
+    } else {
+      var html = '';
+      filtered.forEach(function(c) {
+        var name = ((c.first_name || '') + ' ' + (c.last_name || '')).trim() || c.email;
+        html += '<div class="contact-result-item" onmousedown="SEP.selectContact(\'' + escapeAttr(c.email) + '\')">';
+        html += '<div><div class="contact-result-name">' + escapeHtml(name) + '</div>';
+        html += '<div class="contact-result-email">' + escapeHtml(c.email || '') + '</div></div>';
+        if (c.agency) html += '<div class="contact-result-agency">' + escapeHtml(c.agency) + '</div>';
+        html += '</div>';
+      });
+      resultsEl.innerHTML = html;
+    }
+    resultsEl.classList.add('active');
+  }
+
+  function showContactResults() {
+    var query = document.getElementById('contactSearchInput').value;
+    if (query.length >= 2) {
+      searchContacts(query);
+    }
+  }
+
+  function hideContactResults() {
+    setTimeout(function() {
+      var resultsEl = document.getElementById('contactResults');
+      if (resultsEl) resultsEl.classList.remove('active');
+    }, 200);
+  }
+
+  function selectContact(email) {
+    var contact = state.allContacts.find(function(c) { return c.email === email; });
+    if (!contact) return;
+
+    // Check if already selected
+    if (state.selectedContacts.some(function(c) { return c.email === email; })) return;
+
+    state.selectedContacts.push(contact);
+    renderSelectedContacts();
+    updateParticipantsField();
+
+    // Clear search
+    document.getElementById('contactSearchInput').value = '';
+    document.getElementById('contactResults').classList.remove('active');
+  }
+
+  function removeContact(email) {
+    state.selectedContacts = state.selectedContacts.filter(function(c) { return c.email !== email; });
+    renderSelectedContacts();
+    updateParticipantsField();
+  }
+
+  function renderSelectedContacts() {
+    var container = document.getElementById('selectedContacts');
+    if (!container) return;
+
+    if (state.selectedContacts.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    var html = '';
+    state.selectedContacts.forEach(function(c) {
+      var name = ((c.first_name || '') + ' ' + (c.last_name || '')).trim() || c.email;
+      html += '<span class="contact-chip">';
+      html += '<span class="contact-chip-name">' + escapeHtml(name) + '</span>';
+      html += '<span class="contact-chip-remove material-icons" onclick="SEP.removeContact(\'' + escapeAttr(c.email) + '\')">close</span>';
+      html += '</span>';
+    });
+    container.innerHTML = html;
+  }
+
+  function updateParticipantsField() {
+    var emails = state.selectedContacts.map(function(c) { return c.email; }).join(', ');
+    document.getElementById('engParticipants').value = emails;
+  }
+
+  function clearSelectedContacts() {
+    state.selectedContacts = [];
+    renderSelectedContacts();
+    updateParticipantsField();
+    document.getElementById('contactSearchInput').value = '';
   }
 
   function loadDashboardStats() {
@@ -1911,6 +2615,7 @@ var SEP = (function() {
         populateSolutionDropdown();
         // Re-render pipeline to show dates now that full data is available
         renderPipeline();
+        renderOverviewTable();
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load solutions:', error);
@@ -1985,6 +2690,7 @@ var SEP = (function() {
       .withSuccessHandler(function(engagements) {
         state.engagements = engagements || [];
         renderRecentEngagements();
+        if (state.solutions && state.solutions.length > 0) { renderOverviewTable(); }
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load engagements:', error);
@@ -1992,6 +2698,230 @@ var SEP = (function() {
           '<div class="empty-state"><p>No engagements logged yet</p></div>';
       })
       .getRecentEngagements(30, 10);
+  }
+
+  function toggleOverview() {
+    var section = document.getElementById('overviewSection');
+    var icon = document.getElementById('overviewToggleIcon');
+    if (section.classList.contains('collapsed')) {
+      section.classList.remove('collapsed');
+      icon.textContent = 'expand_more';
+    } else {
+      section.classList.add('collapsed');
+      icon.textContent = 'chevron_right';
+    }
+  }
+
+  function filterOverview() {
+    renderOverviewTable();
+  }
+
+  function renderOverviewTable() {
+    var tbody = document.getElementById('overviewTableBody');
+    var countEl = document.getElementById('overviewCount');
+    var filterEl = document.getElementById('overviewFilter');
+    if (!tbody) return;
+    if (!state.solutions || state.solutions.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">No solutions found</td></tr>';
+      if (countEl) countEl.textContent = '0 solutions';
+      return;
+    }
+    var filterValue = filterEl ? filterEl.value : 'sep';
+    var filtered = state.solutions.filter(function(sol) {
+      if (filterValue === 'all') return true;
+      var sepActive = sol.sep_active;
+      return sepActive === true || sepActive === 'TRUE' || sepActive === 'true';
+    });
+    var sorted = filtered.slice().sort(function(a, b) {
+      return (a.core_id || '').localeCompare(b.core_id || '');
+    });
+    if (sorted.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">No solutions match filter</td></tr>';
+      if (countEl) countEl.textContent = '0 solutions';
+      return;
+    }
+    var html = '';
+    var milestoneKeys = ['ws1', 'tp4', 'ws2', 'tp5', 'ws3', 'tp6', 'ws4', 'tp7', 'ws5', 'tp8'];
+    var milestoneLabels = { ws1: 'WS1', tp4: 'TP4', ws2: 'WS2', tp5: 'TP5', ws3: 'WS3', tp6: 'TP6', ws4: 'WS4', tp7: 'TP7', ws5: 'WS5', tp8: 'TP8' };
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    sorted.forEach(function(sol) {
+      // Calculate last/next milestone dates
+      var lastMs = null, nextMs = null;
+      milestoneKeys.forEach(function(ms) {
+        var dateVal = sol['sep_' + ms + '_date'];
+        if (dateVal) {
+          var msDate = new Date(dateVal);
+          if (isNaN(msDate.getTime())) return;
+          if (msDate <= today) {
+            if (!lastMs || msDate > lastMs.date) {
+              lastMs = { label: milestoneLabels[ms], date: msDate };
+            }
+          } else {
+            if (!nextMs || msDate < nextMs.date) {
+              nextMs = { label: milestoneLabels[ms], date: msDate };
+            }
+          }
+        }
+      });
+
+      // Format milestone display (just labels, not dates)
+      var lastMsStr = lastMs ? lastMs.label : '--';
+      var nextMsStr = nextMs ? nextMs.label : '--';
+
+      var lastEng = null;
+      if (state.engagements && state.engagements.length > 0) {
+        lastEng = state.engagements.find(function(e) { return e.solution_id === sol.core_id; });
+      }
+      var lastEngDate = lastEng ? formatShortDate(lastEng.date) : '--';
+      var commsDue = '--';
+      var commsDueClass = '';
+      if (lastEng && lastEng.date) {
+        var engDate = new Date(lastEng.date);
+        var dueDate = new Date(engDate);
+        dueDate.setDate(dueDate.getDate() + 30);
+        var nowDate = new Date();
+        var daysUntil = Math.ceil((dueDate - nowDate) / (1000 * 60 * 60 * 24));
+        if (daysUntil < 0) {
+          commsDue = 'Overdue (' + Math.abs(daysUntil) + 'd)';
+          commsDueClass = 'comms-overdue';
+        } else if (daysUntil <= 7) {
+          commsDue = 'Due in ' + daysUntil + 'd';
+          commsDueClass = 'comms-soon';
+        } else {
+          commsDue = formatShortDate(dueDate);
+        }
+      }
+      // Build milestone display: "TP4 → WS2" or just one if only one exists
+      var milestoneDisplay = '--';
+      if (lastMsStr !== '--' && nextMsStr !== '--') {
+        milestoneDisplay = lastMsStr + ' → ' + nextMsStr;
+      } else if (lastMsStr !== '--') {
+        milestoneDisplay = lastMsStr + ' →';
+      } else if (nextMsStr !== '--') {
+        milestoneDisplay = '→ ' + nextMsStr;
+      }
+
+      html += '<tr onclick="SEP.showSolutionDetail(\'' + escapeAttr(sol.core_id) + '\')">';
+      html += '<td>' + escapeHtml(sol.core_id.toUpperCase()) + '</td>';
+      html += '<td>' + escapeHtml(milestoneDisplay) + '</td>';
+      html += '<td>' + lastEngDate + '</td>';
+      html += '<td class="' + commsDueClass + '">' + commsDue + '</td>';
+      html += '</tr>';
+    });
+    tbody.innerHTML = html;
+    if (countEl) countEl.textContent = sorted.length + ' solution' + (sorted.length !== 1 ? 's' : '');
+  }
+
+  function renderSolutionsView() {
+    var grid = document.getElementById('solutionsGrid');
+    if (!grid) return;
+    if (!state.solutions || state.solutions.length === 0) {
+      grid.innerHTML = '<div class="empty-state"><p>No solutions found</p></div>';
+      return;
+    }
+    var sorted = state.solutions.slice().sort(function(a, b) {
+      return (a.core_id || '').localeCompare(b.core_id || '');
+    });
+    var html = '';
+    sorted.forEach(function(sol) { html += renderQuadCard(sol); });
+    grid.innerHTML = html;
+  }
+
+  function renderQuadCard(sol) {
+    var milestone = sol.sep_milestone_current || sol.sep_milestone || '--';
+    var wsCompleted = 0, tpCompleted = 0;
+    ['ws1', 'ws2', 'ws3', 'ws4', 'ws5'].forEach(function(ws) { if (sol[ws + '_completed_date']) wsCompleted++; });
+    ['tp4', 'tp5', 'tp6', 'tp7', 'tp8'].forEach(function(tp) { if (sol[tp + '_completed_date']) tpCompleted++; });
+    var allSolEngagements = [];
+    if (state.engagements && state.engagements.length > 0) {
+      allSolEngagements = state.engagements.filter(function(e) { return e.solution_id === sol.core_id; });
+    }
+    var uniqueContacts = {};
+    allSolEngagements.forEach(function(eng) {
+      if (eng.participants) {
+        eng.participants.split(',').forEach(function(email) {
+          email = email.trim().toLowerCase();
+          if (email && !uniqueContacts[email]) {
+            var contact = state.allContacts.find(function(c) {
+              return c.email && c.email.toLowerCase() === email;
+            });
+            uniqueContacts[email] = {
+              name: contact ? ((contact.first_name || '') + ' ' + (contact.last_name || '')).trim() || email : email,
+              email: email,
+              agency: contact ? (contact.agency || '') : ''
+            };
+          }
+        });
+      }
+    });
+    var stakeholderList = Object.values(uniqueContacts);
+    var stakeholderCount = stakeholderList.length;
+    var recentEngagements = allSolEngagements.slice(0, 5);
+    var commsDue = '--', commsDueClass = '';
+    if (recentEngagements.length > 0 && recentEngagements[0].date) {
+      var engDate = new Date(recentEngagements[0].date);
+      var dueDate = new Date(engDate);
+      dueDate.setDate(dueDate.getDate() + 30);
+      var today = new Date();
+      var daysUntil = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+      if (daysUntil < 0) { commsDue = 'Overdue ' + Math.abs(daysUntil) + 'd'; commsDueClass = 'comms-overdue'; }
+      else if (daysUntil <= 7) { commsDue = 'Due ' + daysUntil + 'd'; commsDueClass = 'comms-soon'; }
+      else if (daysUntil <= 30) { commsDue = daysUntil + 'd'; commsDueClass = 'comms-ok'; }
+      else { commsDue = formatShortDate(dueDate); }
+    }
+    var html = '<div class="quad-card">';
+    html += '<div class="quad-header"><div class="quad-header-main">';
+    html += '<span class="quad-id">' + escapeHtml(sol.core_id) + '</span>';
+    html += '<span class="milestone-badge">' + escapeHtml(milestone) + '</span>';
+    html += '</div>';
+    html += '<button class="btn btn-sm btn-icon" onclick="event.stopPropagation(); SEP.logEngagementForSolution(\'' + escapeAttr(sol.core_id) + '\')" title="Log Engagement"><span class="material-icons">add</span></button>';
+    html += '</div>';
+    html += '<div class="quad-name">' + escapeHtml(sol.core_official_name || '') + '</div>';
+    html += '<div class="quad-stats-row">';
+    html += '<span class="quad-stat"><span class="material-icons">task_alt</span>WS ' + wsCompleted + '/5 · TP ' + tpCompleted + '/5</span>';
+    html += '<span class="quad-stat"><span class="material-icons">people</span>' + stakeholderCount + ' stakeholder' + (stakeholderCount !== 1 ? 's' : '') + '</span>';
+    if (commsDue !== '--') { html += '<span class="quad-stat ' + commsDueClass + '"><span class="material-icons">schedule</span>' + commsDue + '</span>'; }
+    html += '</div>';
+    if (stakeholderCount > 0) {
+      html += '<div class="quad-section-label">Stakeholders</div><div class="quad-stakeholders">';
+      stakeholderList.slice(0, 3).forEach(function(s) {
+        var displayName = s.name.length > 30 ? s.name.substring(0, 27) + '...' : s.name;
+        html += '<div class="quad-stakeholder"><span class="stakeholder-name">' + escapeHtml(displayName) + '</span>';
+        if (s.agency) { html += '<span class="stakeholder-agency">' + escapeHtml(s.agency.length > 20 ? s.agency.substring(0, 17) + '...' : s.agency) + '</span>'; }
+        html += '</div>';
+      });
+      if (stakeholderCount > 3) { html += '<div class="quad-more">+' + (stakeholderCount - 3) + ' more</div>'; }
+      html += '</div>';
+    }
+    html += '<div class="quad-section-label">Recent Engagements</div><div class="quad-engagements">';
+    if (recentEngagements.length === 0) { html += '<div class="quad-empty">No engagements logged</div>'; }
+    else {
+      recentEngagements.forEach(function(eng) {
+        // Get display name from participants
+        var contactName = '';
+        if (eng.participants) {
+          var firstEmail = eng.participants.split(',')[0].trim();
+          var contact = state.allContacts.find(function(c) {
+            return c.email && c.email.toLowerCase() === firstEmail.toLowerCase();
+          });
+          if (contact) {
+            contactName = ((contact.first_name || '') + ' ' + (contact.last_name || '')).trim() || firstEmail;
+          } else {
+            contactName = firstEmail;
+          }
+        } else {
+          contactName = eng.subject || '';
+        }
+        if (contactName.length > 20) contactName = contactName.substring(0, 17) + '...';
+        html += '<div class="quad-eng-row"><span class="eng-date">' + formatShortDate(eng.date) + '</span>';
+        html += '<span class="eng-contact">' + escapeHtml(contactName) + '</span>';
+        html += '<span class="eng-type">' + escapeHtml(eng.activity_type || '') + '</span></div>';
+      });
+    }
+    html += '</div></div>';
+    return html;
   }
 
 
@@ -2357,7 +3287,7 @@ var SEP = (function() {
     }
 
     state.selectedSolution = solution;
-    document.getElementById('modalSolutionName').textContent = solution.core_id + ' - ' + (solution.core_official_name || 'Unnamed');
+    document.getElementById('modalSolutionName').textContent = solution.core_id.toUpperCase();
 
     var html = renderSolutionDetailContent(solution);
     document.getElementById('solutionModalBody').innerHTML = html;
@@ -2365,43 +3295,232 @@ var SEP = (function() {
   }
 
   function renderSolutionDetailContent(sol) {
-    var html = '';
+    var milestone = sol.sep_milestone_current || sol.sep_milestone || '--';
 
-    // Header with basic info
-    html += '<div class="solution-detail-header">';
-    html += '<div class="solution-avatar">' + escapeHtml((sol.core_id || 'XX').substring(0, 2).toUpperCase()) + '</div>';
-    html += '<div class="solution-info">';
-    html += '<div class="solution-id">' + escapeHtml(sol.core_id) + '</div>';
-    html += '<div class="solution-name">' + escapeHtml(sol.core_official_name || '') + '</div>';
-    html += '<div class="solution-meta">Cycle ' + escapeHtml(String(sol.core_cycle || '--')) + ' | ' + escapeHtml(sol.admin_lifecycle_phase || 'Unknown phase') + '</div>';
-    html += '</div></div>';
+    // Calculate WS/TP progress
+    var wsCompleted = 0, tpCompleted = 0;
+    ['ws1', 'ws2', 'ws3', 'ws4', 'ws5'].forEach(function(ws) { if (sol['sep_' + ws + '_date']) wsCompleted++; });
+    ['tp4', 'tp5', 'tp6', 'tp7', 'tp8'].forEach(function(tp) { if (sol['sep_' + tp + '_date']) tpCompleted++; });
 
-    // SEP Progress Section
+    // Calculate last/next milestone dates
+    var milestoneKeys = ['ws1', 'tp4', 'ws2', 'tp5', 'ws3', 'tp6', 'ws4', 'tp7', 'ws5', 'tp8'];
+    var milestoneLabels = { ws1: 'WS1', tp4: 'TP4', ws2: 'WS2', tp5: 'TP5', ws3: 'WS3', tp6: 'TP6', ws4: 'WS4', tp7: 'TP7', ws5: 'WS5', tp8: 'TP8' };
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var lastMilestone = null, nextMilestone = null;
+
+    milestoneKeys.forEach(function(ms) {
+      var dateVal = sol['sep_' + ms + '_date'];
+      if (dateVal) {
+        var msDate = new Date(dateVal);
+        // Skip invalid dates
+        if (isNaN(msDate.getTime())) return;
+
+        if (msDate <= today) {
+          // Past or today - track as last milestone (most recent)
+          if (!lastMilestone || msDate > lastMilestone.date) {
+            lastMilestone = { key: ms, label: milestoneLabels[ms], date: msDate };
+          }
+        } else {
+          // Future - track as next milestone (nearest)
+          if (!nextMilestone || msDate < nextMilestone.date) {
+            nextMilestone = { key: ms, label: milestoneLabels[ms], date: msDate };
+          }
+        }
+      }
+    });
+
+
+    // Get engagements for this solution
+    var solEngagements = [];
+    if (state.engagements && state.engagements.length > 0) {
+      solEngagements = state.engagements.filter(function(e) { return e.solution_id === sol.core_id; });
+    }
+
+    // Get stakeholders assigned to this solution (from contacts database)
+    var solutionContacts = [];
+    if (state.allContacts && state.allContacts.length > 0) {
+      solutionContacts = state.allContacts.filter(function(c) {
+        return c.solution_id && c.solution_id.toLowerCase() === sol.core_id.toLowerCase();
+      });
+    }
+
+    // Get unique agencies from contacts
+    var uniqueAgencies = {};
+    solutionContacts.forEach(function(c) {
+      if (c.agency && !uniqueAgencies[c.agency]) {
+        uniqueAgencies[c.agency] = {
+          name: c.agency,
+          department: c.department || '',
+          contactCount: 0
+        };
+      }
+      if (c.agency) uniqueAgencies[c.agency].contactCount++;
+    });
+    var agencyList = Object.values(uniqueAgencies);
+
+    // Legacy: stakeholders from engagements (for comms tracking)
+    var engagedContacts = {};
+    solEngagements.forEach(function(eng) {
+      if (eng.participants) {
+        eng.participants.split(',').forEach(function(email) {
+          email = email.trim().toLowerCase();
+          if (email && !engagedContacts[email]) {
+            // Try to find contact details
+            var contact = state.allContacts.find(function(c) {
+              return c.email && c.email.toLowerCase() === email;
+            });
+            engagedContacts[email] = {
+              name: contact ? ((contact.first_name || '') + ' ' + (contact.last_name || '')).trim() || email : email,
+              email: email,
+              agency: contact ? (contact.agency || '') : '',
+              lastDate: eng.date
+            };
+          }
+        });
+      }
+    });
+    var stakeholderList = Object.values(engagedContacts);
+
+    // Calculate comms due
+    var commsDue = '--', commsDueClass = '';
+    if (solEngagements.length > 0 && solEngagements[0].date) {
+      var engDate = new Date(solEngagements[0].date);
+      var dueDate = new Date(engDate);
+      dueDate.setDate(dueDate.getDate() + 30);
+      var today = new Date();
+      var daysUntil = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+      if (daysUntil < 0) { commsDue = 'Overdue ' + Math.abs(daysUntil) + ' days'; commsDueClass = 'comms-overdue'; }
+      else if (daysUntil <= 7) { commsDue = 'Due in ' + daysUntil + ' days'; commsDueClass = 'comms-soon'; }
+      else if (daysUntil <= 30) { commsDue = 'In ' + daysUntil + ' days'; commsDueClass = 'comms-ok'; }
+      else { commsDue = formatShortDate(dueDate); }
+    }
+
+    var html = '<div class="solution-detail-card">';
+
+    // 1. Name
+    html += '<div class="detail-header">';
+    html += '<div class="detail-title">' + escapeHtml(sol.core_official_name || sol.core_id) + '</div>';
+    html += '</div>';
+
+    // 2. Cycle & Phase
+    html += '<div class="detail-meta-row">';
+    html += '<span class="meta-item"><span class="meta-label">Cycle</span> ' + escapeHtml(String(sol.core_cycle || '--')) + '</span>';
+    html += '<span class="meta-item"><span class="meta-label">Phase</span> ' + escapeHtml(sol.admin_lifecycle_phase || '--') + '</span>';
+    html += '</div>';
+
+    // 3. Recent Engagements with + Log Engagement
     html += '<div class="detail-section">';
-    html += '<div class="detail-section-title">SEP Milestones <span class="save-indicator" id="sepSaveIndicator">✓ Saved</span></div>';
+    html += '<div class="detail-section-header">';
+    html += '<span class="detail-section-title">Recent Engagements</span>';
+    html += '<button class="btn btn-sm btn-primary" onclick="SEP.logEngagementForSolution(\'' + escapeAttr(sol.core_id) + '\')"><span class="material-icons">add</span> Log</button>';
+    html += '</div>';
+    if (solEngagements.length === 0) {
+      html += '<div class="detail-empty">No engagements logged yet</div>';
+    } else {
+      html += '<div class="detail-engagements">';
+      solEngagements.slice(0, 5).forEach(function(eng, idx) {
+        var participantDisplay = 'Unknown';
+        if (eng.participants) {
+          var firstParticipant = eng.participants.split(',')[0].trim();
+          var contact = state.allContacts.find(function(c) {
+            return c.email && c.email.toLowerCase() === firstParticipant.toLowerCase();
+          });
+          if (contact) {
+            participantDisplay = ((contact.first_name || '') + ' ' + (contact.last_name || '')).trim() || firstParticipant;
+          } else {
+            participantDisplay = firstParticipant;
+          }
+          var participantCount = eng.participants.split(',').length;
+          if (participantCount > 1) {
+            participantDisplay += ' +' + (participantCount - 1);
+          }
+        } else if (eng.subject) {
+          participantDisplay = eng.subject;
+        }
+        html += '<div class="detail-engagement clickable" onclick="SEP.showEngagementFromSolution(\'' + escapeAttr(sol.core_id) + '\', ' + idx + ')">';
+        html += '<span class="eng-date">' + formatShortDate(eng.date) + '</span>';
+        html += '<span class="eng-contact">' + escapeHtml(participantDisplay) + '</span>';
+        html += '<span class="eng-type">' + escapeHtml(eng.activity_type || '') + '</span>';
+        html += '<span class="material-icons eng-arrow">chevron_right</span>';
+        html += '</div>';
+      });
+      if (solEngagements.length > 5) {
+        html += '<div class="detail-more">+' + (solEngagements.length - 5) + ' more</div>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // 4. Team
+    html += '<div class="detail-section">';
+    html += '<div class="detail-section-title">Team</div>';
+    if (sol.team_lead || sol.team_ra_rep) {
+      html += '<div class="detail-team">';
+      if (sol.team_lead) html += '<div class="team-member"><span class="material-icons">person</span>' + escapeHtml(sol.team_lead) + ' <span class="team-role">(Lead)</span></div>';
+      if (sol.team_ra_rep) html += '<div class="team-member"><span class="material-icons">person</span>' + escapeHtml(sol.team_ra_rep) + ' <span class="team-role">(RA Rep)</span></div>';
+      html += '</div>';
+    } else {
+      html += '<div class="detail-empty">No team assigned</div>';
+    }
+    html += '</div>';
+
+    // 5. Stakeholders
+    html += '<div class="detail-section">';
+    html += '<div class="detail-section-header">';
+    html += '<span class="detail-section-title">Stakeholders (' + solutionContacts.length + ')</span>';
+    if (solutionContacts.length > 0) {
+      html += '<button class="btn btn-sm btn-secondary" onclick="SEP.emailSolutionStakeholders(\'' + escapeAttr(sol.core_id) + '\')"><span class="material-icons">email</span> Email All</button>';
+    }
+    html += '</div>';
+    if (solutionContacts.length === 0) {
+      html += '<div class="detail-empty">No stakeholders assigned</div>';
+    } else {
+      html += '<div class="detail-stakeholders">';
+      solutionContacts.slice(0, 6).forEach(function(c) {
+        var name = ((c.first_name || '') + ' ' + (c.last_name || '')).trim() || c.email;
+        var titleAgency = [];
+        if (c.title) titleAgency.push(c.title);
+        if (c.agency) titleAgency.push(c.agency);
+        html += '<div class="detail-stakeholder">';
+        html += '<span class="stakeholder-name">' + escapeHtml(name) + '</span>';
+        if (titleAgency.length > 0) html += '<span class="stakeholder-title">' + escapeHtml(titleAgency.join(' · ')) + '</span>';
+        html += '</div>';
+      });
+      if (solutionContacts.length > 6) {
+        html += '<div class="detail-more">+' + (solutionContacts.length - 6) + ' more</div>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // 6. Agencies
+    html += '<div class="detail-section">';
+    html += '<div class="detail-section-title">Agencies (' + agencyList.length + ')</div>';
+    if (agencyList.length === 0) {
+      html += '<div class="detail-empty">No agencies linked</div>';
+    } else {
+      html += '<div class="detail-agencies">';
+      agencyList.slice(0, 8).forEach(function(a) {
+        html += '<div class="detail-agency">';
+        html += '<span class="agency-name">' + escapeHtml(a.name) + '</span>';
+        if (a.contactCount > 1) html += '<span class="agency-contact-count">(' + a.contactCount + ')</span>';
+        html += '</div>';
+      });
+      if (agencyList.length > 8) {
+        html += '<div class="detail-more">+' + (agencyList.length - 8) + ' more</div>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // 7. Milestone Timeline (at bottom)
+    html += '<div class="detail-section">';
+    html += '<div class="detail-section-title">Milestone Timeline</div>';
     html += renderMilestoneTimeline(sol);
     html += '</div>';
 
-    // Team Section
-    if (sol.team_lead || sol.team_ra_rep) {
-      html += '<div class="detail-section">';
-      html += '<div class="detail-section-title">Team</div>';
-      html += '<div class="detail-grid">';
-      if (sol.team_lead) {
-        html += '<div class="detail-item"><div class="detail-label">Solution Lead</div><div class="detail-value">' + escapeHtml(sol.team_lead) + '</div></div>';
-      }
-      if (sol.team_ra_rep) {
-        html += '<div class="detail-item"><div class="detail-label">RA Representative</div><div class="detail-value">' + escapeHtml(sol.team_ra_rep) + '</div></div>';
-      }
-      html += '</div></div>';
-    }
-
-    // Actions
-    html += '<div style="display: flex; gap: var(--space-sm); margin-top: var(--space-lg); flex-wrap: wrap;">';
-    html += '<button class="btn btn-primary" onclick="SEP.logEngagementForSolution(\'' + escapeAttr(sol.core_id) + '\')"><span class="material-icons">add</span> Log Engagement</button>';
-    html += '<button class="btn btn-secondary" onclick="SEP.showSolutionEngagements(\'' + escapeAttr(sol.core_id) + '\')"><span class="material-icons">history</span> View Engagements</button>';
     html += '</div>';
-
     return html;
   }
 
@@ -2502,6 +3621,20 @@ var SEP = (function() {
     closeModal('solutionModal');
     showLogEngagementModal();
     document.getElementById('engSolution').value = solutionId;
+  }
+
+  function showEngagementFromSolution(solutionId, index) {
+    // Find engagements for this solution
+    var solEngagements = [];
+    if (state.engagements && state.engagements.length > 0) {
+      solEngagements = state.engagements.filter(function(e) { return e.solution_id === solutionId; });
+    }
+    if (solEngagements[index]) {
+      // Store return context so we can go back to solution modal
+      state.engagementReturnTo = { type: 'solution', solutionId: solutionId };
+      closeModal('solutionModal');
+      showEngagementDetailData(solEngagements[index]);
+    }
   }
 
   function showSolutionEngagements(solutionId) {
@@ -3340,6 +4473,10 @@ return;
     });
     document.getElementById('dashboardView').classList.toggle('active', view === 'dashboard');
     document.getElementById('agenciesView').classList.toggle('active', view === 'agencies');
+    document.getElementById('solutionsView').classList.toggle('active', view === 'solutions');
+    if (view === 'solutions' && state.solutions.length > 0) {
+      renderSolutionsView();
+    }
   }
 
   function filterAgencies() {
@@ -3457,6 +4594,7 @@ return;
     state.editingOriginalParticipants = null;
     document.getElementById('engagementForm').reset();
     setDefaultDate();
+    clearSelectedContacts();
     document.getElementById('engSubmitBtn').textContent = 'Log Engagement';
     document.getElementById('engagementModal').classList.add('active');
   }
@@ -3464,7 +4602,15 @@ return;
   function logEngagementFor(email) {
     closeModal('contactModal');
     showLogEngagementModal();
-    document.getElementById('engParticipants').value = email;
+    // Pre-select the contact
+    var contact = state.allContacts.find(function(c) { return c.email === email; });
+    if (contact) {
+      state.selectedContacts = [contact];
+      renderSelectedContacts();
+      updateParticipantsField();
+    } else {
+      document.getElementById('engParticipants').value = email;
+    }
   }
 
   function submitEngagement(event) {
@@ -3562,6 +4708,15 @@ return;
     if (!modal) return; // Modal doesn't exist, nothing to close
     if (!event || event.target === modal) {
       modal.classList.remove('active');
+
+      // If closing engagement detail and we came from solution modal, go back
+      if (modalId === 'engagementDetailModal' && state.engagementReturnTo) {
+        var returnTo = state.engagementReturnTo;
+        state.engagementReturnTo = null; // Clear the return context
+        if (returnTo.type === 'solution' && returnTo.solutionId) {
+          showSolutionDetail(returnTo.solutionId);
+        }
+      }
     }
   }
 
@@ -4185,10 +5340,25 @@ return;
     document.getElementById('engActivityType').value = e.activity_type || '';
     document.getElementById('engDirection').value = e.direction || '';
     document.getElementById('engSubject').value = e.subject || '';
-    document.getElementById('engParticipants').value = e.participants || '';
     document.getElementById('engSolution').value = e.solution_id || '';
     document.getElementById('engSummary').value = e.summary || '';
     document.getElementById('engFollowUp').value = e.follow_up_date || '';
+
+    // Populate contact picker with existing participants
+    var participants = (e.participants || '').split(',').map(function(p) { return p.trim(); }).filter(function(p) { return p; });
+    state.selectedContacts = [];
+    participants.forEach(function(email) {
+      var contact = state.allContacts.find(function(c) { return c.email === email; });
+      if (contact) {
+        state.selectedContacts.push(contact);
+      }
+    });
+    renderSelectedContacts();
+    updateParticipantsField();
+    // For any emails not found in contacts, add them to the hidden field
+    if (state.selectedContacts.length === 0 && e.participants) {
+      document.getElementById('engParticipants').value = e.participants;
+    }
 
     // Store the engagement ID and original participants for update
     state.editingEngagementId = e.engagement_id;
@@ -4237,6 +5407,381 @@ return;
     showEngagementDetailData(e);
   }
 
+  // ============================================
+  // Email Template Functions
+  // ============================================
+
+  var emailTemplates = []; // Loaded from API
+  var emailTemplatesDocUrl = null;
+
+  function loadEmailTemplates(callback) {
+    // First get the doc URL for reference
+    google.script.run
+      .withSuccessHandler(function(urlInfo) {
+        emailTemplatesDocUrl = urlInfo && urlInfo.url ? urlInfo.url : null;
+      })
+      .getEmailTemplatesDocUrl();
+
+    // Then load the templates
+    google.script.run
+      .withSuccessHandler(function(templates) {
+        emailTemplates = templates || [];
+        if (callback) callback();
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load email templates:', error);
+        emailTemplates = [];
+        if (callback) callback();
+      })
+      .getEmailTemplates();
+  }
+
+  function showEmailTemplateModal(contactEmail, solutionId) {
+    // Load templates if needed
+    if (emailTemplates.length === 0) {
+      loadEmailTemplates(function() {
+        populateEmailModal(contactEmail, solutionId);
+      });
+    } else {
+      populateEmailModal(contactEmail, solutionId);
+    }
+  }
+
+  function populateEmailModal(contactEmail, solutionId) {
+    // Set template doc link
+    var docLink = document.getElementById('emailTemplateDocLink');
+    if (emailTemplatesDocUrl) {
+      docLink.href = emailTemplatesDocUrl;
+      docLink.style.display = 'inline';
+    } else {
+      docLink.style.display = 'none';
+    }
+
+    // Populate template dropdown
+    var templateSelect = document.getElementById('emailTemplate');
+    templateSelect.innerHTML = '<option value="">-- Select Template --</option>';
+
+    if (emailTemplates.length > 0) {
+      emailTemplates.forEach(function(t) {
+        var opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = t.name;
+        templateSelect.appendChild(opt);
+      });
+    } else if (emailTemplatesDocUrl) {
+      // No templates loaded, show link to doc
+      var opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'Templates not loaded - view template doc';
+      opt.disabled = true;
+      templateSelect.appendChild(opt);
+    }
+
+    // Populate recipient dropdown with contacts
+    var recipientSelect = document.getElementById('emailRecipient');
+    recipientSelect.innerHTML = '<option value="">-- Add from contacts --</option>';
+
+    if (state.allContacts && state.allContacts.length > 0) {
+      state.allContacts.forEach(function(c) {
+        if (c.email) {
+          var name = (c.first_name || '') + ' ' + (c.last_name || '');
+          var opt = document.createElement('option');
+          opt.value = c.email;
+          opt.textContent = name.trim() + ' (' + c.email + ')';
+          opt.dataset.firstName = c.first_name || '';
+          opt.dataset.lastName = c.last_name || '';
+          opt.dataset.agency = c.agency || c.organization || '';
+          recipientSelect.appendChild(opt);
+        }
+      });
+    }
+
+    // Populate solution dropdown
+    var solutionSelect = document.getElementById('emailSolution');
+    solutionSelect.innerHTML = '<option value="">-- Select Solution (optional) --</option>';
+
+    if (state.solutions && state.solutions.length > 0) {
+      state.solutions.forEach(function(sol) {
+        var opt = document.createElement('option');
+        opt.value = sol.core_id;
+        opt.textContent = sol.core_official_name || sol.core_id;
+        opt.dataset.description = sol.core_description || '';
+        solutionSelect.appendChild(opt);
+      });
+    }
+
+    // Pre-select if provided
+    if (contactEmail) {
+      recipientSelect.value = contactEmail;
+    }
+    if (solutionId) {
+      solutionSelect.value = solutionId;
+    }
+
+    // Clear form
+    templateSelect.value = '';
+    document.getElementById('emailTo').value = contactEmail || '';
+    document.getElementById('emailSubject').value = '';
+    document.getElementById('emailBody').value = '';
+
+    document.getElementById('emailTemplateModal').classList.add('active');
+  }
+
+  function applyEmailTemplate() {
+    var templateId = document.getElementById('emailTemplate').value;
+    if (!templateId) return;
+
+    // Find template by ID
+    var template = emailTemplates.find(function(t) { return t.id === templateId; });
+    if (!template) return;
+    var recipientSelect = document.getElementById('emailRecipient');
+    var solutionSelect = document.getElementById('emailSolution');
+
+    var selectedOption = recipientSelect.selectedOptions[0];
+    var firstName = selectedOption ? (selectedOption.dataset.firstName || 'there') : 'there';
+    var agency = selectedOption ? (selectedOption.dataset.agency || 'your agency') : 'your agency';
+
+    var solutionOption = solutionSelect.selectedOptions[0];
+    var solutionName = solutionOption && solutionOption.value ? solutionOption.textContent : '[Solution Name]';
+    var solutionDesc = solutionOption ? (solutionOption.dataset.description || '') : '';
+
+    var solutionContext = solutionDesc ?
+      'Our ' + solutionName + ' project ' + solutionDesc.substring(0, 200) + (solutionDesc.length > 200 ? '...' : '') :
+      'Our ' + solutionName + ' project provides valuable capabilities that may align with your objectives.';
+
+    // Replace placeholders
+    var subject = template.subject
+      .replace('{solution}', solutionName)
+      .replace('{firstName}', firstName)
+      .replace('{agency}', agency);
+
+    var body = template.body
+      .replace(/{firstName}/g, firstName)
+      .replace(/{solution}/g, solutionName)
+      .replace(/{agency}/g, agency)
+      .replace(/{solutionContext}/g, solutionContext);
+
+    document.getElementById('emailSubject').value = subject;
+    document.getElementById('emailBody').value = body;
+
+    // Update To field
+    if (recipientSelect.value) {
+      document.getElementById('emailTo').value = recipientSelect.value;
+    }
+  }
+
+  function updateEmailPreview() {
+    var templateKey = document.getElementById('emailTemplate').value;
+    if (templateKey) {
+      applyEmailTemplate();
+    }
+  }
+
+  function addRecipientToEmail() {
+    var recipientSelect = document.getElementById('emailRecipient');
+    var toField = document.getElementById('emailTo');
+
+    if (!recipientSelect.value) return;
+
+    var newEmail = recipientSelect.value;
+    var currentTo = toField.value.trim();
+
+    // Check if email is already in the To field
+    var existingEmails = currentTo ? currentTo.split(',').map(function(e) { return e.trim().toLowerCase(); }) : [];
+    if (existingEmails.indexOf(newEmail.toLowerCase()) === -1) {
+      // Add the new email
+      toField.value = currentTo ? currentTo + ', ' + newEmail : newEmail;
+    }
+
+    // Reset dropdown
+    recipientSelect.value = '';
+  }
+
+  function copyEmailToClipboard() {
+    var subject = document.getElementById('emailSubject').value;
+    var body = document.getElementById('emailBody').value;
+    var to = document.getElementById('emailTo').value;
+
+    var fullText = 'To: ' + to + '\nSubject: ' + subject + '\n\n' + body;
+
+    navigator.clipboard.writeText(fullText).then(function() {
+      alert('Email copied to clipboard!');
+    }).catch(function(err) {
+      // Fallback for older browsers
+      var textArea = document.createElement('textarea');
+      textArea.value = fullText;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('Email copied to clipboard!');
+    });
+  }
+
+  function openInEmailClient() {
+    var to = document.getElementById('emailTo').value;
+    var subject = document.getElementById('emailSubject').value;
+    var body = document.getElementById('emailBody').value;
+
+    var mailtoLink = 'mailto:' + encodeURIComponent(to) +
+      '?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(body);
+
+    window.open(mailtoLink, '_blank');
+  }
+
+  function logEmailAsEngagement(event) {
+    var to = document.getElementById('emailTo').value;
+    var subject = document.getElementById('emailSubject').value;
+    var body = document.getElementById('emailBody').value;
+    var solutionId = document.getElementById('emailSolution').value;
+
+    if (!to) {
+      alert('Please enter at least one recipient.');
+      return;
+    }
+
+    if (!subject) {
+      alert('Please enter a subject.');
+      return;
+    }
+
+    // Create engagement data
+    var today = new Date();
+    var dateStr = today.toISOString().split('T')[0];
+
+    var engagement = {
+      date: dateStr,
+      activity_type: 'Email',
+      direction: 'Outbound',
+      subject: subject,
+      participants: to.split(',').map(function(e) { return e.trim(); }).join(', '),
+      solution_id: solutionId || '',
+      summary: body.length > 500 ? body.substring(0, 500) + '...' : body,
+      follow_up_date: ''
+    };
+
+    // Disable button while saving
+    var btn = event ? event.target.closest('button') : document.querySelector('.email-actions .btn-primary');
+    var originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-icons" style="font-size: 16px; animation: spin 1s linear infinite;">refresh</span> Logging...';
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+
+        if (result && result.engagement_id) {
+          alert('Email logged as engagement successfully!');
+          closeModal('emailTemplateModal');
+          loadRecentEngagements();
+        } else {
+          alert('Error logging engagement. Please try again.');
+        }
+      })
+      .withFailureHandler(function(error) {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+        alert('Error: ' + error.message);
+      })
+      .createEngagement(engagement);
+  }
+
+  function emailSolutionStakeholders(solutionId) {
+    // Get stakeholders for this solution
+    var solutionContacts = [];
+    if (state.allContacts && state.allContacts.length > 0) {
+      solutionContacts = state.allContacts.filter(function(c) {
+        return c.solution_id && c.solution_id.toLowerCase() === solutionId.toLowerCase() && c.email;
+      });
+    }
+
+    if (solutionContacts.length === 0) {
+      alert('No stakeholders with email addresses found for this solution.');
+      return;
+    }
+
+    // Collect emails
+    var emails = solutionContacts.map(function(c) { return c.email; });
+
+    // Close solution modal and open email modal
+    closeModal('solutionModal');
+
+    // Open email template modal
+    if (emailTemplates.length === 0) {
+      loadEmailTemplates(function() {
+        populateEmailModalForStakeholders(emails, solutionId);
+      });
+    } else {
+      populateEmailModalForStakeholders(emails, solutionId);
+    }
+  }
+
+  function populateEmailModalForStakeholders(emails, solutionId) {
+    // Set template doc link
+    var docLink = document.getElementById('emailTemplateDocLink');
+    if (emailTemplatesDocUrl) {
+      docLink.href = emailTemplatesDocUrl;
+      docLink.style.display = 'inline';
+    } else {
+      docLink.style.display = 'none';
+    }
+
+    // Populate template dropdown
+    var templateSelect = document.getElementById('emailTemplate');
+    templateSelect.innerHTML = '<option value="">-- Select Template --</option>';
+    if (emailTemplates.length > 0) {
+      emailTemplates.forEach(function(t) {
+        var opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = t.name;
+        templateSelect.appendChild(opt);
+      });
+    }
+
+    // Populate recipient dropdown (for adding more recipients)
+    var recipientSelect = document.getElementById('emailRecipient');
+    recipientSelect.innerHTML = '<option value="">-- Add from contacts --</option>';
+    if (state.allContacts && state.allContacts.length > 0) {
+      state.allContacts.forEach(function(c) {
+        if (c.email) {
+          var name = (c.first_name || '') + ' ' + (c.last_name || '');
+          var opt = document.createElement('option');
+          opt.value = c.email;
+          opt.textContent = name.trim() + ' (' + c.email + ')';
+          opt.dataset.firstName = c.first_name || '';
+          opt.dataset.agency = c.agency || '';
+          recipientSelect.appendChild(opt);
+        }
+      });
+    }
+
+    // Populate solution dropdown and pre-select this solution
+    var solutionSelect = document.getElementById('emailSolution');
+    solutionSelect.innerHTML = '<option value="">-- Select Solution (optional) --</option>';
+    if (state.solutions && state.solutions.length > 0) {
+      state.solutions.forEach(function(s) {
+        var opt = document.createElement('option');
+        opt.value = s.core_id;
+        opt.textContent = s.core_official_name || s.core_id;
+        opt.dataset.description = s.core_description || '';
+        if (s.core_id === solutionId) {
+          opt.selected = true;
+        }
+        solutionSelect.appendChild(opt);
+      });
+    }
+
+    // Pre-fill the To field with all stakeholder emails
+    document.getElementById('emailTo').value = emails.join(', ');
+    document.getElementById('emailSubject').value = '';
+    document.getElementById('emailBody').value = '';
+
+    // Show the modal
+    document.getElementById('emailTemplateModal').classList.add('active');
+  }
+
   return {
     init: init,
     setView: setView,
@@ -4258,7 +5803,9 @@ return;
     showSolutionDetail: showSolutionDetail,
     updateMilestoneDate: updateMilestoneDate,
     logEngagementForSolution: logEngagementForSolution,
+    showEngagementFromSolution: showEngagementFromSolution,
     showSolutionEngagements: showSolutionEngagements,
+    emailSolutionStakeholders: emailSolutionStakeholders,
     // Filter functions
     applyFilters: applyFilters,
     setMilestoneFilter: setMilestoneFilter,
@@ -4290,7 +5837,23 @@ return;
     handleDragLeave: handleDragLeave,
     handleDrop: handleDrop,
     setMilestoneDate: setMilestoneDate,
-    closeDropDialog: closeDropDialog
+    closeDropDialog: closeDropDialog,
+    toggleOverview: toggleOverview,
+    filterOverview: filterOverview,
+    // Contact picker
+    searchContacts: searchContacts,
+    showContactResults: showContactResults,
+    hideContactResults: hideContactResults,
+    selectContact: selectContact,
+    removeContact: removeContact,
+    // Email templates
+    showEmailTemplateModal: showEmailTemplateModal,
+    applyEmailTemplate: applyEmailTemplate,
+    updateEmailPreview: updateEmailPreview,
+    addRecipientToEmail: addRecipientToEmail,
+    copyEmailToClipboard: copyEmailToClipboard,
+    openInEmailClient: openInEmailClient,
+    logEmailAsEngagement: logEmailAsEngagement
   };
 })();
 

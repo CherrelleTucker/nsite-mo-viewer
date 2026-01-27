@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Email All Stakeholders** - Solution detail modal now includes "Email All" button
+  - Collects all stakeholder emails for the solution
+  - Opens email composer with recipients pre-filled in To field
+  - Solution context auto-selected
+
+- **Log Email as Engagement** - Email composer can now log sent emails as engagements
+  - "Log as Engagement" button creates engagement record directly
+  - Activity type: Email, Direction: Outbound
+  - Captures recipients, subject, solution, and email body as summary
+  - Closes modal and refreshes engagement list on success
+
 - **Add Contact Form** - New contact creation from Contacts Directory page
   - "Add Contact" button in page header opens modal form
   - Required fields: First Name, Last Name, Email
@@ -38,6 +49,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Templates API for retrieval and filtering
 
 ### Changed
+- **SEP Solution Detail Modal Redesign** - Improved layout and interactions
+  - Reordered sections: Name, Cycle/Phase, Recent Engagements (+Log button), Team, Stakeholders, Agencies, Milestone Timeline
+  - Lighter design with reduced font weights, subtle dividers, more whitespace
+  - Clickable engagements open full engagement detail modal
+  - Modal return navigation - closing engagement detail returns to solution modal (not closes everything)
+  - Agencies displayed as pills/chips, stakeholders as simple list
+
+- **Email Composer UX Improvements** - Better recipient management
+  - Renamed "Recipient" to "Add Recipient" dropdown
+  - Dropdown now adds to To field instead of replacing
+  - Prevents duplicate email addresses
+  - Clearer workflow for multi-recipient emails
+
+- **SEP Overview Table** - Last/Next milestone column shows milestone names
+  - Format: "TP4 → WS2" showing last completed → next upcoming
+  - Calculated from milestone dates relative to today
+
 - **Event Cards Redesign** - Cleaner, more spacious event card design
   - Increased padding and margins for breathing room
   - Subtle shadow and border instead of heavy left border
