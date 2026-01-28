@@ -22,9 +22,9 @@
           <span>Agencies</span>
         </button>
       </div>
-      <button class="btn btn-secondary" onclick="SEP.showEmailTemplateModal()">
+      <button class="btn btn-primary" onclick="SEP.showEmailTemplateModal()">
         <span class="material-icons">email</span>
-        Email
+        Send Email
       </button>
       <button class="btn btn-primary" onclick="SEP.showLogEngagementModal()">
         <span class="material-icons">add</span>
@@ -353,7 +353,7 @@
 
 <!-- Engagement Detail Modal -->
 <div class="modal-overlay" id="engagementDetailModal" onclick="SEP.closeModal('engagementDetailModal', event)">
-  <div class="modal-content modal-sm" onclick="event.stopPropagation()">
+  <div class="modal-content modal-md" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title">Engagement Details</h2>
       <button class="modal-close" onclick="SEP.closeModal('engagementDetailModal')">&times;</button>
@@ -791,7 +791,7 @@
   }
   .engagement-detail-value {
     font-size: var(--font-size-sm);
-    font-weight: 500;
+    font-weight: normal;
   }
   .engagement-detail-full {
     grid-column: 1 / -1;
@@ -3039,9 +3039,9 @@ var SEP = (function() {
     }
 
     var html = solutions.map(function(sol) {
+      var displayName = sol.core_official_name || sol.core_id;
       return '<div class="outreach-item" onclick="SEP.showSolutionDetail(\'' + escapeAttr(sol.core_id) + '\')">' +
-        '<span class="outreach-id">' + escapeHtml(sol.core_id) + '</span>' +
-        '<span class="outreach-name">' + escapeHtml(sol.core_official_name || '') + '</span>' +
+        '<span class="outreach-name">' + escapeHtml(displayName) + '</span>' +
         '<span class="outreach-count-badge">' + (sol.engagement_count || 0) + '</span>' +
         '</div>';
     }).join('');
@@ -3337,11 +3337,18 @@ var SEP = (function() {
       solEngagements = state.engagements.filter(function(e) { return e.solution_id === sol.core_id; });
     }
 
-    // Get stakeholders assigned to this solution (from contacts database)
+    // Get stakeholders assigned to this solution (from contacts database), deduplicated by email
     var solutionContacts = [];
     if (state.allContacts && state.allContacts.length > 0) {
-      solutionContacts = state.allContacts.filter(function(c) {
+      var seenEmails = {};
+      state.allContacts.filter(function(c) {
         return c.solution_id && c.solution_id.toLowerCase() === sol.core_id.toLowerCase();
+      }).forEach(function(c) {
+        var key = (c.email || c.contact_id || '').toLowerCase();
+        if (key && !seenEmails[key]) {
+          seenEmails[key] = true;
+          solutionContacts.push(c);
+        }
       });
     }
 
@@ -3477,18 +3484,31 @@ var SEP = (function() {
       html += '<div class="detail-empty">No stakeholders assigned</div>';
     } else {
       html += '<div class="detail-stakeholders">';
-      solutionContacts.slice(0, 6).forEach(function(c) {
+      // Helper to render a stakeholder item
+      function renderStakeholder(c) {
         var name = ((c.first_name || '') + ' ' + (c.last_name || '')).trim() || c.email;
         var titleAgency = [];
         if (c.title) titleAgency.push(c.title);
         if (c.agency) titleAgency.push(c.agency);
-        html += '<div class="detail-stakeholder">';
-        html += '<span class="stakeholder-name">' + escapeHtml(name) + '</span>';
-        if (titleAgency.length > 0) html += '<span class="stakeholder-title">' + escapeHtml(titleAgency.join(' · ')) + '</span>';
+        var sh = '<div class="detail-stakeholder">';
+        sh += '<span class="stakeholder-name">' + escapeHtml(name) + '</span>';
+        if (titleAgency.length > 0) sh += '<span class="stakeholder-title">' + escapeHtml(titleAgency.join(' · ')) + '</span>';
+        sh += '</div>';
+        return sh;
+      }
+      if (solutionContacts.length <= 6) {
+        solutionContacts.forEach(function(c) { html += renderStakeholder(c); });
+      } else {
+        // Short view - first 6
+        html += '<div id="stakeholdersShort">';
+        solutionContacts.slice(0, 6).forEach(function(c) { html += renderStakeholder(c); });
+        html += '<div class="detail-more"><a href="#" onclick="SEP.expandStakeholders(); return false;" style="color: var(--color-sep); text-decoration: none;">+' + (solutionContacts.length - 6) + ' more</a></div>';
         html += '</div>';
-      });
-      if (solutionContacts.length > 6) {
-        html += '<div class="detail-more">+' + (solutionContacts.length - 6) + ' more</div>';
+        // Full view - all
+        html += '<div id="stakeholdersFull" style="display: none;">';
+        solutionContacts.forEach(function(c) { html += renderStakeholder(c); });
+        html += '<div class="detail-more"><a href="#" onclick="SEP.collapseStakeholders(); return false;" style="color: var(--color-sep); text-decoration: none;">show less</a></div>';
+        html += '</div>';
       }
       html += '</div>';
     }
@@ -3501,14 +3521,27 @@ var SEP = (function() {
       html += '<div class="detail-empty">No agencies linked</div>';
     } else {
       html += '<div class="detail-agencies">';
-      agencyList.slice(0, 8).forEach(function(a) {
-        html += '<div class="detail-agency">';
-        html += '<span class="agency-name">' + escapeHtml(a.name) + '</span>';
-        if (a.contactCount > 1) html += '<span class="agency-contact-count">(' + a.contactCount + ')</span>';
+      // Helper to render an agency item
+      function renderAgency(a) {
+        var ah = '<div class="detail-agency">';
+        ah += '<span class="agency-name">' + escapeHtml(a.name) + '</span>';
+        if (a.contactCount > 1) ah += '<span class="agency-contact-count">(' + a.contactCount + ')</span>';
+        ah += '</div>';
+        return ah;
+      }
+      if (agencyList.length <= 8) {
+        agencyList.forEach(function(a) { html += renderAgency(a); });
+      } else {
+        // Short view - first 8
+        html += '<div id="agenciesShort">';
+        agencyList.slice(0, 8).forEach(function(a) { html += renderAgency(a); });
+        html += '<div class="detail-more"><a href="#" onclick="SEP.expandAgencies(); return false;" style="color: var(--color-sep); text-decoration: none;">+' + (agencyList.length - 8) + ' more</a></div>';
         html += '</div>';
-      });
-      if (agencyList.length > 8) {
-        html += '<div class="detail-more">+' + (agencyList.length - 8) + ' more</div>';
+        // Full view - all
+        html += '<div id="agenciesFull" style="display: none;">';
+        agencyList.forEach(function(a) { html += renderAgency(a); });
+        html += '<div class="detail-more"><a href="#" onclick="SEP.collapseAgencies(); return false;" style="color: var(--color-sep); text-decoration: none;">show less</a></div>';
+        html += '</div>';
       }
       html += '</div>';
     }
@@ -3984,11 +4017,17 @@ return;
       var iconMap = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school' };
       timeline.forEach(function(e, idx) {
         var icon = iconMap[e.activity_type] || 'event';
+        // Look up readable solution name
+        var solutionDisplay = '';
+        if (e.solution_id && state.solutions) {
+          var sol = state.solutions.find(function(s) { return s.core_id === e.solution_id; });
+          solutionDisplay = sol ? (sol.core_official_name || e.solution_id) : e.solution_id;
+        }
         html += '<div class="timeline-item" style="cursor: pointer;" onclick="SEP.showAgencyEngagementDetail(' + idx + ')">';
         html += '<div class="timeline-icon"><span class="material-icons">' + icon + '</span></div>';
         html += '<div class="timeline-content">';
         html += '<div class="timeline-subject">' + escapeHtml(e.subject || e.activity_type || 'Engagement') + '</div>';
-        html += '<div class="timeline-meta">' + formatDate(e.date) + ' • ' + escapeHtml(e.activity_type || '') + (e.solution_id ? ' • ' + escapeHtml(e.solution_id) : '') + '</div>';
+        html += '<div class="timeline-meta">' + formatDate(e.date) + ' • ' + escapeHtml(e.activity_type || '') + (solutionDisplay ? ' • ' + escapeHtml(solutionDisplay) : '') + '</div>';
         if (e.matched_contacts && e.matched_contacts.length > 0) {
           var names = e.matched_contacts.map(function(c) { return c.name; }).join(', ');
           html += '<div class="timeline-contacts">' + escapeHtml(names) + '</div>';
@@ -5149,7 +5188,20 @@ return;
     html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Direction</div><div class="engagement-detail-value">' + escapeHtml(e.direction || '--') + '</div></div>';
     html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Follow-up</div><div class="engagement-detail-value">' + (e.follow_up_date ? formatDate(e.follow_up_date) : '--') + '</div></div>';
     html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Solution</div><div class="engagement-detail-value">' + escapeHtml(solutionName) + '</div></div>';
-    html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Participants</div><div class="engagement-detail-value">' + escapeHtml(e.participants || '--') + '</div></div>';
+    // Format participants - show first 5, then expandable "... see more"
+    var participantsHtml = '--';
+    if (e.participants) {
+      var participantList = e.participants.split(',').map(function(p) { return p.trim(); });
+      if (participantList.length <= 5) {
+        participantsHtml = escapeHtml(participantList.join(', '));
+      } else {
+        var shortList = escapeHtml(participantList.slice(0, 5).join(', '));
+        var fullList = escapeHtml(participantList.join(', '));
+        participantsHtml = '<span id="participantsShort">' + shortList + ' <a href="#" onclick="SEP.expandParticipants(); return false;" style="color: var(--color-sep); text-decoration: none;">... +' + (participantList.length - 5) + ' more</a></span>';
+        participantsHtml += '<span id="participantsFull" style="display: none;">' + fullList + ' <a href="#" onclick="SEP.collapseParticipants(); return false;" style="color: var(--color-sep); text-decoration: none;">show less</a></span>';
+      }
+    }
+    html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Participants</div><div class="engagement-detail-value" style="font-weight: normal;">' + participantsHtml + '</div></div>';
     html += '</div>';
 
     html += '<div class="engagement-detail-label" style="margin-bottom: 4px; margin-top: var(--space-sm);">Summary</div>';
@@ -5689,11 +5741,18 @@ return;
   }
 
   function emailSolutionStakeholders(solutionId) {
-    // Get stakeholders for this solution
+    // Get stakeholders for this solution, deduplicated by email
     var solutionContacts = [];
     if (state.allContacts && state.allContacts.length > 0) {
-      solutionContacts = state.allContacts.filter(function(c) {
+      var seenEmails = {};
+      state.allContacts.filter(function(c) {
         return c.solution_id && c.solution_id.toLowerCase() === solutionId.toLowerCase() && c.email;
+      }).forEach(function(c) {
+        var email = c.email.toLowerCase();
+        if (!seenEmails[email]) {
+          seenEmails[email] = true;
+          solutionContacts.push(c);
+        }
       });
     }
 
@@ -5782,6 +5841,48 @@ return;
     document.getElementById('emailTemplateModal').classList.add('active');
   }
 
+  function expandParticipants() {
+    var shortEl = document.getElementById('participantsShort');
+    var fullEl = document.getElementById('participantsFull');
+    if (shortEl) shortEl.style.display = 'none';
+    if (fullEl) fullEl.style.display = 'inline';
+  }
+
+  function collapseParticipants() {
+    var shortEl = document.getElementById('participantsShort');
+    var fullEl = document.getElementById('participantsFull');
+    if (shortEl) shortEl.style.display = 'inline';
+    if (fullEl) fullEl.style.display = 'none';
+  }
+
+  function expandStakeholders() {
+    var shortEl = document.getElementById('stakeholdersShort');
+    var fullEl = document.getElementById('stakeholdersFull');
+    if (shortEl) shortEl.style.display = 'none';
+    if (fullEl) fullEl.style.display = 'block';
+  }
+
+  function collapseStakeholders() {
+    var shortEl = document.getElementById('stakeholdersShort');
+    var fullEl = document.getElementById('stakeholdersFull');
+    if (shortEl) shortEl.style.display = 'block';
+    if (fullEl) fullEl.style.display = 'none';
+  }
+
+  function expandAgencies() {
+    var shortEl = document.getElementById('agenciesShort');
+    var fullEl = document.getElementById('agenciesFull');
+    if (shortEl) shortEl.style.display = 'none';
+    if (fullEl) fullEl.style.display = 'block';
+  }
+
+  function collapseAgencies() {
+    var shortEl = document.getElementById('agenciesShort');
+    var fullEl = document.getElementById('agenciesFull');
+    if (shortEl) shortEl.style.display = 'block';
+    if (fullEl) fullEl.style.display = 'none';
+  }
+
   return {
     init: init,
     setView: setView,
@@ -5853,7 +5954,14 @@ return;
     addRecipientToEmail: addRecipientToEmail,
     copyEmailToClipboard: copyEmailToClipboard,
     openInEmailClient: openInEmailClient,
-    logEmailAsEngagement: logEmailAsEngagement
+    logEmailAsEngagement: logEmailAsEngagement,
+    // Expand/collapse functions
+    expandParticipants: expandParticipants,
+    collapseParticipants: collapseParticipants,
+    expandStakeholders: expandStakeholders,
+    collapseStakeholders: collapseStakeholders,
+    expandAgencies: expandAgencies,
+    collapseAgencies: collapseAgencies
   };
 })();
 

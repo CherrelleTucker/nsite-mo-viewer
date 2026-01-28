@@ -1081,6 +1081,33 @@ var Implementation = (function() {
     return value === 'Y';
   }
 
+  /**
+   * Get the primary/parent solution ID from a solution_id.
+   * e.g., 'hls_vi' -> 'hls', 'opera_dswx' -> 'opera', 'nisar' -> 'nisar'
+   */
+  function getPrimarySolutionId(solutionId) {
+    if (!solutionId) return null;
+    var parts = solutionId.split('_');
+    return parts[0]; // Return the part before the first underscore
+  }
+
+  /**
+   * Check if a solution is selected, either directly or via its parent group.
+   * If 'hls' is selected, 'hls_vi' and 'hls_ll' are also considered selected.
+   */
+  function isSolutionSelectedWithGrouping(solutionId) {
+    // Check if directly selected
+    if (state.selectedSolutions[solutionId]) return true;
+
+    // Check if parent is selected (for subprojects)
+    var primaryId = getPrimarySolutionId(solutionId);
+    if (primaryId && primaryId !== solutionId && state.selectedSolutions[primaryId]) {
+      return true;
+    }
+
+    return false;
+  }
+
   function init() {
     loadSolutions();
   }
@@ -1121,8 +1148,13 @@ var Implementation = (function() {
   }
 
   function populateFilterDropdowns() {
-    // Groups
+    // Guard against SPA navigation - elements may not exist
     var groupSelect = document.getElementById('filterGroup');
+    var daacSelect = document.getElementById('filterDAAC');
+
+    if (!groupSelect || !daacSelect) return;
+
+    // Groups
     groupSelect.innerHTML = '<option value="">All Groups</option>';
     state.groups.forEach(function(group) {
       var option = document.createElement('option');
@@ -1132,7 +1164,6 @@ var Implementation = (function() {
     });
 
     // DAACs
-    var daacSelect = document.getElementById('filterDAAC');
     daacSelect.innerHTML = '<option value="">All DAACs</option>';
     state.daacs.forEach(function(daac) {
       var option = document.createElement('option');
@@ -1491,8 +1522,8 @@ var Implementation = (function() {
     var searchFilter = document.getElementById('filterSearch').value.toLowerCase().trim();
 
     state.filteredSolutions = state.solutions.filter(function(sol) {
-      // Solution picker filter - only show selected solutions
-      if (!state.selectedSolutions[sol.core_id]) return false;
+      // Solution picker filter - only show selected solutions (with grouping support)
+      if (!isSolutionSelectedWithGrouping(sol.core_id)) return false;
       if (cycleFilter && String(sol.core_cycle) !== cycleFilter) return false;
       if (phaseFilter && sol.admin_lifecycle_phase !== phaseFilter) return false;
       if (groupFilter && sol.core_group !== groupFilter) return false;

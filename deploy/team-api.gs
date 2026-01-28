@@ -45,6 +45,10 @@ function addAvailability(data) {
   return MoApi.addAvailability(data);
 }
 
+function updateAvailability(availabilityId, updates) {
+  return MoApi.updateAvailability(availabilityId, updates);
+}
+
 function deleteAvailability(availabilityId) {
   return MoApi.deleteAvailability(availabilityId);
 }

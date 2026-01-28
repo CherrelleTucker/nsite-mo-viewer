@@ -301,6 +301,39 @@ function addAvailability(data) {
 }
 
 /**
+ * Update an availability entry
+ * @param {string} availabilityId - Availability ID to update
+ * @param {Object} updates - Fields to update
+ * @returns {Object} Result with success status
+ */
+function updateAvailability(availabilityId, updates) {
+  try {
+    var sheet = getAvailabilitySheet_();
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    var idCol = headers.indexOf('availability_id');
+
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][idCol] === availabilityId) {
+        // Update the row
+        headers.forEach(function(h, col) {
+          if (updates.hasOwnProperty(h) && h !== 'availability_id' && h !== 'created_at') {
+            sheet.getRange(i + 1, col + 1).setValue(updates[h]);
+          }
+        });
+        _availabilityCache = null; // Clear cache
+        return { success: true, availability_id: availabilityId };
+      }
+    }
+
+    return { success: false, error: 'Availability not found' };
+  } catch (e) {
+    Logger.log('Error in updateAvailability: ' + e);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
  * Delete an availability entry
  * @param {string} availabilityId - Availability ID to delete
  * @returns {Object} Result with success status

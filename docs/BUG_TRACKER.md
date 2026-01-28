@@ -1,7 +1,7 @@
 # MO-Viewer Bug Tracker & UI Improvements
 
 **Created:** 2026-01-19
-**Last Updated:** 2026-01-23
+**Last Updated:** 2026-01-28
 
 This document tracks all known bugs, UI issues, and improvement opportunities across the MO-Viewer platform.
 
@@ -35,8 +35,8 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | TEAM-001 | Type should be checkboxes at top (office-wide vs personal) | P2 | [ ] | UX improvement per user |
 | TEAM-002 | Display bug: MLK holiday shows "Holiday Holiday undefined NaN - Jan 18" | P1 | [x] | **FIXED** - Added parseDate() for date format handling |
 | TEAM-003 | Date validation missing - can set end before start | P2 | [ ] | Should validate dates |
-| TEAM-004 | No delete functionality for availability entries | P2 | [ ] | Can only add |
-| TEAM-005 | No edit functionality for availability entries | P2 | [ ] | Can only add |
+| TEAM-004 | No delete functionality for availability entries | P2 | [x] | **FIXED** - Delete button added to edit modal |
+| TEAM-005 | No edit functionality for availability entries | P2 | [x] | **FIXED** - Click entry to edit; new bug: wrong name may appear in dropdown (contact_id mismatch) |
 
 ### UI/UX Issues
 | ID | Issue | Priority | Status | Notes |
@@ -84,6 +84,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 |----|-------|----------|--------|-------|
 | TEAM-023 | Availability DB format needs update | P1 | [x] | **FIXED** - Added holiday_name, partners columns to MO-DB_Availability |
 | TEAM-024 | Date column has inconsistent format (mm/dd/yyyy hh:mm:ss) | P2 | [ ] | Script populates with timestamp instead of date |
+| TEAM-027 | Wrong name shows when editing availability | P1 | [x] | **FIXED** - Dropdown now shows first names with contact_id values; added fallback matching by first name when contact_id doesn't match |
 
 ### Meetings View Issues
 | ID | Issue | Priority | Status | Notes |
@@ -158,7 +159,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 |----|-------|----------|--------|-------|
 | SEP-008 | Log Engagement button no loading state | P0 | [x] | **FIXED** - button disables + spinner while saving |
 | SEP-009 | Logged engagements NOT clickable | P0 | [x] | **FIXED** - click shows details in alert |
-| SEP-010 | No engagement detail modal exists | P1 | [ ] | ~4 hours to implement |
+| SEP-010 | No engagement detail modal exists | P1 | [x] | **FIXED** - Engagement detail modal implemented |
 | SEP-011 | No edit/delete functionality for engagements | P2 | [ ] | Feature request |
 | SEP-012 | Participant emails not validated | P2 | [ ] | Should validate format |
 | SEP-013 | No "View All" link for recent engagements (max 8) | P2 | [ ] | Add link |
@@ -256,7 +257,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | ID | Issue | Priority | Status | Notes |
 |----|-------|----------|--------|-------|
 | COMM-016 | Clicking untagged story auto-edits instead of showing detail | P2 | [ ] | Inconsistent with other cards |
-| COMM-036 | Story tagging with priorities not showing in priorities alignment | P1 | [ ] | Tagged stories don't appear in priority sections |
+| COMM-036 | Story update fails with data validation error on solution_id | P1 | [x] | **FIXED** - Changed solution input from free text to dropdown with valid solution_ids; fixed column name mismatches (pitch_doc_url, published_url, platform, etc.) |
 | COMM-037 | Key messages visually clunky layout | P2 | [ ] | UI/UX polish needed |
 
 ### Modal Issues
@@ -611,7 +612,7 @@ Before MO-Viewer can be packaged for other organizations, a comprehensive testin
 
 | Feature | Description | Effort | Status |
 |---------|-------------|--------|--------|
-| SEP-010 | Engagement detail modal | ~4 hours | Backlog |
+| ~~SEP-010~~ | ~~Engagement detail modal~~ | ~~4 hours~~ | **DONE** |
 | SEP-018 | Update touchpoint from UI | Large | Backlog |
 | Drag-and-drop | Kanban-style column drag | Large | Backlog |
 | Bulk actions | Multi-select for batch operations | Medium | Backlog |

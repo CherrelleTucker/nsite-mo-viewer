@@ -763,3 +763,173 @@ function searchKeyMessages(query) {
     };
   });
 }
+
+// ============================================================================
+// APPLICATION SECTOR QUERIES
+// ============================================================================
+
+/**
+ * Get all unique application sectors from solutions
+ * @returns {string[]} Array of unique sector names, sorted
+ */
+function getApplicationSectors() {
+  var solutions = getAllSolutions();
+  var sectors = {};
+
+  solutions.forEach(function(sol) {
+    if (sol.core_application_sectors) {
+      var sectorList = sol.core_application_sectors.split(',').map(function(s) {
+        return s.trim();
+      });
+      sectorList.forEach(function(sector) {
+        if (sector) sectors[sector] = true;
+      });
+    }
+  });
+
+  return Object.keys(sectors).sort();
+}
+
+/**
+ * Get solutions by application sector
+ * @param {string} sector - Sector to filter by (e.g., "Energy", "Agriculture")
+ * @returns {Object[]} Array of solutions in that sector
+ */
+function getSolutionsBySector(sector) {
+  var solutions = getAllSolutions();
+  var lowerSector = sector.toLowerCase();
+
+  return solutions.filter(function(sol) {
+    if (!sol.core_application_sectors) return false;
+    var sectors = sol.core_application_sectors.toLowerCase().split(',').map(function(s) {
+      return s.trim();
+    });
+    return sectors.indexOf(lowerSector) !== -1;
+  });
+}
+
+/**
+ * Get stakeholder surveys by application sector
+ * Joins solutions (by sector) with contacts/needs data
+ * @param {string} sector - Sector to filter by (e.g., "Energy")
+ * @returns {Object} Report object with solutions and stakeholder counts
+ */
+function getSurveysBySector(sector) {
+  var solutions = getSolutionsBySector(sector);
+  var solutionIds = solutions.map(function(s) { return s.core_id; });
+
+  // Get contacts for these solutions
+  var allContacts = getContactsBySolutionIds ? getContactsBySolutionIds(solutionIds) : [];
+
+  // If getContactsBySolutionIds doesn't exist, try alternate approach
+  if (allContacts.length === 0 && typeof getAllContacts === 'function') {
+    var contacts = getAllContacts();
+    allContacts = contacts.filter(function(c) {
+      return solutionIds.indexOf(c.solution_id) !== -1;
+    });
+  }
+
+  // Group contacts by solution
+  var bySolution = {};
+  solutionIds.forEach(function(id) { bySolution[id] = []; });
+
+  allContacts.forEach(function(contact) {
+    if (bySolution[contact.solution_id]) {
+      bySolution[contact.solution_id].push(contact);
+    }
+  });
+
+  // Build report
+  var report = {
+    sector: sector,
+    generated_at: new Date().toISOString(),
+    solution_count: solutions.length,
+    total_stakeholders: allContacts.length,
+    unique_emails: [],
+    solutions: []
+  };
+
+  // Get unique emails
+  var emailSet = {};
+  allContacts.forEach(function(c) {
+    if (c.email) emailSet[c.email.toLowerCase()] = true;
+  });
+  report.unique_emails = Object.keys(emailSet);
+  report.unique_stakeholder_count = report.unique_emails.length;
+
+  // Add solution details
+  solutions.forEach(function(sol) {
+    var contacts = bySolution[sol.core_id] || [];
+    report.solutions.push({
+      solution_id: sol.core_id,
+      solution_name: sol.core_official_name,
+      lifecycle_phase: sol.admin_lifecycle_phase,
+      stakeholder_count: contacts.length,
+      survey_years: getUniqueSurveyYears_(contacts),
+      departments: getUniqueDepartments_(contacts)
+    });
+  });
+
+  // Sort by stakeholder count descending
+  report.solutions.sort(function(a, b) {
+    return b.stakeholder_count - a.stakeholder_count;
+  });
+
+  return report;
+}
+
+/**
+ * Helper: Get unique survey years from contacts
+ */
+function getUniqueSurveyYears_(contacts) {
+  var years = {};
+  contacts.forEach(function(c) {
+    if (c.survey_year) years[c.survey_year] = true;
+  });
+  return Object.keys(years).sort();
+}
+
+/**
+ * Helper: Get unique departments from contacts
+ */
+function getUniqueDepartments_(contacts) {
+  var depts = {};
+  contacts.forEach(function(c) {
+    if (c.department) depts[c.department] = true;
+  });
+  return Object.keys(depts).sort();
+}
+
+/**
+ * Get sector report summary - all sectors with counts
+ * @returns {Object[]} Array of {sector, solution_count, solutions[]}
+ */
+function getSectorSummary() {
+  var sectors = getApplicationSectors();
+  var solutions = getAllSolutions();
+
+  return sectors.map(function(sector) {
+    var lowerSector = sector.toLowerCase();
+    var sectorSolutions = solutions.filter(function(sol) {
+      if (!sol.core_application_sectors) return false;
+      var sectors = sol.core_application_sectors.toLowerCase().split(',').map(function(s) {
+        return s.trim();
+      });
+      return sectors.indexOf(lowerSector) !== -1;
+    });
+
+    return {
+      sector: sector,
+      solution_count: sectorSolutions.length,
+      solutions: sectorSolutions.map(function(s) {
+        return {
+          id: s.core_id,
+          name: s.core_official_name,
+          phase: s.admin_lifecycle_phase
+        };
+      })
+    };
+  }).sort(function(a, b) {
+    return b.solution_count - a.solution_count;
+  });
+}

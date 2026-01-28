@@ -39,6 +39,7 @@ var CONFIG_KEYS = {
   // Source Document IDs (Agendas)
   INTERNAL_AGENDA_ID: 'INTERNAL_AGENDA_ID',
   SEP_AGENDA_ID: 'SEP_AGENDA_ID',
+  ASSESS_AGENDA_ID: 'ASSESS_AGENDA_ID',
   COMMS_TRACKING_ID: 'COMMS_TRACKING_ID',
   OPERA_MONTHLY_ID: 'OPERA_MONTHLY_ID',
   PBL_MONTHLY_ID: 'PBL_MONTHLY_ID',
@@ -89,6 +90,7 @@ var CONFIG_KEYS = {
   COMMS_PLAN_DOC_ID: 'COMMS_PLAN_DOC_ID',
   STYLE_GUIDE_DOC_ID: 'STYLE_GUIDE_DOC_ID',
   HIGHLIGHTER_BLURBS_DOC_ID: 'HIGHLIGHTER_BLURBS_DOC_ID',
+  ODSI_BLURB_DOC_ID: 'ODSI_BLURB_DOC_ID',
   WEBPAGE_LOG_DOC_ID: 'WEBPAGE_LOG_DOC_ID',
 
   // Directing Documents (Assessment)
@@ -133,10 +135,6 @@ var PAGES = {
   'schedule': {
     title: 'Schedule',
     icon: 'calendar_today'
-  },
-  'actions': {
-    title: 'Actions',
-    icon: 'check_box'
   },
   'team': {
     title: 'Team',
@@ -533,8 +531,11 @@ function getDocumentId(docType) {
 function getAgendaUrls() {
   var internalId = getConfigValue(CONFIG_KEYS.INTERNAL_AGENDA_ID);
   var sepId = getConfigValue(CONFIG_KEYS.SEP_AGENDA_ID);
+  var assessId = getConfigValue(CONFIG_KEYS.ASSESS_AGENDA_ID);
   var operaId = getConfigValue(CONFIG_KEYS.OPERA_MONTHLY_ID);
   var pblId = getConfigValue(CONFIG_KEYS.PBL_MONTHLY_ID);
+  var nsiteBlurbsId = getConfigValue(CONFIG_KEYS.HIGHLIGHTER_BLURBS_DOC_ID);
+  var odsiBlurbsId = getConfigValue(CONFIG_KEYS.ODSI_BLURB_DOC_ID);
 
   // Get most recent monthly presentation from folder
   var monthlyPresentation = getLatestMonthlyPresentation();
@@ -542,15 +543,21 @@ function getAgendaUrls() {
   return {
     internal: internalId ? 'https://docs.google.com/document/d/' + internalId + '/edit?embedded=true' : '',
     sep: sepId ? 'https://docs.google.com/document/d/' + sepId + '/edit?embedded=true' : '',
+    assess: assessId ? 'https://docs.google.com/document/d/' + assessId + '/edit?embedded=true' : '',
     opera: operaId ? 'https://docs.google.com/document/d/' + operaId + '/edit?embedded=true' : '',
     pbl: pblId ? 'https://docs.google.com/document/d/' + pblId + '/edit?embedded=true' : '',
     monthly: monthlyPresentation.embed,
+    nsiteBlurbs: nsiteBlurbsId ? 'https://docs.google.com/document/d/' + nsiteBlurbsId + '/edit?embedded=true' : '',
+    odsiBlurbs: odsiBlurbsId ? 'https://docs.google.com/document/d/' + odsiBlurbsId + '/edit?embedded=true' : '',
     internalEdit: internalId ? 'https://docs.google.com/document/d/' + internalId + '/edit' : '',
     sepEdit: sepId ? 'https://docs.google.com/document/d/' + sepId + '/edit' : '',
+    assessEdit: assessId ? 'https://docs.google.com/document/d/' + assessId + '/edit' : '',
     operaEdit: operaId ? 'https://docs.google.com/document/d/' + operaId + '/edit' : '',
     pblEdit: pblId ? 'https://docs.google.com/document/d/' + pblId + '/edit' : '',
     monthlyEdit: monthlyPresentation.edit,
-    monthlyTitle: monthlyPresentation.title
+    monthlyTitle: monthlyPresentation.title,
+    nsiteBlurbsEdit: nsiteBlurbsId ? 'https://docs.google.com/document/d/' + nsiteBlurbsId + '/edit' : '',
+    odsiBlurbsEdit: odsiBlurbsId ? 'https://docs.google.com/document/d/' + odsiBlurbsId + '/edit' : ''
   };
 }
 
@@ -1044,6 +1051,119 @@ function submitAccessRequest(email, reason) {
       manualRequest: true,
       adminEmail: adminEmail
     };
+  }
+}
+
+/**
+ * Submit feedback (bug report or feature suggestion) to Slack
+ * @param {Object} feedback - Feedback data from the form
+ * @returns {Object} Result with success flag
+ */
+function submitFeedback(feedback) {
+  try {
+    // Get Slack webhook URL from config
+    var webhookUrl = MoApi.getConfigValue('FEEDBACK_SLACK_WEBHOOK_URL');
+
+    if (!webhookUrl) {
+      Logger.log('Feedback received but no Slack webhook configured');
+      // Still return success - we logged it
+      return { success: true, message: 'Feedback logged (Slack not configured)' };
+    }
+
+    // Build emoji based on type
+    var typeEmoji = {
+      'bug': ':bug:',
+      'feature': ':bulb:',
+      'other': ':speech_balloon:'
+    };
+    var emoji = typeEmoji[feedback.type] || ':memo:';
+
+    // Build readable type label
+    var typeLabel = {
+      'bug': 'Bug Report',
+      'feature': 'Feature Suggestion',
+      'other': 'Feedback'
+    };
+
+    // Build Slack message with blocks for nice formatting
+    var blocks = [
+      {
+        type: 'header',
+        text: {
+          type: 'plain_text',
+          text: emoji + ' ' + (typeLabel[feedback.type] || 'Feedback'),
+          emoji: true
+        }
+      },
+      {
+        type: 'section',
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: '*Page:*\n' + (feedback.page || 'Unknown')
+          },
+          {
+            type: 'mrkdwn',
+            text: '*From:*\n' + (feedback.name || 'Anonymous')
+          }
+        ]
+      },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: '*Description:*\n' + (feedback.description || 'No description')
+        }
+      }
+    ];
+
+    // Add steps to reproduce for bugs
+    if (feedback.type === 'bug' && feedback.steps) {
+      blocks.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: '*Steps to Reproduce:*\n' + feedback.steps
+        }
+      });
+    }
+
+    // Add context footer
+    blocks.push({
+      type: 'context',
+      elements: [
+        {
+          type: 'mrkdwn',
+          text: ':clock1: ' + new Date().toLocaleString() + ' | :computer: ' + (feedback.userAgent ? feedback.userAgent.substring(0, 50) + '...' : 'Unknown')
+        }
+      ]
+    });
+
+    // Send to Slack
+    var payload = {
+      blocks: blocks,
+      text: (typeLabel[feedback.type] || 'Feedback') + ' from ' + (feedback.name || 'Anonymous') + ' on ' + (feedback.page || 'Unknown') + ' page'
+    };
+
+    var response = UrlFetchApp.fetch(webhookUrl, {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+
+    var responseCode = response.getResponseCode();
+    if (responseCode === 200) {
+      Logger.log('Feedback sent to Slack successfully');
+      return { success: true };
+    } else {
+      Logger.log('Slack webhook returned: ' + responseCode + ' - ' + response.getContentText());
+      return { success: false, message: 'Slack returned error: ' + responseCode };
+    }
+
+  } catch (e) {
+    Logger.log('Error submitting feedback: ' + e);
+    return { success: false, message: e.message };
   }
 }
 

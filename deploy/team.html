@@ -12,6 +12,10 @@
           <span class="material-icons">grid_view</span>
           <span>Overview</span>
         </button>
+        <button class="view-btn" data-view="actions" onclick="Team.setView('actions')">
+          <span class="material-icons">task_alt</span>
+          <span>Actions</span>
+        </button>
         <button class="view-btn" data-view="kudos" onclick="Team.setView('kudos')">
           <span class="material-icons">celebration</span>
           <span>Kudos</span>
@@ -113,6 +117,102 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Actions View -->
+    <div class="view-panel" id="actionsView">
+      <!-- Actions Sub-header -->
+      <div class="actions-subheader">
+        <div class="actions-view-toggle">
+          <button class="view-btn active" data-subview="assignee" onclick="Team.setActionsSubview('assignee')">
+            <span class="material-icons">group</span>
+            <span>By Person</span>
+          </button>
+          <button class="view-btn" data-subview="status" onclick="Team.setActionsSubview('status')">
+            <span class="material-icons">view_column</span>
+            <span>By Status</span>
+          </button>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="Team.showAddActionModal()">
+          <span class="material-icons">add</span>
+          Add Action
+        </button>
+      </div>
+
+      <!-- Actions Filter Bar -->
+      <div class="actions-filters">
+        <div class="filter-chips">
+          <button class="chip active" data-filter="open" onclick="Team.setActionsFilter('open')">Open</button>
+          <button class="chip" data-filter="all" onclick="Team.setActionsFilter('all')">All</button>
+          <button class="chip" data-filter="done" onclick="Team.setActionsFilter('done')">Done</button>
+        </div>
+        <div class="filter-search">
+          <span class="material-icons">search</span>
+          <input type="text" id="action-search" placeholder="Search actions..." onkeyup="Team.applyActionsFilters()">
+        </div>
+        <select id="filter-source" onchange="Team.applyActionsFilters()">
+          <option value="">All Sources</option>
+          <option value="MO">Internal (MO)</option>
+          <option value="SEP">SEP</option>
+        </select>
+        <select id="filter-solution" onchange="Team.applyActionsFilters()">
+          <option value="">All Solutions</option>
+        </select>
+      </div>
+
+      <!-- Actions Content -->
+      <div class="actions-content">
+        <!-- Assignee View (Default) -->
+        <div class="assignee-view active" id="assignee-view">
+          <div class="loading-state">
+            <span class="loading-spinner"></span>
+            <span>Loading actions...</span>
+          </div>
+        </div>
+
+        <!-- Status/Kanban View -->
+        <div class="status-view" id="status-view">
+          <div class="kanban-column" data-status="pending">
+            <div class="column-header">
+              <span class="dot pending"></span>
+              <span>Pending</span>
+              <span class="count" id="count-pending">0</span>
+            </div>
+            <div class="column-cards" id="cards-pending"></div>
+          </div>
+          <div class="kanban-column" data-status="not_started">
+            <div class="column-header">
+              <span class="dot not-started"></span>
+              <span>Not Started</span>
+              <span class="count" id="count-not-started">0</span>
+            </div>
+            <div class="column-cards" id="cards-not-started"></div>
+          </div>
+          <div class="kanban-column" data-status="in_progress">
+            <div class="column-header">
+              <span class="dot in-progress"></span>
+              <span>In Progress</span>
+              <span class="count" id="count-in-progress">0</span>
+            </div>
+            <div class="column-cards" id="cards-in-progress"></div>
+          </div>
+          <div class="kanban-column" data-status="done">
+            <div class="column-header">
+              <span class="dot done"></span>
+              <span>Done</span>
+              <span class="count" id="count-done">0</span>
+            </div>
+            <div class="column-cards" id="cards-done"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="actions-empty" style="display:none;">
+        <span class="material-icons">inbox</span>
+        <p>No actions found</p>
+        <p class="text-muted">Actions sync automatically from meeting agendas</p>
       </div>
     </div>
 
@@ -522,6 +622,7 @@
       </form>
     </div>
     <div class="modal-footer">
+      <button class="btn btn-danger" id="deleteAvailabilityBtn" onclick="Team.deleteAvailability()" style="display:none; margin-right:auto;">Delete</button>
       <button class="btn btn-secondary" onclick="Team.closeModal('addAvailabilityModal')">Cancel</button>
       <button class="btn btn-primary" id="saveAvailabilityBtn" onclick="Team.saveAvailability()">
         <span class="btn-text">Save</span>
@@ -850,6 +951,151 @@
   </div>
 </div>
 
+<!-- Action Detail Drawer -->
+<div class="drawer-overlay" id="action-drawer">
+  <div class="drawer">
+    <div class="drawer-header">
+      <h3>Action Details</h3>
+      <button class="btn-icon" onclick="Team.closeActionDrawer()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="drawer-body" id="drawer-body">
+      <!-- Populated by JavaScript -->
+    </div>
+  </div>
+</div>
+
+<!-- Add Action Modal -->
+<div class="modal" id="addActionModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Add Action</h3>
+      <button class="modal-close" onclick="Team.closeModal('addActionModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="add-action-form" onsubmit="return Team.submitAction(event)">
+        <div class="form-group">
+          <label for="add-task">Task *</label>
+          <textarea id="add-task" rows="3" required maxlength="1000" placeholder="Describe the action item..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="add-assigned">Assigned To *</label>
+            <input type="text" id="add-assigned" list="team-members-list" required placeholder="Select or type name">
+            <datalist id="team-members-list">
+              <!-- Populated by JavaScript -->
+            </datalist>
+          </div>
+          <div class="form-group">
+            <label for="add-category">Source</label>
+            <select id="add-category">
+              <option value="MO">Internal (MO)</option>
+              <option value="SEP">SEP</option>
+              <option value="AdHoc">Ad Hoc</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="add-solution">Solution</label>
+            <select id="add-solution">
+              <option value="">-- Select Solution --</option>
+              <optgroup label="3D & Visualization">
+                <option value="3d-topo">3D Topo</option>
+              </optgroup>
+              <optgroup label="Air Quality">
+                <option value="aq">Air Quality</option>
+                <option value="aq_gmao">AQ GMAO</option>
+                <option value="aq_pandora">AQ Pandora</option>
+                <option value="aq_pandora-ongoing">AQ Pandora Ongoing</option>
+                <option value="aq_pm">AQ PM</option>
+                <option value="tempo_enhanced">TEMPO Enhanced</option>
+                <option value="tempo_nrt">TEMPO NRT</option>
+              </optgroup>
+              <optgroup label="Land & Vegetation">
+                <option value="hls">HLS</option>
+                <option value="hls_10m">HLS 10m</option>
+                <option value="hls_et">HLS ET</option>
+                <option value="hls_ll">HLS LL</option>
+                <option value="hls_lst">HLS LST</option>
+                <option value="hls_vi">HLS VI</option>
+                <option value="global-et">Global ET</option>
+                <option value="targeted_rs">Targeted RS</option>
+              </optgroup>
+              <optgroup label="Water">
+                <option value="opera">OPERA</option>
+                <option value="opera_disp">OPERA DISP</option>
+                <option value="opera_dist">OPERA DIST</option>
+                <option value="opera_dswx">OPERA DSWx</option>
+                <option value="water-quality">Water Quality</option>
+                <option value="sss">SSS</option>
+              </optgroup>
+              <optgroup label="Disasters & Events">
+                <option value="firms-2g">FIRMS 2G</option>
+                <option value="harm-tir">HARM TIR</option>
+                <option value="volcano">Volcano</option>
+                <option value="vlm">VLM</option>
+              </optgroup>
+              <optgroup label="Geodesy & SAR">
+                <option value="nisar_dl">NISAR DL</option>
+                <option value="nisar_hi_res">NISAR Hi-Res</option>
+                <option value="nisar_sm">NISAR SM</option>
+                <option value="grace-fo">GRACE-FO</option>
+                <option value="icesat">ICESat</option>
+              </optgroup>
+              <optgroup label="Atmospheric">
+                <option value="admg">ADMG</option>
+                <option value="pbl">PBL</option>
+                <option value="pbl_height">PBL Height</option>
+                <option value="mwow">MWOW</option>
+              </optgroup>
+              <optgroup label="Programs & Partnerships">
+                <option value="csda">CSDA</option>
+                <option value="dcd">DCD</option>
+                <option value="gaban">GABAN</option>
+                <option value="gacr">GACR</option>
+                <option value="gcc">GCC</option>
+                <option value="ioa">IOA</option>
+                <option value="nga">NGA</option>
+              </optgroup>
+              <optgroup label="MO Internal">
+                <option value="mo">MO</option>
+                <option value="mo_assess">MO Assessment</option>
+                <option value="mo_comms">MO Comms</option>
+                <option value="mo_impl">MO Implementation</option>
+                <option value="mo_sep">MO SEP</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="add-priority">Priority</label>
+            <select id="add-priority">
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="add-due">Due Date</label>
+          <input type="date" id="add-due">
+        </div>
+        <div class="form-group">
+          <label for="add-notes">Notes</label>
+          <textarea id="add-notes" rows="2" maxlength="2000" placeholder="Additional context (optional)"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" onclick="Team.closeModal('addActionModal')">Cancel</button>
+      <button type="submit" class="btn btn-primary" id="add-submit-btn" onclick="Team.submitAction(event)">
+        <span class="material-icons">add</span> Add Action
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Team Page Styles -->
 <style>
   /* Page accent color for shared styles */
@@ -1036,6 +1282,20 @@
   .avail-location {
     font-size: var(--font-size-xs);
     color: var(--color-text-secondary);
+  }
+
+  .avail-notes {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    font-style: italic;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .availability-item:hover {
+    background: var(--color-gray-50);
   }
 
   /* Meetings Layout */
@@ -1451,6 +1711,8 @@
   .btn-primary:hover { background: var(--color-primary-dark); }
   .btn-secondary { background: var(--color-surface-alt); color: var(--color-text); border: 1px solid var(--color-border); }
   .btn-secondary:hover { background: var(--color-border-light); }
+  .btn-danger { background: #ef4444; color: white; border: none; }
+  .btn-danger:hover { background: #dc2626; }
   .btn-sm { padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-xs); }
 
   /* Modal Styles - matching SEP pattern */
@@ -2545,6 +2807,537 @@
     .kudos-category-picker { justify-content: center; }
     .pl-type-picker { grid-template-columns: repeat(2, 1fr); }
   }
+
+  /* ============================================
+     ACTIONS VIEW STYLES
+     ============================================ */
+  .actions-subheader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+  }
+
+  .actions-view-toggle {
+    display: flex;
+    gap: var(--space-xs);
+  }
+
+  .actions-view-toggle .view-btn {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-sm);
+  }
+
+  .actions-filters {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+  }
+
+  .filter-chips {
+    display: flex;
+    gap: var(--space-xs);
+  }
+
+  .chip {
+    padding: var(--space-xs) var(--space-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    border-radius: 20px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .chip:hover {
+    border-color: var(--color-border-dark);
+    color: var(--color-text);
+  }
+
+  .chip.active {
+    background: var(--color-text);
+    border-color: var(--color-text);
+    color: white;
+  }
+
+  .filter-search {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    flex: 1;
+    max-width: 300px;
+  }
+
+  .filter-search .material-icons {
+    font-size: 18px;
+    color: var(--color-text-muted);
+  }
+
+  .filter-search input {
+    border: none;
+    outline: none;
+    font-size: var(--font-size-sm);
+    width: 100%;
+    background: transparent;
+  }
+
+  .actions-filters select {
+    padding: var(--space-xs) var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+  }
+
+  .actions-content {
+    min-height: 300px;
+  }
+
+  /* Assignee View */
+  .assignee-view {
+    display: none;
+  }
+
+  .assignee-view.active {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: var(--space-md);
+  }
+
+  .assignee-section {
+    background: var(--color-gray-50);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .assignee-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .assignee-header:hover {
+    background: var(--color-gray-50);
+  }
+
+  .assignee-toggle {
+    font-size: 20px;
+    color: var(--color-text-muted);
+    transition: transform 0.2s;
+  }
+
+  .assignee-section.collapsed .assignee-toggle {
+    transform: rotate(-90deg);
+  }
+
+  .assignee-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    flex-shrink: 0;
+  }
+
+  .assignee-name {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .assignee-count {
+    background: #eef2ff;
+    color: #4f46e5;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .assignee-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--color-border);
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .assignee-section.collapsed .assignee-actions {
+    display: none;
+  }
+
+  /* Action Row */
+  .action-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .action-row:hover {
+    background: var(--color-gray-50);
+  }
+
+  .action-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .status-dot.pending { background: #f59e0b; }
+  .status-dot.not-started { background: #94a3b8; }
+  .status-dot.in-progress { background: #3b82f6; }
+  .status-dot.done { background: #10b981; }
+
+  .status-text {
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-transform: capitalize;
+  }
+
+  .action-task {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .action-row-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+  }
+
+  .action-source {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .action-solution {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--color-gray-100);
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+  }
+
+  .action-solution.is-solution {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  /* Status/Kanban View */
+  .status-view {
+    display: none;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+  }
+
+  .status-view.active {
+    display: grid;
+  }
+
+  .kanban-column {
+    background: var(--color-gray-50);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    min-height: 400px;
+  }
+
+  .column-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-md);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .column-header .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .dot.pending { background: #f59e0b; }
+  .dot.not-started { background: #94a3b8; }
+  .dot.in-progress { background: #3b82f6; }
+  .dot.done { background: #10b981; }
+
+  .column-header .count {
+    margin-left: auto;
+    background: var(--color-surface);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+  }
+
+  .column-cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .kanban-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .kanban-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .kanban-card .task {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    line-height: 1.5;
+    margin-bottom: var(--space-sm);
+  }
+
+  .kanban-card .meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .kanban-card .owner {
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+
+  /* Drawer */
+  .drawer-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 1000;
+  }
+
+  .drawer-overlay.active {
+    display: block;
+  }
+
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 480px;
+    max-width: 100%;
+    height: 100%;
+    background: var(--color-surface);
+    box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .drawer-header h3 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .drawer-body {
+    flex: 1;
+    padding: var(--space-lg);
+    overflow-y: auto;
+  }
+
+  .detail-field {
+    margin-bottom: var(--space-md);
+  }
+
+  .detail-field label {
+    display: block;
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-xs);
+  }
+
+  .detail-field .value {
+    font-size: var(--font-size-md);
+    color: var(--color-text);
+    line-height: 1.6;
+  }
+
+  .status-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .status-btn {
+    padding: var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+  }
+
+  .status-btn:hover {
+    background: var(--color-gray-50);
+  }
+
+  .status-btn.active {
+    background: var(--color-text);
+    color: white;
+    border-color: var(--color-text);
+  }
+
+  .status-btn.success {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+  }
+
+  .btn-icon {
+    background: none;
+    border: none;
+    padding: var(--space-xs);
+    cursor: pointer;
+    color: var(--color-text-muted);
+    border-radius: var(--radius-sm);
+  }
+
+  .btn-icon:hover {
+    background: var(--color-gray-100);
+    color: var(--color-text);
+  }
+
+  .assignee-field {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .btn-reassign {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+  }
+
+  .btn-reassign:hover {
+    background: var(--color-gray-100);
+    color: var(--color-primary);
+  }
+
+  .btn-reassign .material-icons {
+    font-size: 16px;
+  }
+
+  .reassign-form {
+    margin-top: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--color-gray-50);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+  }
+
+  .reassign-form input[type="text"] {
+    width: 100%;
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+  }
+
+  .reassign-buttons {
+    display: flex;
+    gap: var(--space-xs);
+    margin-top: var(--space-sm);
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 1200px) {
+    .status-view { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    .status-view { grid-template-columns: 1fr; }
+    .actions-filters { flex-direction: column; align-items: stretch; }
+    .filter-search { max-width: none; }
+  }
 </style>
 
 <!-- Team Page JavaScript -->
@@ -2579,11 +3372,20 @@
     members: [],
     meetings: [],
     availability: [],
+    editingAvailabilityId: null,
     documents: [],
     kudos: [],
     kudosStats: null,
     selectedKudosCategory: null,
     currentView: 'overview',
+    // Actions state
+    actionsData: [],
+    filteredActions: [],
+    actionsSubview: 'assignee',
+    actionsFilter: 'open',
+    currentAction: null,
+    editingActionId: null,
+    collapsedAssignees: {},
 
     init: function() {
       this.loadData();
@@ -3032,6 +3834,12 @@
       } else if (view === 'meetings') {
         addBtn.style.display = '';
         addLabel.textContent = 'Add Meeting';
+      } else if (view === 'actions') {
+        addBtn.style.display = 'none'; // Actions has its own add button in subheader
+        // Load actions data if not already loaded
+        if (Team.actionsData.length === 0) {
+          Team.loadActions();
+        }
       } else if (view === 'kudos') {
         addBtn.style.display = 'none'; // Kudos has inline form
       } else if (view === 'parkingLot') {
@@ -3146,11 +3954,24 @@
       'annually': 'Annual'
     },
 
+    // Parse date string as local time (avoids UTC timezone shift)
+    parseLocalDate: function(dateStr) {
+      if (!dateStr) return null;
+      // Remove any time portion and parse as local date
+      var datePart = String(dateStr).split('T')[0];
+      var parts = datePart.split('-');
+      if (parts.length === 3) {
+        return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      }
+      // Fallback: add time to force local interpretation
+      return new Date(datePart + 'T12:00:00');
+    },
+
     // Format date to human-friendly format (e.g., "Jan 15" or "Jan 15 - 20" or "Jan 15 - Feb 2")
     formatDateRange: function(startDateStr, endDateStr) {
       var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      var start = new Date(startDateStr + 'T00:00:00');
-      var end = new Date(endDateStr + 'T00:00:00');
+      var start = this.parseLocalDate(startDateStr);
+      var end = this.parseLocalDate(endDateStr);
 
       var startMonth = months[start.getMonth()];
       var startDay = start.getDate();
@@ -3182,9 +4003,24 @@
         return;
       }
 
-      // Sort by start date
-      var sorted = this.availability.slice().sort(function(a, b) {
-        return new Date(a.start_date) - new Date(b.start_date);
+      // Filter out past dates and sort by start date
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      var self = this;
+      var filtered = this.availability.filter(function(item) {
+        var endDate = self.parseLocalDate(item.end_date || item.start_date);
+        if (endDate) endDate.setHours(23, 59, 59, 999);
+        return endDate && endDate >= today;
+      });
+
+      if (!filtered.length) {
+        container.innerHTML = '<p class="text-muted">No upcoming availability entries</p>';
+        return;
+      }
+
+      var sorted = filtered.sort(function(a, b) {
+        return self.parseLocalDate(a.start_date) - self.parseLocalDate(b.start_date);
       });
 
       var self = this;
@@ -3220,12 +4056,22 @@
           recurrenceHtml = '<span class="recurrence-icon" title="' + recLabel + '">↻</span>';
         }
 
-        return '<div class="availability-item">' +
+        // Notes display (for non-holiday items that have notes)
+        var notesHtml = '';
+        if (!isHoliday && item.notes) {
+          notesHtml = '<span class="avail-notes">' + item.notes + '</span>';
+        }
+
+        // Make clickable for editing (not holidays)
+        var clickAttr = !isHoliday ? ' onclick="Team.editAvailability(\'' + item.availability_id + '\')" style="cursor: pointer;"' : '';
+
+        return '<div class="availability-item"' + clickAttr + '>' +
           '<span class="avail-type-badge ' + typeClass + '">' + typeLabel + '</span>' +
           '<span class="avail-name">' + nameDisplay + '</span>' +
           partnerHtml +
           '<span class="avail-dates">' + dateStr + recurrenceHtml + '</span>' +
           (item.location && !isOfficeWide ? '<span class="avail-location">(' + item.location + ')</span>' : '') +
+          notesHtml +
         '</div>';
       }).join('');
 
@@ -3404,10 +4250,11 @@
 
       // Count people out this week
       var today = new Date();
+      var self = this;
       var outThisWeek = this.availability.filter(function(a) {
-        var start = new Date(a.start_date);
-        var end = new Date(a.end_date);
-        return start <= today && end >= today;
+        var start = self.parseLocalDate(a.start_date);
+        var end = self.parseLocalDate(a.end_date);
+        return start && end && start <= today && end >= today;
       });
       document.getElementById('statOutThisWeek').textContent = outThisWeek.length;
 
@@ -3421,11 +4268,13 @@
     },
 
     populatePersonSelect: function() {
-      // Availability person select
+      // Availability person select - display first names, use contact_id as value
       var select = document.getElementById('availPersonSelect');
       var options = '<option value="">Select person...</option>';
       this.members.forEach(function(m) {
-        options += '<option value="' + m.contact_id + '">' + m.first_name + ' ' + m.last_name + '</option>';
+        var contactId = m.contact_id ? String(m.contact_id) : '';
+        var displayName = m.first_name || (m.first_name + ' ' + m.last_name).trim();
+        options += '<option value="' + contactId + '">' + displayName + '</option>';
       });
       select.innerHTML = options;
 
@@ -3451,7 +4300,14 @@
     },
 
     showAddAvailabilityModal: function() {
+      // Clear editing state
+      this.editingAvailabilityId = null;
       document.getElementById('availabilityForm').reset();
+      // Update modal title
+      document.querySelector('#addAvailabilityModal .modal-header h3').textContent = 'Add Availability Entry';
+      // Hide delete button
+      var deleteBtn = document.getElementById('deleteAvailabilityBtn');
+      if (deleteBtn) deleteBtn.style.display = 'none';
       // Reset form field visibility
       document.getElementById('personSelectGroup').classList.remove('hidden');
       document.getElementById('availPersonSelect').setAttribute('required', 'required');
@@ -3462,6 +4318,99 @@
       document.querySelectorAll('#partnerCheckboxes input[type="checkbox"]').forEach(function(cb) {
         cb.checked = false;
       });
+      // Reset save button state
+      document.getElementById('saveAvailabilityBtn').classList.remove('loading');
+      document.getElementById('addAvailabilityModal').classList.add('show');
+    },
+
+    editAvailability: function(availabilityId) {
+      var item = this.availability.find(function(a) {
+        return a.availability_id === availabilityId;
+      });
+      if (!item) {
+        alert('Availability entry not found');
+        return;
+      }
+
+      // Set editing state
+      this.editingAvailabilityId = availabilityId;
+
+      // Update modal title
+      document.querySelector('#addAvailabilityModal .modal-header h3').textContent = 'Edit Availability Entry';
+
+      // Show delete button
+      var deleteBtn = document.getElementById('deleteAvailabilityBtn');
+      if (deleteBtn) deleteBtn.style.display = '';
+
+      // Reset form first
+      document.getElementById('availabilityForm').reset();
+
+      // Set form values - try multiple matching strategies
+      var personSelect = document.getElementById('availPersonSelect');
+      var contactIdStr = item.contact_id ? String(item.contact_id) : '';
+      var contactName = item.contact_name || '';
+      var matched = false;
+
+      // Strategy 1: Try direct value match on contact_id
+      personSelect.value = contactIdStr;
+      if (personSelect.value === contactIdStr && contactIdStr) {
+        matched = true;
+      }
+
+      // Strategy 2: Iterate options to find contact_id match (handles type mismatches)
+      if (!matched && contactIdStr) {
+        for (var i = 0; i < personSelect.options.length; i++) {
+          if (String(personSelect.options[i].value) === contactIdStr) {
+            personSelect.selectedIndex = i;
+            matched = true;
+            break;
+          }
+        }
+      }
+
+      // Strategy 3: Fall back to matching by contact_name (or first name) if contact_id didn't match
+      if (!matched && contactName) {
+        var nameParts = contactName.trim().split(' ');
+        var firstName = nameParts[0] || '';
+        for (var i = 0; i < personSelect.options.length; i++) {
+          var optionText = personSelect.options[i].textContent.trim();
+          // Try exact match first, then first name match
+          if (optionText === contactName.trim() || optionText === firstName) {
+            personSelect.selectedIndex = i;
+            matched = true;
+            break;
+          }
+        }
+      }
+
+      // Log warning if no match found
+      if (!matched && (contactIdStr || contactName)) {
+        console.warn('Could not match availability to team member. contact_id:', contactIdStr, 'contact_name:', contactName);
+      }
+
+      document.getElementById('availTypeSelect').value = item.type || '';
+      document.getElementById('availHolidayName').value = item.holiday_name || '';
+      document.getElementById('availStartDate').value = item.start_date ? item.start_date.split('T')[0] : '';
+      document.getElementById('availEndDate').value = item.end_date ? item.end_date.split('T')[0] : '';
+      document.getElementById('availRecurrence').value = item.recurrence || 'none';
+      document.getElementById('availLocation').value = item.location || '';
+      document.getElementById('availNotes').value = item.notes || '';
+
+      // Set partner checkboxes for holidays
+      if (item.partners) {
+        var partners = item.partners.split(',').map(function(p) { return p.trim(); });
+        document.querySelectorAll('#partnerCheckboxes input[type="checkbox"]').forEach(function(cb) {
+          cb.checked = partners.indexOf(cb.value) !== -1;
+        });
+      } else {
+        document.querySelectorAll('#partnerCheckboxes input[type="checkbox"]').forEach(function(cb) {
+          cb.checked = false;
+        });
+      }
+
+      // Toggle form fields based on type
+      this.toggleFormFields();
+
       // Reset save button state
       document.getElementById('saveAvailabilityBtn').classList.remove('loading');
       document.getElementById('addAvailabilityModal').classList.add('show');
@@ -3566,7 +4515,7 @@
       var memberAvail = this.availability.filter(function(a) {
         return a.contact_id === contactId;
       }).sort(function(a, b) {
-        return new Date(a.start_date) - new Date(b.start_date);
+        return Team.parseLocalDate(a.start_date) - Team.parseLocalDate(b.start_date);
       });
 
       var availListEl = document.getElementById('memberAvailabilityList');
@@ -3630,7 +4579,7 @@
 
       var data = {
         contact_id: isOfficeWide ? '' : personSelect.value,
-        contact_name: isOfficeWide ? '' : (selectedOption ? selectedOption.textContent : ''),
+        contact_name: isOfficeWide ? '' : (selectedOption ? selectedOption.textContent.trim() : ''),
         type: selectedType,
         start_date: document.getElementById('availStartDate').value,
         end_date: document.getElementById('availEndDate').value,
@@ -3641,18 +4590,71 @@
         notes: document.getElementById('availNotes').value
       };
 
+      var self = this;
+
+      // Check if editing existing entry or creating new
+      if (this.editingAvailabilityId) {
+        google.script.run
+          .withSuccessHandler(function(result) {
+            saveBtn.classList.remove('loading');
+            if (result && result.success) {
+              self.editingAvailabilityId = null;
+              Team.closeModal('addAvailabilityModal');
+              Team.loadData();
+            } else {
+              alert('Failed to update: ' + (result && result.error ? result.error : 'Unknown error'));
+            }
+          })
+          .withFailureHandler(function(error) {
+            saveBtn.classList.remove('loading');
+            handleError(error);
+            alert('Failed to update: ' + (error.message || error));
+          })
+          .updateAvailability(this.editingAvailabilityId, data);
+      } else {
+        google.script.run
+          .withSuccessHandler(function() {
+            saveBtn.classList.remove('loading');
+            Team.closeModal('addAvailabilityModal');
+            Team.loadData();
+          })
+          .withFailureHandler(function(error) {
+            saveBtn.classList.remove('loading');
+            handleError(error);
+            alert('Failed to save: ' + (error.message || error));
+          })
+          .addAvailability(data);
+      }
+    },
+
+    deleteAvailability: function() {
+      if (!this.editingAvailabilityId) return;
+
+      if (!confirm('Are you sure you want to delete this availability entry?')) {
+        return;
+      }
+
+      var saveBtn = document.getElementById('saveAvailabilityBtn');
+      saveBtn.classList.add('loading');
+      var self = this;
+
       google.script.run
-        .withSuccessHandler(function() {
+        .withSuccessHandler(function(result) {
           saveBtn.classList.remove('loading');
-          Team.closeModal('addAvailabilityModal');
-          Team.loadData();
+          if (result && result.success) {
+            self.editingAvailabilityId = null;
+            Team.closeModal('addAvailabilityModal');
+            Team.loadData();
+          } else {
+            alert('Failed to delete: ' + (result && result.error ? result.error : 'Unknown error'));
+          }
         })
         .withFailureHandler(function(error) {
           saveBtn.classList.remove('loading');
           handleError(error);
-          alert('Failed to save: ' + (error.message || error));
+          alert('Failed to delete: ' + (error.message || error));
         })
-        .addAvailability(data);
+        .deleteAvailability(this.editingAvailabilityId);
     },
 
     saveMeeting: function() {
@@ -4086,6 +5088,598 @@
         })
         .withFailureHandler(handleError)
         .deleteParkingLotItem(Team.currentPLItem.item_id);
+    },
+
+    // ============================================
+    // ACTIONS FUNCTIONS
+    // ============================================
+
+    loadActions: function() {
+      var assigneeView = document.getElementById('assignee-view');
+      if (assigneeView) {
+        assigneeView.innerHTML = '<div class="loading-state"><span class="loading-spinner"></span><span>Loading actions...</span></div>';
+      }
+
+      google.script.run
+        .withSuccessHandler(function(actions) {
+          Team.actionsData = actions || [];
+          Team.filteredActions = Team.actionsData;
+          Team.populateSolutionFilter();
+          Team.applyActionsFilters();
+          Team.populateTeamMembersList();
+        })
+        .withFailureHandler(function(err) {
+          console.error('Failed to load actions:', err);
+          var assigneeView = document.getElementById('assignee-view');
+          if (assigneeView) {
+            assigneeView.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>Failed to load actions</p></div>';
+          }
+        })
+        .getAllActions();
+    },
+
+    populateSolutionFilter: function() {
+      var select = document.getElementById('filter-solution');
+      if (!select) return;
+
+      var solutions = {};
+      Team.actionsData.forEach(function(action) {
+        if (action.solution_id && action.solution_id.trim()) {
+          solutions[action.solution_id.trim()] = true;
+        }
+      });
+
+      select.innerHTML = '<option value="">All Solutions</option>';
+      Object.keys(solutions).sort().forEach(function(solution) {
+        var option = document.createElement('option');
+        option.value = solution;
+        option.textContent = solution;
+        select.appendChild(option);
+      });
+    },
+
+    populateTeamMembersList: function() {
+      var datalist = document.getElementById('team-members-list');
+      if (!datalist) return;
+
+      datalist.innerHTML = '';
+      Team.members.forEach(function(m) {
+        var option = document.createElement('option');
+        option.value = m.first_name || '';
+        datalist.appendChild(option);
+      });
+    },
+
+    setActionsSubview: function(subview) {
+      Team.actionsSubview = subview;
+
+      document.querySelectorAll('.actions-view-toggle .view-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.subview === subview);
+      });
+
+      var assigneeView = document.getElementById('assignee-view');
+      var statusView = document.getElementById('status-view');
+      if (assigneeView) assigneeView.classList.toggle('active', subview === 'assignee');
+      if (statusView) statusView.classList.toggle('active', subview === 'status');
+
+      Team.renderActions();
+    },
+
+    setActionsFilter: function(filter) {
+      Team.actionsFilter = filter;
+
+      document.querySelectorAll('.filter-chips .chip').forEach(function(chip) {
+        chip.classList.toggle('active', chip.dataset.filter === filter);
+      });
+
+      Team.applyActionsFilters();
+    },
+
+    applyActionsFilters: function() {
+      var searchEl = document.getElementById('action-search');
+      var sourceEl = document.getElementById('filter-source');
+      var solutionEl = document.getElementById('filter-solution');
+      if (!searchEl || !sourceEl || !solutionEl) return;
+
+      var search = (searchEl.value || '').toLowerCase();
+      var source = sourceEl.value;
+      var solution = solutionEl.value;
+
+      Team.filteredActions = Team.actionsData.filter(function(action) {
+        var status = Team.normalizeActionStatus(action.status);
+        if (Team.actionsFilter === 'open' && status === 'done') return false;
+        if (Team.actionsFilter === 'done' && status !== 'done') return false;
+
+        if (source && action.category !== source) return false;
+        if (solution && action.solution_id !== solution) return false;
+
+        if (search) {
+          var text = [action.task, action.assigned_to, action.source_document, action.solution_id].join(' ').toLowerCase();
+          if (text.indexOf(search) === -1) return false;
+        }
+
+        return true;
+      });
+
+      Team.renderActions();
+      Team.showActionsEmpty(Team.filteredActions.length === 0);
+    },
+
+    renderActions: function() {
+      if (Team.actionsSubview === 'assignee') {
+        Team.renderAssigneeView();
+      } else {
+        Team.renderStatusView();
+      }
+    },
+
+    renderAssigneeView: function() {
+      var container = document.getElementById('assignee-view');
+      if (!container) return;
+      container.innerHTML = '';
+
+      // Group by assignee
+      var byAssignee = {};
+      Team.filteredActions.forEach(function(action) {
+        var owner = action.assigned_to || 'Unassigned';
+        if (!byAssignee[owner]) byAssignee[owner] = [];
+        byAssignee[owner].push(action);
+      });
+
+      // Sort assignees by count
+      var assignees = Object.keys(byAssignee).sort(function(a, b) {
+        var diff = byAssignee[b].length - byAssignee[a].length;
+        if (diff !== 0) return diff;
+        return a.localeCompare(b);
+      });
+
+      assignees.forEach(function(assignee) {
+        var actions = byAssignee[assignee];
+        var initials = assignee.split(' ').map(function(n) { return n[0] || ''; }).join('').toUpperCase().substring(0, 2) || '?';
+        var isCollapsed = Team.collapsedAssignees && Team.collapsedAssignees[assignee];
+
+        var section = document.createElement('div');
+        section.className = 'assignee-section' + (isCollapsed ? ' collapsed' : '');
+
+        var header = document.createElement('div');
+        header.className = 'assignee-header';
+        header.onclick = function() { Team.toggleAssignee(assignee, section); };
+
+        header.innerHTML = '<span class="material-icons assignee-toggle">expand_more</span>' +
+          '<div class="assignee-avatar">' + initials + '</div>' +
+          '<span class="assignee-name">' + escapeHtml(assignee) + '</span>' +
+          '<span class="assignee-count">' + actions.length + '</span>';
+
+        section.appendChild(header);
+
+        var actionsDiv = document.createElement('div');
+        actionsDiv.className = 'assignee-actions';
+
+        actions.forEach(function(action) {
+          var status = Team.normalizeActionStatus(action.status);
+          var solution = action.solution_id || action.category || '';
+          var isSolution = solution && solution !== action.category;
+
+          var row = document.createElement('div');
+          row.className = 'action-row';
+          row.onclick = function(e) {
+            e.stopPropagation();
+            Team.showActionDetail(action.action_id);
+          };
+
+          row.innerHTML = '<div class="action-task">' + escapeHtml(action.task || '') + '</div>' +
+            '<div class="action-row-meta">' +
+            '<span class="action-status"><span class="status-dot ' + status.replace('_', '-') + '"></span>' +
+            '<span class="status-text">' + Team.formatActionStatus(status) + '</span></span>' +
+            (solution ? '<span class="action-solution' + (isSolution ? ' is-solution' : '') + '">' + escapeHtml(solution) + '</span>' : '') +
+            (action.source_date ? '<span class="action-source">' + action.source_date + '</span>' : '') +
+            '</div>';
+
+          actionsDiv.appendChild(row);
+        });
+
+        section.appendChild(actionsDiv);
+        container.appendChild(section);
+      });
+    },
+
+    toggleAssignee: function(assignee, section) {
+      if (!Team.collapsedAssignees) Team.collapsedAssignees = {};
+      Team.collapsedAssignees[assignee] = !Team.collapsedAssignees[assignee];
+      section.classList.toggle('collapsed');
+    },
+
+    renderStatusView: function() {
+      var statuses = ['pending', 'not_started', 'in_progress', 'done'];
+
+      statuses.forEach(function(status) {
+        var container = document.getElementById('cards-' + status.replace('_', '-'));
+        var countEl = document.getElementById('count-' + status.replace('_', '-'));
+        if (!container || !countEl) return;
+
+        var actions = Team.filteredActions.filter(function(a) {
+          return Team.normalizeActionStatus(a.status) === status;
+        });
+
+        countEl.textContent = actions.length;
+        container.innerHTML = '';
+
+        actions.forEach(function(action) {
+          var solution = action.solution_id || action.category || '';
+          var isSolution = solution && solution !== action.category;
+
+          var card = document.createElement('div');
+          card.className = 'kanban-card';
+          card.onclick = function() { Team.showActionDetail(action.action_id); };
+          card.innerHTML = '<div class="task">' + escapeHtml(action.task || '') + '</div>' +
+            '<div class="meta">' +
+            '<span class="owner">' + escapeHtml(action.assigned_to || 'Unassigned') + '</span>' +
+            '<span class="action-solution' + (isSolution ? ' is-solution' : '') + '" style="font-size:10px;padding:2px 6px;">' + escapeHtml(solution) + '</span>' +
+            '</div>';
+          container.appendChild(card);
+        });
+      });
+    },
+
+    showActionDetail: function(actionId) {
+      var action = Team.actionsData.find(function(a) { return a.action_id === actionId; });
+      if (!action) return;
+
+      Team.currentAction = action;
+      var status = Team.normalizeActionStatus(action.status);
+
+      var container = document.getElementById('drawer-body');
+      container.innerHTML = '';
+
+      // Task
+      var taskField = document.createElement('div');
+      taskField.className = 'detail-field';
+      taskField.innerHTML = '<label>Task</label><div class="value">' + escapeHtml(action.task || '-') + '</div>';
+      container.appendChild(taskField);
+
+      // Assigned To
+      var assigneeField = document.createElement('div');
+      assigneeField.className = 'detail-field';
+      assigneeField.innerHTML = '<label>Assigned To</label>' +
+        '<div class="value assignee-field"><span class="current-assignee">' + escapeHtml(action.assigned_to || 'Unassigned') + '</span>' +
+        '<button class="btn-reassign" onclick="Team.showReassign()" title="Reassign"><span class="material-icons">edit</span></button></div>';
+      container.appendChild(assigneeField);
+
+      // Reassign form (hidden)
+      var reassignDiv = document.createElement('div');
+      reassignDiv.id = 'reassign-form';
+      reassignDiv.className = 'reassign-form';
+      reassignDiv.style.display = 'none';
+      reassignDiv.innerHTML = '<input type="text" id="reassign-input" list="drawer-team-list" placeholder="Select team member">' +
+        '<datalist id="drawer-team-list"></datalist>' +
+        '<div class="reassign-buttons">' +
+        '<button class="btn btn-secondary btn-sm" onclick="Team.cancelReassign()">Cancel</button>' +
+        '<button class="btn btn-primary btn-sm" id="reassign-btn" onclick="Team.confirmReassign()">Reassign</button>' +
+        '</div>';
+      container.appendChild(reassignDiv);
+
+      // Populate datalist with first names only
+      var drawerDatalist = reassignDiv.querySelector('#drawer-team-list');
+      Team.members.forEach(function(m) {
+        var opt = document.createElement('option');
+        opt.value = m.first_name || '';
+        drawerDatalist.appendChild(opt);
+      });
+
+      // Status
+      var statusField = document.createElement('div');
+      statusField.className = 'detail-field';
+      statusField.innerHTML = '<label>Status</label><div class="value">' + Team.formatActionStatus(status) + '</div>';
+      container.appendChild(statusField);
+
+      // Solution
+      var solution = action.solution_id || action.category || '';
+      var solutionField = document.createElement('div');
+      solutionField.className = 'detail-field';
+      solutionField.innerHTML = '<label>Solution/Source</label><div class="value">' + escapeHtml(solution) + '</div>';
+      container.appendChild(solutionField);
+
+      // Source document
+      if (action.source_document || action.source_url) {
+        var sourceField = document.createElement('div');
+        sourceField.className = 'detail-field';
+        var sourceHtml = '<label>Source</label><div class="value">';
+        if (action.source_url) {
+          sourceHtml += '<a href="' + escapeHtml(action.source_url) + '" target="_blank">' + escapeHtml(action.source_document || 'View Source') + '</a>';
+        } else {
+          sourceHtml += escapeHtml(action.source_document);
+        }
+        if (action.source_date) {
+          sourceHtml += ' <span style="color:var(--color-text-muted);">(' + action.source_date + ')</span>';
+        }
+        sourceHtml += '</div>';
+        sourceField.innerHTML = sourceHtml;
+        container.appendChild(sourceField);
+      }
+
+      // Notes
+      if (action.notes) {
+        var notesField = document.createElement('div');
+        notesField.className = 'detail-field';
+        notesField.innerHTML = '<label>Notes</label><div class="value" style="white-space:pre-wrap;">' + escapeHtml(action.notes) + '</div>';
+        container.appendChild(notesField);
+      }
+
+      // Status buttons
+      var btnsDiv = document.createElement('div');
+      btnsDiv.className = 'status-buttons';
+      ['pending', 'not_started', 'in_progress', 'done'].forEach(function(s) {
+        var btn = document.createElement('button');
+        btn.className = 'status-btn' + (status === s ? ' active' : '');
+        btn.textContent = Team.formatActionStatus(s);
+        btn.onclick = function() { Team.updateActionStatus(s); };
+        btnsDiv.appendChild(btn);
+      });
+      container.appendChild(btnsDiv);
+
+      // Edit and Delete buttons
+      var actionBtns = document.createElement('div');
+      actionBtns.className = 'action-buttons';
+      actionBtns.style.cssText = 'display:flex; gap:var(--space-sm); margin-top:var(--space-md); padding-top:var(--space-md); border-top:1px solid var(--color-border);';
+
+      var editBtn = document.createElement('button');
+      editBtn.className = 'btn btn-secondary btn-sm';
+      editBtn.innerHTML = '<span class="material-icons">edit</span> Edit';
+      editBtn.onclick = function() { Team.editAction(action.action_id); };
+      actionBtns.appendChild(editBtn);
+
+      var deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn btn-danger btn-sm';
+      deleteBtn.innerHTML = '<span class="material-icons">delete</span> Delete';
+      deleteBtn.onclick = function() { Team.deleteAction(action.action_id); };
+      actionBtns.appendChild(deleteBtn);
+
+      container.appendChild(actionBtns);
+
+      document.getElementById('action-drawer').classList.add('active');
+    },
+
+    closeActionDrawer: function() {
+      document.getElementById('action-drawer').classList.remove('active');
+      Team.currentAction = null;
+    },
+
+    updateActionStatus: function(newStatus) {
+      if (!Team.currentAction) return;
+
+      var buttons = document.querySelectorAll('.status-btn');
+      buttons.forEach(function(btn) { btn.disabled = true; });
+
+      google.script.run
+        .withSuccessHandler(function() {
+          Team.currentAction.status = newStatus;
+          buttons.forEach(function(btn) {
+            btn.disabled = false;
+            btn.classList.remove('active');
+            if (btn.textContent === Team.formatActionStatus(newStatus)) {
+              btn.classList.add('active', 'success');
+            }
+          });
+          setTimeout(function() {
+            Team.closeActionDrawer();
+            Team.loadActions();
+          }, 600);
+        })
+        .withFailureHandler(function(err) {
+          buttons.forEach(function(btn) { btn.disabled = false; });
+          alert('Failed to update: ' + err);
+        })
+        .updateActionStatus(Team.currentAction.action_id, newStatus);
+    },
+
+    editAction: function(actionId) {
+      var action = Team.actionsData.find(function(a) { return a.action_id === actionId; });
+      if (!action) return;
+
+      Team.editingActionId = actionId;
+      Team.closeActionDrawer();
+
+      // Populate the add modal with existing data
+      document.getElementById('addActionModal').querySelector('.modal-header h3').textContent = 'Edit Action';
+      document.getElementById('add-task').value = action.task || '';
+      document.getElementById('add-category').value = action.category || 'MO';
+      document.getElementById('add-assigned').value = action.assigned_to || '';
+      document.getElementById('add-due').value = action.due_date || '';
+      document.getElementById('add-priority').value = action.priority || 'medium';
+      document.getElementById('add-solution').value = action.solution_id || '';
+      document.getElementById('add-notes').value = action.notes || '';
+
+      // Change button text
+      var btn = document.getElementById('add-submit-btn');
+      btn.innerHTML = '<span class="material-icons">save</span> Save Changes';
+
+      document.getElementById('addActionModal').classList.add('show');
+    },
+
+    deleteAction: function(actionId) {
+      if (!confirm('Are you sure you want to delete this action? This cannot be undone.')) {
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result && result.success) {
+            Team.closeActionDrawer();
+            Team.loadActions();
+          } else {
+            alert('Failed to delete: ' + (result && result.error ? result.error : 'Unknown error'));
+          }
+        })
+        .withFailureHandler(function(err) {
+          alert('Failed to delete action: ' + err);
+        })
+        .deleteAction(actionId);
+    },
+
+    showReassign: function() {
+      var form = document.getElementById('reassign-form');
+      if (form) {
+        form.style.display = 'block';
+        document.getElementById('reassign-input').value = '';
+        document.getElementById('reassign-input').focus();
+      }
+    },
+
+    cancelReassign: function() {
+      var form = document.getElementById('reassign-form');
+      if (form) form.style.display = 'none';
+    },
+
+    confirmReassign: function() {
+      if (!Team.currentAction) return;
+
+      var newAssignee = document.getElementById('reassign-input').value.trim();
+      if (!newAssignee) {
+        alert('Please select or enter a team member name');
+        return;
+      }
+
+      var btn = document.getElementById('reassign-btn');
+      btn.disabled = true;
+      btn.textContent = 'Reassigning...';
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            btn.textContent = 'Done!';
+            Team.currentAction.assigned_to = newAssignee;
+            setTimeout(function() {
+              Team.cancelReassign();
+              btn.disabled = false;
+              btn.textContent = 'Reassign';
+              var assigneeSpan = document.querySelector('.current-assignee');
+              if (assigneeSpan) assigneeSpan.textContent = newAssignee;
+              Team.loadActions();
+            }, 600);
+          } else {
+            btn.disabled = false;
+            btn.textContent = 'Reassign';
+            alert(result.message || 'Failed to reassign');
+          }
+        })
+        .withFailureHandler(function(err) {
+          btn.disabled = false;
+          btn.textContent = 'Reassign';
+          alert('Failed to reassign: ' + err);
+        })
+        .assignAction(Team.currentAction.action_id, newAssignee, null, false);
+    },
+
+    showAddActionModal: function() {
+      Team.editingActionId = null;
+      document.getElementById('add-action-form').reset();
+      document.getElementById('addActionModal').querySelector('.modal-header h3').textContent = 'Add Action';
+      document.getElementById('add-submit-btn').innerHTML = '<span class="material-icons">add</span> Add Action';
+      document.getElementById('addActionModal').classList.add('show');
+      document.getElementById('add-task').focus();
+    },
+
+    submitAction: function(e) {
+      if (e) e.preventDefault();
+
+      var task = document.getElementById('add-task').value.trim();
+      var assigned = document.getElementById('add-assigned').value.trim();
+      var category = document.getElementById('add-category').value;
+      var solution = document.getElementById('add-solution').value.trim();
+      var priority = document.getElementById('add-priority').value;
+      var dueDate = document.getElementById('add-due').value;
+      var notes = document.getElementById('add-notes').value.trim();
+
+      if (!task || !assigned) {
+        alert('Task and Assigned To are required');
+        return false;
+      }
+
+      var btn = document.getElementById('add-submit-btn');
+      btn.disabled = true;
+      var isEditing = !!Team.editingActionId;
+      btn.innerHTML = '<span class="loading-spinner-sm"></span> ' + (isEditing ? 'Saving...' : 'Adding...');
+
+      var actionData = {
+        task: task,
+        assigned_to: assigned,
+        category: category,
+        solution_id: solution || '',
+        priority: priority,
+        due_date: dueDate,
+        notes: notes
+      };
+
+      if (isEditing) {
+        // Update existing action
+        google.script.run
+          .withSuccessHandler(function() {
+            btn.innerHTML = '<span class="material-icons">check</span> Saved!';
+            setTimeout(function() {
+              Team.closeModal('addActionModal');
+              btn.disabled = false;
+              btn.innerHTML = '<span class="material-icons">add</span> Add Action';
+              Team.editingActionId = null;
+              Team.loadActions();
+            }, 600);
+          })
+          .withFailureHandler(function(err) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">save</span> Save Changes';
+            alert('Failed to update action: ' + err);
+          })
+          .updateAction(Team.editingActionId, actionData);
+      } else {
+        // Create new action
+        actionData.status = 'not_started';
+        actionData.source_document = 'Dashboard';
+        actionData.source_date = new Date().toISOString().split('T')[0];
+
+        google.script.run
+          .withSuccessHandler(function() {
+            btn.innerHTML = '<span class="material-icons">check</span> Added!';
+            setTimeout(function() {
+              Team.closeModal('addActionModal');
+              btn.disabled = false;
+              btn.innerHTML = '<span class="material-icons">add</span> Add Action';
+              Team.loadActions();
+            }, 600);
+          })
+          .withFailureHandler(function(err) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">add</span> Add Action';
+            alert('Failed to add action: ' + err);
+          })
+          .createAction(actionData);
+      }
+
+      return false;
+    },
+
+    normalizeActionStatus: function(status) {
+      if (!status) return 'not_started';
+      var s = status.toLowerCase().trim().replace(' ', '_');
+      if (s === 'done') return 'done';
+      if (s === 'in_progress') return 'in_progress';
+      if (s === 'pending') return 'pending';
+      return 'not_started';
+    },
+
+    formatActionStatus: function(status) {
+      var map = {
+        'pending': 'Pending',
+        'not_started': 'Not Started',
+        'in_progress': 'In Progress',
+        'done': 'Done'
+      };
+      return map[status] || status;
+    },
+
+    showActionsEmpty: function(show) {
+      var emptyEl = document.getElementById('actions-empty');
+      var contentEl = document.querySelector('.actions-content');
+      if (emptyEl) emptyEl.style.display = show ? 'flex' : 'none';
+      if (contentEl) contentEl.style.display = show ? 'none' : 'block';
     },
 
   };

@@ -34,6 +34,10 @@
           <span>Messages</span>
         </button>
       </div>
+      <button class="btn btn-primary" onclick="COMMS.showCreateStoryModal()">
+        <span class="material-icons">add</span>
+        New Story
+      </button>
     </div>
   </div>
 
@@ -73,82 +77,80 @@
   <div class="comms-content">
     <!-- Pipeline View -->
     <div class="view-panel active" id="pipelineView">
-      <!-- Top Panels: Opportunities + Coverage Gaps -->
-      <div class="top-panels">
-        <!-- Story Opportunities -->
-        <div class="panel opportunities-panel">
-          <div class="panel-header">
-            <h3>Story Opportunities</h3>
-            <button class="btn btn-sm btn-secondary" onclick="COMMS.refreshOpportunities()">
-              <span class="material-icons">refresh</span>
-            </button>
+      <div class="pipeline-layout">
+        <!-- Collapsible Sidebar: Opportunities + Coverage Gaps -->
+        <div class="insights-sidebar" id="insightsSidebar">
+          <div class="sidebar-toggle" onclick="COMMS.toggleSidebar()">
+            <span class="material-icons" id="sidebarToggleIcon">chevron_left</span>
           </div>
-          <div class="panel-content" id="opportunitiesPanel">
-            <div class="loading-state">
-              <span class="loading-spinner"></span>
+          <div class="sidebar-content">
+            <!-- Story Opportunities -->
+            <div class="sidebar-section">
+              <div class="sidebar-section-header">
+                <h4>Story Opportunities</h4>
+              </div>
+              <div class="sidebar-section-content" id="opportunitiesPanel">
+                <div class="loading-state">
+                  <span class="loading-spinner"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Coverage Gaps -->
+            <div class="sidebar-section">
+              <div class="sidebar-section-header">
+                <h4>Coverage Gaps</h4>
+                <button class="btn btn-sm btn-icon" onclick="COMMS.setView('coverage')" title="Full View">
+                  <span class="material-icons">fullscreen</span>
+                </button>
+              </div>
+              <div class="sidebar-section-content" id="coverageGapsPanel">
+                <div class="loading-state">
+                  <span class="loading-spinner"></span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Coverage Gaps -->
-        <div class="panel coverage-panel">
-          <div class="panel-header">
-            <h3>Coverage Gaps</h3>
-            <button class="btn btn-sm btn-secondary" onclick="COMMS.setView('coverage')">
-              <span class="material-icons">fullscreen</span>
-            </button>
-          </div>
-          <div class="panel-content" id="coverageGapsPanel">
-            <div class="loading-state">
-              <span class="loading-spinner"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-
+        <!-- Main Pipeline Area -->
+        <div class="pipeline-main">
       <!-- Story Pipeline -->
       <div class="pipeline-section">
-        <div class="section-header">
-          <h2>Story Pipeline</h2>
-          <div class="pipeline-filters">
-            <div class="header-search" style="margin-right: var(--space-sm);">
-              <span class="material-icons">search</span>
-              <input type="text" id="searchInput" placeholder="Search stories..." oninput="COMMS.applyFilters()">
+        <!-- Collapsible Search/Filter Bar -->
+        <div class="pipeline-search-bar" id="pipelineSearchBar">
+          <button class="search-toggle-btn" onclick="COMMS.toggleSearchBar()" title="Search & Filter">
+            <span class="material-icons">search</span>
+          </button>
+          <div class="search-bar-content" id="searchBarContent">
+            <div class="search-input-wrapper">
+              <input type="text" id="searchInput" placeholder="Search stories..." oninput="COMMS.filterStories()">
             </div>
-            <select id="filterType" onchange="COMMS.applyFilters()">
+            <select id="filterType" onchange="COMMS.filterStories()">
               <option value="">All Types</option>
-              <option value="story">Impact Story</option>
+              <option value="press_release">Press Release</option>
               <option value="web_content">Web Content</option>
               <option value="social_media">Social Media</option>
+              <option value="nugget">Nugget</option>
               <option value="external_mention">External Mention</option>
-              <option value="nugget">Nugget Slide</option>
               <option value="key_date">Key Date</option>
             </select>
-            <select id="filterStatus" onchange="COMMS.applyFilters()">
-              <option value="">All Status</option>
-              <option value="idea">Idea</option>
-              <option value="researching">Researching</option>
-              <option value="drafting">Drafting</option>
-              <option value="review">Review</option>
-              <option value="published">Published</option>
-            </select>
-            <select id="filterChannel" onchange="COMMS.applyFilters()">
+            <select id="filterChannel" onchange="COMMS.filterStories()">
               <option value="">All Channels</option>
-              <option value="web">Web</option>
+              <option value="nasa_gov">nasa.gov</option>
               <option value="social">Social</option>
-              <option value="slide">Slide</option>
-              <option value="external">External</option>
-              <option value="newsletter">Newsletter</option>
+              <option value="internal">Internal</option>
+              <option value="media">Media</option>
             </select>
-            <button class="btn btn-primary btn-sm" onclick="COMMS.showCreateStoryModal()" style="margin-left: var(--space-sm);">
-              <span class="material-icons">add</span>
-              New Story
+            <button class="btn btn-sm btn-secondary" onclick="COMMS.clearFilters()" title="Clear filters">
+              <span class="material-icons">clear</span>
             </button>
           </div>
         </div>
+
         <div class="pipeline-board" id="pipelineBoard">
           <!-- Idea Column -->
-          <div class="pipeline-column" data-status="idea">
+          <div class="pipeline-column" data-status="idea" ondragover="COMMS.handleDragOver(event)" ondrop="COMMS.handleDrop(event, 'idea')" ondragleave="COMMS.handleDragLeave(event)">
             <div class="column-header">
               <span class="column-title">Idea</span>
               <span class="column-count" id="countIdea">0</span>
@@ -156,7 +158,7 @@
             <div class="column-cards" id="cardsIdea"></div>
           </div>
           <!-- Researching Column -->
-          <div class="pipeline-column" data-status="researching">
+          <div class="pipeline-column" data-status="researching" ondragover="COMMS.handleDragOver(event)" ondrop="COMMS.handleDrop(event, 'researching')" ondragleave="COMMS.handleDragLeave(event)">
             <div class="column-header">
               <span class="column-title">Researching</span>
               <span class="column-count" id="countResearching">0</span>
@@ -164,7 +166,7 @@
             <div class="column-cards" id="cardsResearching"></div>
           </div>
           <!-- Drafting Column -->
-          <div class="pipeline-column" data-status="drafting">
+          <div class="pipeline-column" data-status="drafting" ondragover="COMMS.handleDragOver(event)" ondrop="COMMS.handleDrop(event, 'drafting')" ondragleave="COMMS.handleDragLeave(event)">
             <div class="column-header">
               <span class="column-title">Drafting</span>
               <span class="column-count" id="countDrafting">0</span>
@@ -172,23 +174,37 @@
             <div class="column-cards" id="cardsDrafting"></div>
           </div>
           <!-- Review Column -->
-          <div class="pipeline-column" data-status="review">
+          <div class="pipeline-column" data-status="review" ondragover="COMMS.handleDragOver(event)" ondrop="COMMS.handleDrop(event, 'review')" ondragleave="COMMS.handleDragLeave(event)">
             <div class="column-header">
               <span class="column-title">Review</span>
               <span class="column-count" id="countReview">0</span>
             </div>
             <div class="column-cards" id="cardsReview"></div>
           </div>
-          <!-- Published Column -->
-          <div class="pipeline-column" data-status="published">
-            <div class="column-header">
-              <span class="column-title">Published</span>
-              <span class="column-count" id="countPublished">0</span>
+        </div>
+      </div><!-- /.pipeline-section -->
+        </div><!-- /.pipeline-main -->
+
+        <!-- Collapsible Published Panel -->
+        <div class="published-sidebar" id="publishedSidebar">
+          <div class="sidebar-toggle" onclick="COMMS.togglePublishedPanel()">
+            <span class="material-icons" id="publishedToggleIcon">chevron_right</span>
+          </div>
+          <div class="sidebar-content">
+            <div class="sidebar-section">
+              <div class="sidebar-section-header">
+                <h4>Published</h4>
+                <span class="column-count" id="countPublished">0</span>
+              </div>
+              <div class="sidebar-section-content published-cards" id="cardsPublished"
+                   ondragover="COMMS.handleDragOver(event)"
+                   ondrop="COMMS.handleDrop(event, 'published')"
+                   ondragleave="COMMS.handleDragLeave(event)">
+              </div>
             </div>
-            <div class="column-cards" id="cardsPublished"></div>
           </div>
         </div>
-      </div>
+      </div><!-- /.pipeline-layout -->
     </div>
 
     <!-- Coverage View -->
@@ -612,40 +628,57 @@
           </div>
         </div>
         <div class="form-group">
-          <label>Solutions (comma-separated)</label>
-          <input type="text" id="storySolutions" placeholder="HLS, OPERA DSWx, VLM" list="solutionsList">
-          <datalist id="solutionsList">
-            <option value="3D Topographic Mapping">
-            <option value="ADMG">
-            <option value="Air Quality">
-            <option value="DCD">
-            <option value="Evapotranspiration (ET)">
-            <option value="FIRMS-2G">
-            <option value="GABAN">
-            <option value="GACR">
-            <option value="GCC">
-            <option value="HLS">
-            <option value="HLS 10-m">
-            <option value="HLS-LL">
-            <option value="HLS-VI">
-            <option value="ICESat-2 - Lake Ice/Freeboard">
-            <option value="Internet of Animals">
-            <option value="LST Products">
-            <option value="MWOW">
-            <option value="NISAR Downlink">
-            <option value="NISAR SM">
-            <option value="OPERA">
-            <option value="OPERA DIST">
-            <option value="OPERA DSWx">
-            <option value="Pandora">
-            <option value="PBL">
-            <option value="Remote Sensing Training">
-            <option value="TEMPO Enhanced">
-            <option value="TEMPO NRT">
-            <option value="VLM">
-            <option value="Walk on">
-            <option value="Water Quality">
-          </datalist>
+          <label>Solution</label>
+          <select id="storySolution" required>
+            <option value="">-- Select Solution --</option>
+            <option value="3d-topo">3D Topographic Mapping</option>
+            <option value="admg">ADMG</option>
+            <option value="aq">Air Quality</option>
+            <option value="aq_gmao">Air Quality - GMAO</option>
+            <option value="aq_pandora">Pandora</option>
+            <option value="aq_pandora-ongoing">Pandora Ongoing</option>
+            <option value="aq_pm">Air Quality - PM</option>
+            <option value="csda">CSDA</option>
+            <option value="dcd">DCD</option>
+            <option value="firms-2g">FIRMS-2G</option>
+            <option value="gaban">GABAN</option>
+            <option value="gacr">GACR</option>
+            <option value="gcc">GCC</option>
+            <option value="global-et">Evapotranspiration (ET)</option>
+            <option value="grace-fo">GRACE-FO</option>
+            <option value="harm-tir">Harmonized TIR</option>
+            <option value="hls">HLS</option>
+            <option value="hls_10m">HLS 10-m</option>
+            <option value="hls_et">HLS ET</option>
+            <option value="hls_ll">HLS Low Latency</option>
+            <option value="hls_lst">HLS Land Surface Temperature</option>
+            <option value="hls_vi">HLS Vegetation Indices</option>
+            <option value="icesat">ICESat-2 Lake Ice/Freeboard</option>
+            <option value="ioa">Internet of Animals</option>
+            <option value="mo">MO General</option>
+            <option value="mo_assess">MO Assessment</option>
+            <option value="mo_comms">MO Comms</option>
+            <option value="mo_impl">MO Implementation</option>
+            <option value="mo_sep">MO SEP</option>
+            <option value="mwow">MWOW</option>
+            <option value="nga">NGA</option>
+            <option value="nisar_dl">NISAR Downlink</option>
+            <option value="nisar_hi_res">NISAR High Resolution</option>
+            <option value="nisar_sm">NISAR Soil Moisture</option>
+            <option value="opera">OPERA</option>
+            <option value="opera_disp">OPERA DISP</option>
+            <option value="opera_dist">OPERA DIST</option>
+            <option value="opera_dswx">OPERA DSWx</option>
+            <option value="pbl">PBL</option>
+            <option value="pbl_height">PBL Height</option>
+            <option value="sss">Sea Surface Salinity</option>
+            <option value="targeted_rs">Remote Sensing Training</option>
+            <option value="tempo_enhanced">TEMPO Enhanced</option>
+            <option value="tempo_nrt">TEMPO NRT</option>
+            <option value="vlm">VLM</option>
+            <option value="volcano">Volcano Monitoring</option>
+            <option value="water-quality">Water Quality</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Admin Priorities (check all that apply)</label>
@@ -973,6 +1006,241 @@
   .comms-viewer .pipeline-column { min-width: 200px; }
   .comms-viewer .column-header {
     border-top: 3px solid var(--color-comms);
+  }
+
+  /* Drag and drop styles */
+  .comms-viewer .story-card {
+    cursor: grab;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  }
+  .comms-viewer .story-card:active {
+    cursor: grabbing;
+  }
+  .comms-viewer .story-card.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+    box-shadow: var(--shadow-lg);
+  }
+  .comms-viewer .pipeline-column.drop-target {
+    background: rgba(233, 30, 99, 0.08);
+    border: 2px dashed var(--color-comms);
+  }
+  .comms-viewer .pipeline-column.drop-target .column-cards {
+    min-height: 100px;
+  }
+
+  /* Collapsible Sidebar Layout */
+  .pipeline-layout {
+    display: flex;
+    gap: var(--space-md);
+    height: 100%;
+  }
+  .insights-sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: width 0.3s ease, min-width 0.3s ease;
+    overflow: hidden;
+  }
+  .insights-sidebar.collapsed {
+    width: 40px;
+    min-width: 40px;
+  }
+  .insights-sidebar.collapsed .sidebar-content {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .sidebar-toggle {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    z-index: 1;
+    transition: transform 0.3s ease;
+  }
+  .sidebar-toggle:hover {
+    background: var(--color-border-light);
+  }
+  .insights-sidebar.collapsed .sidebar-toggle {
+    right: 8px;
+    transform: rotate(180deg);
+  }
+  .sidebar-content {
+    padding: var(--space-md);
+    padding-top: 40px;
+    overflow-y: auto;
+    flex: 1;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+  .sidebar-section {
+    margin-bottom: var(--space-md);
+  }
+  .sidebar-section:last-child {
+    margin-bottom: 0;
+  }
+  .sidebar-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .sidebar-section-header h4 {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-comms);
+  }
+  .sidebar-section-content {
+    max-height: 250px;
+    overflow-y: auto;
+  }
+  .pipeline-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Override pipeline-board to use 4 columns (Published is in sidebar) */
+  .comms-viewer .pipeline-board {
+    grid-template-columns: repeat(4, 1fr);
+    flex: 1;
+  }
+
+  /* Collapsible Search Bar */
+  .pipeline-search-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+    height: 36px;
+  }
+  .search-toggle-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+  .search-toggle-btn:hover {
+    background: var(--color-surface-alt);
+    color: var(--color-comms);
+    border-color: var(--color-comms);
+  }
+  .pipeline-search-bar.expanded .search-toggle-btn {
+    background: var(--color-comms);
+    color: white;
+    border-color: var(--color-comms);
+  }
+  .search-bar-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    overflow: hidden;
+    max-width: 0;
+    opacity: 0;
+    transition: max-width 0.3s ease, opacity 0.2s ease;
+  }
+  .pipeline-search-bar.expanded .search-bar-content {
+    max-width: 600px;
+    opacity: 1;
+  }
+  .search-input-wrapper {
+    position: relative;
+  }
+  .search-input-wrapper input {
+    width: 180px;
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+  }
+  .search-input-wrapper input:focus {
+    outline: none;
+    border-color: var(--color-comms);
+    box-shadow: 0 0 0 2px rgba(233, 30, 99, 0.1);
+  }
+  .search-bar-content select {
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    background: var(--color-surface);
+    cursor: pointer;
+  }
+  .search-bar-content select:focus {
+    outline: none;
+    border-color: var(--color-comms);
+  }
+  /* Published Sidebar (right side) */
+  .published-sidebar {
+    width: 250px;
+    min-width: 250px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: width 0.3s ease, min-width 0.3s ease;
+    overflow: hidden;
+  }
+  .published-sidebar.collapsed {
+    width: 40px;
+    min-width: 40px;
+  }
+  .published-sidebar.collapsed .sidebar-content {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .published-sidebar .sidebar-toggle {
+    left: 8px;
+    right: auto;
+  }
+  .published-sidebar.collapsed .sidebar-toggle {
+    transform: rotate(180deg);
+  }
+  .published-sidebar .sidebar-section-header {
+    border-bottom-color: var(--color-success);
+  }
+  .published-sidebar .sidebar-section-header h4 {
+    color: var(--color-success);
+  }
+  .published-sidebar .sidebar-section-content {
+    max-height: none;
+    flex: 1;
+  }
+  .published-cards {
+    min-height: 200px;
+    padding: var(--space-xs);
+    border-radius: var(--radius-sm);
+    transition: background 0.2s;
+  }
+  .published-cards.drop-target {
+    background: rgba(76, 175, 80, 0.08);
+    border: 2px dashed var(--color-success);
   }
 
   /* Comms story card header */
@@ -2329,8 +2597,25 @@
   }
 
   /* Responsive */
+  @media (max-width: 1400px) {
+    .comms-viewer .pipeline-layout {
+      flex-direction: column;
+    }
+    .comms-viewer .insights-sidebar,
+    .comms-viewer .published-sidebar {
+      width: 100%;
+      min-width: 100%;
+      max-height: 200px;
+    }
+    .comms-viewer .insights-sidebar.collapsed,
+    .comms-viewer .published-sidebar.collapsed {
+      width: 100%;
+      min-width: 100%;
+      max-height: 40px;
+    }
+  }
   @media (max-width: 1200px) {
-    .pipeline-board { grid-template-columns: repeat(3, 1fr); }
+    .comms-viewer .pipeline-board { grid-template-columns: repeat(2, 1fr); }
     .bottom-panels, .top-panels { grid-template-columns: 1fr; }
     .coverage-summary { grid-template-columns: 1fr; }
     .priorities-grid { grid-template-columns: repeat(2, 1fr); }
@@ -2340,7 +2625,7 @@
   }
   @media (max-width: 768px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
-    .pipeline-board { grid-template-columns: repeat(2, 1fr); }
+    .comms-viewer .pipeline-board { grid-template-columns: 1fr; }
     .form-row { grid-template-columns: 1fr; }
     .form-group-wide { grid-column: span 1; }
     .pipeline-filters { flex-wrap: wrap; }
@@ -2350,6 +2635,13 @@
     .modal-tabs { flex-wrap: wrap; }
     .prep-summary-stats { flex-direction: column; }
     .header-search input { width: 120px; }
+    .pipeline-search-bar.expanded .search-bar-content {
+      max-width: 100%;
+      flex-wrap: wrap;
+    }
+    .search-input-wrapper input {
+      width: 140px;
+    }
   }
 </style>
 
@@ -2506,19 +2798,23 @@ var COMMS = (function() {
     var typeName = typeNames[story.content_type] || 'Story';
 
     var channelIcons = {
-      'web': 'globe',
-      'social': 'share-2',
-      'slide': 'monitor',
-      'external': 'external-link',
+      'web': 'language',
+      'social': 'share',
+      'slide': 'slideshow',
+      'external': 'open_in_new',
       'newsletter': 'mail'
     };
-    var channelIcon = channelIcons[story.channel] || 'file-text';
+    var channelIcon = channelIcons[story.channel] || 'description';
 
     var dateStr = story.target_date ? formatDate(story.target_date) : (story.idea_date ? formatDate(story.idea_date) : '');
 
     var priorityClass = story.priority === 'high' ? 'priority-high' : (story.priority === 'low' ? 'priority-low' : '');
 
-    var html = '<div class="story-card ' + priorityClass + '" onclick="COMMS.showStoryDetail(\'' + escapeAttr(story.story_id) + '\')">';
+    var html = '<div class="story-card ' + priorityClass + '" draggable="true" ' +
+      'data-story-id="' + escapeAttr(story.story_id) + '" ' +
+      'ondragstart="COMMS.handleDragStart(event, \'' + escapeAttr(story.story_id) + '\')" ' +
+      'ondragend="COMMS.handleDragEnd(event)" ' +
+      'onclick="COMMS.showStoryDetail(\'' + escapeAttr(story.story_id) + '\')">';
     html += '<div class="card-header">';
     html += '<span class="card-type ' + typeClass + '">' + typeName + '</span>';
     if (dateStr) html += '<span class="card-date">' + dateStr + '</span>';
@@ -2550,7 +2846,7 @@ var COMMS = (function() {
 
     // Milestones
     opp.milestones.slice(0, 3).forEach(function(m) {
-      html += '<div class="opportunity-item" onclick="COMMS.createStoryFromOpportunity(\'milestone\', \'' + escapeAttr(m.solution_name) + '\')">';
+      html += '<div class="opportunity-item" onclick="COMMS.createStoryFromOpportunity(\'milestone\', \'' + escapeAttr(m.solution_id || '') + '\')">';
       html += '<div class="opportunity-icon milestone"><span class="material-icons">flag</span></div>';
       html += '<div class="opportunity-info">';
       html += '<div class="opportunity-title">' + escapeHtml(m.solution_name) + ' - ' + escapeHtml(m.type) + '</div>';
@@ -2595,7 +2891,7 @@ var COMMS = (function() {
       html += '<div class="gap-solution">' + escapeHtml(g.solution_name) + '</div>';
       html += '<div class="gap-days">No stories in ' + g.days_since_story + ' days</div>';
       html += '</div>';
-      html += '<button class="gap-action" onclick="COMMS.suggestStory(\'' + escapeAttr(g.solution_name) + '\')">Suggest Story</button>';
+      html += '<button class="gap-action" onclick="COMMS.suggestStory(\'' + escapeAttr(g.solution_id || '') + '\')">Suggest Story</button>';
       html += '</div>';
     });
 
@@ -2606,7 +2902,7 @@ var COMMS = (function() {
       html += '<div class="gap-solution">' + escapeHtml(u.solution_name) + '</div>';
       html += '<div class="gap-days">No stories ever</div>';
       html += '</div>';
-      html += '<button class="gap-action" onclick="COMMS.suggestStory(\'' + escapeAttr(u.solution_name) + '\')">Suggest Story</button>';
+      html += '<button class="gap-action" onclick="COMMS.suggestStory(\'' + escapeAttr(u.solution_id || '') + '\')">Suggest Story</button>';
       html += '</div>';
     });
 
@@ -2696,10 +2992,15 @@ var COMMS = (function() {
   }
 
   function applyFilters() {
-    state.filters.type = document.getElementById('filterType').value;
-    state.filters.status = document.getElementById('filterStatus').value;
-    state.filters.channel = document.getElementById('filterChannel').value;
-    state.filters.search = document.getElementById('searchInput').value;
+    var typeEl = document.getElementById('filterType');
+    var statusEl = document.getElementById('filterStatus');
+    var channelEl = document.getElementById('filterChannel');
+    var searchEl = document.getElementById('searchInput');
+
+    state.filters.type = typeEl ? typeEl.value : '';
+    state.filters.status = statusEl ? statusEl.value : '';
+    state.filters.channel = channelEl ? channelEl.value : '';
+    state.filters.search = searchEl ? searchEl.value : '';
     renderPipeline();
   }
 
@@ -2934,7 +3235,7 @@ return;
   function showStoryDetail(storyId) {
     var story = state.stories.find(function(s) { return s.story_id === storyId; });
     if (!story) {
-      // Load from server
+      // Fallback to server if not in cache
       google.script.run
         .withSuccessHandler(function(s) {
           if (s) renderStoryDetailModal(s);
@@ -2966,22 +3267,60 @@ return;
       'archived': { name: 'Archived', color: '#607D8B' }
     };
 
+    var priorityInfo = {
+      'high': { name: 'High', color: '#f44336' },
+      'medium': { name: 'Medium', color: '#FF9800' },
+      'low': { name: 'Low', color: '#9E9E9E' }
+    };
+
     var status = statusInfo[story.status] || { name: story.status, color: '#9E9E9E' };
+    var priority = priorityInfo[story.priority] || { name: story.priority || 'Medium', color: '#FF9800' };
 
     var html = '<div class="story-detail">';
 
-    // Header with type and status
+    // Header with type, priority and status
     html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); padding-bottom: var(--space-md); border-bottom: 1px solid var(--color-border-light);">';
+    html += '<div style="display: flex; align-items: center; gap: var(--space-sm);">';
     html += '<span style="font-size: var(--font-size-sm); color: var(--color-comms);">' + (typeNames[story.content_type] || 'Story') + '</span>';
+    html += '<span style="padding: 2px 8px; background: ' + priority.color + '22; color: ' + priority.color + '; border-radius: 4px; font-size: var(--font-size-xs); font-weight: 600;">' + priority.name + ' Priority</span>';
+    html += '</div>';
     html += '<span style="padding: 4px 12px; background: ' + status.color + '; color: white; border-radius: 12px; font-size: var(--font-size-sm);">' + status.name + '</span>';
     html += '</div>';
+
+    // Admin Priorities tags
+    if (story.admin_priorities) {
+      var priorityLabels = {
+        'partnerships': 'Partnerships & Decision Support',
+        'citizens': 'Benefits to American Citizens',
+        'ai_innovation': 'AI Leadership & Tech Innovation',
+        'science_integrity': 'Gold Standard Science',
+        'efficiency': 'Government Efficiency'
+      };
+      var priorities = story.admin_priorities.split(',').map(function(p) { return p.trim(); }).filter(function(p) { return p; });
+      if (priorities.length > 0) {
+        html += '<div style="margin-bottom: var(--space-md);">';
+        html += '<div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: var(--space-xs);">ADMIN PRIORITIES</div>';
+        html += '<div style="display: flex; flex-wrap: wrap; gap: var(--space-xs);">';
+        priorities.forEach(function(p) {
+          var label = priorityLabels[p] || p;
+          html += '<span style="padding: 4px 8px; background: var(--color-comms); color: white; border-radius: 4px; font-size: var(--font-size-xs);">' + escapeHtml(label) + '</span>';
+        });
+        html += '</div></div>';
+      }
+    }
 
     // Details grid
     html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-md);">';
 
     if (story.solution_id) {
-      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">SOLUTIONS</div>';
-      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(story.solution_id) + '</div></div>';
+      // Look up solution name
+      var solutionDisplay = story.solution_id;
+      if (state.solutions) {
+        var sol = state.solutions.find(function(s) { return s.core_id === story.solution_id; });
+        if (sol) solutionDisplay = sol.core_official_name || story.solution_id;
+      }
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">SOLUTION</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(solutionDisplay) + '</div></div>';
     }
 
     if (story.channel) {
@@ -2994,9 +3333,14 @@ return;
       html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(story.author) + '</div></div>';
     }
 
-    if (story.primary_outlet) {
-      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">OUTLET</div>';
-      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(story.primary_outlet) + '</div></div>';
+    if (story.platform) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">PLATFORM</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(story.platform) + '</div></div>';
+    }
+
+    if (story.source) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">SOURCE</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(story.source) + '</div></div>';
     }
 
     if (story.target_date) {
@@ -3009,17 +3353,27 @@ return;
       html += '<div style="font-size: var(--font-size-sm);">' + formatDate(story.publish_date) + '</div></div>';
     }
 
+    if (story.idea_date) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">CREATED</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + formatDate(story.idea_date) + '</div></div>';
+    }
+
+    if (story.last_updated) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">LAST UPDATED</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + formatDate(story.last_updated) + '</div></div>';
+    }
+
     html += '</div>';
 
     // Links
-    if (story.published_link || story.pitch_document_url) {
+    if (story.published_url || story.pitch_doc_url) {
       html += '<div style="margin-bottom: var(--space-md);">';
-      if (story.published_link) {
-        html += '<a href="' + escapeHtml(story.published_link) + '" target="_blank" class="btn btn-secondary" style="margin-right: var(--space-sm);">';
+      if (story.published_url) {
+        html += '<a href="' + escapeHtml(story.published_url) + '" target="_blank" class="btn btn-secondary" style="margin-right: var(--space-sm);">';
         html += '<span class="material-icons">open_in_new</span> View Published</a>';
       }
-      if (story.pitch_document_url) {
-        html += '<a href="' + escapeHtml(story.pitch_document_url) + '" target="_blank" class="btn btn-secondary">';
+      if (story.pitch_doc_url) {
+        html += '<a href="' + escapeHtml(story.pitch_doc_url) + '" target="_blank" class="btn btn-secondary">';
         html += '<span class="material-icons">description</span> View Draft</a>';
       }
       html += '</div>';
@@ -3029,19 +3383,20 @@ return;
     if (story.notes) {
       html += '<div style="background: var(--color-surface-alt); padding: var(--space-md); border-radius: var(--radius-sm); margin-bottom: var(--space-md);">';
       html += '<div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: var(--space-xs);">NOTES</div>';
-      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(story.notes) + '</div>';
+      html += '<div style="font-size: var(--font-size-sm); white-space: pre-wrap;">' + escapeHtml(story.notes) + '</div>';
       html += '</div>';
     }
 
     // Actions
     html += '<div style="display: flex; gap: var(--space-sm); padding-top: var(--space-md); border-top: 1px solid var(--color-border-light);">';
-    html += '<button class="btn btn-primary" onclick="COMMS.editStory(\'' + escapeAttr(story.story_id) + '\')"><span class="material-icons">edit</span> Edit</button>';
+    html += '<button class="btn btn-primary" id="editStoryBtn" onclick="COMMS.editStory(\'' + escapeAttr(story.story_id) + '\')"><span class="material-icons">edit</span> Edit</button>';
     if (story.status !== 'published') {
       var nextStatus = getNextStatus(story.status);
       if (nextStatus) {
-        html += '<button class="btn btn-secondary" onclick="COMMS.advanceStatus(\'' + escapeAttr(story.story_id) + '\', \'' + nextStatus + '\')">Move to ' + capitalizeFirst(nextStatus) + '</button>';
+        html += '<button class="btn btn-secondary" id="advanceStatusBtn" onclick="COMMS.advanceStatus(\'' + escapeAttr(story.story_id) + '\', \'' + nextStatus + '\')"><span class="material-icons">arrow_forward</span> Move to ' + capitalizeFirst(nextStatus) + '</button>';
       }
     }
+    html += '<button class="btn btn-danger" id="deleteStoryBtn" style="margin-left: auto;" onclick="COMMS.deleteStory(\'' + escapeAttr(story.story_id) + '\')"><span class="material-icons">delete</span></button>';
     html += '</div>';
 
     html += '</div>';
@@ -3060,9 +3415,20 @@ return;
   }
 
   function advanceStatus(storyId, newStatus) {
+    var btn = document.getElementById('advanceStatusBtn');
+    var originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading-spinner" style="width: 14px; height: 14px;"></span> Moving...';
+    }
+
     google.script.run
       .withSuccessHandler(function(result) {
         if (!result) {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+          }
           alert('Error: Story not found. It may have been deleted or the ID changed.\n\nPlease refresh the page and try again.');
           return;
         }
@@ -3071,6 +3437,10 @@ return;
         loadOverview();
       })
       .withFailureHandler(function(error) {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+        }
         alert('Failed to update status: ' + error);
       })
       .updateStoryStatus(storyId, newStatus);
@@ -3089,6 +3459,7 @@ return;
   function editStory(storyId) {
     var story = state.stories.find(function(s) { return s.story_id === storyId; });
     if (!story) {
+      // Fallback to server if not in cache
       google.script.run
         .withSuccessHandler(function(s) {
           if (s) populateStoryForm(s);
@@ -3105,16 +3476,16 @@ return;
     document.getElementById('storyTitle').value = story.title || '';
     document.getElementById('storyContentType').value = story.content_type || 'story';
     document.getElementById('storyStatus').value = story.status || 'idea';
-    document.getElementById('storyPriority').value = story.priority || 'medium';
     document.getElementById('storyChannel').value = story.channel || 'web';
-    document.getElementById('storyOutlet').value = story.primary_outlet || '';
+    document.getElementById('storyOutlet').value = story.platform || '';
     document.getElementById('storyAuthor').value = story.author || '';
-    document.getElementById('storySolutions').value = story.solution_id || '';
+    document.getElementById('storyPriority').value = story.priority || 'medium';
+    document.getElementById('storySource').value = story.source || '';
+    document.getElementById('storySolution').value = story.solution_id || '';
     document.getElementById('storyTargetDate').value = story.target_date ? story.target_date.split('T')[0] : '';
     document.getElementById('storyPublishDate').value = story.publish_date ? story.publish_date.split('T')[0] : '';
-    document.getElementById('storySource').value = story.source || '';
-    document.getElementById('storyPitchUrl').value = story.pitch_document_url || '';
-    document.getElementById('storyPublishedLink').value = story.published_link || '';
+    document.getElementById('storyPitchUrl').value = story.pitch_doc_url || '';
+    document.getElementById('storyPublishedLink').value = story.published_url || '';
     document.getElementById('storyNotes').value = story.notes || '';
 
     // Populate admin priorities checkboxes
@@ -3132,12 +3503,12 @@ return;
     event.preventDefault();
 
     var storyId = document.getElementById('editStoryId').value;
-    var solutionInput = document.getElementById('storySolutions').value;
-    // Clean up solution IDs - trim whitespace, remove empty entries
-    var cleanedIds = solutionInput.split(',')
-      .map(function(n) { return n.trim(); })
-      .filter(function(n) { return n.length > 0; });
-    var solutionId = cleanedIds.join(', ');
+    var solutionId = document.getElementById('storySolution').value;
+
+    if (!solutionId) {
+      alert('Please select a solution');
+      return;
+    }
 
     // Collect admin priorities from checkboxes
     var adminPriorities = [];
@@ -3150,17 +3521,17 @@ return;
       title: document.getElementById('storyTitle').value,
       content_type: document.getElementById('storyContentType').value,
       status: document.getElementById('storyStatus').value,
-      priority: document.getElementById('storyPriority').value,
-      channel: document.getElementById('storyChannel').value,
-      primary_outlet: document.getElementById('storyOutlet').value,
-      author: document.getElementById('storyAuthor').value,
       solution_id: solutionId,
+      channel: document.getElementById('storyChannel').value,
+      platform: document.getElementById('storyOutlet').value,
+      author: document.getElementById('storyAuthor').value,
+      priority: document.getElementById('storyPriority').value,
+      source: document.getElementById('storySource').value,
       admin_priorities: adminPriorities.join(', '),
       target_date: document.getElementById('storyTargetDate').value,
       publish_date: document.getElementById('storyPublishDate').value,
-      source: document.getElementById('storySource').value,
-      pitch_document_url: document.getElementById('storyPitchUrl').value,
-      published_link: document.getElementById('storyPublishedLink').value,
+      pitch_doc_url: document.getElementById('storyPitchUrl').value,
+      published_url: document.getElementById('storyPublishedLink').value,
       notes: document.getElementById('storyNotes').value
     };
 
@@ -3212,16 +3583,17 @@ return;
     }
   }
 
-  function suggestStory(solutionName) {
+  function suggestStory(solutionId) {
     showCreateStoryModal();
-    document.getElementById('storySolutions').value = solutionName;
+    document.getElementById('storySolution').value = solutionId;
     document.getElementById('storySource').value = 'Coverage gap identified';
   }
 
   function createStoryFromOpportunity(type, value) {
     showCreateStoryModal();
     if (type === 'milestone') {
-      document.getElementById('storySolutions').value = value;
+      // value is solution_id
+      document.getElementById('storySolution').value = value;
       document.getElementById('storySource').value = 'Milestone opportunity';
     } else if (type === 't8') {
       document.getElementById('storySource').value = 'T8 Impact contact: ' + value;
@@ -4678,6 +5050,157 @@ return;
       .createContactForAgency(contactData);
   }
 
+  // ========================================================================
+  // DRAG AND DROP FOR STORY PIPELINE
+  // ========================================================================
+
+  var dragState = {
+    draggingStoryId: null
+  };
+
+  function handleDragStart(event, storyId) {
+    dragState.draggingStoryId = storyId;
+    event.target.classList.add('dragging');
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', storyId);
+  }
+
+  function handleDragEnd(event) {
+    event.target.classList.remove('dragging');
+    dragState.draggingStoryId = null;
+    // Remove drop-target class from all columns
+    document.querySelectorAll('.pipeline-column').forEach(function(col) {
+      col.classList.remove('drop-target');
+    });
+  }
+
+  function handleDragOver(event) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    var column = event.target.closest('.pipeline-column');
+    if (column) {
+      column.classList.add('drop-target');
+    }
+  }
+
+  function handleDragLeave(event) {
+    var column = event.target.closest('.pipeline-column');
+    if (column && !column.contains(event.relatedTarget)) {
+      column.classList.remove('drop-target');
+    }
+  }
+
+  function handleDrop(event, newStatus) {
+    event.preventDefault();
+    var column = event.target.closest('.pipeline-column');
+    if (column) {
+      column.classList.remove('drop-target');
+    }
+
+    var storyId = dragState.draggingStoryId || event.dataTransfer.getData('text/plain');
+    if (!storyId) return;
+
+    // Find the story to get current status
+    var story = state.stories.find(function(s) { return s.story_id === storyId; });
+    if (!story) return;
+
+    // Don't update if dropped in same column
+    if (story.status === newStatus) return;
+
+    // Update status via API
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result) {
+          // Update local state
+          story.status = newStatus;
+          renderPipeline();
+          loadOverview(); // Refresh stats
+        } else {
+          alert('Failed to update story status');
+          renderPipeline(); // Re-render to reset position
+        }
+      })
+      .withFailureHandler(function(error) {
+        alert('Error updating status: ' + error);
+        renderPipeline(); // Re-render to reset position
+      })
+      .updateStoryStatus(storyId, newStatus);
+  }
+
+  function deleteStory(storyId) {
+    if (!confirm('Are you sure you want to delete this story?')) return;
+
+    var btn = document.getElementById('deleteStoryBtn');
+    var originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading-spinner" style="width: 14px; height: 14px;"></span>';
+    }
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result) {
+          closeModal('storyModal');
+          loadStories();
+          loadOverview();
+        } else {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+          }
+          alert('Failed to delete story');
+        }
+      })
+      .withFailureHandler(function(error) {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+        }
+        alert('Error deleting story: ' + error);
+      })
+      .deleteStory(storyId);
+  }
+
+  function toggleSearchBar() {
+    var searchBar = document.getElementById('pipelineSearchBar');
+    if (searchBar) {
+      searchBar.classList.toggle('expanded');
+    }
+  }
+
+  function filterStories() {
+    applyFilters();
+  }
+
+  function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('filterType').value = '';
+    document.getElementById('filterChannel').value = '';
+    applyFilters();
+  }
+
+  function toggleSidebar() {
+    var sidebar = document.getElementById('insightsSidebar');
+    var icon = document.getElementById('sidebarToggleIcon');
+    if (sidebar) {
+      sidebar.classList.toggle('collapsed');
+      if (icon) {
+        icon.textContent = sidebar.classList.contains('collapsed') ? 'chevron_right' : 'chevron_left';
+      }
+    }
+  }
+
+  function togglePublishedPanel() {
+    var sidebar = document.getElementById('publishedSidebar');
+    var icon = document.getElementById('publishedToggleIcon');
+    if (sidebar) {
+      sidebar.classList.toggle('collapsed');
+      if (icon) {
+        icon.textContent = sidebar.classList.contains('collapsed') ? 'chevron_left' : 'chevron_right';
+      }
+    }
+  }
+
   return {
     init: init,
     setView: setView,
@@ -4715,7 +5238,22 @@ return;
     generatePrepReport: generatePrepReport,
     exportPrepToDoc: exportPrepToDoc,
     showNewContactFromEvent: showNewContactFromEvent,
-    submitNewContactFromEvent: submitNewContactFromEvent
+    submitNewContactFromEvent: submitNewContactFromEvent,
+    // Drag and drop functions
+    handleDragStart: handleDragStart,
+    handleDragEnd: handleDragEnd,
+    handleDragOver: handleDragOver,
+    handleDragLeave: handleDragLeave,
+    handleDrop: handleDrop,
+    // Delete story
+    deleteStory: deleteStory,
+    // Sidebar toggles
+    toggleSidebar: toggleSidebar,
+    togglePublishedPanel: togglePublishedPanel,
+    // Search bar
+    toggleSearchBar: toggleSearchBar,
+    filterStories: filterStories,
+    clearFilters: clearFilters
   };
 })();
 

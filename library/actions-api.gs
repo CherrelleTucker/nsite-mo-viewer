@@ -430,6 +430,43 @@ function updateAction(actionId, updates) {
 }
 
 /**
+ * Delete an action by ID
+ * @param {string} actionId - Action ID to delete
+ * @returns {Object} Result with success status
+ */
+function deleteAction(actionId) {
+  try {
+    var sheet = getDatabaseSheet('Actions');
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+
+    var idCol = headers.indexOf('action_id');
+    if (idCol === -1) throw new Error('action_id column not found');
+
+    var rowIndex = -1;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][idCol] === actionId) {
+        rowIndex = i + 1; // 1-indexed for Sheets
+        break;
+      }
+    }
+
+    if (rowIndex === -1) {
+      return { success: false, error: 'Action not found: ' + actionId };
+    }
+
+    // Delete the row
+    sheet.deleteRow(rowIndex);
+    clearActionsCache();
+
+    return { success: true };
+  } catch (error) {
+    Logger.log('Error in deleteAction: ' + error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Fast append to action notes - reads only the specific row
  * @param {string} actionId - Action ID
  * @param {string} noteText - Text to append

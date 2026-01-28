@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Create MO Viewer SEP Presentation
-Generates a PowerPoint presentation answering the 3 SEP questions
+Create MO Viewer Comms Presentation
+Generates a PowerPoint presentation for Comms-NSITE features
+Mirrors the style of the SEP presentation
 """
 
 from pptx import Presentation
@@ -11,11 +12,12 @@ from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
 import os
 
-# Brand colors
+# Brand colors (matching SEP presentation)
 NAVY = RGBColor(0x1A, 0x23, 0x7E)  # Primary brand color
 BLUE = RGBColor(0x30, 0x4F, 0xFE)  # Accent
 GREEN = RGBColor(0x4C, 0xAF, 0x50)  # Success/positive
 ORANGE = RGBColor(0xFF, 0x98, 0x00)  # Warning/attention
+PURPLE = RGBColor(0x7B, 0x1F, 0xA2)  # Comms accent color
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 LIGHT_GRAY = RGBColor(0xF5, 0xF5, 0xF5)
 DARK_GRAY = RGBColor(0x42, 0x42, 0x42)
@@ -43,7 +45,7 @@ def create_presentation():
     subtitle = slide.shapes.add_textbox(Inches(0.5), Inches(4), Inches(12.333), Inches(1))
     tf = subtitle.text_frame
     p = tf.paragraphs[0]
-    p.text = "Market Outreach Stakeholder Engagement Platform"
+    p.text = "Information Management Platform"
     p.font.size = Pt(28)
     p.font.color.rgb = WHITE
     p.alignment = PP_ALIGN.CENTER
@@ -52,27 +54,82 @@ def create_presentation():
     date_box = slide.shapes.add_textbox(Inches(0.5), Inches(5.5), Inches(12.333), Inches(0.5))
     tf = date_box.text_frame
     p = tf.paragraphs[0]
-    p.text = "SEP Review | January 2026"
+    p.text = "Comms-View | January 2026"
     p.font.size = Pt(18)
     p.font.color.rgb = WHITE
     p.alignment = PP_ALIGN.CENTER
 
-    # Slide 2: Agenda / 3 Questions
+    # Slide 2: The Problem - Comms specific
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_header(slide, "Today's SEP Questions")
+    add_header(slide, "The Problem: lots of data, not a lot of ways to quickly access the information it informs")
+
+    content_box = slide.shapes.add_textbox(Inches(0.5), Inches(1.5), Inches(12.333), Inches(5.5))
+    tf = content_box.text_frame
+    tf.word_wrap = True
+
+    # MO-wide bullet
+    p = tf.paragraphs[0]
+    p.text = "MO-wide:"
+    p.font.size = Pt(24)
+    p.font.bold = True
+    p.font.color.rgb = NAVY
+
+    bullets_mo = [
+        "over 9000 interconnected files stored in Google Drive, acting as a \"database\"",
+        "Jenny, Cherrelle, Slack, emails, Teams, and various meetings acting as database interfaces"
+    ]
+    for bullet in bullets_mo:
+        p = tf.add_paragraph()
+        p.text = "    " + bullet
+        p.font.size = Pt(20)
+        p.font.color.rgb = DARK_GRAY
+        p.space_before = Pt(6)
+
+    # General problem
+    p = tf.add_paragraph()
+    p.text = "multiple copies of various files used to create actionable information conveyed in meetings → lacking a shared agreement or platform for Source of Truth for information"
+    p.font.size = Pt(20)
+    p.font.color.rgb = DARK_GRAY
+    p.space_before = Pt(16)
+
+    # Comms-specific
+    p = tf.add_paragraph()
+    p.text = "Comms-specific:"
+    p.font.size = Pt(24)
+    p.font.bold = True
+    p.font.color.rgb = NAVY
+    p.space_before = Pt(20)
+
+    bullets_comms = [
+        "~359 Comms-related files (stories, events, outreach, media)",
+        "38 stories tracked across multiple spreadsheets and docs",
+        "Events scattered across calendars, emails, and planning docs",
+        "No single view of solution coverage or messaging gaps",
+        "Key messages and blurbs buried in various documents"
+    ]
+    for bullet in bullets_comms:
+        p = tf.add_paragraph()
+        p.text = "    " + bullet
+        p.font.size = Pt(20)
+        p.font.color.rgb = DARK_GRAY
+        p.space_before = Pt(6)
+
+    # Slide 3: Answering Comms Questions
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_header(slide, "Answering Comms Questions with CommsViewer")
 
     questions = [
-        ("1", "What's New?", "What is the most recent thing this Solution did\nand did we talk to stakeholders about it?"),
-        ("2", "Meeting Needs?", "Are we meeting the needs of stakeholders\nwith this solution?"),
-        ("3", "Growth Opportunities?", "Are there unexplored agencies we can\nconnect with to promote this Solution?"),
+        ("1", "What Stories?", "What stories are in development and\nwhat's their status?"),
+        ("2", "Coverage Gaps?", "Which solutions lack comms coverage\nand need attention?"),
+        ("3", "Events & Opportunities?", "What events are coming up and\nhow do we prepare?"),
     ]
 
     y_start = 1.8
-    for i, (num, title, desc) in enumerate(questions):
+    for i, (num, title_text, desc) in enumerate(questions):
         # Number circle
         shape = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(1), Inches(y_start + i * 1.7), Inches(0.8), Inches(0.8))
         shape.fill.solid()
-        shape.fill.fore_color.rgb = NAVY
+        shape.fill.fore_color.rgb = PURPLE
         shape.line.fill.background()
         tf = shape.text_frame
         tf.word_wrap = False
@@ -88,10 +145,10 @@ def create_presentation():
         title_box = slide.shapes.add_textbox(Inches(2), Inches(y_start + i * 1.7), Inches(4), Inches(0.5))
         tf = title_box.text_frame
         p = tf.paragraphs[0]
-        p.text = title
+        p.text = title_text
         p.font.size = Pt(28)
         p.font.bold = True
-        p.font.color.rgb = NAVY
+        p.font.color.rgb = PURPLE
 
         # Description
         desc_box = slide.shapes.add_textbox(Inches(2), Inches(y_start + 0.5 + i * 1.7), Inches(10), Inches(1))
@@ -101,56 +158,55 @@ def create_presentation():
         p.font.size = Pt(18)
         p.font.color.rgb = DARK_GRAY
 
-    # Slide 3: Question 1 - What's New
+    # Slide 4: Q1 - What Stories
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_header(slide, "Q1: What's New & Did We Discuss It?", NAVY)
+    add_header(slide, "Q1: What Stories Are In Development?", PURPLE)
 
-    # Implementation Dashboard highlight
     add_feature_box(slide, Inches(0.5), Inches(1.5), Inches(4), Inches(2.5),
-        "SEP Overview Table",
+        "Story Pipeline",
         [
-            "All solutions at a glance",
-            "Last → Next milestone tracking",
-            "Comms due indicators",
-            "Click row for full details"
+            "Kanban-style story tracking",
+            "Status: Draft → Review → Published",
+            "Solution linkage for each story",
+            "Content type categorization"
+        ],
+        PURPLE)
+
+    add_feature_box(slide, Inches(4.7), Inches(1.5), Inches(4), Inches(2.5),
+        "Story Opportunities",
+        [
+            "Auto-detected from milestones",
+            "ATP, ORR, F2I triggers",
+            "One-click story creation",
+            "Links to source updates"
         ],
         GREEN)
 
-    add_feature_box(slide, Inches(4.7), Inches(1.5), Inches(4), Inches(2.5),
-        "Solution Detail Modal",
+    add_feature_box(slide, Inches(8.9), Inches(1.5), Inches(4), Inches(2.5),
+        "Key Messages",
         [
-            "Stakeholders & agencies listed",
-            "Recent engagements (clickable)",
-            "Milestone timeline with dates",
-            "Email all stakeholders button"
+            "Solution-specific messaging",
+            "Highlighter blurbs library",
+            "Searchable message bank",
+            "Priority alignment tags"
         ],
         BLUE)
-
-    add_feature_box(slide, Inches(8.9), Inches(1.5), Inches(4), Inches(2.5),
-        "Email & Log Engagement",
-        [
-            "Compose emails from templates",
-            "Recipients auto-populated",
-            "Log email as engagement",
-            "One-click workflow"
-        ],
-        ORANGE)
 
     # Answer box
     answer = slide.shapes.add_textbox(Inches(0.5), Inches(4.3), Inches(12.333), Inches(2.5))
     tf = answer.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
-    p.text = "Recent Activities Tracked in MO Viewer:"
+    p.text = "Story Tracking in MO Viewer:"
     p.font.size = Pt(20)
     p.font.bold = True
-    p.font.color.rgb = NAVY
+    p.font.color.rgb = PURPLE
 
     bullets = [
-        "SEP Overview shows milestone progress (Last TP4 → Next WS2)",
-        "Solution detail shows stakeholders, agencies, recent engagements",
-        "Email all stakeholders with one click, log as engagement automatically",
-        "Clickable engagements reveal full communication details"
+        "All stories visible in pipeline view with drag-and-drop status updates",
+        "Story opportunities auto-generated from solution milestones",
+        "Key messages searchable and linked to solutions",
+        "Admin priorities alignment (Partnerships, AI, Science Integrity, etc.)"
     ]
     for bullet in bullets:
         p = tf.add_paragraph()
@@ -159,15 +215,15 @@ def create_presentation():
         p.font.color.rgb = DARK_GRAY
         p.space_before = Pt(8)
 
-    # Slide 4: Question 1 - Demo View
+    # Slide 5: Demo - Stories
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_header(slide, "Demo: Implementation & Activity Tracking", NAVY)
+    add_header(slide, "Demo: Story Pipeline & Opportunities", PURPLE)
 
     demo_box = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE,
         Inches(0.5), Inches(1.5), Inches(12.333), Inches(5.5))
     demo_box.fill.solid()
     demo_box.fill.fore_color.rgb = LIGHT_GRAY
-    demo_box.line.color.rgb = NAVY
+    demo_box.line.color.rgb = PURPLE
 
     tf = demo_box.text_frame
     tf.word_wrap = True
@@ -175,64 +231,54 @@ def create_presentation():
     p.text = "\n\nLIVE DEMO"
     p.font.size = Pt(48)
     p.font.bold = True
-    p.font.color.rgb = NAVY
+    p.font.color.rgb = PURPLE
     p.alignment = PP_ALIGN.CENTER
 
     p = tf.add_paragraph()
-    p.text = "\nSEP Overview → Solution Detail → Email Stakeholders → Log Engagement"
+    p.text = "\nComms → Pipeline → Story Details → Key Messages"
     p.font.size = Pt(24)
     p.font.color.rgb = DARK_GRAY
     p.alignment = PP_ALIGN.CENTER
 
-    # Slide 5: Question 2 - Meeting Needs
+    # Slide 6: Q2 - Coverage Gaps
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_header(slide, "Q2: Are We Meeting Stakeholder Needs?", NAVY)
+    add_header(slide, "Q2: Which Solutions Lack Coverage?", PURPLE)
 
-    add_feature_box(slide, Inches(0.5), Inches(1.5), Inches(4), Inches(2.2),
-        "Agencies View",
+    add_feature_box(slide, Inches(0.5), Inches(1.5), Inches(6), Inches(2.5),
+        "Coverage Analysis",
         [
-            "Complete agency profiles",
-            "Contact information",
-            "Engagement history",
-            "Need alignment status"
-        ],
-        BLUE)
-
-    add_feature_box(slide, Inches(4.7), Inches(1.5), Inches(4), Inches(2.2),
-        "Contacts Directory",
-        [
-            "Stakeholder database",
-            "Relationship tracking",
-            "Communication prefs",
-            "Role-based filtering"
-        ],
-        GREEN)
-
-    add_feature_box(slide, Inches(8.9), Inches(1.5), Inches(4), Inches(2.2),
-        "Need Alignment Report",
-        [
-            "Gap analysis",
-            "Coverage metrics",
-            "Priority mapping",
-            "Action items"
+            "Visual coverage map by solution",
+            "Gap identification & alerts",
+            "Story count per solution",
+            "Last coverage date tracking"
         ],
         ORANGE)
 
-    # Key metrics
-    metrics_box = slide.shapes.add_textbox(Inches(0.5), Inches(4), Inches(12.333), Inches(3))
+    add_feature_box(slide, Inches(6.8), Inches(1.5), Inches(6), Inches(2.5),
+        "Priority Alignment",
+        [
+            "Admin priorities dashboard",
+            "Biden-Harris alignment tags",
+            "Partnership opportunities",
+            "Science advancement tracking"
+        ],
+        GREEN)
+
+    # Metrics
+    metrics_box = slide.shapes.add_textbox(Inches(0.5), Inches(4.2), Inches(12.333), Inches(2.8))
     tf = metrics_box.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
-    p.text = "How MO Viewer Ensures We Meet Needs:"
+    p.text = "How MO Viewer Identifies Coverage Gaps:"
     p.font.size = Pt(20)
     p.font.bold = True
-    p.font.color.rgb = NAVY
+    p.font.color.rgb = PURPLE
 
     points = [
-        "Stakeholder needs mapped to solution capabilities",
-        "Engagement scoring identifies under-served agencies",
-        "Automated reports flag gaps in coverage",
-        "Historical data shows improvement trends"
+        "Solutions without recent stories flagged automatically",
+        "Coverage gaps panel shows solutions needing attention",
+        "Filters by lifecycle phase, cycle, and content type",
+        "One-click navigation to create new story for gap"
     ]
     for point in points:
         p = tf.add_paragraph()
@@ -241,15 +287,15 @@ def create_presentation():
         p.font.color.rgb = DARK_GRAY
         p.space_before = Pt(10)
 
-    # Slide 6: Question 2 - Demo
+    # Slide 7: Demo - Coverage
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_header(slide, "Demo: Stakeholder Management", NAVY)
+    add_header(slide, "Demo: Coverage Analysis", PURPLE)
 
     demo_box = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE,
         Inches(0.5), Inches(1.5), Inches(12.333), Inches(5.5))
     demo_box.fill.solid()
     demo_box.fill.fore_color.rgb = LIGHT_GRAY
-    demo_box.line.color.rgb = NAVY
+    demo_box.line.color.rgb = PURPLE
 
     tf = demo_box.text_frame
     tf.word_wrap = True
@@ -257,71 +303,81 @@ def create_presentation():
     p.text = "\n\nLIVE DEMO"
     p.font.size = Pt(48)
     p.font.bold = True
-    p.font.color.rgb = NAVY
+    p.font.color.rgb = PURPLE
     p.alignment = PP_ALIGN.CENTER
 
     p = tf.add_paragraph()
-    p.text = "\nSEP Dashboard → Agencies → Contacts → Need Alignment Report"
+    p.text = "\nComms → Coverage → Gaps Panel → Priorities View"
     p.font.size = Pt(24)
     p.font.color.rgb = DARK_GRAY
     p.alignment = PP_ALIGN.CENTER
 
-    # Slide 7: Question 3 - Growth Opportunities
+    # Slide 8: Q3 - Events & Opportunities
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_header(slide, "Q3: Unexplored Growth Opportunities?", NAVY)
+    add_header(slide, "Q3: Events & Outreach Opportunities?", PURPLE)
 
-    add_feature_box(slide, Inches(0.5), Inches(1.5), Inches(6), Inches(2.5),
-        "Cold Agency Indicators",
+    add_feature_box(slide, Inches(0.5), Inches(1.5), Inches(4), Inches(2.5),
+        "Events Pipeline",
         [
-            "Agencies with no recent contact",
-            "Engagement score below threshold",
-            "Visual indicators (blue = cold)",
-            "Prioritization recommendations"
+            "Track conferences & events",
+            "Status: Potential → Confirmed",
+            "Guest list management",
+            "Deadline tracking"
         ],
         BLUE)
 
-    add_feature_box(slide, Inches(6.8), Inches(1.5), Inches(6), Inches(2.5),
-        "Department Reach Report",
+    add_feature_box(slide, Inches(4.7), Inches(1.5), Inches(4), Inches(2.5),
+        "Event Prep Reports",
         [
-            "Coverage by department",
-            "Penetration percentages",
-            "White space analysis",
-            "Target recommendations"
+            "Auto-generated briefings",
+            "Guest profiles & agencies",
+            "Conversation starters",
+            "Export to Google Doc"
+        ],
+        GREEN)
+
+    add_feature_box(slide, Inches(8.9), Inches(1.5), Inches(4), Inches(2.5),
+        "Calendar View",
+        [
+            "Visual event timeline",
+            "Sector-based filtering",
+            "Upcoming deadlines",
+            "Team coordination"
         ],
         ORANGE)
 
-    # Outreach section
-    outreach_box = slide.shapes.add_textbox(Inches(0.5), Inches(4.2), Inches(12.333), Inches(2.8))
-    tf = outreach_box.text_frame
+    # Events section
+    events_box = slide.shapes.add_textbox(Inches(0.5), Inches(4.2), Inches(12.333), Inches(2.8))
+    tf = events_box.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
-    p.text = "Outreach & Events Module"
+    p.text = "Event Management in MO Viewer:"
     p.font.size = Pt(20)
     p.font.bold = True
-    p.font.color.rgb = NAVY
+    p.font.color.rgb = PURPLE
 
     points = [
-        "Track upcoming conferences and events",
-        "Identify networking opportunities",
-        "Generate prep reports with guest profiles",
-        "Export to Google Docs for meetings"
+        "Track all outreach events from potential to attended",
+        "Build guest lists with stakeholder connections",
+        "Generate prep reports with talking points and context",
+        "Export briefing docs for meetings and travel"
     ]
     for point in points:
         p = tf.add_paragraph()
         p.text = "→ " + point
-        p.font.size = Pt(16)
+        p.font.size = Pt(18)
         p.font.color.rgb = DARK_GRAY
-        p.space_before = Pt(8)
+        p.space_before = Pt(10)
 
-    # Slide 8: Question 3 - Demo
+    # Slide 9: Demo - Events
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_header(slide, "Demo: Finding Growth Opportunities", NAVY)
+    add_header(slide, "Demo: Event Prep & Guest Management", PURPLE)
 
     demo_box = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE,
         Inches(0.5), Inches(1.5), Inches(12.333), Inches(5.5))
     demo_box.fill.solid()
     demo_box.fill.fore_color.rgb = LIGHT_GRAY
-    demo_box.line.color.rgb = NAVY
+    demo_box.line.color.rgb = PURPLE
 
     tf = demo_box.text_frame
     tf.word_wrap = True
@@ -329,27 +385,27 @@ def create_presentation():
     p.text = "\n\nLIVE DEMO"
     p.font.size = Pt(48)
     p.font.bold = True
-    p.font.color.rgb = NAVY
+    p.font.color.rgb = PURPLE
     p.alignment = PP_ALIGN.CENTER
 
     p = tf.add_paragraph()
-    p.text = "\nAgencies (Cold) → Dept Reach Report → Events → Prep Report"
+    p.text = "\nComms → Events → Guest List → Prep Report → Export to Doc"
     p.font.size = Pt(24)
     p.font.color.rgb = DARK_GRAY
     p.alignment = PP_ALIGN.CENTER
 
-    # Slide 9: Summary
+    # Slide 10: Summary
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_header(slide, "MO Viewer: Answering SEP Questions", NAVY)
+    add_header(slide, "MO Viewer: Answering Comms Questions", PURPLE)
 
     summaries = [
-        ("Q1: What's New?", "Implementation Dashboard & Activity Logs\ntrack all recent stakeholder interactions", GREEN),
-        ("Q2: Meeting Needs?", "SEP Dashboard, Agencies & Contacts views\nensure comprehensive stakeholder coverage", BLUE),
-        ("Q3: Growth?", "Cold indicators, Dept Reach & Events\nidentify and pursue new opportunities", ORANGE),
+        ("Q1: What Stories?", "Pipeline view tracks all stories\nfrom draft to published with\nopportunity detection", GREEN),
+        ("Q2: Coverage Gaps?", "Coverage analysis identifies\nsolutions needing attention\nwith priority alignment", BLUE),
+        ("Q3: Events?", "Event management with\nguest lists, prep reports,\nand doc export", ORANGE),
     ]
 
     x_positions = [0.5, 4.5, 8.5]
-    for i, (title, desc, color) in enumerate(summaries):
+    for i, (title_text, desc, color) in enumerate(summaries):
         box = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE,
             Inches(x_positions[i]), Inches(1.8), Inches(4), Inches(3.5))
         box.fill.solid()
@@ -361,7 +417,7 @@ def create_presentation():
         title_box = slide.shapes.add_textbox(Inches(x_positions[i] + 0.2), Inches(2), Inches(3.6), Inches(0.8))
         tf = title_box.text_frame
         p = tf.paragraphs[0]
-        p.text = title
+        p.text = title_text
         p.font.size = Pt(22)
         p.font.bold = True
         p.font.color.rgb = color
@@ -381,13 +437,13 @@ def create_presentation():
     tagline = slide.shapes.add_textbox(Inches(0.5), Inches(5.8), Inches(12.333), Inches(1))
     tf = tagline.text_frame
     p = tf.paragraphs[0]
-    p.text = "One platform for complete stakeholder engagement visibility"
+    p.text = "One platform for complete communications visibility"
     p.font.size = Pt(24)
     p.font.bold = True
-    p.font.color.rgb = NAVY
+    p.font.color.rgb = PURPLE
     p.alignment = PP_ALIGN.CENTER
 
-    # Slide 10: Thank You
+    # Slide 11: Thank You
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_background(slide, NAVY)
 
@@ -409,7 +465,7 @@ def create_presentation():
     p.alignment = PP_ALIGN.CENTER
 
     # Save
-    output_path = os.path.join(os.path.dirname(__file__), '..', 'MO-Viewer-SEP-Presentation-v2.pptx')
+    output_path = os.path.join(os.path.dirname(__file__), '..', 'MO-Viewer-Comms-Presentation.pptx')
     prs.save(output_path)
     print(f"Presentation saved to: {output_path}")
     return output_path

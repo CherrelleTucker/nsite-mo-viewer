@@ -74,6 +74,10 @@ function updateActionStatus(actionId, newStatus) {
   return MoApi.updateActionStatus(actionId, newStatus);
 }
 
+function deleteAction(actionId) {
+  return MoApi.deleteAction(actionId);
+}
+
 // Helpers
 function getUniqueAssignees() {
   return MoApi.getUniqueAssignees();

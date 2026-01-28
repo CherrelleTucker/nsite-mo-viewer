@@ -75,8 +75,6 @@
         <?!= include('schedule'); ?>
       <? } else if (activePage === 'reports') { ?>
         <?!= include('reports'); ?>
-      <? } else if (activePage === 'actions') { ?>
-        <?!= include('actions'); ?>
       <? } else if (activePage === 'team') { ?>
         <?!= include('team'); ?>
       <? } else if (activePage === 'about') { ?>
@@ -101,7 +99,70 @@
     <span>NSITE MO Viewer v1.0.0</span>
     <span class="separator">|</span>
     <span id="lastSync">Last sync: --</span>
+    <span class="separator">|</span>
+    <a href="#" onclick="openFeedbackModal(); return false;" class="footer-link">
+      <span class="material-icons" style="font-size: 14px; vertical-align: middle;">feedback</span>
+      Report Bug / Suggest Feature
+    </a>
   </footer>
+
+  <!-- Feedback Modal -->
+  <div class="modal-overlay" id="feedbackModal" onclick="closeFeedbackModal(event)">
+    <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Send Feedback</h2>
+        <button class="modal-close" onclick="closeFeedbackModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="feedbackForm" onsubmit="submitFeedback(event)">
+          <div class="form-group">
+            <label>Type</label>
+            <select id="feedbackType" required onchange="toggleStepsField()">
+              <option value="bug">🐛 Bug Report</option>
+              <option value="feature">💡 Feature Suggestion</option>
+              <option value="other">💬 Other Feedback</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Current Page</label>
+            <input type="text" id="feedbackPage" readonly style="background: var(--color-surface-alt);">
+          </div>
+
+          <div class="form-group">
+            <label>Description <span style="color: var(--color-error);">*</span></label>
+            <textarea id="feedbackDescription" rows="4" required
+                      placeholder="Describe the bug or feature..."></textarea>
+          </div>
+
+          <div class="form-group" id="stepsGroup">
+            <label>Steps to Reproduce (for bugs)</label>
+            <textarea id="feedbackSteps" rows="3"
+                      placeholder="1. Go to...&#10;2. Click on...&#10;3. See error..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Your Name (optional)</label>
+            <input type="text" id="feedbackName" placeholder="So I know who to follow up with">
+          </div>
+
+          <div style="background: var(--color-surface-alt); padding: var(--space-sm); border-radius: var(--radius-sm); margin-bottom: var(--space-md);">
+            <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0;">
+              <span class="material-icons" style="font-size: 14px; vertical-align: middle;">tips_and_updates</span>
+              <strong>Tip:</strong> For bugs, screenshots help! Press <kbd style="background: var(--color-surface); padding: 2px 6px; border-radius: 3px; font-size: 11px;">Win+Shift+S</kbd> to capture and paste in Slack.
+            </p>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeFeedbackModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="feedbackSubmitBtn">
+              <span class="material-icons">send</span> Send Feedback
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <!-- Platform JavaScript -->
   <script>
@@ -275,9 +336,13 @@
           }
           break;
         case 'actions':
-          if (typeof Actions !== 'undefined' && Actions.init) {
-            Actions.init();
-          }
+          // Actions moved to Team page - redirect
+          navigateTo('team');
+          setTimeout(function() {
+            if (typeof Team !== 'undefined' && Team.setView) {
+              Team.setView('actions');
+            }
+          }, 100);
           break;
         case 'quick-update':
           if (typeof QuickUpdate !== 'undefined' && QuickUpdate.init) {
@@ -624,6 +689,73 @@
     }
 
     // ========================================================================
+    // FEEDBACK FORM
+    // ========================================================================
+
+    function openFeedbackModal() {
+      // Auto-fill current page
+      var pageName = Platform.activePage || 'unknown';
+      document.getElementById('feedbackPage').value = pageName.charAt(0).toUpperCase() + pageName.slice(1);
+
+      // Reset form
+      document.getElementById('feedbackForm').reset();
+      document.getElementById('feedbackPage').value = pageName.charAt(0).toUpperCase() + pageName.slice(1);
+      toggleStepsField();
+
+      // Show modal
+      document.getElementById('feedbackModal').classList.add('active');
+    }
+
+    function closeFeedbackModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('feedbackModal').classList.remove('active');
+    }
+
+    function toggleStepsField() {
+      var type = document.getElementById('feedbackType').value;
+      var stepsGroup = document.getElementById('stepsGroup');
+      stepsGroup.style.display = (type === 'bug') ? 'block' : 'none';
+    }
+
+    function submitFeedback(event) {
+      event.preventDefault();
+
+      var btn = document.getElementById('feedbackSubmitBtn');
+      var originalHtml = btn.innerHTML;
+      btn.innerHTML = '<span class="loading-spinner" style="width: 16px; height: 16px;"></span> Sending...';
+      btn.disabled = true;
+
+      var feedback = {
+        type: document.getElementById('feedbackType').value,
+        page: document.getElementById('feedbackPage').value,
+        description: document.getElementById('feedbackDescription').value,
+        steps: document.getElementById('feedbackSteps').value || '',
+        name: document.getElementById('feedbackName').value || 'Anonymous',
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent
+      };
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.innerHTML = originalHtml;
+          btn.disabled = false;
+
+          if (result && result.success) {
+            closeFeedbackModal();
+            showToast('Feedback sent! Thank you for helping improve MO-Viewer.', 'success');
+          } else {
+            showToast('Failed to send feedback. Please try again.', 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          btn.innerHTML = originalHtml;
+          btn.disabled = false;
+          showToast('Error sending feedback: ' + error.message, 'error');
+        })
+        .submitFeedback(feedback);
+    }
+
+    // ========================================================================
     // SHARED UTILITY FUNCTIONS
     // ========================================================================
 
@@ -654,6 +786,60 @@
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
     }
+
+    /**
+     * Global Toast Notification System
+     * Usage: showToast('Message', 'success|error|warning|info', duration)
+     * BACKLOG: Not executing in GAS environment - needs investigation
+     */
+    window.showToast = function(message, type, duration) {
+      type = type || 'info';
+      duration = duration || 5000;
+
+      var container = document.getElementById('toast-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+      }
+
+      var icons = {
+        success: 'check_circle',
+        error: 'error',
+        warning: 'warning',
+        info: 'info'
+      };
+
+      var toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      toast.innerHTML =
+        '<span class="toast-icon"><span class="material-icons">' + icons[type] + '</span></span>' +
+        '<span class="toast-content">' + message + '</span>' +
+        '<button class="toast-close" onclick="this.parentElement.remove()"><span class="material-icons">close</span></button>';
+
+      container.appendChild(toast);
+
+      setTimeout(function() {
+        toast.classList.add('removing');
+        setTimeout(function() {
+          if (toast.parentElement) {
+            toast.remove();
+          }
+        }, 300);
+      }, duration);
+
+      return toast;
+    };
+
+    window.showSuccess = function(message, duration) {
+      return showToast(message, 'success', duration);
+    };
+
+    window.showError = function(message, duration) {
+      return showToast(message, 'error', duration || 8000);
+    };
+
   </script>
 </body>
 </html>

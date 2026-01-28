@@ -58,10 +58,10 @@ function loadAllStories_() {
     }
   }
 
-  // Sort by last_update_date descending (most recent first)
+  // Sort by last_updated descending (most recent first)
   _storiesCache.sort(function(a, b) {
-    var dateA = a.last_update_date ? new Date(a.last_update_date) : (a.idea_date ? new Date(a.idea_date) : new Date(0));
-    var dateB = b.last_update_date ? new Date(b.last_update_date) : (b.idea_date ? new Date(b.idea_date) : new Date(0));
+    var dateA = a.last_updated ? new Date(a.last_updated) : (a.idea_date ? new Date(a.idea_date) : new Date(0));
+    var dateB = b.last_updated ? new Date(b.last_updated) : (b.idea_date ? new Date(b.idea_date) : new Date(0));
     return dateB - dateA;
   });
 
@@ -173,43 +173,55 @@ function getStoryById(storyId) {
  * @returns {Object} Created story with ID
  */
 function createStory(storyData) {
-  var sheet = getStoriesSheet_();
-  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  try {
+    var sheet = getStoriesSheet_();
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 
-  // Generate story_id if not provided
-  if (!storyData.story_id) {
-    var contentType = storyData.content_type || 'story';
-    var prefix = {
-      'story': 'STY',
-      'web_content': 'WEB',
-      'social_media': 'SOC',
-      'external_mention': 'EXT',
-      'nugget': 'NUG',
-      'key_date': 'KEY'
-    }[contentType] || 'STY';
-    var timestamp = new Date().getTime();
-    storyData.story_id = prefix + '_' + timestamp;
+    Logger.log('createStory called with: ' + JSON.stringify(storyData));
+    Logger.log('Sheet headers: ' + JSON.stringify(headers));
+
+    // Generate story_id if not provided
+    if (!storyData.story_id) {
+      var contentType = storyData.content_type || 'story';
+      var prefix = {
+        'story': 'STY',
+        'web_content': 'WEB',
+        'social_media': 'SOC',
+        'external_mention': 'EXT',
+        'nugget': 'NUG',
+        'key_date': 'KEY'
+      }[contentType] || 'STY';
+      var timestamp = new Date().getTime();
+      storyData.story_id = prefix + '_' + timestamp;
+    }
+
+    // Set defaults - use actual column names from MO-DB_Stories
+    storyData.created_date = new Date().toISOString();
+    storyData.status = storyData.status || 'idea';
+    storyData.content_type = storyData.content_type || 'story';
+    storyData.priority = storyData.priority || 'medium';
+
+    if (!storyData.idea_date) {
+      storyData.idea_date = new Date().toISOString().split('T')[0];
+    }
+
+    // Build row from headers
+    var newRow = headers.map(function(header) {
+      return storyData[header] !== undefined ? storyData[header] : '';
+    });
+
+    Logger.log('Appending row: ' + JSON.stringify(newRow));
+
+    sheet.appendRow(newRow);
+    SpreadsheetApp.flush(); // Force write to sheet
+    clearStoriesCache_();
+
+    Logger.log('Story created successfully: ' + storyData.story_id);
+    return storyData;
+  } catch (e) {
+    Logger.log('Error in createStory: ' + e.message);
+    throw new Error('Failed to create story: ' + e.message);
   }
-
-  // Set defaults
-  storyData.created_at = new Date().toISOString();
-  storyData.status = storyData.status || 'idea';
-  storyData.content_type = storyData.content_type || 'story';
-  storyData.priority = storyData.priority || 'medium';
-
-  if (!storyData.idea_date) {
-    storyData.idea_date = new Date().toISOString().split('T')[0];
-  }
-
-  // Build row from headers
-  var newRow = headers.map(function(header) {
-    return storyData[header] !== undefined ? storyData[header] : '';
-  });
-
-  sheet.appendRow(newRow);
-  clearStoriesCache_();
-
-  return storyData;
 }
 
 /**
@@ -219,41 +231,59 @@ function createStory(storyData) {
  * @returns {Object|null} Updated story or null if not found
  */
 function updateStory(storyId, updates) {
-  var sheet = getStoriesSheet_();
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0];
+  try {
+    Logger.log('updateStory called for: ' + storyId);
+    Logger.log('Updates: ' + JSON.stringify(updates));
 
-  var idColIndex = headers.indexOf('story_id');
-  if (idColIndex === -1) {
-    throw new Error('story_id column not found');
-  }
+    var sheet = getStoriesSheet_();
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
 
-  // Find row to update
-  var rowIndex = -1;
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][idColIndex] === storyId) {
-      rowIndex = i;
-      break;
+    Logger.log('Sheet headers: ' + JSON.stringify(headers));
+
+    var idColIndex = headers.indexOf('story_id');
+    if (idColIndex === -1) {
+      throw new Error('story_id column not found');
     }
-  }
 
-  if (rowIndex === -1) {
-    return null;
-  }
-
-  // Update last_update_date automatically
-  updates.last_update_date = new Date().toISOString().split('T')[0];
-
-  // Update cells
-  headers.forEach(function(header, colIndex) {
-    if (updates.hasOwnProperty(header) && header !== 'story_id' && header !== 'created_at') {
-      sheet.getRange(rowIndex + 1, colIndex + 1).setValue(updates[header]);
+    // Find row to update
+    var rowIndex = -1;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][idColIndex] === storyId) {
+        rowIndex = i;
+        break;
+      }
     }
-  });
 
-  clearStoriesCache_();
+    if (rowIndex === -1) {
+      Logger.log('Story not found: ' + storyId);
+      return null;
+    }
 
-  return getStoryById(storyId);
+    Logger.log('Found story at row: ' + (rowIndex + 1));
+
+    // Update last_updated automatically (matches column name in MO-DB_Stories)
+    updates.last_updated = new Date().toISOString().split('T')[0];
+
+    // Update cells
+    var updatedFields = [];
+    headers.forEach(function(header, colIndex) {
+      if (updates.hasOwnProperty(header) && header !== 'story_id' && header !== 'created_date') {
+        Logger.log('Updating ' + header + ' at col ' + (colIndex + 1) + ' to: ' + updates[header]);
+        sheet.getRange(rowIndex + 1, colIndex + 1).setValue(updates[header]);
+        updatedFields.push(header);
+      }
+    });
+
+    SpreadsheetApp.flush(); // Force write to sheet
+    clearStoriesCache_();
+
+    Logger.log('Updated fields: ' + updatedFields.join(', '));
+    return getStoryById(storyId);
+  } catch (e) {
+    Logger.log('Error in updateStory: ' + e.message);
+    throw new Error('Failed to update story: ' + e.message);
+  }
 }
 
 /**
@@ -410,13 +440,15 @@ function getCoverageAnalysis(days) {
   var solutionCoverage = {};
 
   allSolutions.forEach(function(sol) {
-    var solName = sol.solution_name || sol.name;
-    if (!solName) return;
+    // Schema v2: use core_id as the solution_id, core_official_name as display name
+    var solId = sol.core_id || '';
+    var solName = sol.core_official_name || sol.solution_name || sol.name || solId;
+    if (!solId) return;
 
-    solutionCoverage[solName] = {
+    solutionCoverage[solId] = {
       solution_name: solName,
-      solution_id: sol.solution_id || '',
-      phase: sol.lifecycle_phase || sol.phase || '',
+      solution_id: solId,
+      phase: sol.admin_lifecycle_phase || sol.lifecycle_phase || sol.phase || '',
       total_stories: 0,
       recent_stories: 0,
       last_story_date: null,
@@ -424,49 +456,47 @@ function getCoverageAnalysis(days) {
     };
   });
 
-  // Process stories - now using solution_id field
+  // Process stories - using solution_id field (stories are single solution)
   stories.forEach(function(s) {
     if (!s.solution_id) return;
 
-    var ids = s.solution_id.split(',').map(function(id) { return id.trim(); });
-    var storyDate = s.publish_date || s.idea_date || s.created_at;
+    var solId = s.solution_id.trim();
+    var storyDate = s.publish_date || s.idea_date || s.created_date;
     var storyDateObj = storyDate ? new Date(storyDate) : null;
 
-    ids.forEach(function(solId) {
-      // Find solution name from master list by ID
-      var solName = solId;
-      var sol = allSolutions.find(function(s) { return s.core_id === solId; });
-      if (sol) {
-        solName = sol.core_official_name || sol.solution_name || solId;
-      }
+    // Find solution name from master list by ID
+    var solName = solId;
+    var sol = allSolutions.find(function(solution) { return solution.core_id === solId; });
+    if (sol) {
+      solName = sol.core_official_name || sol.solution_name || solId;
+    }
 
-      if (!solutionCoverage[solName]) {
-        // Solution from story not in master list
-        solutionCoverage[solName] = {
-          solution_name: solName,
-          solution_id: solId,
-          phase: '',
-          total_stories: 0,
-          recent_stories: 0,
-          last_story_date: null,
-          days_since_story: null
-        };
-      }
+    if (!solutionCoverage[solId]) {
+      // Solution from story not in master list
+      solutionCoverage[solId] = {
+        solution_name: solName,
+        solution_id: solId,
+        phase: '',
+        total_stories: 0,
+        recent_stories: 0,
+        last_story_date: null,
+        days_since_story: null
+      };
+    }
 
-      solutionCoverage[solName].total_stories++;
+    solutionCoverage[solId].total_stories++;
 
-      if (storyDateObj && storyDateObj >= cutoff) {
-        solutionCoverage[solName].recent_stories++;
-      }
+    if (storyDateObj && storyDateObj >= cutoff) {
+      solutionCoverage[solId].recent_stories++;
+    }
 
-      // Track most recent story
-      if (storyDateObj) {
-        if (!solutionCoverage[solName].last_story_date ||
-            storyDateObj > new Date(solutionCoverage[solName].last_story_date)) {
-          solutionCoverage[solName].last_story_date = storyDate;
-        }
+    // Track most recent story
+    if (storyDateObj) {
+      if (!solutionCoverage[solId].last_story_date ||
+          storyDateObj > new Date(solutionCoverage[solId].last_story_date)) {
+        solutionCoverage[solId].last_story_date = storyDate;
       }
-    });
+    }
   });
 
   // Calculate days since last story
@@ -543,43 +573,47 @@ function detectStoryOpportunities() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     solutions.forEach(function(sol) {
+      // Schema v2: use core_id, core_official_name, milestone_*_date columns
+      var solId = sol.core_id || '';
+      var solName = sol.core_official_name || sol.solution_name || sol.name || solId;
+
       // Check ATP (Authority to Proceed)
-      if (sol.atp_date) {
-        var atpDate = new Date(sol.atp_date);
+      if (sol.milestone_atp_date) {
+        var atpDate = new Date(sol.milestone_atp_date);
         if (atpDate >= thirtyDaysAgo) {
           opportunities.milestones.push({
             type: 'ATP',
-            solution_name: sol.solution_name || sol.name,
-            solution_id: sol.solution_id,
-            date: sol.atp_date,
+            solution_name: solName,
+            solution_id: solId,
+            date: sol.milestone_atp_date,
             description: 'Reached Authority to Proceed'
           });
         }
       }
 
-      // Check F2I (First to Infuse)
-      if (sol.f2i_date) {
-        var f2iDate = new Date(sol.f2i_date);
+      // Check F2I (Formulation to Implementation)
+      if (sol.milestone_f2i_date) {
+        var f2iDate = new Date(sol.milestone_f2i_date);
         if (f2iDate >= thirtyDaysAgo) {
           opportunities.milestones.push({
             type: 'F2I',
-            solution_name: sol.solution_name || sol.name,
-            solution_id: sol.solution_id,
-            date: sol.f2i_date,
-            description: 'First to Infuse milestone'
+            solution_name: solName,
+            solution_id: solId,
+            date: sol.milestone_f2i_date,
+            description: 'Formulation to Implementation milestone'
           });
         }
       }
 
       // Check ORR (Operational Readiness Review)
-      if (sol.orr_date) {
-        var orrDate = new Date(sol.orr_date);
+      if (sol.milestone_orr_date) {
+        var orrDate = new Date(sol.milestone_orr_date);
         if (orrDate >= thirtyDaysAgo) {
           opportunities.milestones.push({
             type: 'ORR',
-            solution_name: sol.solution_name || sol.name,
-            solution_id: sol.solution_id,
-            date: sol.orr_date,
+            solution_name: solName,
+            solution_id: solId,
+            date: sol.milestone_orr_date,
             description: 'Operational Readiness Review completed'
           });
         }
@@ -935,21 +969,6 @@ function getPipelineStoriesForUI() {
     return s.status !== 'archived';
   });
 
-  // Return with essential fields
-  return active.map(function(s) {
-    return {
-      story_id: s.story_id,
-      title: s.title,
-      content_type: s.content_type,
-      status: s.status,
-      solution_id: s.solution_id,
-      channel: s.channel,
-      author: s.author,
-      target_date: s.target_date,
-      priority: s.priority,
-      published_link: s.published_link,
-      idea_date: s.idea_date,
-      last_update_date: s.last_update_date
-    };
-  });
+  // Return all fields for complete data in UI (no need for secondary fetch)
+  return JSON.parse(JSON.stringify(active));
 }

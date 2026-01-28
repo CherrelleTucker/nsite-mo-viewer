@@ -173,6 +173,48 @@
       </div>
     </div>
 
+    <!-- Sector Surveys Report -->
+    <div class="report-card">
+      <div class="report-card-header">
+        <div class="report-icon icon-sep">
+          <span class="material-icons">category</span>
+        </div>
+        <div class="report-title-area">
+          <h3>Surveys by Sector</h3>
+          <p class="report-description">Find stakeholders by application sector</p>
+        </div>
+      </div>
+      <div class="report-card-body">
+        <div class="report-info">
+          <p><strong>Shows:</strong> Solutions and stakeholders relevant to a specific sector (Energy, Agriculture, Water, etc.)</p>
+        </div>
+        <div class="report-options">
+          <div class="filter-inline">
+            <label>Sector:</label>
+            <select id="sectorReportSelect" class="form-select form-select-sm">
+              <option value="">Select a sector...</option>
+            </select>
+          </div>
+        </div>
+        <details class="methodology-details">
+          <summary><span class="material-icons">info</span> How is this calculated?</summary>
+          <div class="methodology-content">
+            <p><strong>Data Sources:</strong> MO-DB_Solutions (core_application_sectors), MO-DB_Contacts</p>
+            <table class="methodology-table">
+              <tr><th>Field</th><th>Source</th></tr>
+              <tr><td>Solutions</td><td>Filtered by core_application_sectors containing selected sector</td></tr>
+              <tr><td>Stakeholders</td><td>Contacts linked to those solutions via solution_id</td></tr>
+              <tr><td>Departments</td><td>Unique departments from stakeholder records</td></tr>
+            </table>
+            <p><strong>Example Query:</strong> "Energy" returns HLS-ET, Global-ET, PBL, TEMPO, Air Quality solutions and their stakeholders</p>
+          </div>
+        </details>
+      </div>
+      <div class="report-card-actions">
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewSectorReport()"><span class="material-icons">visibility</span> View</button>
+      </div>
+    </div>
+
     <!-- Need Alignment -->
     <div class="report-card">
       <div class="report-card-header">
@@ -320,41 +362,6 @@
       </div>
     </div>
 
-    <!-- Reference Documents -->
-    <div class="report-card">
-      <div class="report-card-header">
-        <div class="report-icon icon-team">
-          <span class="material-icons">description</span>
-        </div>
-        <div class="report-title-area">
-          <h3>Reference Documents</h3>
-          <p class="report-description">Blurbs and talking points</p>
-        </div>
-      </div>
-      <div class="report-card-body">
-        <div class="report-info">
-          <p><strong>Quick access:</strong> Standard blurbs for communications and briefings</p>
-        </div>
-        <div class="doc-links">
-          <a href="#" id="nsiteBlurbsLink" class="doc-link" target="_blank">
-            <span class="material-icons">article</span>
-            <div class="doc-link-text">
-              <span class="doc-link-title">NSITE Highlighter Blurbs</span>
-              <span class="doc-link-desc">Solution descriptions for slides and emails</span>
-            </div>
-            <span class="material-icons">open_in_new</span>
-          </a>
-          <a href="#" id="odsiBlurbsLink" class="doc-link" target="_blank">
-            <span class="material-icons">article</span>
-            <div class="doc-link-text">
-              <span class="doc-link-title">ODSI Weekly Blurbs</span>
-              <span class="doc-link-desc">Weekly talking points and updates</span>
-            </div>
-            <span class="material-icons">open_in_new</span>
-          </a>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Coming Soon Notice -->
@@ -1251,6 +1258,75 @@
       flex-direction: column;
       align-items: flex-start;
     }
+  }
+
+  /* Sector Report Styles */
+  .sector-report {
+    padding: var(--space-md);
+  }
+
+  .report-summary {
+    display: flex;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    padding: var(--space-md);
+    background: var(--color-gray-50);
+    border-radius: var(--radius-md);
+  }
+
+  .summary-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .summary-stat .stat-value {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  .summary-stat .stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+
+  .report-table th,
+  .report-table td {
+    padding: var(--space-sm) var(--space-md);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .report-table th {
+    background: var(--color-gray-50);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+  }
+
+  .report-table tr:hover {
+    background: var(--color-gray-50);
+  }
+
+  .report-table .text-center {
+    text-align: center;
+  }
+
+  .report-table .text-muted {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .report-table .dept-list {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    max-width: 200px;
   }
 </style>
 
@@ -2352,15 +2428,92 @@
         .getAllSolutions();
     }
 
+    // Load sector dropdown options
+    function loadSectorOptions() {
+      google.script.run
+        .withSuccessHandler(function(sectors) {
+          var select = document.getElementById('sectorReportSelect');
+          if (!select) return;
+          select.innerHTML = '<option value="">Select a sector...</option>';
+          sectors.forEach(function(sector) {
+            var option = document.createElement('option');
+            option.value = sector;
+            option.textContent = sector;
+            select.appendChild(option);
+          });
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load sectors:', error);
+        })
+        .getApplicationSectors();
+    }
+
+    // Preview Sector Report
+    function previewSectorReport() {
+      var select = document.getElementById('sectorReportSelect');
+      var sector = select ? select.value : '';
+
+      if (!sector) {
+        showPreview('Surveys by Sector', '<div class="preview-empty">Please select a sector.</div>', '');
+        return;
+      }
+
+      showPreview('Surveys by Sector: ' + sector, '<div class="loading-state"><span class="loading-spinner"></span><p>Loading sector data...</p></div>', '');
+
+      google.script.run
+        .withSuccessHandler(function(report) {
+          if (!report) {
+            showPreview('Surveys by Sector: ' + sector, '<div class="preview-empty">No data returned.</div>', '');
+            return;
+          }
+
+          var html = '<div class="sector-report">';
+
+          // Summary stats
+          html += '<div class="report-summary">';
+          html += '<div class="summary-stat"><span class="stat-value">' + report.solution_count + '</span><span class="stat-label">Solutions</span></div>';
+          html += '<div class="summary-stat"><span class="stat-value">' + report.unique_stakeholder_count + '</span><span class="stat-label">Unique Stakeholders</span></div>';
+          html += '<div class="summary-stat"><span class="stat-value">' + report.total_stakeholders + '</span><span class="stat-label">Total Records</span></div>';
+          html += '</div>';
+
+          // Solutions table
+          html += '<table class="report-table">';
+          html += '<thead><tr><th>Solution</th><th>Phase</th><th>Stakeholders</th><th>Survey Years</th><th>Departments</th></tr></thead>';
+          html += '<tbody>';
+
+          report.solutions.forEach(function(sol) {
+            html += '<tr>';
+            html += '<td><strong>' + escapeHtml(sol.solution_name) + '</strong><br><span class="text-muted">' + escapeHtml(sol.solution_id) + '</span></td>';
+            html += '<td>' + escapeHtml(sol.lifecycle_phase || '-') + '</td>';
+            html += '<td class="text-center">' + sol.stakeholder_count + '</td>';
+            html += '<td>' + (sol.survey_years.length ? sol.survey_years.join(', ') : '-') + '</td>';
+            html += '<td class="dept-list">' + (sol.departments.length ? sol.departments.slice(0, 3).join(', ') + (sol.departments.length > 3 ? ' +' + (sol.departments.length - 3) + ' more' : '') : '-') + '</td>';
+            html += '</tr>';
+          });
+
+          html += '</tbody></table>';
+          html += '</div>';
+
+          var meta = 'Generated: ' + new Date().toLocaleString() + ' | Sector: ' + sector;
+          showPreview('Surveys by Sector: ' + sector, html, meta);
+        })
+        .withFailureHandler(function(error) {
+          showPreview('Surveys by Sector: ' + sector, '<div class="preview-empty">Error: ' + error + '</div>', '');
+        })
+        .getSurveysBySector(sector);
+    }
+
     // Initialize on load
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', function() {
         loadUpdatesReportSolutions();
         initYearCheckboxes();
+        loadSectorOptions();
       });
     } else {
       loadUpdatesReportSolutions();
       initYearCheckboxes();
+      loadSectorOptions();
     }
 
     // Public API
@@ -2373,6 +2526,7 @@
       previewEngagementFunnel: previewEngagementFunnel,
       previewDepartmentReach: previewDepartmentReach,
       previewHistoricalUpdates: previewHistoricalUpdates,
+      previewSectorReport: previewSectorReport,
       closePreview: closePreview,
       exportPreview: exportPreview,
       toggleOptions: toggleOptions,
@@ -2386,25 +2540,4 @@
   }
 
   // Load document links from config
-  (function loadDocumentLinks() {
-    // Load NSITE Highlighter Blurbs link
-    google.script.run
-      .withSuccessHandler(function(docId) {
-        if (docId) {
-          var link = document.getElementById('nsiteBlurbsLink');
-          if (link) link.href = 'https://docs.google.com/document/d/' + docId;
-        }
-      })
-      .getConfigValue('HIGHLIGHTER_BLURBS_DOC_ID');
-
-    // Load ODSI Weekly Blurbs link
-    google.script.run
-      .withSuccessHandler(function(docId) {
-        if (docId) {
-          var link = document.getElementById('odsiBlurbsLink');
-          if (link) link.href = 'https://docs.google.com/document/d/' + docId;
-        }
-      })
-      .getConfigValue('ODSI_BLURB_DOC_ID');
-  })();
 </script>

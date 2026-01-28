@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_No unreleased changes_
+
+---
+
+## [2.1.5] - 2026-01-28
+
+### Fixed
+- **COMM-036: Story update data validation error** - Stories now save correctly
+  - Changed solution input from free text to dropdown with valid solution_ids
+  - Fixed column name mismatches between code and database:
+    - `pitch_document_url` → `pitch_doc_url`
+    - `published_link` → `published_url`
+    - `primary_outlet` → `platform`
+    - `last_update_date` → `last_updated`
+    - `created_at` → `created_date`
+  - Added `priority` and `source` columns to MO-DB_Stories
+  - `getPipelineStoriesForUI()` now returns all fields for complete modal data
+
+- **Implementation page null error** - Added null check to `populateFilterDropdowns()` for SPA navigation
+
+- **TEAM-027: Wrong name in availability edit** - Fixed dropdown showing wrong team member
+  - Dropdown now displays first names only with contact_id as values
+  - Added fallback matching by first name when contact_id doesn't match
+
+- **Stories API schema alignment** - Updated `getCoverageAnalysis()` and `detectStoryOpportunities()` to use schema v2 column names (`core_id`, `core_official_name`, `milestone_atp_date`, etc.)
+
 ### Added
 - **Email All Stakeholders** - Solution detail modal now includes "Email All" button
   - Collects all stakeholder emails for the solution

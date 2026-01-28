@@ -122,3 +122,20 @@ function getSEPCycles() {
 function getSolutionsNeedingOutreach(threshold) {
   return MoApi.getSolutionsNeedingOutreach(threshold);
 }
+
+// Application Sector Functions
+function getApplicationSectors() {
+  return MoApi.getApplicationSectors();
+}
+
+function getSolutionsBySector(sector) {
+  return MoApi.getSolutionsBySector(sector);
+}
+
+function getSurveysBySector(sector) {
+  return MoApi.getSurveysBySector(sector);
+}
+
+function getSectorSummary() {
+  return MoApi.getSectorSummary();
+}
