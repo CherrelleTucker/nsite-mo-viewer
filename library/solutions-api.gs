@@ -47,7 +47,7 @@ function clearSolutionsCache() {
 function getAllSolutions() {
   // Return cached data if available
   if (_solutionsCache !== null) {
-    return JSON.parse(JSON.stringify(_solutionsCache));
+    return deepCopy(_solutionsCache);
   }
 
   try {
@@ -92,7 +92,7 @@ function getAllSolutions() {
 
     // Cache the results
     _solutionsCache = solutions;
-    return JSON.parse(JSON.stringify(solutions));
+    return deepCopy(solutions);
   } catch (e) {
     Logger.log('Error reading solutions: ' + e.message);
     return getSampleSolutions();
@@ -157,7 +157,7 @@ function searchSolutions(query) {
   var searchTerm = query.toLowerCase().trim();
   return getAllSolutions().filter(function(sol) {
     var searchable = [sol.core_id, sol.core_official_name, sol.core_alternate_names, sol.team_lead, sol.core_group, sol.earthdata_purpose, sol.earthdata_status_summary].join(' ').toLowerCase();
-    return searchable.indexOf(searchTerm) !== -1;
+    return searchable.includes(searchTerm);
   });
 }
 
@@ -186,9 +186,9 @@ function getSolutionStats() {
     stats.byPhase[phase] = (stats.byPhase[phase] || 0) + 1;
 
     var phaseLower = (sol.admin_lifecycle_phase || '').toLowerCase();
-    if (phaseLower.indexOf('operational') !== -1 || phaseLower.indexOf('production') !== -1) stats.operational++;
-    else if (phaseLower.indexOf('implementation') !== -1) stats.implementation++;
-    else if (phaseLower.indexOf('formulation') !== -1) stats.formulation++;
+    if (phaseLower.includes('operational') || phaseLower.includes('production')) stats.operational++;
+    else if (phaseLower.includes('implementation')) stats.implementation++;
+    else if (phaseLower.includes('formulation')) stats.formulation++;
 
     if (sol.funding_type === 'Y' || sol.funding_type === 'ISON') stats.funded++;
   });
@@ -561,7 +561,7 @@ function getSolutionIdByName(name) {
 
   // Try partial matching for longer names
   for (var mapKey in map) {
-    if (mapKey.length > 4 && key.indexOf(mapKey) !== -1) {
+    if (mapKey.length > 4 && key.includes(mapKey)) {
       return map[mapKey];
     }
   }
@@ -627,7 +627,7 @@ function findSolutionIdsInText(text) {
   if (foundIds.length === 0) {
     var map = buildSolutionNameMap();
     for (var mapKey in map) {
-      if (mapKey.length > 10 && lowerText.indexOf(mapKey) !== -1) {
+      if (mapKey.length > 10 && lowerText.includes(mapKey)) {
         var id = map[mapKey];
         if (!seenIds[id]) {
           foundIds.push(id);
@@ -753,7 +753,7 @@ function searchKeyMessages(query) {
       sol.comms_industry
     ].join(' ').toLowerCase();
 
-    return searchText.indexOf(lowerQuery) !== -1;
+    return searchText.includes(lowerQuery);
   }).map(function(sol) {
     return {
       core_id: sol.core_id,
@@ -804,7 +804,7 @@ function getSolutionsBySector(sector) {
     var sectors = sol.core_application_sectors.toLowerCase().split(',').map(function(s) {
       return s.trim();
     });
-    return sectors.indexOf(lowerSector) !== -1;
+    return sectors.includes(lowerSector);
   });
 }
 
@@ -825,7 +825,7 @@ function getSurveysBySector(sector) {
   if (allContacts.length === 0 && typeof getAllContacts === 'function') {
     var contacts = getAllContacts();
     allContacts = contacts.filter(function(c) {
-      return solutionIds.indexOf(c.solution_id) !== -1;
+      return solutionIds.includes(c.solution_id);
     });
   }
 
@@ -912,10 +912,10 @@ function getSectorSummary() {
     var lowerSector = sector.toLowerCase();
     var sectorSolutions = solutions.filter(function(sol) {
       if (!sol.core_application_sectors) return false;
-      var sectors = sol.core_application_sectors.toLowerCase().split(',').map(function(s) {
+      var solSectors = sol.core_application_sectors.toLowerCase().split(',').map(function(s) {
         return s.trim();
       });
-      return sectors.indexOf(lowerSector) !== -1;
+      return solSectors.includes(lowerSector);
     });
 
     return {

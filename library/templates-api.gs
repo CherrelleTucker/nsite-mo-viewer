@@ -140,7 +140,7 @@ function getAllTemplates(includeInactive) {
   if (!includeInactive) {
     templates = templates.filter(function(t) { return t.is_active !== false; });
   }
-  return JSON.parse(JSON.stringify(templates));
+  return deepCopy(templates);
 }
 
 /**
@@ -153,7 +153,7 @@ function getTemplateById(templateId) {
   var template = templates.find(function(t) {
     return t.template_id === templateId;
   });
-  return template ? JSON.parse(JSON.stringify(template)) : null;
+  return template ? deepCopy(template) : null;
 }
 
 /**
@@ -167,7 +167,7 @@ function getTemplatesByCategory(category) {
     return t.is_active !== false &&
            t.category && t.category.toLowerCase() === category.toLowerCase();
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -181,7 +181,7 @@ function getTemplatesBySubcategory(subcategory) {
     return t.is_active !== false &&
            t.subcategory && t.subcategory.toLowerCase() === subcategory.toLowerCase();
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -195,7 +195,7 @@ function getTemplatesByPhase(phase) {
     return t.is_active !== false &&
            t.phase && t.phase.toLowerCase() === phase.toLowerCase();
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 // ============================================================================
@@ -224,7 +224,7 @@ function getSEPTouchpointTemplates(touchpointId) {
   if (touchpointId) {
     var tpNum = touchpointId.replace(/\D/g, '');
     results = results.filter(function(t) {
-      return t.template_id.indexOf('TP' + tpNum) !== -1;
+      return t.template_id.includes('TP' + tpNum);
     });
   }
 
@@ -245,7 +245,7 @@ function getSEPWorkingSessionTemplates(sessionId) {
   if (sessionId) {
     var wsNum = sessionId.replace(/\D/g, '');
     results = results.filter(function(t) {
-      return t.template_id.indexOf('WS' + wsNum) !== -1;
+      return t.template_id.includes('WS' + wsNum);
     });
   }
 
@@ -278,8 +278,8 @@ function getDecisionGateTemplates(gateType) {
   if (gateType) {
     var gtLower = gateType.toLowerCase();
     results = results.filter(function(t) {
-      return t.template_id.toLowerCase().indexOf(gtLower) !== -1 ||
-             t.name.toLowerCase().indexOf(gtLower) !== -1;
+      return t.template_id.toLowerCase().includes(gtLower) ||
+             t.name.toLowerCase().includes(gtLower);
     });
   }
 
@@ -328,8 +328,8 @@ function getBlurbForMilestone(milestoneType) {
   var mlLower = milestoneType.toLowerCase();
 
   var template = templates.find(function(t) {
-    return t.template_id.toLowerCase().indexOf(mlLower) !== -1 ||
-           t.name.toLowerCase().indexOf(mlLower) !== -1;
+    return t.template_id.toLowerCase().includes(mlLower) ||
+           t.name.toLowerCase().includes(mlLower);
   });
 
   return template || null;
@@ -475,15 +475,15 @@ function searchTemplates(query) {
 
   var results = templates.filter(function(t) {
     if (t.is_active === false) return false;
-    return (t.template_id && t.template_id.toLowerCase().indexOf(queryLower) !== -1) ||
-           (t.name && t.name.toLowerCase().indexOf(queryLower) !== -1) ||
-           (t.category && t.category.toLowerCase().indexOf(queryLower) !== -1) ||
-           (t.subcategory && t.subcategory.toLowerCase().indexOf(queryLower) !== -1) ||
-           (t.phase && t.phase.toLowerCase().indexOf(queryLower) !== -1) ||
-           (t.email_subject && t.email_subject.toLowerCase().indexOf(queryLower) !== -1);
+    return (t.template_id && t.template_id.toLowerCase().includes(queryLower)) ||
+           (t.name && t.name.toLowerCase().includes(queryLower)) ||
+           (t.category && t.category.toLowerCase().includes(queryLower)) ||
+           (t.subcategory && t.subcategory.toLowerCase().includes(queryLower)) ||
+           (t.phase && t.phase.toLowerCase().includes(queryLower)) ||
+           (t.email_subject && t.email_subject.toLowerCase().includes(queryLower));
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 // ============================================================================

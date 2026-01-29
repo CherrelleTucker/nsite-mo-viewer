@@ -26,7 +26,7 @@ var _internalTeamCache = null;
  */
 function getInternalTeam() {
   if (_internalTeamCache !== null) {
-    return JSON.parse(JSON.stringify(_internalTeamCache));
+    return deepCopy(_internalTeamCache);
   }
 
   try {
@@ -91,7 +91,7 @@ function getInternalTeam() {
     });
 
     _internalTeamCache = results;
-    return JSON.parse(JSON.stringify(results));
+    return deepCopy(results);
   } catch (e) {
     Logger.log('Error in getInternalTeam: ' + e);
     return [];
@@ -213,7 +213,7 @@ function loadAllAvailability_() {
  */
 function getAvailability() {
   var avail = loadAllAvailability_();
-  return JSON.parse(JSON.stringify(avail));
+  return deepCopy(avail);
 }
 
 /**
@@ -225,9 +225,9 @@ function getAvailabilityByContact(contactName) {
   var avail = loadAllAvailability_();
   var nameLower = contactName.toLowerCase();
   var results = avail.filter(function(a) {
-    return a.contact_name && a.contact_name.toLowerCase().indexOf(nameLower) !== -1;
+    return a.contact_name && a.contact_name.toLowerCase().includes(nameLower);
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -248,7 +248,7 @@ function getAvailabilityInRange(startDate, endDate) {
     return aStart <= end && aEnd >= start;
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -432,7 +432,7 @@ function loadAllMeetings_() {
  */
 function getAllMeetings() {
   var meetings = loadAllMeetings_();
-  return JSON.parse(JSON.stringify(meetings));
+  return deepCopy(meetings);
 }
 
 /**
@@ -445,7 +445,7 @@ function getMeetingById(meetingId) {
   var found = meetings.find(function(m) {
     return m.meeting_id === meetingId;
   });
-  return found ? JSON.parse(JSON.stringify(found)) : null;
+  return found ? deepCopy(found) : null;
 }
 
 /**
@@ -458,7 +458,7 @@ function getMeetingsByDay(day) {
   var results = meetings.filter(function(m) {
     return m.day_of_week && m.day_of_week.toLowerCase() === day.toLowerCase();
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -471,7 +471,7 @@ function getMeetingsByCategory(category) {
   var results = meetings.filter(function(m) {
     return m.category && m.category.toLowerCase() === category.toLowerCase();
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -483,7 +483,7 @@ function getActiveMeetings() {
   var results = meetings.filter(function(m) {
     return m.is_active === true || m.is_active === 'TRUE' || m.is_active === 1;
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -678,7 +678,7 @@ function loadAllGlossaryTerms_() {
  */
 function getGlossaryTerms() {
   var terms = loadAllGlossaryTerms_();
-  return JSON.parse(JSON.stringify(terms));
+  return deepCopy(terms);
 }
 
 /**
@@ -691,7 +691,7 @@ function getGlossaryTermById(termId) {
   var found = terms.find(function(t) {
     return t.term_id === termId;
   });
-  return found ? JSON.parse(JSON.stringify(found)) : null;
+  return found ? deepCopy(found) : null;
 }
 
 /**
@@ -704,11 +704,11 @@ function searchGlossary(query) {
   var queryLower = (query || '').toLowerCase();
 
   var results = terms.filter(function(t) {
-    return (t.term || '').toLowerCase().indexOf(queryLower) !== -1 ||
-           (t.definition || '').toLowerCase().indexOf(queryLower) !== -1;
+    return (t.term || '').toLowerCase().includes(queryLower) ||
+           (t.definition || '').toLowerCase().includes(queryLower);
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -721,7 +721,7 @@ function getGlossaryByCategory(category) {
   var results = terms.filter(function(t) {
     return t.category && t.category.toLowerCase() === category.toLowerCase();
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**

@@ -115,9 +115,9 @@ var ENGAGEMENT_DIRECTIONS = [
 function getAllEngagements(limit) {
   var engagements = loadAllEngagements_();
   if (limit && limit > 0) {
-    return JSON.parse(JSON.stringify(engagements.slice(0, limit)));
+    return deepCopy(engagements.slice(0, limit));
   }
-  return JSON.parse(JSON.stringify(engagements));
+  return deepCopy(engagements);
 }
 
 /**
@@ -130,7 +130,7 @@ function getEngagementById(engagementId) {
   var engagement = engagements.find(function(e) {
     return e.engagement_id === engagementId;
   });
-  return engagement ? JSON.parse(JSON.stringify(engagement)) : null;
+  return engagement ? deepCopy(engagement) : null;
 }
 
 /**
@@ -298,16 +298,16 @@ function getEngagementsByContact(contactId) {
     // Check contact_ids field (comma-separated)
     if (e.contact_ids) {
       var ids = e.contact_ids.split(',').map(function(id) { return id.trim(); });
-      if (ids.indexOf(contactId) !== -1) return true;
+      if (ids.includes(contactId)) return true;
     }
     // Check participants field (comma-separated emails)
     if (e.participants) {
       var participants = e.participants.split(',').map(function(p) { return p.trim().toLowerCase(); });
-      if (participants.indexOf(contactId.toLowerCase()) !== -1) return true;
+      if (participants.includes(contactId.toLowerCase())) return true;
     }
     return false;
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -320,7 +320,7 @@ function getEngagementsByAgency(agencyId) {
   var results = engagements.filter(function(e) {
     return e.agency_id === agencyId;
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -333,11 +333,11 @@ function getEngagementsBySolution(solutionId) {
   var results = engagements.filter(function(e) {
     if (e.solution_id) {
       var ids = e.solution_id.split(',').map(function(id) { return id.trim(); });
-      return ids.indexOf(solutionId) !== -1;
+      return ids.includes(solutionId);
     }
     return false;
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 // ============================================================================
@@ -354,7 +354,7 @@ function getEngagementsByActivityType(activityType) {
   var results = engagements.filter(function(e) {
     return e.activity_type && e.activity_type.toLowerCase() === activityType.toLowerCase();
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -367,7 +367,7 @@ function getEngagementsByTouchpoint(touchpoint) {
   var results = engagements.filter(function(e) {
     return e.touchpoint_reference === touchpoint;
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -387,7 +387,7 @@ function getEngagementsByDateRange(startDate, endDate) {
     var engDate = new Date(e.date);
     return engDate >= start && engDate <= end;
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 // ============================================================================
@@ -413,7 +413,7 @@ function getRecentEngagements(days, limit) {
     return new Date(e.date) >= cutoff;
   });
 
-  return JSON.parse(JSON.stringify(results.slice(0, limit)));
+  return deepCopy(results.slice(0, limit));
 }
 
 /**
@@ -441,7 +441,7 @@ function getUpcomingFollowUps(days) {
     return new Date(a.follow_up_date) - new Date(b.follow_up_date);
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -464,7 +464,7 @@ function getOverdueFollowUps() {
     return new Date(a.follow_up_date) - new Date(b.follow_up_date);
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 // ============================================================================

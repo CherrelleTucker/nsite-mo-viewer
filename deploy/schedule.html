@@ -744,12 +744,7 @@ var Schedule = (function() {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  function escapeHtml(text) {
-    if (!text) return '';
-    var div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
+  // escapeHtml() - uses global from index.html
 
   function showError(message) {
     var container = document.getElementById('scheduleTimeline');

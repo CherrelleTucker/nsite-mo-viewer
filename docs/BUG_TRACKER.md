@@ -174,6 +174,9 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | SEP-017 | No engagement history on agency detail | P2 | [ ] | Feature request |
 | SEP-027 | No loading indicator when clicking hierarchy expand | P2 | [ ] | Add spinner during hierarchy load |
 | SEP-028 | Agency view doesn't link to contacts in database | P2 | [ ] | Add link to filtered Contacts page |
+| SEP-029 | renderRecentEngagements - null element error during SPA navigation | P2 | [ ] | Add null guard: `if (!container) return;` before innerHTML |
+| SEP-030 | renderNeedsOutreach - null element error during SPA navigation | P2 | [ ] | Add null guard: `if (!container) return;` before innerHTML |
+| SEP-031 | renderAgencyTree - null element error during SPA navigation | P2 | [ ] | Add null guard: `if (!container) return;` before innerHTML |
 
 ### Contact Detail
 | ID | Issue | Priority | Status | Notes |
@@ -400,6 +403,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | RPT-019 | Quad Chart methodology table extends outside container | P2 | [ ] | Table overflows its bounds; console shows available Reports methods |
 | RPT-020 | Need Alignment shows [object Object] instead of stakeholder counts | P1 | [ ] | Data not being rendered properly - shows "[object Object] (6)" |
 | RPT-021 | Export report feedback too quiet - unclear if it worked | P2 | [ ] | Need confirmation toast/message when export completes |
+| RPT-022 | MoApi.getApplicationSectors is not a function | P1 | [ ] | Function exists in library/solutions-api.gs but needs library redeployment |
 
 ### Data/Integration Issues
 | ID | Issue | Priority | Status | Notes |
@@ -625,15 +629,15 @@ Before MO-Viewer can be packaged for other organizations, a comprehensive testin
 |---------|----|----|----|----|-------|
 | Team-NSITE | 1 | 3 | 16 | 6 | 26 |
 | Implementation-NSITE | 0 | 6 | 7 | 2 | 15 |
-| SEP-NSITE | 2 | 4 | 12 | 7 | 25 |
+| SEP-NSITE | 2 | 4 | 15 | 7 | 28 |
 | Comms-NSITE | 2 | 9 | 15 | 8 | 34 |
 | Quick Update | 1 | 5 | 10 | 5 | 21 |
 | Contacts | 0 | 3 | 11 | 8 | 22 |
-| Reports | 0 | 0 | 7 | 7 | 14 |
+| Reports | 0 | 1 | 7 | 7 | 15 |
 | Schedule | 0 | 2 | 4 | 3 | 9 |
 | Actions | 0 | 0 | 9 | 3 | 12 |
 | About | 0 | 0 | 4 | 6 | 10 |
-| **Total** | **6** | **32** | **95** | **55** | **188** |
+| **Total** | **6** | **33** | **98** | **55** | **192** |
 
 ---
 
@@ -685,3 +689,5 @@ Before MO-Viewer can be packaged for other organizations, a comprehensive testin
 | 2026-01-23 | **SECURITY**: Added maxlength attributes to all textarea elements (DoS prevention) |
 | 2026-01-23 | **CLEANUP**: Deleted unused OAuth client_secret file (was for removed Discover Events feature in Comms) |
 | 2026-01-23 | **CLEANUP**: Removed all debug console.log statements from deploy/*.html (31 instances); converted error logs to console.error |
+| 2026-01-28 | **LOGGED**: SEP-029 to SEP-031 - SPA navigation null element errors in sep.html (renderRecentEngagements, renderNeedsOutreach, renderAgencyTree) |
+| 2026-01-28 | **LOGGED**: RPT-022 - MoApi.getApplicationSectors needs library redeployment |

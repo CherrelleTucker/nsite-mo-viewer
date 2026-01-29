@@ -151,7 +151,7 @@ function getActionsByAssignee(assignee) {
 
   return actions.filter(function(action) {
     var assigned = (action.assigned_to || '').toLowerCase();
-    return assigned.indexOf(assigneeLower) !== -1;
+    return assigned.includes(assigneeLower);
   });
 }
 
@@ -595,7 +595,7 @@ function findActionTableInDoc_(doc) {
       for (var i = 0; i < tabs.length; i++) {
         var tab = tabs[i];
         var tabTitle = tab.getTitle();
-        if (tabTitle && tabTitle.toLowerCase().indexOf('action') !== -1) {
+        if (tabTitle && tabTitle.toLowerCase().includes('action')) {
           var result = findTableWithActionColumns_(tab.asDocumentTab().getBody());
           if (result.found) {
             return result;
@@ -632,9 +632,9 @@ function findTableWithActionColumns_(body) {
       for (var c = 0; c < headerRow.getNumCells(); c++) {
         headerText += headerRow.getCell(c).getText().toLowerCase() + ' ';
       }
-      if (headerText.indexOf('status') !== -1 &&
-          headerText.indexOf('owner') !== -1 &&
-          headerText.indexOf('action') !== -1) {
+      if (headerText.includes('status') &&
+          headerText.includes('owner') &&
+          headerText.includes('action')) {
         return { found: true, table: table };
       }
     }
@@ -654,9 +654,9 @@ function updateActionRowInTable_(table, action) {
   var colMap = {};
   for (var c = 0; c < headerRow.getNumCells(); c++) {
     var header = headerRow.getCell(c).getText().toLowerCase().trim();
-    if (header.indexOf('status') !== -1) colMap.status = c;
-    if (header.indexOf('owner') !== -1) colMap.owner = c;
-    if (header.indexOf('action') !== -1 && header.indexOf('source') === -1) colMap.action = c;
+    if (header.includes('status')) colMap.status = c;
+    if (header.includes('owner')) colMap.owner = c;
+    if (header.includes('action') && !header.includes('source')) colMap.action = c;
   }
 
   if (colMap.status === undefined || colMap.action === undefined) {

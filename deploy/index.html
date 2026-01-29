@@ -601,12 +601,7 @@
       }
     }
 
-    function escapeHtml(text) {
-      if (!text) return '';
-      var div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
+    // Note: escapeHtml is defined globally below (line ~766)
 
     // Keyboard shortcut: Ctrl+K or Cmd+K to open search
     document.addEventListener('keydown', function(e) {

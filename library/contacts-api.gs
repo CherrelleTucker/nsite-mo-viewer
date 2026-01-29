@@ -5,64 +5,39 @@
  * Used by Implementation, SEP, Comms, and Contacts views
  *
  * Part of MO-APIs Library - shared data access layer
- * Requires: config-helpers.gs
+ * Requires: config-helpers.gs (shared utilities)
+ *
+ * REFACTORED: Uses shared utilities from config-helpers.gs
+ * - loadSheetData_() for caching
+ * - filterByProperty() / filterByProperties() for filtering
+ * - deepCopy() for safe object copies
+ * - createResult() for standardized returns
  */
 
 // ============================================================================
-// CONFIGURATION
+// DATA ACCESS (Using shared utilities)
 // ============================================================================
 
-/**
- * Get the Contacts sheet
- * Reads CONTACTS_SHEET_ID from MO-DB_Config
- */
-function getContactsSheet_() {
-  var sheetId = getConfigValue('CONTACTS_SHEET_ID');
-  if (!sheetId) {
-    throw new Error('CONTACTS_SHEET_ID not configured in MO-DB_Config');
-  }
-  var ss = SpreadsheetApp.openById(sheetId);
-  return ss.getSheets()[0];
-}
+var CONTACTS_CONFIG_KEY = 'CONTACTS_SHEET_ID';
+var CONTACTS_CACHE_KEY = '_contactsCache';
 
 /**
- * Cache for contacts data (refreshed per execution)
- */
-var _contactsCache = null;
-
-/**
- * Load all contacts into memory for fast querying
+ * Load all contacts with caching
+ * Uses shared loadSheetData_() from config-helpers.gs
  */
 function loadAllContacts_() {
-  if (_contactsCache !== null) {
-    return _contactsCache;
-  }
+  return loadSheetData_(CONTACTS_CONFIG_KEY, CONTACTS_CACHE_KEY);
+}
 
-  var sheet = getContactsSheet_();
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0];
-
-  _contactsCache = [];
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    var contact = {};
-    headers.forEach(function(header, j) {
-      var value = row[j];
-      // Convert dates to ISO strings
-      if (value instanceof Date) {
-        contact[header] = value.toISOString();
-      } else {
-        contact[header] = value;
-      }
-    });
-    _contactsCache.push(contact);
-  }
-
-  return _contactsCache;
+/**
+ * Clear contacts cache
+ */
+function clearContactsCache() {
+  clearSheetDataCache(CONTACTS_CACHE_KEY);
 }
 
 // ============================================================================
-// CORE QUERY FUNCTIONS
+// CORE QUERY FUNCTIONS (Using shared filterByProperty)
 // ============================================================================
 
 /**
@@ -73,128 +48,86 @@ function loadAllContacts_() {
 function getAllContacts(limit) {
   var contacts = loadAllContacts_();
   if (limit && limit > 0) {
-    return JSON.parse(JSON.stringify(contacts.slice(0, limit)));
+    return deepCopy(contacts.slice(0, limit));
   }
-  return JSON.parse(JSON.stringify(contacts));
+  return deepCopy(contacts);
 }
 
 /**
- * Get contacts by solution_id
+ * Get contacts by solution_id (exact match)
  * @param {string} solutionId - The solution_id to match
  * @returns {Array} Matching contacts
  */
 function getContactsBySolutionId(solutionId) {
-  var contacts = loadAllContacts_();
-  var idLower = solutionId.toLowerCase();
-  var results = contacts.filter(function(c) {
-    return c.solution_id && c.solution_id.toLowerCase() === idLower;
-  });
-  return JSON.parse(JSON.stringify(results));
+  return filterByProperty(loadAllContacts_(), 'solution_id', solutionId, true);
 }
 
 /**
  * Get contacts by solution name or solution_id
- * @param {string} solutionName - Full or partial solution name, or solution_id
- * @param {boolean} exactMatch - If true, requires exact match
+ * @param {string} solutionId - Full or partial solution_id
+ * @param {boolean} exactMatch - If true, requires exact match (default: false)
  * @returns {Array} Matching contacts
  */
 function getContactsBySolution(solutionId, exactMatch) {
-  var contacts = loadAllContacts_();
-  var searchLower = solutionId.toLowerCase();
-
-  var results = contacts.filter(function(c) {
-    // Match solution_id (core_id from Solutions DB)
-    if (!c.solution_id) return false;
-    if (exactMatch) {
-      return c.solution_id.toLowerCase() === searchLower;
-    }
-    return c.solution_id.toLowerCase().indexOf(searchLower) !== -1;
-  });
-  return JSON.parse(JSON.stringify(results));
+  return filterByProperty(loadAllContacts_(), 'solution_id', solutionId, exactMatch);
 }
 
 /**
- * Get contacts by email
+ * Get contacts by email (exact match)
  * @param {string} email - Email address
  * @returns {Array} All records for this email
  */
 function getContactsByEmail(email) {
-  var contacts = loadAllContacts_();
-  var emailLower = email.toLowerCase();
-  var results = contacts.filter(function(c) {
-    return c.email && c.email.toLowerCase() === emailLower;
-  });
-  return JSON.parse(JSON.stringify(results));
+  return filterByProperty(loadAllContacts_(), 'email', email, true);
 }
 
 /**
- * Get contacts by name (first, last, or both)
+ * Get contacts by name (first, last, or both) - partial match
  * @param {string} firstName - First name (optional)
  * @param {string} lastName - Last name (optional)
  * @returns {Array} Matching contacts
  */
 function getContactsByName(firstName, lastName) {
-  var contacts = loadAllContacts_();
-  var results = contacts.filter(function(c) {
-    var matchFirst = !firstName ||
-      (c.first_name && c.first_name.toLowerCase().indexOf(firstName.toLowerCase()) !== -1);
-    var matchLast = !lastName ||
-      (c.last_name && c.last_name.toLowerCase().indexOf(lastName.toLowerCase()) !== -1);
-    return matchFirst && matchLast;
-  });
-  return JSON.parse(JSON.stringify(results));
+  var criteria = {};
+  if (firstName) criteria.first_name = firstName;
+  if (lastName) criteria.last_name = lastName;
+  return filterByProperties(loadAllContacts_(), criteria, { exactMatch: false });
 }
 
 /**
- * Get contacts by role
+ * Get contacts by role (exact match)
  * @param {string} role - Role type (Survey Submitter, Primary SME, etc.)
  * @returns {Array} Matching contacts
  */
 function getContactsByRole(role) {
-  var contacts = loadAllContacts_();
-  var results = contacts.filter(function(c) {
-    return c.role && c.role.toLowerCase() === role.toLowerCase();
-  });
-  return JSON.parse(JSON.stringify(results));
+  return filterByProperty(loadAllContacts_(), 'role', role, true);
 }
 
 /**
- * Get contacts by department
- * @param {string} department - Department name (partial match)
+ * Get contacts by department (partial match)
+ * @param {string} department - Department name
  * @returns {Array} Matching contacts
  */
 function getContactsByDepartment(department) {
-  var contacts = loadAllContacts_();
-  var results = contacts.filter(function(c) {
-    return c.department && c.department.toLowerCase().indexOf(department.toLowerCase()) !== -1;
-  });
-  return JSON.parse(JSON.stringify(results));
+  return filterByProperty(loadAllContacts_(), 'department', department, false);
 }
 
 /**
- * Get contacts by agency
- * @param {string} agency - Agency name (partial match)
+ * Get contacts by agency (partial match)
+ * @param {string} agency - Agency name
  * @returns {Array} Matching contacts
  */
 function getContactsByAgency(agency) {
-  var contacts = loadAllContacts_();
-  var results = contacts.filter(function(c) {
-    return c.agency && c.agency.toLowerCase().indexOf(agency.toLowerCase()) !== -1;
-  });
-  return JSON.parse(JSON.stringify(results));
+  return filterByProperty(loadAllContacts_(), 'agency', agency, false);
 }
 
 /**
- * Get contacts by survey year
+ * Get contacts by survey year (exact match)
  * @param {number} year - Survey year (2016, 2018, 2020, 2022, 2024)
  * @returns {Array} Matching contacts
  */
 function getContactsBySurveyYear(year) {
-  var contacts = loadAllContacts_();
-  var results = contacts.filter(function(c) {
-    return c.survey_year === year;
-  });
-  return JSON.parse(JSON.stringify(results));
+  return filterByProperty(loadAllContacts_(), 'survey_year', year, true);
 }
 
 // ============================================================================
@@ -203,45 +136,51 @@ function getContactsBySurveyYear(year) {
 
 /**
  * Get contacts matching multiple criteria
+ * Uses shared filterByProperties with mixed exact/partial matching
  * @param {Object} criteria - Filter criteria
  *   {solution_id, role, department, agency, year, firstName, lastName}
  * @returns {Array} Matching contacts
  */
 function getContactsMultiFilter(criteria) {
-  var contacts = loadAllContacts_();
+  if (!criteria || Object.keys(criteria).length === 0) {
+    return deepCopy(loadAllContacts_());
+  }
 
+  // Map criteria to database field names and define match types
+  var dbCriteria = {};
+  var exactFields = ['role', 'survey_year']; // These need exact match
+  var partialFields = ['solution_id', 'department', 'agency', 'first_name', 'last_name'];
+
+  // Rename firstName/lastName to database column names
+  if (criteria.firstName) dbCriteria.first_name = criteria.firstName;
+  if (criteria.lastName) dbCriteria.last_name = criteria.lastName;
+  if (criteria.year) dbCriteria.survey_year = criteria.year;
+  if (criteria.solution_id) dbCriteria.solution_id = criteria.solution_id;
+  if (criteria.role) dbCriteria.role = criteria.role;
+  if (criteria.department) dbCriteria.department = criteria.department;
+  if (criteria.agency) dbCriteria.agency = criteria.agency;
+
+  // Custom filter to handle mixed exact/partial matching
+  var contacts = loadAllContacts_();
   var results = contacts.filter(function(c) {
-    if (criteria.solution_id &&
-        (!c.solution_id || c.solution_id.toLowerCase().indexOf(criteria.solution_id.toLowerCase()) === -1)) {
-      return false;
-    }
-    if (criteria.role &&
-        (!c.role || c.role.toLowerCase() !== criteria.role.toLowerCase())) {
-      return false;
-    }
-    if (criteria.department &&
-        (!c.department || c.department.toLowerCase().indexOf(criteria.department.toLowerCase()) === -1)) {
-      return false;
-    }
-    if (criteria.agency &&
-        (!c.agency || c.agency.toLowerCase().indexOf(criteria.agency.toLowerCase()) === -1)) {
-      return false;
-    }
-    if (criteria.year && c.survey_year !== criteria.year) {
-      return false;
-    }
-    if (criteria.firstName &&
-        (!c.first_name || c.first_name.toLowerCase().indexOf(criteria.firstName.toLowerCase()) === -1)) {
-      return false;
-    }
-    if (criteria.lastName &&
-        (!c.last_name || c.last_name.toLowerCase().indexOf(criteria.lastName.toLowerCase()) === -1)) {
-      return false;
-    }
-    return true;
+    return Object.keys(dbCriteria).every(function(field) {
+      var searchValue = dbCriteria[field];
+      if (!searchValue) return true;
+
+      var itemValue = c[field];
+      if (itemValue === null || itemValue === undefined) return false;
+
+      var isExact = exactFields.includes(field);
+      var normalizedItem = normalizeString(itemValue);
+      var normalizedSearch = normalizeString(searchValue);
+
+      return isExact
+        ? normalizedItem === normalizedSearch
+        : normalizedItem.includes(normalizedSearch);
+    });
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -260,13 +199,13 @@ function getUniqueContacts(contacts) {
     if (!emailMap[email]) {
       emailMap[email] = {
         email: email,
-        first_name: c.first_name,
-        last_name: c.last_name,
-        primary_email: c.primary_email,
-        phone: c.phone,
-        department: c.department,
-        agency: c.agency,
-        organization: c.organization,
+        first_name: c.first_name || '',
+        last_name: c.last_name || '',
+        primary_email: c.primary_email || '',
+        phone: c.phone || '',
+        department: c.department || '',
+        agency: c.agency || '',
+        organization: c.organization || '',
         solutions: [],
         roles: [],
         years: []
@@ -274,13 +213,13 @@ function getUniqueContacts(contacts) {
     }
 
     var entry = emailMap[email];
-    if (c.solution_id && entry.solutions.indexOf(c.solution_id) === -1) {
+    if (c.solution_id && !entry.solutions.includes(c.solution_id)) {
       entry.solutions.push(c.solution_id);
     }
-    if (c.role && entry.roles.indexOf(c.role) === -1) {
+    if (c.role && !entry.roles.includes(c.role)) {
       entry.roles.push(c.role);
     }
-    if (c.survey_year && entry.years.indexOf(c.survey_year) === -1) {
+    if (c.survey_year && !entry.years.includes(c.survey_year)) {
       entry.years.push(c.survey_year);
     }
   });
@@ -292,7 +231,7 @@ function getUniqueContacts(contacts) {
     return e;
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -371,7 +310,7 @@ function getContactsAcrossSolutions(solutionNames) {
 
   contacts.forEach(function(c) {
     solutionNames.forEach(function(sol) {
-      if (c.solution_id && c.solution_id.toLowerCase().indexOf(sol.toLowerCase()) !== -1) {
+      if (c.solution_id && normalizeString(c.solution_id).includes(normalizeString(sol))) {
         if (solutionEmails[sol].indexOf(c.email) === -1) {
           solutionEmails[sol].push(c.email);
         }
@@ -384,7 +323,7 @@ function getContactsAcrossSolutions(solutionNames) {
   for (var i = 1; i < solutionNames.length; i++) {
     var nextEmails = solutionEmails[solutionNames[i]] || [];
     allEmails = allEmails.filter(function(email) {
-      return nextEmails.indexOf(email) !== -1;
+      return nextEmails.includes(email);
     });
   }
 
@@ -415,7 +354,7 @@ function getRelatedContacts(email) {
 
   allContacts.forEach(function(c) {
     if (c.email === email) return; // Skip self
-    if (mySolutions.indexOf(c.solution_id) !== -1) {
+    if (mySolutions.includes(c.solution_id)) {
       if (!relatedEmails[c.email]) {
         relatedEmails[c.email] = {
           email: c.email,
@@ -441,7 +380,7 @@ function getRelatedContacts(email) {
     return b.shared_count - a.shared_count;
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 // ============================================================================
@@ -667,7 +606,7 @@ function getContactsByTouchpoint(touchpoint) {
   var results = contacts.filter(function(c) {
     return c.touchpoint_status === touchpoint;
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -680,7 +619,7 @@ function getContactsByEngagementLevel(level) {
   var results = contacts.filter(function(c) {
     return c.engagement_level === level;
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -693,7 +632,7 @@ function getContactsByLifecyclePhase(phase) {
   var results = contacts.filter(function(c) {
     return c.lifecycle_phase === phase;
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -741,7 +680,7 @@ function getContactsNeedingFollowUp(days) {
     return new Date(a.next_scheduled_contact) - new Date(b.next_scheduled_contact);
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -764,7 +703,7 @@ function getContactsOverdueFollowUp() {
     return new Date(a.next_scheduled_contact) - new Date(b.next_scheduled_contact);
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -862,9 +801,9 @@ function searchContacts(query) {
     var email = (c.email || '').toLowerCase();
     var org = (c.organization || '').toLowerCase();
 
-    return fullName.indexOf(queryLower) !== -1 ||
-           email.indexOf(queryLower) !== -1 ||
-           org.indexOf(queryLower) !== -1;
+    return fullName.includes(queryLower) ||
+           email.includes(queryLower) ||
+           org.includes(queryLower);
   });
 
   // Remove duplicates by email
@@ -875,7 +814,7 @@ function searchContacts(query) {
     return true;
   });
 
-  return JSON.parse(JSON.stringify(unique.slice(0, 50)));
+  return deepCopy(unique.slice(0, 50));
 }
 
 /**
@@ -1142,7 +1081,7 @@ function getSEPPipelineContacts() {
     return (a.last_name || '').localeCompare(b.last_name || '');
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**

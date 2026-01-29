@@ -1624,13 +1624,7 @@
       runner[functionName]({});
     }
 
-    // Utility functions
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str).replace(/[&<>"']/g, function(c) {
-        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-      });
-    }
+    // escapeHtml() - uses global from index.html
 
     function truncate(str, len) {
       if (!str) return '';

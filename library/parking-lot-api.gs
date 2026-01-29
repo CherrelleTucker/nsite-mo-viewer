@@ -150,7 +150,7 @@ function getAllParkingLotItems(includeArchived) {
       return item.status !== 'archived';
     });
   }
-  return JSON.parse(JSON.stringify(items));
+  return deepCopy(items);
 }
 
 /**
@@ -163,7 +163,7 @@ function getParkingLotItemById(itemId) {
   var item = items.find(function(i) {
     return i.item_id === itemId;
   });
-  return item ? JSON.parse(JSON.stringify(item)) : null;
+  return item ? deepCopy(item) : null;
 }
 
 /**
@@ -299,7 +299,7 @@ function getParkingLotItemsByType(itemType) {
     return item.status !== 'archived' &&
            item.item_type === itemType;
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -312,7 +312,7 @@ function getParkingLotItemsByStatus(status) {
   var results = items.filter(function(item) {
     return item.status === status;
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -326,9 +326,9 @@ function getParkingLotItemsByAssignee(assignee) {
   var results = items.filter(function(item) {
     return item.status !== 'archived' &&
            item.assigned_to &&
-           item.assigned_to.toLowerCase().indexOf(assigneeLower) !== -1;
+           item.assigned_to.toLowerCase().includes(assigneeLower);
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -342,7 +342,7 @@ function getParkingLotItemsBySolution(solutionId) {
     return item.status !== 'archived' &&
            item.solution_id === solutionId;
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -355,9 +355,9 @@ function getParkingLotItemsBySubmitter(submitter) {
   var submitterLower = (submitter || '').toLowerCase();
   var results = items.filter(function(item) {
     return item.submitted_by &&
-           item.submitted_by.toLowerCase().indexOf(submitterLower) !== -1;
+           item.submitted_by.toLowerCase().includes(submitterLower);
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -369,7 +369,7 @@ function getParkingLotItemsNeedingAttention() {
   var results = items.filter(function(item) {
     return item.status === 'new' || item.status === 'discussed';
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -383,7 +383,7 @@ function getParkingLotItemsByPriority(priority) {
     return item.status !== 'archived' &&
            item.priority === priority;
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 // ============================================================================
@@ -401,13 +401,13 @@ function searchParkingLotItems(query) {
 
   var results = items.filter(function(item) {
     if (item.status === 'archived') return false;
-    return (item.title && item.title.toLowerCase().indexOf(queryLower) !== -1) ||
-           (item.description && item.description.toLowerCase().indexOf(queryLower) !== -1) ||
-           (item.tags && item.tags.toLowerCase().indexOf(queryLower) !== -1) ||
-           (item.notes && item.notes.toLowerCase().indexOf(queryLower) !== -1);
+    return (item.title && item.title.toLowerCase().includes(queryLower)) ||
+           (item.description && item.description.toLowerCase().includes(queryLower)) ||
+           (item.tags && item.tags.toLowerCase().includes(queryLower)) ||
+           (item.notes && item.notes.toLowerCase().includes(queryLower));
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 // ============================================================================

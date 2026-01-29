@@ -2112,12 +2112,7 @@ return;
     return text.substring(0, maxLength).trim() + '...';
   }
 
-  function escapeHtml(text) {
-    if (!text) return '';
-    var div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
+  // escapeHtml() - uses global from index.html
 
   function viewSolutionContacts(solutionName) {
     // Store solution filter in sessionStorage for Contacts page to read

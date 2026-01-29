@@ -80,7 +80,7 @@ function clearAgenciesCache_() {
  */
 function getAllAgencies() {
   var agencies = loadAllAgencies_();
-  return JSON.parse(JSON.stringify(agencies));
+  return deepCopy(agencies);
 }
 
 /**
@@ -93,7 +93,7 @@ function getAgencyById(agencyId) {
   var agency = agencies.find(function(a) {
     return a.agency_id === agencyId;
   });
-  return agency ? JSON.parse(JSON.stringify(agency)) : null;
+  return agency ? deepCopy(agency) : null;
 }
 
 /**
@@ -209,7 +209,7 @@ function getRootAgencies() {
   var roots = agencies.filter(function(a) {
     return !a.parent_agency_id || a.parent_agency_id === '';
   });
-  return JSON.parse(JSON.stringify(roots));
+  return deepCopy(roots);
 }
 
 /**
@@ -222,7 +222,7 @@ function getSubAgencies(parentId) {
   var children = agencies.filter(function(a) {
     return a.parent_agency_id === parentId;
   });
-  return JSON.parse(JSON.stringify(children));
+  return deepCopy(children);
 }
 
 /**
@@ -235,7 +235,7 @@ function getAgencyHierarchy() {
   // Build lookup map
   var agencyMap = {};
   agencies.forEach(function(a) {
-    agencyMap[a.agency_id] = JSON.parse(JSON.stringify(a));
+    agencyMap[a.agency_id] = deepCopy(a);
     agencyMap[a.agency_id].children = [];
   });
 
@@ -282,7 +282,7 @@ function getAgencyAncestry(agencyId) {
   var current = agencyMap[agencyId];
 
   while (current) {
-    ancestry.push(JSON.parse(JSON.stringify(current)));
+    ancestry.push(deepCopy(current));
     if (current.parent_agency_id && agencyMap[current.parent_agency_id]) {
       current = agencyMap[current.parent_agency_id];
     } else {
@@ -307,12 +307,12 @@ function searchAgencies(query) {
   var queryLower = query.toLowerCase();
 
   var results = agencies.filter(function(a) {
-    return (a.name && a.name.toLowerCase().indexOf(queryLower) !== -1) ||
-           (a.full_name && a.full_name.toLowerCase().indexOf(queryLower) !== -1) ||
-           (a.abbreviation && a.abbreviation.toLowerCase().indexOf(queryLower) !== -1);
+    return (a.name && a.name.toLowerCase().includes(queryLower)) ||
+           (a.full_name && a.full_name.toLowerCase().includes(queryLower)) ||
+           (a.abbreviation && a.abbreviation.toLowerCase().includes(queryLower));
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -325,7 +325,7 @@ function getAgenciesByType(agencyType) {
   var results = agencies.filter(function(a) {
     return a.type && a.type.toLowerCase() === agencyType.toLowerCase();
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -338,7 +338,7 @@ function getAgenciesByRelationshipStatus(status) {
   var results = agencies.filter(function(a) {
     return a.relationship_status && a.relationship_status.toLowerCase() === status.toLowerCase();
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -351,7 +351,7 @@ function getAgenciesByGeographicScope(scope) {
   var results = agencies.filter(function(a) {
     return a.geographic_scope && a.geographic_scope.toLowerCase() === scope.toLowerCase();
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 // ============================================================================
@@ -369,7 +369,7 @@ function getAgencyContacts(agencyId) {
   var results = contacts.filter(function(c) {
     return c.agency_id === agencyId;
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -491,7 +491,7 @@ function getAgencyEngagementStats(agencyId) {
   var agencyEngagements = engagements.filter(function(e) {
     if (!e.participants) return false;
     var participants = e.participants.split(',').map(function(p) { return p.trim().toLowerCase(); });
-    return participants.some(function(p) { return contactEmails.indexOf(p) !== -1; });
+    return participants.some(function(p) { return contactEmails.includes(p); });
   });
 
   // Find last engagement date
@@ -548,7 +548,7 @@ function getAgencyEngagementStats(agencyId) {
     if (e.participants) {
       e.participants.split(',').forEach(function(p) {
         var email = p.trim().toLowerCase();
-        if (contactEmails.indexOf(email) !== -1) {
+        if (contactEmails.includes(email)) {
           engagedContactEmails[email] = true;
         }
       });
@@ -590,7 +590,7 @@ function getAgencyEngagementTimeline(agencyId, limit) {
   var agencyEngagements = engagements.filter(function(e) {
     if (!e.participants) return false;
     var participants = e.participants.split(',').map(function(p) { return p.trim().toLowerCase(); });
-    return participants.some(function(p) { return contactEmails.indexOf(p) !== -1; });
+    return participants.some(function(p) { return contactEmails.includes(p); });
   }).map(function(e) {
     // Add matched contacts info
     var matchedContacts = [];
@@ -610,7 +610,7 @@ function getAgencyEngagementTimeline(agencyId, limit) {
     return e;
   });
 
-  return JSON.parse(JSON.stringify(agencyEngagements.slice(0, limit)));
+  return deepCopy(agencyEngagements.slice(0, limit));
 }
 
 /**
@@ -627,7 +627,7 @@ function getContactSolutionTags(email) {
   engagements.forEach(function(e) {
     if (!e.participants || !e.solution_id) return;
     var participants = e.participants.split(',').map(function(p) { return p.trim().toLowerCase(); });
-    if (participants.indexOf(emailLower) !== -1) {
+    if (participants.includes(emailLower)) {
       solutionsSet[e.solution_id] = true;
     }
   });
@@ -661,7 +661,7 @@ function getAgencyContactsWithTags(agencyId) {
     c.solution_tags = emailToSolutions[emailLower] ? Object.keys(emailToSolutions[emailLower]) : [];
   });
 
-  return JSON.parse(JSON.stringify(contacts));
+  return deepCopy(contacts);
 }
 
 /**

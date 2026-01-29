@@ -123,9 +123,9 @@ var PRIORITY_SECTORS = [
 function getAllEvents(limit) {
   var events = loadAllEvents_();
   if (limit && limit > 0) {
-    return JSON.parse(JSON.stringify(events.slice(0, limit)));
+    return deepCopy(events.slice(0, limit));
   }
-  return JSON.parse(JSON.stringify(events));
+  return deepCopy(events);
 }
 
 /**
@@ -136,7 +136,7 @@ function getEventById(eventId) {
   var event = events.find(function(e) {
     return e.event_id === eventId;
   });
-  return event ? JSON.parse(JSON.stringify(event)) : null;
+  return event ? deepCopy(event) : null;
 }
 
 /**
@@ -243,7 +243,7 @@ function getEventsByStatus(status) {
   var results = events.filter(function(e) {
     return e.status && e.status.toLowerCase() === status.toLowerCase();
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -254,7 +254,7 @@ function getEventsByYear(year) {
   var results = events.filter(function(e) {
     return e.year === year || (e.start_date && new Date(e.start_date).getFullYear() === year);
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -265,7 +265,7 @@ function getEventsByType(eventType) {
   var results = events.filter(function(e) {
     return e.event_type && e.event_type.toLowerCase() === eventType.toLowerCase();
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -275,9 +275,9 @@ function getEventsBySector(sector) {
   var events = loadAllEvents_();
   var sectorLower = sector.toLowerCase();
   var results = events.filter(function(e) {
-    return e.sector && e.sector.toLowerCase().indexOf(sectorLower) !== -1;
+    return e.sector && e.sector.toLowerCase().includes(sectorLower);
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -298,7 +298,7 @@ function getUpcomingEvents(days) {
     return startDate >= today && startDate <= cutoff;
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -324,7 +324,7 @@ function getUpcomingDeadlines(days) {
     return new Date(a.deadline) - new Date(b.deadline);
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -340,7 +340,7 @@ function getConfirmedEvents(year) {
     }
     return true;
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -351,7 +351,7 @@ function getPotentialEvents() {
   var results = events.filter(function(e) {
     return e.status === 'potential';
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -362,12 +362,12 @@ function searchEvents(query) {
   var queryLower = query.toLowerCase();
 
   var results = events.filter(function(e) {
-    return (e.name && e.name.toLowerCase().indexOf(queryLower) !== -1) ||
-           (e.stakeholders && e.stakeholders.toLowerCase().indexOf(queryLower) !== -1) ||
-           (e.sector && e.sector.toLowerCase().indexOf(queryLower) !== -1);
+    return (e.name && e.name.toLowerCase().includes(queryLower)) ||
+           (e.stakeholders && e.stakeholders.toLowerCase().includes(queryLower)) ||
+           (e.sector && e.sector.toLowerCase().includes(queryLower));
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 // ============================================================================
@@ -490,9 +490,9 @@ function detectEventType_(title) {
 
   var titleLower = title.toLowerCase();
 
-  if (titleLower.indexOf('workshop') !== -1) return 'workshop';
-  if (titleLower.indexOf('webinar') !== -1 || titleLower.indexOf('virtual') !== -1) return 'webinar';
-  if (titleLower.indexOf('meeting') !== -1 || titleLower.indexOf('summit') !== -1) return 'meeting';
+  if (titleLower.includes('workshop')) return 'workshop';
+  if (titleLower.includes('webinar') || titleLower.includes('virtual')) return 'webinar';
+  if (titleLower.includes('meeting') || titleLower.includes('summit')) return 'meeting';
 
   return 'conference';
 }
@@ -742,7 +742,7 @@ function addGuestToEvent(eventId, contactEmail) {
   var email = contactEmail.toLowerCase().trim();
   var currentGuests = currentGuestListStr ? currentGuestListStr.split(',').map(function(e) { return e.trim().toLowerCase(); }).filter(Boolean) : [];
 
-  if (currentGuests.indexOf(email) !== -1) {
+  if (currentGuests.includes(email)) {
     return { success: false, error: 'Contact already in guest list' };
   }
 
@@ -867,7 +867,7 @@ function getEventGuests(eventId) {
 
   allContacts.forEach(function(c) {
     var email = (c.email || '').toLowerCase();
-    if (guestEmails.indexOf(email) !== -1 && !uniqueContacts[email]) {
+    if (guestEmails.includes(email) && !uniqueContacts[email]) {
       uniqueContacts[email] = {
         email: email,
         first_name: c.first_name,
@@ -906,7 +906,7 @@ function getEventGuests(eventId) {
 
   // Mark attendance status (actualAttendees already loaded from sheet above)
   return Object.values(uniqueContacts).map(function(contact) {
-    contact.attended = actualAttendees.indexOf(contact.email) !== -1;
+    contact.attended = actualAttendees.includes(contact.email);
     return contact;
   });
 }
@@ -1116,7 +1116,7 @@ function findPotentialConnections_(guests) {
       // Check shared solutions
       if (guest1.solutions && guest2.solutions) {
         var sharedSolutions = guest1.solutions.filter(function(s) {
-          return guest2.solutions.indexOf(s) !== -1;
+          return guest2.solutions.includes(s);
         });
         if (sharedSolutions.length > 0) {
           reasons.push('Both engaged with ' + sharedSolutions[0]);
@@ -1131,7 +1131,7 @@ function findPotentialConnections_(guests) {
           h1 = h1.trim();
           hobbies2.forEach(function(h2) {
             h2 = h2.trim();
-            if (h1 && h2 && (h1.indexOf(h2) !== -1 || h2.indexOf(h1) !== -1)) {
+            if (h1 && h2 && (h1.includes(h2) || h2.includes(h1))) {
               reasons.push('Shared interest: ' + h1);
             }
           });
@@ -1415,7 +1415,7 @@ function findPotentialGuestsFromEngagements_(linkedSolutions, existingGuestEmail
       var eventNameLower = eventName.toLowerCase();
       allSolutions.forEach(function(sol) {
         var solName = sol.core_official_name || sol.core_id || '';
-        if (solName && eventNameLower.indexOf(solName.toLowerCase()) !== -1) {
+        if (solName && eventNameLower.includes(solName.toLowerCase())) {
           solutionsToSearch.push(solName);
         }
       });
@@ -1444,7 +1444,7 @@ function findPotentialGuestsFromEngagements_(linkedSolutions, existingGuestEmail
         // Process each participant
         participantEmails.forEach(function(contactEmail) {
           // Skip if already on guest list
-          if (existingGuestEmails.indexOf(contactEmail) !== -1) return;
+          if (existingGuestEmails.includes(contactEmail)) return;
 
           // Add or update potential guest entry
           if (!potentialGuests[contactEmail]) {

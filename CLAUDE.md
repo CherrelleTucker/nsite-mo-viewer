@@ -297,33 +297,168 @@ When making significant changes, update ALL relevant files:
 
 ---
 
+## AI Code Pitfall Prevention
+
+**CRITICAL: This codebase was partially AI-generated. Actively avoid these documented anti-patterns.**
+
+### DRY Violations (Don't Repeat Yourself)
+
+**Problem**: AI tends to generate similar code blocks repeatedly instead of creating reusable functions.
+
+**Anti-patterns to avoid**:
+```javascript
+// BAD: Copy-pasting filter logic with only field name changes
+function getContactsByRole(role) {
+  return contacts.filter(c => c.role && c.role.toLowerCase() === role.toLowerCase());
+}
+function getContactsByDept(dept) {
+  return contacts.filter(c => c.department && c.department.toLowerCase() === dept.toLowerCase());
+}
+
+// GOOD: Use shared utility
+function getContactsByRole(role) {
+  return filterByProperty(loadAllContacts_(), 'role', role);
+}
+```
+
+**Required patterns**:
+- Use `filterByProperty()` from config-helpers.gs for single-field filters
+- Use `filterByProperties()` for multi-field filters
+- Use `loadSheetData_()` for loading any sheet data with caching
+- Use `deepCopy()` instead of raw `JSON.parse(JSON.stringify())`
+
+### Inconsistent Error Handling
+
+**Problem**: AI mixes throw, return null, and return error objects inconsistently.
+
+**Standard pattern for this codebase**:
+```javascript
+// For functions that WRITE data - return result object
+function updateContact(email, data) {
+  try {
+    // ... implementation
+    return { success: true, data: result };
+  } catch (e) {
+    Logger.log('updateContact error: ' + e.message);
+    return { success: false, error: e.message };
+  }
+}
+
+// For functions that READ data - return empty array/null on failure
+function getContacts() {
+  try {
+    return loadAllContacts_();
+  } catch (e) {
+    Logger.log('getContacts error: ' + e.message);
+    return [];
+  }
+}
+
+// For internal helpers - throw to let caller handle
+function getSheet_(sheetId) {
+  if (!sheetId) {
+    throw new Error('Sheet ID not configured');
+  }
+  return SpreadsheetApp.openById(sheetId);
+}
+```
+
+### Missing Edge Cases
+
+**Problem**: AI generates happy-path code without null checks or empty state handling.
+
+**Required checks**:
+```javascript
+// ALWAYS check before string operations
+var name = (contact.first_name || '') + ' ' + (contact.last_name || '');
+name = name.trim() || 'Unknown';
+
+// ALWAYS handle empty arrays
+var results = getContacts();
+if (!results || results.length === 0) {
+  return { items: [], total: 0, message: 'No contacts found' };
+}
+
+// ALWAYS validate before write operations
+if (!data.email || !data.email.includes('@')) {
+  return { success: false, error: 'Valid email required' };
+}
+```
+
+### Over-Complex Solutions
+
+**Problem**: AI generates verbose, nested code when simpler approaches exist.
+
+**Simplification rules**:
+```javascript
+// BAD: Nested ternary
+return value ? (value === 'yes' ? true : (value === 'no' ? false : null)) : null;
+
+// GOOD: Clear logic
+if (!value) return null;
+if (value === 'yes') return true;
+if (value === 'no') return false;
+return null;
+
+// BAD: indexOf !== -1
+if (str.indexOf(search) !== -1) { ... }
+
+// GOOD: Modern includes()
+if (str.includes(search)) { ... }
+```
+
+### Shared Utilities Reference
+
+**Always use these utilities from config-helpers.gs**:
+
+| Utility | Purpose | Replaces |
+|---------|---------|----------|
+| `loadSheetData_(sheetId, cacheKey)` | Load sheet with caching | Manual cache + getDataRange pattern |
+| `filterByProperty(array, prop, value, exact)` | Single-field filter | Repeated filter functions |
+| `filterByProperties(array, criteria)` | Multi-field filter | Complex filter chains |
+| `deepCopy(obj)` | Safe object copy | `JSON.parse(JSON.stringify())` |
+| `normalizeString(str)` | Lowercase + trim | Repeated `.toLowerCase().trim()` |
+| `createResult(success, data, error)` | Standard return format | Inconsistent return objects |
+
+### Code Review Checklist for AI-Generated Code
+
+Before accepting any new code, verify:
+- [ ] No duplicate filter/map/reduce patterns that could use shared utilities
+- [ ] Error handling follows the standard pattern (write=object, read=empty, internal=throw)
+- [ ] All string operations have null checks
+- [ ] Empty array cases are handled explicitly
+- [ ] Uses `.includes()` instead of `.indexOf() !== -1`
+- [ ] No raw `JSON.parse(JSON.stringify())` - uses `deepCopy()` instead
+- [ ] Complex logic is broken into named helper functions
+
+---
+
 ## Code Patterns
 
 ### API Function Pattern
 
 All API functions should:
-1. Use caching where appropriate (`_cacheVariableName`)
-2. Return deep copies of cached data (`JSON.parse(JSON.stringify(...))`)
-3. Handle errors gracefully with try/catch
-4. Log errors with `Logger.log()`
+1. Use `loadSheetData_()` for data loading with automatic caching
+2. Return deep copies using `deepCopy()` (not raw JSON.parse/stringify)
+3. Follow standard error handling (read=empty array, write=result object)
+4. Use shared filter utilities instead of inline filter functions
 
 ```javascript
-var _solutionsCache = null;
-
+// PREFERRED: Using shared utilities
 function getAllSolutions() {
-  if (_solutionsCache !== null) {
-    return JSON.parse(JSON.stringify(_solutionsCache));
-  }
+  return deepCopy(loadSheetData_('SOLUTIONS_SHEET_ID', '_solutionsCache'));
+}
 
-  try {
-    var sheetId = getConfigValue('SOLUTIONS_SHEET_ID');
-    // ... implementation
-    _solutionsCache = results;
-    return JSON.parse(JSON.stringify(results));
-  } catch (e) {
-    Logger.log('Error in getAllSolutions: ' + e);
-    return [];
-  }
+function getSolutionsByPhase(phase) {
+  return filterByProperty(getAllSolutions(), 'admin_lifecycle_phase', phase, true);
+}
+
+// When custom logic is needed
+function getSolutionsWithMilestones() {
+  var solutions = getAllSolutions();
+  return solutions.filter(function(sol) {
+    return sol.milestone_atp_date || sol.milestone_orr_date;
+  });
 }
 ```
 
@@ -476,11 +611,27 @@ Why: Google Sheets auto-formats dates/numbers. A time like `14:00` becomes a Dat
 - [x] Remove duplicate functions from Code.gs
 - [x] CSS consolidation (shared-page-styles.html)
 - [x] Sync Code.gs PAGES icons
+- [x] AI Pitfall Prevention section added to CLAUDE.md
+- [x] Shared utilities added to config-helpers.gs (deepCopy, filterByProperty, etc.)
+- [x] Refactored contacts-api.gs to use shared utilities (template)
+- [x] Consolidated escapeHtml to global definition in index.html
+
+### AI Pitfall Refactoring Progress (2026-01-28) - **COMPLETE**
+All library API files refactored:
+- [x] `JSON.parse(JSON.stringify())` → `deepCopy()` (89 → 0 instances)
+- [x] `indexOf !== -1` → `.includes()` (64 → 0 instances)
+
+Files updated:
+- config-helpers.gs (shared utilities)
+- contacts-api.gs, solutions-api.gs, agencies-api.gs
+- engagements-api.gs, milestones-api.gs, outreach-api.gs
+- team-api.gs, stories-api.gs, parking-lot-api.gs
+- templates-api.gs, actions-api.gs, updates-api.gs
 
 ### Deferred
 - [ ] Add automated tests (see docs/TESTING_STRATEGY.md)
 - [ ] SEP Pipeline toolbar cleanup
-- [ ] Systematic SPA navigation null checks
+- [ ] Systematic SPA navigation null checks (SEP-029, SEP-030, SEP-031)
 
 ---
 

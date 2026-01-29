@@ -70,7 +70,7 @@ function loadAllMilestones_() {
  */
 function getAllMilestones() {
   var milestones = loadAllMilestones_();
-  return JSON.parse(JSON.stringify(milestones));
+  return deepCopy(milestones);
 }
 
 /**
@@ -84,7 +84,7 @@ function getMilestonesBySolution(solutionId) {
   var searchTerm = String(solutionId).toLowerCase().trim();
   var milestones = loadAllMilestones_().filter(function(m) {
     var id = String(m.solution_id || '').toLowerCase();
-    return id.indexOf(searchTerm) !== -1;
+    return id.includes(searchTerm);
   });
 
   // Sort by phase order
@@ -102,7 +102,7 @@ function getMilestonesBySolution(solutionId) {
     return orderA - orderB;
   });
 
-  return JSON.parse(JSON.stringify(milestones));
+  return deepCopy(milestones);
 }
 
 /**
@@ -115,10 +115,10 @@ function getMilestonesByType(type) {
 
   var searchTerm = String(type).toLowerCase().trim();
   var milestones = loadAllMilestones_().filter(function(m) {
-    return String(m.type || '').toLowerCase().indexOf(searchTerm) !== -1;
+    return String(m.type || '').toLowerCase().includes(searchTerm);
   });
 
-  return JSON.parse(JSON.stringify(milestones));
+  return deepCopy(milestones);
 }
 
 /**
@@ -134,7 +134,7 @@ function getMilestonesByStatus(status) {
     return String(m.status || '').toLowerCase() === searchTerm;
   });
 
-  return JSON.parse(JSON.stringify(milestones));
+  return deepCopy(milestones);
 }
 
 /**
@@ -150,7 +150,7 @@ function getMilestonesByCycle(cycle) {
     return String(m.cycle) === cycleNum;
   });
 
-  return JSON.parse(JSON.stringify(milestones));
+  return deepCopy(milestones);
 }
 
 /**
@@ -179,7 +179,7 @@ function getUpcomingMilestones(days) {
     return new Date(a.target_date) - new Date(b.target_date);
   });
 
-  return JSON.parse(JSON.stringify(milestones));
+  return deepCopy(milestones);
 }
 
 /**
@@ -205,7 +205,7 @@ function getOverdueMilestones() {
     return new Date(a.target_date) - new Date(b.target_date);
   });
 
-  return JSON.parse(JSON.stringify(milestones));
+  return deepCopy(milestones);
 }
 
 // ============================================================================
@@ -411,8 +411,8 @@ function searchMilestones(query) {
     var searchable = [
       m.solution_id, m.type, m.phase, m.notes
     ].join(' ').toLowerCase();
-    return searchable.indexOf(searchTerm) !== -1;
+    return searchable.includes(searchTerm);
   });
 
-  return JSON.parse(JSON.stringify(milestones));
+  return deepCopy(milestones);
 }

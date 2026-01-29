@@ -149,9 +149,9 @@ var PRIORITIES = ['high', 'medium', 'low'];
 function getAllStories(limit) {
   var stories = loadAllStories_();
   if (limit && limit > 0) {
-    return JSON.parse(JSON.stringify(stories.slice(0, limit)));
+    return deepCopy(stories.slice(0, limit));
   }
-  return JSON.parse(JSON.stringify(stories));
+  return deepCopy(stories);
 }
 
 /**
@@ -164,7 +164,7 @@ function getStoryById(storyId) {
   var story = stories.find(function(s) {
     return s.story_id === storyId;
   });
-  return story ? JSON.parse(JSON.stringify(story)) : null;
+  return story ? deepCopy(story) : null;
 }
 
 /**
@@ -326,7 +326,7 @@ function getStoriesByStatus(status) {
   var results = stories.filter(function(s) {
     return s.status && s.status.toLowerCase() === status.toLowerCase();
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -339,7 +339,7 @@ function getStoriesByContentType(contentType) {
   var results = stories.filter(function(s) {
     return s.content_type && s.content_type.toLowerCase() === contentType.toLowerCase();
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -355,10 +355,10 @@ function getStoriesBySolution(solutionId) {
     // Check solution_id field (single or comma-separated)
     var solId = s.solution_id || '';
     var ids = solId.split(',').map(function(id) { return id.trim().toLowerCase(); });
-    return ids.indexOf(searchLower) !== -1;
+    return ids.includes(searchLower);
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -371,7 +371,7 @@ function getStoriesByChannel(channel) {
   var results = stories.filter(function(s) {
     return s.channel && s.channel.toLowerCase() === channel.toLowerCase();
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -408,7 +408,7 @@ function getPipelineStories() {
   var results = stories.filter(function(s) {
     return s.status && s.status.toLowerCase() !== 'archived';
   });
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 // ============================================================================
@@ -811,7 +811,7 @@ function getRecentPublished(limit) {
     return dateB - dateA;
   });
 
-  return JSON.parse(JSON.stringify(published.slice(0, limit)));
+  return deepCopy(published.slice(0, limit));
 }
 
 // ============================================================================
@@ -839,7 +839,7 @@ function getStoriesByDateRange(startDate, endDate, dateField) {
     return storyDate >= start && storyDate <= end;
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -867,7 +867,7 @@ function getUpcomingTargets(days) {
     return new Date(a.target_date) - new Date(b.target_date);
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 // ============================================================================
@@ -949,12 +949,12 @@ function searchStories(query) {
   var queryLower = query.toLowerCase();
 
   var results = stories.filter(function(s) {
-    return (s.title && s.title.toLowerCase().indexOf(queryLower) !== -1) ||
-           (s.notes && s.notes.toLowerCase().indexOf(queryLower) !== -1) ||
-           (s.solution_id && s.solution_id.toLowerCase().indexOf(queryLower) !== -1);
+    return (s.title && s.title.toLowerCase().includes(queryLower)) ||
+           (s.notes && s.notes.toLowerCase().includes(queryLower)) ||
+           (s.solution_id && s.solution_id.toLowerCase().includes(queryLower));
   });
 
-  return JSON.parse(JSON.stringify(results));
+  return deepCopy(results);
 }
 
 /**
@@ -970,5 +970,5 @@ function getPipelineStoriesForUI() {
   });
 
   // Return all fields for complete data in UI (no need for secondary fetch)
-  return JSON.parse(JSON.stringify(active));
+  return deepCopy(active);
 }

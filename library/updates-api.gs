@@ -197,8 +197,8 @@ function getUpdatesBySolution(solutionId, limit, daysBack) {
   var filtered = updates.filter(function(update) {
     var updateSolutionId = (update.solution_id || '').toLowerCase().trim();
     return updateSolutionId === solutionLower ||
-           updateSolutionId.indexOf(solutionLower) !== -1 ||
-           solutionLower.indexOf(updateSolutionId) !== -1;
+           updateSolutionId.includes(solutionLower) ||
+           solutionLower.includes(updateSolutionId);
   });
 
   if (limit) {
@@ -223,8 +223,8 @@ function getRecentUpdatesBySolution(solutionName, days) {
   return updates.filter(function(update) {
     var updateSolutionId = (update.solution_id || '').toLowerCase().trim();
     var matches = updateSolutionId === solutionLower ||
-                  updateSolutionId.indexOf(solutionLower) !== -1 ||
-                  solutionLower.indexOf(updateSolutionId) !== -1;
+                  updateSolutionId.includes(solutionLower) ||
+                  solutionLower.includes(updateSolutionId);
     if (!matches) return false;
 
     if (!update.meeting_date) return false;
@@ -252,8 +252,8 @@ function getUpdatesBySolutionInRange(solutionName, daysBack) {
   return updates.filter(function(update) {
     var updateSolutionId = (update.solution_id || '').toLowerCase().trim();
     var matches = updateSolutionId === solutionLower ||
-                  updateSolutionId.indexOf(solutionLower) !== -1 ||
-                  solutionLower.indexOf(updateSolutionId) !== -1;
+                  updateSolutionId.includes(solutionLower) ||
+                  solutionLower.includes(updateSolutionId);
     if (!matches) return false;
 
     if (!update.meeting_date) return true; // Include undated updates
