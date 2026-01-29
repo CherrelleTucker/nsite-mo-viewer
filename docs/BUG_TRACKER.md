@@ -174,9 +174,9 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | SEP-017 | No engagement history on agency detail | P2 | [ ] | Feature request |
 | SEP-027 | No loading indicator when clicking hierarchy expand | P2 | [ ] | Add spinner during hierarchy load |
 | SEP-028 | Agency view doesn't link to contacts in database | P2 | [ ] | Add link to filtered Contacts page |
-| SEP-029 | renderRecentEngagements - null element error during SPA navigation | P2 | [ ] | Add null guard: `if (!container) return;` before innerHTML |
-| SEP-030 | renderNeedsOutreach - null element error during SPA navigation | P2 | [ ] | Add null guard: `if (!container) return;` before innerHTML |
-| SEP-031 | renderAgencyTree - null element error during SPA navigation | P2 | [ ] | Add null guard: `if (!container) return;` before innerHTML |
+| SEP-029 | renderRecentEngagements - null element error during SPA navigation | P2 | [x] | **FIXED** - Added null guard |
+| SEP-030 | renderNeedsOutreach - null element error during SPA navigation | P2 | [x] | **FIXED** - Added null guard |
+| SEP-031 | renderAgencyTree - null element error during SPA navigation | P2 | [x] | **FIXED** - Added null guard |
 
 ### Contact Detail
 | ID | Issue | Priority | Status | Notes |

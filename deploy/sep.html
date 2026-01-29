@@ -3028,6 +3028,7 @@ var SEP = (function() {
 
   function renderNeedsOutreach() {
     var container = document.getElementById('outreachList');
+    if (!container) return; // Guard against SPA navigation timing
     var countEl = document.getElementById('outreachCount');
     var solutions = state.needsOutreach || [];
 
@@ -3679,6 +3680,7 @@ var SEP = (function() {
 
   function renderAgencyTree() {
     var container = document.getElementById('agencyTree');
+    if (!container) return; // Guard against SPA navigation timing
     if (!state.agencyHierarchy || state.agencyHierarchy.length === 0) {
       container.innerHTML = '<div class="empty-state"><span class="material-icons">home</span><p>No agencies configured</p></div>';
 return;
@@ -4469,6 +4471,7 @@ return;
 
   function renderRecentEngagements() {
     var container = document.getElementById('recentEngagements');
+    if (!container) return; // Guard against SPA navigation timing
     if (!state.engagements || state.engagements.length === 0) {
       container.innerHTML = '<div class="empty-state"><p>No recent engagements</p></div>';
       return;
