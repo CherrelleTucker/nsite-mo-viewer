@@ -272,7 +272,7 @@ function getUpdatesBySolutionInRange(solutionName, daysBack) {
 function getUpdatesForSolutionCard(solutionName) {
   var MAX_RECENT = 10;      // Limit recent updates shown
   var MAX_EXTENDED = 10;    // Limit extended updates shown
-  var MAX_TEXT_LENGTH = 300; // Truncate long update text
+  var MAX_TEXT_LENGTH = 5000; // Allow full update text in modal view
 
   // Query 6 months of data (covers recent + extended)
   var allSolutionUpdates = getUpdatesBySolution(solutionName, null, 180);
