@@ -1,6 +1,6 @@
 # Claude Code Instructions for MO-Viewer
 
-**Version:** 2.2.13 | **Updated:** 2026-01-30 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
+**Version:** 2.2.14 | **Updated:** 2026-01-30 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
 
 ---
 

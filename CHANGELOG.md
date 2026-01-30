@@ -257,6 +257,23 @@ Added state flags to prevent users from triggering duplicate API calls by clicki
 
 ---
 
+## [2.2.14] - 2026-01-30
+
+### UI/UX Improvements
+
+**Footer:**
+- Removed outdated version number and non-functional "Last sync" display
+- Removed non-functional global refresh button from nav bar
+
+**Global Search (Ctrl+K):**
+- Added loading spinner in search input while searching
+- Simplified results to vertical bullet list (removed card-style layout)
+- Added "Show more..." pagination (5 initial, then 10 more at a time)
+- Contacts now de-duplicated by name
+- Increased max results from 5 to 50 per category
+
+---
+
 ## [2.2.13] - 2026-01-30
 
 ### About Page Accuracy (Review 13)
