@@ -362,6 +362,7 @@ function getPageHTML(pageName) {
 
 /**
  * Search across solutions, contacts, and actions
+ * Results are cached for 2 minutes to reduce API calls on repeated searches
  * @param {string} query - Search query (minimum 2 characters)
  * @returns {Object} Results grouped by type: {solutions: [], contacts: [], actions: []}
  */
@@ -370,13 +371,26 @@ function globalSearch(query) {
     return { solutions: [], contacts: [], actions: [] };
   }
 
+  var queryLower = query.toLowerCase().trim();
+  var cacheKey = 'search_' + queryLower;
+  var cache = CacheService.getScriptCache();
+
+  // Check cache first (2 minute TTL)
+  try {
+    var cached = cache.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (e) {
+    // Cache miss or parse error, continue to fresh search
+  }
+
   var results = {
     solutions: [],
     contacts: [],
     actions: []
   };
 
-  var queryLower = query.toLowerCase();
   var maxResults = 5; // Limit per category
 
   try {
@@ -391,7 +405,7 @@ function globalSearch(query) {
           sol.core_group || '',
           sol.core_alternate_names || ''
         ].join(' ').toLowerCase();
-        return searchText.indexOf(queryLower) !== -1;
+        return searchText.includes(queryLower);
       }).slice(0, maxResults);
     }
   } catch (e) {
@@ -410,7 +424,7 @@ function globalSearch(query) {
           contact.email || '',
           contact.organization || ''
         ].join(' ').toLowerCase();
-        return searchText.indexOf(queryLower) !== -1;
+        return searchText.includes(queryLower);
       }).slice(0, maxResults);
     }
   } catch (e) {
@@ -428,11 +442,18 @@ function globalSearch(query) {
           action.notes || '',
           action.solution_id || ''
         ].join(' ').toLowerCase();
-        return searchText.indexOf(queryLower) !== -1;
+        return searchText.includes(queryLower);
       }).slice(0, maxResults);
     }
   } catch (e) {
     Logger.log('Error searching actions: ' + e.message);
+  }
+
+  // Cache results for 2 minutes (120 seconds)
+  try {
+    cache.put(cacheKey, JSON.stringify(results), 120);
+  } catch (e) {
+    Logger.log('Error caching search results: ' + e.message);
   }
 
   return results;

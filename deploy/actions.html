@@ -1440,21 +1440,33 @@ var ActionsModule = (function() {
     });
 
     google.script.run
-      .withSuccessHandler(function() {
-        state.currentAction.status = newStatus;
+      .withSuccessHandler(function(result) {
+        if (result && result.success) {
+          state.currentAction.status = newStatus;
 
-        // Show success feedback
-        if (clickedBtn) {
-          clickedBtn.textContent = 'Updated!';
-          clickedBtn.classList.remove('loading');
-          clickedBtn.classList.add('success');
+          // Show success feedback
+          if (clickedBtn) {
+            clickedBtn.textContent = 'Updated!';
+            clickedBtn.classList.remove('loading');
+            clickedBtn.classList.add('success');
+          }
+
+          // Close after brief delay to show success
+          setTimeout(function() {
+            closeDrawer();
+            refreshData();
+          }, 600);
+        } else {
+          // Restore buttons on error
+          buttons.forEach(function(btn) {
+            btn.disabled = false;
+            btn.classList.remove('loading');
+            if (btn.dataset.originalText) {
+              btn.textContent = btn.dataset.originalText;
+            }
+          });
+          showError(result && result.error ? result.error : 'Failed to update');
         }
-
-        // Close after brief delay to show success
-        setTimeout(function() {
-          closeDrawer();
-          refreshData();
-        }, 600);
       })
       .withFailureHandler(function(err) {
         // Restore buttons on error
@@ -1465,7 +1477,7 @@ var ActionsModule = (function() {
             btn.textContent = btn.dataset.originalText;
           }
         });
-        alert('Failed to update: ' + err);
+        showError('Failed to update: ' + err);
       })
       .updateActionStatus(state.currentAction.action_id, newStatus);
   }
@@ -1476,7 +1488,7 @@ var ActionsModule = (function() {
     var noteInput = document.getElementById('add-note-input');
     var noteText = noteInput.value.trim();
     if (!noteText) {
-      alert('Please enter a note');
+      showToast('Please enter a note', 'warning');
       return;
     }
 
@@ -1490,8 +1502,8 @@ var ActionsModule = (function() {
     var formattedNote = '[' + timestamp + '] ' + noteText;
 
     google.script.run
-      .withSuccessHandler(function(success) {
-        if (success) {
+      .withSuccessHandler(function(result) {
+        if (result && result.success) {
           // Update local state
           var currentNotes = state.currentAction.notes || '';
           state.currentAction.notes = currentNotes ? currentNotes + '\n\n' + formattedNote : formattedNote;
@@ -1506,13 +1518,13 @@ var ActionsModule = (function() {
         } else {
           btn.disabled = false;
           btn.textContent = 'Add Note';
-          alert('Failed to save note');
+          showError(result && result.error ? result.error : 'Failed to save note');
         }
       })
       .withFailureHandler(function(err) {
         btn.disabled = false;
         btn.textContent = 'Add Note';
-        alert('Failed to save note: ' + err);
+        showError('Failed to save note: ' + err);
       })
       .appendToActionNotes(state.currentAction.action_id, formattedNote);
   }
@@ -1577,7 +1589,7 @@ var ActionsModule = (function() {
     var notes = document.getElementById('add-notes').value.trim();
 
     if (!task || !assigned) {
-      alert('Task and Assigned To are required');
+      showToast('Task and Assigned To are required', 'warning');
       return false;
     }
 
@@ -1613,7 +1625,7 @@ var ActionsModule = (function() {
       .withFailureHandler(function(err) {
         btn.disabled = false;
         btn.textContent = 'Add Action';
-        alert('Failed to add action: ' + err);
+        showError('Failed to add action: ' + err);
       })
       .createAction(actionData);
 
@@ -1642,7 +1654,7 @@ var ActionsModule = (function() {
 
     var newAssignee = document.getElementById('reassign-input').value.trim();
     if (!newAssignee) {
-      alert('Please select or enter a team member name');
+      showToast('Please select or enter a team member name', 'warning');
       return;
     }
 
@@ -1680,13 +1692,13 @@ var ActionsModule = (function() {
         } else {
           btn.disabled = false;
           btn.textContent = 'Reassign';
-          alert(result.message || 'Failed to reassign');
+          showError(result.message || 'Failed to reassign');
         }
       })
       .withFailureHandler(function(err) {
         btn.disabled = false;
         btn.textContent = 'Reassign';
-        alert('Failed to reassign: ' + err);
+        showError('Failed to reassign: ' + err);
       })
       .assignAction(state.currentAction.action_id, newAssignee, email, sendNotify);
   }

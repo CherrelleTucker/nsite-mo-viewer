@@ -471,3 +471,36 @@ function findRowByField_(sheet, headers, field, value) {
 
   return -1;
 }
+
+// ============================================================================
+// RESPONSE SIZE MONITORING
+// ============================================================================
+
+/**
+ * Log response size and warn if approaching google.script.run limit (~5MB)
+ * Call this before returning large data from API functions
+ *
+ * @param {*} data - Data to check size of
+ * @param {string} functionName - Name of the calling function for logging
+ * @returns {*} The same data (allows chaining)
+ */
+function logResponseSize(data, functionName) {
+  try {
+    var jsonSize = JSON.stringify(data).length;
+    var sizeMB = (jsonSize / (1024 * 1024)).toFixed(2);
+    var sizeKB = (jsonSize / 1024).toFixed(1);
+
+    if (jsonSize > 4 * 1024 * 1024) {
+      Logger.log('WARNING: ' + functionName + ' response approaching 5MB limit! Size: ' + sizeMB + ' MB');
+    } else if (jsonSize > 2 * 1024 * 1024) {
+      Logger.log('NOTICE: ' + functionName + ' response is large: ' + sizeMB + ' MB');
+    } else if (jsonSize > 500 * 1024) {
+      Logger.log(functionName + ' response size: ' + sizeKB + ' KB');
+    }
+    // Don't log for small responses
+  } catch (e) {
+    Logger.log('Error checking response size for ' + functionName + ': ' + e.message);
+  }
+
+  return data;
+}

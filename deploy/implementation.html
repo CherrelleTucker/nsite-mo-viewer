@@ -2481,7 +2481,7 @@ return;
     // Handles: https://drive.google.com/drive/folders/FOLDER_ID
     var folderId = extractFolderId(folderUrl);
     if (!folderId) {
-      alert('Invalid team folder URL configured for this solution.');
+      showError('Invalid team folder URL configured for this solution.');
       return;
     }
 

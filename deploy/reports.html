@@ -230,6 +230,30 @@
         <div class="report-info">
           <p><strong>Shows:</strong> Gap analysis - what stakeholders need vs what solutions deliver</p>
         </div>
+        <div class="report-options">
+          <div class="filter-group alignment-picker-group">
+            <label class="filter-label">Solutions:</label>
+            <button class="btn btn-secondary btn-sm alignment-picker-btn" id="alignmentPickerBtn" onclick="Reports.toggleAlignmentPicker()">
+              <span id="alignmentPickerLabel">Loading...</span>
+              <span class="material-icons">expand_more</span>
+            </button>
+            <div class="alignment-picker-dropdown" id="alignmentPickerDropdown">
+              <div class="picker-actions">
+                <button class="picker-action-btn" onclick="Reports.selectDefaultAlignmentSolutions()">Default</button>
+                <button class="picker-action-btn" onclick="Reports.selectAllAlignmentSolutions()">All</button>
+                <button class="picker-action-btn" onclick="Reports.clearAlignmentSelection()">None</button>
+              </div>
+              <div class="picker-section">
+                <div class="picker-section-header">Default Selection</div>
+                <div class="picker-list" id="alignmentActiveList"></div>
+              </div>
+              <div class="picker-section">
+                <div class="picker-section-header">Other Solutions</div>
+                <div class="picker-list" id="alignmentOtherList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="report-notice">
           <span class="material-icons">schedule</span>
           <span>Large report (2,000+ records) - may take 1-2 minutes to generate or export</span>
@@ -548,6 +572,70 @@
     border-radius: var(--radius-sm);
     background: var(--color-surface);
   }
+
+  /* Alignment Solution Picker */
+  .alignment-picker-group { position: relative; display: flex; align-items: center; gap: var(--space-xs); }
+  .alignment-picker-btn { display: flex; align-items: center; gap: var(--space-xs); min-width: 140px; justify-content: space-between; font-size: var(--font-size-xs); }
+  .alignment-picker-btn .material-icons { font-size: 16px; transition: transform var(--transition-fast); }
+  .alignment-picker-btn.active .material-icons { transform: rotate(180deg); }
+
+  .alignment-picker-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 100;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    min-width: 220px;
+    max-height: 320px;
+    overflow-y: auto;
+    display: none;
+    margin-top: var(--space-xs);
+  }
+  .alignment-picker-dropdown.active { display: block; }
+
+  .picker-actions {
+    display: flex;
+    gap: var(--space-xs);
+    padding: var(--space-sm);
+    border-bottom: 1px solid var(--color-border-light);
+    background: var(--color-surface-alt);
+  }
+  .picker-action-btn {
+    flex: 1;
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-xs);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+  .picker-action-btn:hover { background: var(--color-hover); }
+
+  .picker-section { padding: var(--space-xs) 0; }
+  .picker-section-header {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .picker-list { display: flex; flex-direction: column; }
+  .picker-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+  }
+  .picker-item:hover { background: var(--color-hover); }
+  .picker-item input[type="checkbox"] { margin: 0; cursor: pointer; }
+  .picker-item-label { flex: 1; }
+  .picker-item-cycle { font-size: var(--font-size-xs); color: var(--color-text-muted); }
 
   .year-checkboxes {
     display: flex;
@@ -1336,6 +1424,196 @@
     var previewData = null;
     var gapAnalysisData = null; // Store gap analysis alignments for dropdown
 
+    // Alignment picker state
+    var alignmentSolutions = [];
+    var alignmentSelectedSolutions = {};
+    var alignmentPickerLoaded = false;
+
+    // Load solutions for alignment picker
+    function loadAlignmentSolutions(callback) {
+      var label = document.getElementById('alignmentPickerLabel');
+
+      // If already loaded, just populate DOM (if it exists) and run callback
+      if (alignmentPickerLoaded && alignmentSolutions.length > 0) {
+        populateAlignmentPicker(); // Handles DOM check internally
+        if (callback) callback();
+        return;
+      }
+
+      if (label) label.textContent = 'Loading...';
+
+      google.script.run
+        .withSuccessHandler(function(solutions) {
+          alignmentSolutions = solutions || [];
+          alignmentPickerLoaded = true;
+          // Populate picker (handles DOM check and default selection internally)
+          populateAlignmentPicker();
+          if (callback) callback();
+        })
+        .withFailureHandler(function(err) {
+          console.error('Failed to load solutions for alignment picker:', err);
+          if (label) label.textContent = 'Error loading';
+        })
+        .getAllSolutions();
+    }
+
+    // Pre-select defaults in memory
+    function preselectDefaults() {
+      alignmentSelectedSolutions = {};
+      alignmentSolutions.forEach(function(sol) {
+        var isDefault = (sol.admin_default_in_dashboard || '').toString().trim().toUpperCase() === 'Y';
+        if (isDefault) {
+          alignmentSelectedSolutions[sol.core_id] = true;
+        }
+      });
+    }
+
+    // Initialize alignment picker on page load
+    function initAlignmentPicker() {
+      loadAlignmentSolutions();
+    }
+
+    // Called by SPA when navigating to Reports page
+    function init() {
+      loadAlignmentSolutions();
+    }
+
+    function populateAlignmentPicker() {
+      var activeList = document.getElementById('alignmentActiveList');
+      var otherList = document.getElementById('alignmentOtherList');
+
+      if (!activeList || !otherList) return;
+
+      activeList.innerHTML = '';
+      otherList.innerHTML = '';
+
+      // Sort by core_id
+      var sorted = alignmentSolutions.slice().sort(function(a, b) {
+        return (a.core_id || '').localeCompare(b.core_id || '');
+      });
+
+      // If no selections exist yet, pre-select defaults
+      var hasSelections = Object.keys(alignmentSelectedSolutions).length > 0;
+      if (!hasSelections) {
+        preselectDefaults();
+      }
+
+      sorted.forEach(function(sol) {
+        // Normalize value like Implementation does
+        var isDefault = (sol.admin_default_in_dashboard || '').toString().trim().toUpperCase() === 'Y';
+        // Check if this solution should be checked (from stored selections)
+        var isChecked = !!alignmentSelectedSolutions[sol.core_id];
+
+        var html = '<label class="picker-item">';
+        html += '<input type="checkbox" id="alignPicker_' + sol.core_id + '"' + (isChecked ? ' checked' : '') + ' onchange="Reports.onAlignmentSolutionToggle(\'' + sol.core_id + '\')">';
+        html += '<span class="picker-item-label">' + escapeHtml((sol.core_id || '').toUpperCase()) + '</span>';
+        html += '<span class="picker-item-cycle">C' + (sol.core_cycle || '?') + '</span>';
+        html += '</label>';
+
+        if (isDefault) {
+          activeList.innerHTML += html;
+        } else {
+          otherList.innerHTML += html;
+        }
+      });
+
+      // Update the label to reflect selections
+      updateAlignmentPickerLabel();
+    }
+
+    function toggleAlignmentPicker() {
+      // Always call loadAlignmentSolutions - it handles:
+      // 1. First load: fetches from server
+      // 2. Already loaded: re-populates DOM if needed (SPA navigation)
+      loadAlignmentSolutions();
+
+      var dropdown = document.getElementById('alignmentPickerDropdown');
+      var btn = document.getElementById('alignmentPickerBtn');
+      dropdown.classList.toggle('active');
+      btn.classList.toggle('active');
+    }
+
+    function closeAlignmentPicker() {
+      var dropdown = document.getElementById('alignmentPickerDropdown');
+      var btn = document.getElementById('alignmentPickerBtn');
+      if (dropdown) dropdown.classList.remove('active');
+      if (btn) btn.classList.remove('active');
+    }
+
+    function onAlignmentSolutionToggle(solutionId) {
+      var checkbox = document.getElementById('alignPicker_' + solutionId);
+      alignmentSelectedSolutions[solutionId] = checkbox ? checkbox.checked : false;
+      updateAlignmentPickerLabel();
+    }
+
+    function selectDefaultAlignmentSolutions() {
+      // Ensure solutions are loaded first
+      if (!alignmentPickerLoaded) {
+        loadAlignmentSolutions(selectDefaultAlignmentSolutions);
+        return;
+      }
+      alignmentSelectedSolutions = {};
+      alignmentSolutions.forEach(function(sol) {
+        var isDefault = (sol.admin_default_in_dashboard || '').toString().trim().toUpperCase() === 'Y';
+        alignmentSelectedSolutions[sol.core_id] = isDefault;
+        var checkbox = document.getElementById('alignPicker_' + sol.core_id);
+        if (checkbox) checkbox.checked = isDefault;
+      });
+      updateAlignmentPickerLabel();
+    }
+
+    function selectAllAlignmentSolutions() {
+      // Ensure solutions are loaded first
+      if (!alignmentPickerLoaded) {
+        loadAlignmentSolutions(selectAllAlignmentSolutions);
+        return;
+      }
+      alignmentSelectedSolutions = {};
+      alignmentSolutions.forEach(function(sol) {
+        alignmentSelectedSolutions[sol.core_id] = true;
+        var checkbox = document.getElementById('alignPicker_' + sol.core_id);
+        if (checkbox) checkbox.checked = true;
+      });
+      updateAlignmentPickerLabel();
+    }
+
+    function clearAlignmentSelection() {
+      // Ensure solutions are loaded first
+      if (!alignmentPickerLoaded) {
+        loadAlignmentSolutions(clearAlignmentSelection);
+        return;
+      }
+      alignmentSelectedSolutions = {};
+      alignmentSolutions.forEach(function(sol) {
+        var checkbox = document.getElementById('alignPicker_' + sol.core_id);
+        if (checkbox) checkbox.checked = false;
+      });
+      updateAlignmentPickerLabel();
+    }
+
+    function updateAlignmentPickerLabel() {
+      var count = Object.keys(alignmentSelectedSolutions).filter(function(k) {
+        return alignmentSelectedSolutions[k];
+      }).length;
+      var total = alignmentSolutions.length;
+      var label = document.getElementById('alignmentPickerLabel');
+      if (!label) return;
+
+      if (count === 0) {
+        label.textContent = 'None selected';
+      } else if (count === total) {
+        label.textContent = 'All (' + total + ')';
+      } else {
+        label.textContent = count + ' selected';
+      }
+    }
+
+    function getSelectedAlignmentSolutionIds() {
+      return Object.keys(alignmentSelectedSolutions).filter(function(k) {
+        return alignmentSelectedSolutions[k];
+      });
+    }
+
     function getQuadChartOptions() {
       return {
         daysBack: parseInt(document.getElementById('quadDaysBack').value) || 7,
@@ -1566,7 +1844,7 @@
       }
 
       // Fallback for reports without server-side export (like Quad Chart)
-      alert('Export not available for this report type');
+      showToast('Export not available for this report type', 'warning');
     }
 
     /**
@@ -1617,7 +1895,7 @@
         .withFailureHandler(function(err) {
           exportBtn.innerHTML = originalText;
           exportBtn.disabled = false;
-          alert('Export failed: ' + err.message);
+          showError('Export failed: ' + err.message);
         });
 
       // Call the function dynamically
@@ -1656,11 +1934,17 @@
     }
 
     function showNotification(message, type) {
-      // Simple alert for now - could be enhanced with toast notifications
-      if (type === 'error') {
-        alert('Error: ' + message);
+      // Use global toast notification system
+      if (typeof showToast === 'function') {
+        showToast(message, type || 'info');
+      } else {
+        // Fallback for older browsers or if toast not loaded
+        if (type === 'error') {
+          console.error(message);
+        } else {
+          console.log(message);
+        }
       }
-      // Success notifications could be shown as toast notifications
     }
 
     /**
@@ -1718,21 +2002,53 @@
       currentReportType = 'needAlignment';
       showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating need alignment report...</p></div>', '');
 
+      // Close picker if open
+      closeAlignmentPicker();
+
+      // Get selected solutions from picker
+      var selectedIds = getSelectedAlignmentSolutionIds();
+
+      // If picker hasn't loaded yet, use default behavior
+      var options = {};
+      if (selectedIds.length === 0 && !alignmentPickerLoaded) {
+        // Picker not loaded, use defaults
+        options.defaultOnly = true;
+      } else if (selectedIds.length === 0) {
+        // Picker loaded but nothing selected - show warning
+        showPreview('Need Alignment Report', '<p style="color: var(--color-warning);">No solutions selected. Use the Solutions picker to select which solutions to include.</p>', '');
+        return;
+      } else {
+        // Pass specific solution IDs
+        options.solutionIds = selectedIds;
+      }
+
       google.script.run
         .withSuccessHandler(function(data) {
           previewData = data;
           var html = renderNeedAlignmentReport(data);
-          var meta = 'Generated: ' + new Date(data.generated).toLocaleString() + ' | ' + data.count + ' solutions | ' + data.totalNeeds + ' needs';
+          var countLabel = selectedIds.length > 0 ? selectedIds.length + ' solutions' : 'Default solutions';
+          var meta = 'Generated: ' + new Date(data.generated).toLocaleString() + ' | ' + countLabel + ' | ' + data.totalNeeds + ' needs';
           showPreview('Need Alignment Report', html, meta);
         })
         .withFailureHandler(function(err) {
           showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + err.message + '</p>', '');
         })
-        .getNeedAlignmentReport({});
+        .getNeedAlignmentReport(options);
     }
 
     function renderNeedAlignmentReport(data) {
       var html = '';
+
+      // Separate solutions with stakeholder data from those without
+      var withNeeds = [];
+      var withoutNeeds = [];
+      data.alignments.forEach(function(a) {
+        if (a.stakeholderNeeds.total > 0) {
+          withNeeds.push(a);
+        } else {
+          withoutNeeds.push(a);
+        }
+      });
 
       // Data provenance banner
       html += renderDataProvenance({
@@ -1740,9 +2056,9 @@
         'MO-DB_Needs': data.summary.totalNeeds + ' survey responses'
       });
 
-      // Summary stats
+      // Summary stats - only count solutions with data
       html += '<div class="stats-grid">';
-      html += '<div class="stat-item"><span class="stat-value">' + data.summary.totalSolutions + '</span><span class="stat-label">Solutions</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + withNeeds.length + '</span><span class="stat-label">Solutions with Data</span></div>';
       html += '<div class="stat-item"><span class="stat-value">' + data.summary.totalNeeds + '</span><span class="stat-label">Survey Responses</span></div>';
       html += '<div class="stat-item"><span class="stat-value">' + data.summary.totalSubmitters + '</span><span class="stat-label">Unique Submitters</span></div>';
       html += '<div class="stat-item"><span class="stat-value">' + data.summary.averageAlignmentScore + '%</span><span class="stat-label">Avg Alignment</span></div>';
@@ -1751,11 +2067,11 @@
       }
       html += '</div>';
 
-      // Export table (hidden but scrapable)
+      // Export table (hidden but scrapable) - only solutions with data
       html += '<table class="preview-table" style="display: none;">';
       html += '<thead><tr><th>Solution</th><th>Cycle</th><th>Phase</th><th>Survey Responses</th><th>Unique Submitters</th><th>Avg Satisfaction</th><th>Alignment Score</th><th>Confidence</th><th>Weighted Score</th><th>Gaps</th></tr></thead>';
       html += '<tbody>';
-      data.alignments.forEach(function(a) {
+      withNeeds.forEach(function(a) {
         var avgMet = a.stakeholderNeeds.avgDegreeNeedMet !== null ? a.stakeholderNeeds.avgDegreeNeedMet + '%' : 'N/A';
         var confidence = calculateConfidence(a.stakeholderNeeds.total);
         var weightedScore = Math.round(a.alignmentScore * confidence / 100);
@@ -1774,16 +2090,23 @@
       });
       html += '</tbody></table>';
 
-      // Alignment table with expandable rows
+      // Alignment table with expandable rows - only solutions with needs
       html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">Solutions by Alignment Score</h4>';
-      html += '<p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin-bottom: var(--space-sm);">Click a solution to view detailed gap analysis. Confidence reflects survey response count.</p>';
+      html += '<p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin-bottom: var(--space-sm);">Click a solution to view detailed gap analysis.</p>';
 
-      // Store alignments data at module level for expansion
-      gapAnalysisData = data.alignments;
+      // Column headers
+      html += '<div style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-md); padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-xs); color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--color-border-light);">';
+      html += '<span style="flex: 2;">Solution</span>';
+      html += '<span style="flex: 1; text-align: center;">Responses</span>';
+      html += '<span style="flex: 1; text-align: center;">Satisfaction</span>';
+      html += '<span style="flex: 1; text-align: center;">Alignment</span>';
+      html += '</div>';
 
-      data.alignments.forEach(function(a, idx) {
+      // Store alignments data at module level for expansion (only those with data)
+      gapAnalysisData = withNeeds;
+
+      withNeeds.forEach(function(a, idx) {
         var scoreClass = a.alignmentScore >= 70 ? 'high' : (a.alignmentScore >= 40 ? 'medium' : 'low');
-        var hasNeeds = a.stakeholderNeeds.total > 0;
         var confidence = calculateConfidence(a.stakeholderNeeds.total);
         var weightedScore = Math.round(a.alignmentScore * confidence / 100);
         // Show avg % met or reason why it's unavailable
@@ -1793,33 +2116,33 @@
           avgMet = avgDegree + '%';
         } else if (a.stakeholderNeeds.avgDegreeNeedMetReason) {
           avgMet = '<span title="' + escapeHtml(a.stakeholderNeeds.avgDegreeNeedMetReason) + '" style="cursor: help; color: var(--color-text-muted);">N/A*</span>';
-        } else if (a.stakeholderNeeds.total === 0) {
-          avgMet = '<span style="color: var(--color-text-muted);">-</span>';
         } else {
           avgMet = '<span style="color: var(--color-text-muted);">N/A</span>';
         }
         var gapText = (a.gaps && a.gaps.length > 0) ? a.gaps.join('; ') : 'None identified';
-        var statusColor = hasNeeds ? (a.alignmentScore >= 70 ? 'var(--color-success)' : (a.alignmentScore >= 40 ? 'var(--color-warning)' : 'var(--color-error)')) : 'var(--color-text-muted)';
+        var statusColor = a.alignmentScore >= 70 ? 'var(--color-success)' : (a.alignmentScore >= 40 ? 'var(--color-warning)' : 'var(--color-error)');
         var confidenceClass = confidence >= 70 ? 'high' : (confidence >= 40 ? 'medium' : 'low');
 
         // Use official name if available, fallback to solution ID
         var displayName = a.officialName || a.solution;
+
+        // Check for excluded characteristics (N/A)
+        var excludedCount = a.excludedCount || 0;
+        var scoreNote = excludedCount > 0 ? ' <small style="color: var(--color-text-muted);">(' + excludedCount + ' N/A)</small>' : '';
 
         html += '<details class="alignment-row" style="margin-bottom: var(--space-xs); border: 1px solid var(--color-border-light); border-radius: var(--radius-sm);">';
         html += '<summary style="padding: var(--space-sm); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: var(--space-md);">';
         html += '<span style="flex: 2;"><strong>' + escapeHtml(displayName) + '</strong></span>';
         html += '<span style="flex: 1; text-align: center;">' + a.stakeholderNeeds.total + ' responses</span>';
         html += '<span style="flex: 1; text-align: center;">' + avgMet + '</span>';
-        html += '<span style="flex: 1; text-align: center;"><span class="alignment-score ' + scoreClass + '">' + a.alignmentScore + '%</span></span>';
+        html += '<span style="flex: 1; text-align: center;"><span class="alignment-score ' + scoreClass + '">' + a.alignmentScore + '%</span>' + scoreNote + '</span>';
         html += '</summary>';
 
         // Expanded content - gap analysis
         html += '<div style="padding: var(--space-md); border-top: 1px solid var(--color-border-light); font-size: var(--font-size-sm); background: var(--color-surface-alt);">';
 
-        if (!hasNeeds) {
-          html += '<p style="color: var(--color-text-muted); font-style: italic;">No matching survey responses found for this solution.</p>';
-        } else {
-          // Survey years breakdown
+        // All items in withNeeds have stakeholder data, so show gap analysis directly
+        // Survey years breakdown
           html += '<div style="margin-bottom: var(--space-md); padding: var(--space-sm); background: var(--color-surface); border-radius: var(--radius-sm);">';
           html += '<strong>Survey Years:</strong> ';
           var years = Object.keys(a.stakeholderNeeds.bySurveyYear || {}).sort();
@@ -1837,25 +2160,37 @@
           html += '<th style="text-align: left; padding: var(--space-xs); border-bottom: 1px solid var(--color-border);">Solution Provides</th>';
           html += '<th style="text-align: left; padding: var(--space-xs); border-bottom: 1px solid var(--color-border);">Stakeholders Requested</th>';
           html += '<th style="text-align: center; padding: var(--space-xs); border-bottom: 1px solid var(--color-border);">Gap?</th>';
+          html += '<th style="text-align: center; padding: var(--space-xs); border-bottom: 1px solid var(--color-border);">Status</th>';
           html += '</tr></thead><tbody>';
 
+          // Schema v3 column names with alignment keys (2026-01-29)
           var charMap = [
-            { key: 'horizontal_resolution', label: 'Horizontal Resolution', solKey: 'horizontal_resolution' },
-            { key: 'vertical_resolution', label: 'Vertical Resolution', solKey: null },
-            { key: 'temporal_frequency', label: 'Temporal Frequency', solKey: 'temporal_frequency' },
-            { key: 'data_latency', label: 'Data Latency', solKey: null },
-            { key: 'geographic_coverage', label: 'Geographic Coverage', solKey: 'geographic_domain' }
+            { key: 'horizontal_resolution', label: 'Horizontal Resolution', solKey: 'horizontal_resolution', alignKey: 'horiz_resolution' },
+            { key: 'vertical_resolution', label: 'Vertical Resolution', solKey: null, alignKey: 'vertical_resolution' },
+            { key: 'temporal_frequency', label: 'Temporal Frequency', solKey: 'temporal_frequency', alignKey: 'temporal_freq' },
+            { key: 'data_latency_value', label: 'Data Latency', solKey: null, alignKey: 'latency' },
+            { key: 'geographic_coverage', label: 'Geographic Coverage', solKey: 'geographic_domain', alignKey: 'geo_domain' },
+            { key: 'spectral_bands_value', label: 'Spectral Bands', solKey: null, alignKey: 'spectral_bands' }
           ];
 
           var chars = a.stakeholderNeeds.characteristics || {};
+          var decisions = a.alignmentDecisions || {};
+
           charMap.forEach(function(c) {
             var charData = chars[c.key] || [];
             var solValue = c.solKey ? (a.solutionProvides[c.solKey] || '') : '';
             var hasStakeholderData = charData.length > 0;
             var hasSolutionData = solValue !== '';
             var isGap = hasStakeholderData && !hasSolutionData;
+            var alignStatus = decisions[c.alignKey] || '';
+            var isExcluded = alignStatus === 'N/A';
 
-            html += '<tr style="border-bottom: 1px solid var(--color-border-light);">';
+            // Gray out rows marked N/A (excluded from alignment calculation)
+            var rowStyle = 'border-bottom: 1px solid var(--color-border-light);';
+            if (isExcluded) {
+              rowStyle += ' opacity: 0.6; background: var(--color-surface-alt);';
+            }
+            html += '<tr style="' + rowStyle + '">';
             html += '<td style="padding: var(--space-xs); font-weight: 500;">' + c.label + '</td>';
             html += '<td style="padding: var(--space-xs);">' + (hasSolutionData ? escapeHtml(solValue) : '<span style="color: var(--color-text-muted);">Not specified</span>') + '</td>';
             html += '<td style="padding: var(--space-xs);">';
@@ -1875,6 +2210,7 @@
               html += '<span style="color: var(--color-text-muted);">No data</span>';
             }
             html += '</td>';
+            // Gap indicator column
             html += '<td style="padding: var(--space-xs); text-align: center;">';
             if (isGap) {
               html += '<span style="color: var(--color-warning);">⚠️</span>';
@@ -1884,21 +2220,43 @@
               html += '<span style="color: var(--color-text-muted);">-</span>';
             }
             html += '</td>';
+            // Alignment status column with dropdown
+            html += '<td style="padding: var(--space-xs); text-align: center;">';
+            html += '<select class="alignment-select" data-solution="' + escapeHtml(a.solution_id) + '" data-char="' + c.alignKey + '" onchange="Reports.updateAlignment(this)" style="font-size: var(--font-size-xs); padding: 2px 4px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">';
+            html += '<option value=""' + (alignStatus === '' ? ' selected' : '') + '>--</option>';
+            html += '<option value="Acceptable"' + (alignStatus === 'Acceptable' ? ' selected' : '') + ' style="color: green;">✓ OK</option>';
+            html += '<option value="Gap"' + (alignStatus === 'Gap' ? ' selected' : '') + ' style="color: orange;">⚠ Gap</option>';
+            html += '<option value="N/A"' + (alignStatus === 'N/A' ? ' selected' : '') + ' style="color: gray;">N/A</option>';
+            html += '</select>';
+            html += '</td>';
             html += '</tr>';
           });
 
           html += '</tbody></table>';
 
-          // Identified gaps summary
-          if (a.gaps && a.gaps.length > 0) {
-            html += '<div style="margin-top: var(--space-sm); padding: var(--space-sm); background: rgba(239, 68, 68, 0.1); border-radius: var(--radius-sm);">';
-            html += '<strong style="color: var(--color-error);">Gaps:</strong> ' + escapeHtml(a.gaps.join('; '));
-            html += '</div>';
-          }
+        // Identified gaps summary
+        if (a.gaps && a.gaps.length > 0) {
+          html += '<div style="margin-top: var(--space-sm); padding: var(--space-sm); background: rgba(239, 68, 68, 0.1); border-radius: var(--radius-sm);">';
+          html += '<strong style="color: var(--color-error);">Gaps:</strong> ' + escapeHtml(a.gaps.join('; '));
+          html += '</div>';
         }
 
         html += '</div></details>';
       });
+
+      // Add note for solutions without stakeholder data
+      if (withoutNeeds.length > 0) {
+        html += '<div style="margin-top: var(--space-lg); padding: var(--space-md); background: var(--color-surface-alt); border: 1px solid var(--color-border-light); border-radius: var(--radius-sm);">';
+        html += '<p style="margin: 0 0 var(--space-sm) 0; color: var(--color-text-muted);">';
+        html += '<span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">info</span>';
+        html += '<strong>No stakeholder data found for ' + withoutNeeds.length + ' solution' + (withoutNeeds.length === 1 ? '' : 's') + ':</strong>';
+        html += '</p>';
+        html += '<p style="margin: 0; color: var(--color-text-muted); font-size: var(--font-size-sm);">';
+        var noDataNames = withoutNeeds.map(function(a) { return a.officialName || a.solution; });
+        html += escapeHtml(noDataNames.join(', '));
+        html += '</p>';
+        html += '</div>';
+      }
 
       return html;
     }
@@ -1945,15 +2303,15 @@
         html += '<th style="text-align: center; padding: var(--space-xs); border-bottom: 1px solid var(--color-border);">Gap?</th>';
         html += '</tr></thead><tbody>';
 
-        // Define characteristics to compare
+        // Define characteristics to compare (Schema v3 column names - 2026-01-29)
         var charMap = [
           { key: 'horizontal_resolution', label: 'Horizontal Resolution', solKey: 'horizontal_resolution' },
           { key: 'vertical_resolution', label: 'Vertical Resolution', solKey: null },
           { key: 'temporal_frequency', label: 'Temporal Frequency', solKey: 'temporal_frequency' },
-          { key: 'data_latency', label: 'Data Latency', solKey: null },
+          { key: 'data_latency_value', label: 'Data Latency', solKey: null },
           { key: 'geographic_coverage', label: 'Geographic Coverage', solKey: 'geographic_domain' },
-          { key: 'spectral_bands', label: 'Spectral Bands', solKey: null },
-          { key: 'measurement_uncertainty', label: 'Measurement Uncertainty', solKey: null },
+          { key: 'spectral_bands_value', label: 'Spectral Bands', solKey: null },
+          { key: 'uncertainty_type', label: 'Measurement Uncertainty', solKey: null },
           { key: 'required_processing_level', label: 'Processing Level', solKey: null },
           { key: 'preferred_format', label: 'Preferred Format', solKey: null },
           { key: 'preferred_access', label: 'Preferred Access', solKey: null }
@@ -2503,15 +2861,69 @@
         loadUpdatesReportSolutions();
         initYearCheckboxes();
         loadSectorOptions();
+        initAlignmentPicker();
       });
     } else {
       loadUpdatesReportSolutions();
       initYearCheckboxes();
       loadSectorOptions();
+      initAlignmentPicker();
+    }
+
+    /**
+     * Update alignment decision for a solution characteristic
+     * Called from dropdown change in Need Alignment Report
+     */
+    function updateAlignment(selectEl) {
+      var solutionId = selectEl.dataset.solution;
+      var characteristic = selectEl.dataset.char;
+      var decision = selectEl.value;
+
+      if (!solutionId || !characteristic) {
+        console.error('Missing solution or characteristic data');
+        return;
+      }
+
+      // Visual feedback
+      selectEl.disabled = true;
+      var originalBg = selectEl.style.background;
+      selectEl.style.background = '#fffacd';
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          selectEl.disabled = false;
+          if (result && result.success) {
+            // Flash green to indicate success
+            selectEl.style.background = '#90EE90';
+            setTimeout(function() {
+              selectEl.style.background = originalBg;
+            }, 1000);
+            console.log('Alignment updated:', result);
+          } else {
+            // Flash red to indicate error
+            selectEl.style.background = '#FFB6C1';
+            setTimeout(function() {
+              selectEl.style.background = originalBg;
+            }, 2000);
+            console.error('Failed to update alignment:', result ? result.error : 'Unknown error');
+            showError('Failed to update: ' + (result ? result.error : 'Unknown error'));
+          }
+        })
+        .withFailureHandler(function(error) {
+          selectEl.disabled = false;
+          selectEl.style.background = '#FFB6C1';
+          setTimeout(function() {
+            selectEl.style.background = originalBg;
+          }, 2000);
+          console.error('Error updating alignment:', error);
+          showError(error.message);
+        })
+        .updateAlignmentDecision(solutionId, characteristic, decision, null);
     }
 
     // Public API
     return {
+      init: init,
       previewQuadChart: previewQuadChart,
       copyQuadChartText: copyQuadChartText,
       previewDetailedReport: previewDetailedReport,
@@ -2524,7 +2936,14 @@
       closePreview: closePreview,
       exportPreview: exportPreview,
       toggleOptions: toggleOptions,
-      showGapAnalysis: showGapAnalysis
+      showGapAnalysis: showGapAnalysis,
+      updateAlignment: updateAlignment,
+      // Alignment picker functions
+      toggleAlignmentPicker: toggleAlignmentPicker,
+      onAlignmentSolutionToggle: onAlignmentSolutionToggle,
+      selectDefaultAlignmentSolutions: selectDefaultAlignmentSolutions,
+      selectAllAlignmentSolutions: selectAllAlignmentSolutions,
+      clearAlignmentSelection: clearAlignmentSelection
     };
   })();
 
@@ -2532,6 +2951,17 @@
   if (typeof Reports === 'undefined') {
     console.error('ERROR: Reports object is undefined!');
   }
+
+  // Close alignment picker when clicking outside
+  document.addEventListener('click', function(e) {
+    var picker = document.getElementById('alignmentPickerDropdown');
+    var btn = document.getElementById('alignmentPickerBtn');
+    if (picker && picker.classList.contains('active') && btn &&
+        !picker.contains(e.target) && !btn.contains(e.target)) {
+      picker.classList.remove('active');
+      btn.classList.remove('active');
+    }
+  });
 
   // Load document links from config
 </script>

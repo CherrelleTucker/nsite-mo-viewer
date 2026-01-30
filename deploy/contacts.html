@@ -1459,7 +1459,7 @@ renderPagination();
   function exportList() {
     // Export current filtered list
     if (state.filteredContacts.length === 0) {
-      alert('No contacts to export');
+      showToast('No contacts to export', 'warning');
       return;
     }
 

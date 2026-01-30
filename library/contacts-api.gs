@@ -47,10 +47,14 @@ function clearContactsCache() {
  */
 function getAllContacts(limit) {
   var contacts = loadAllContacts_();
+  var result;
   if (limit && limit > 0) {
-    return deepCopy(contacts.slice(0, limit));
+    result = deepCopy(contacts.slice(0, limit));
+  } else {
+    result = deepCopy(contacts);
   }
-  return deepCopy(contacts);
+  logResponseSize(result, 'getAllContacts');
+  return result;
 }
 
 /**

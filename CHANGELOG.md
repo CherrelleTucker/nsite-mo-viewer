@@ -40,6 +40,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.1] - 2026-01-29
+
+### Changed
+- **Toast Notifications** - Replaced 113 `alert()` calls with non-blocking toast notifications
+  - Success messages show green toast with auto-dismiss
+  - Errors show red toast with close button
+  - Warnings show orange toast for validation messages
+- **Error Handling** - Standardized API return types for action functions
+  - `updateAction()`, `appendToActionNotes()`, `updateActionStatus()` now return `{success, error}` objects
+  - Frontend handlers updated to check `result.success`
+- **Global Search Caching** - Search results cached for 2 minutes using CacheService
+  - Reduces redundant API calls on repeated searches
+  - Uses `.includes()` instead of `.indexOf()` for consistency
+
+### Added
+- **Response Size Logging** - New `logResponseSize()` helper monitors API response sizes
+  - Logs warning at 2MB, alert at 4MB (approaching 5MB limit)
+  - Added to `getAllSolutions()`, `getAllContacts()`, `getAllActions()`
+
+### Fixed
+- Navigation scriptlet syntax error causing "Malformed HTML" on Top Sheet page
+
+---
+
 ## [Unreleased]
 
 ### Added

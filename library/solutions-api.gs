@@ -92,7 +92,9 @@ function getAllSolutions() {
 
     // Cache the results
     _solutionsCache = solutions;
-    return deepCopy(solutions);
+    var result = deepCopy(solutions);
+    logResponseSize(result, 'getAllSolutions');
+    return result;
   } catch (e) {
     Logger.log('Error reading solutions: ' + e.message);
     return getSampleSolutions();

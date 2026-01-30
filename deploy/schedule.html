@@ -753,7 +753,7 @@ var Schedule = (function() {
 
   function exportToCSV(data, columns, filename) {
     if (!data || data.length === 0) {
-      alert('No data to export');
+      showToast('No data to export', 'warning');
       return;
     }
 

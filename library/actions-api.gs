@@ -80,11 +80,9 @@ function getAllActions(limit) {
     _actionsCache = actions;
     _actionsCacheTime = new Date().getTime();
 
-    if (limit) {
-      return actions.slice(0, limit);
-    }
-
-    return actions;
+    var result = limit ? actions.slice(0, limit) : actions;
+    logResponseSize(result, 'getAllActions');
+    return result;
   } catch (error) {
     Logger.log('Error in getAllActions: ' + error);
     throw new Error('Failed to load actions: ' + error.message);
@@ -384,7 +382,7 @@ function createAction(actionData) {
  * Update an existing action
  * @param {string} actionId - Action ID to update
  * @param {Object} updates - Fields to update
- * @returns {boolean} Success status
+ * @returns {Object} Result with success status and error if failed
  */
 function updateAction(actionId, updates) {
   try {
@@ -393,7 +391,9 @@ function updateAction(actionId, updates) {
     var headers = data[0];
 
     var idCol = headers.indexOf('action_id');
-    if (idCol === -1) throw new Error('action_id column not found');
+    if (idCol === -1) {
+      return { success: false, error: 'action_id column not found' };
+    }
 
     var rowIndex = -1;
     for (var i = 1; i < data.length; i++) {
@@ -404,7 +404,7 @@ function updateAction(actionId, updates) {
     }
 
     if (rowIndex === -1) {
-      throw new Error('Action not found: ' + actionId);
+      return { success: false, error: 'Action not found: ' + actionId };
     }
 
     // Update fields
@@ -422,10 +422,10 @@ function updateAction(actionId, updates) {
     }
 
     clearActionsCache();
-    return true;
+    return { success: true };
   } catch (error) {
     Logger.log('Error in updateAction: ' + error);
-    throw new Error('Failed to update action: ' + error.message);
+    return { success: false, error: 'Failed to update action: ' + error.message };
   }
 }
 
@@ -470,7 +470,7 @@ function deleteAction(actionId) {
  * Fast append to action notes - reads only the specific row
  * @param {string} actionId - Action ID
  * @param {string} noteText - Text to append
- * @returns {boolean} Success status
+ * @returns {Object} Result with success status and error if failed
  */
 function appendToActionNotes(actionId, noteText) {
   try {
@@ -483,7 +483,7 @@ function appendToActionNotes(actionId, noteText) {
     var updatedAtCol = headers.indexOf('updated_at');
 
     if (idCol === -1 || notesCol === -1) {
-      throw new Error('Required columns not found');
+      return { success: false, error: 'Required columns not found' };
     }
 
     // Find the row
@@ -502,14 +502,14 @@ function appendToActionNotes(actionId, noteText) {
         }
 
         clearActionsCache();
-        return true;
+        return { success: true };
       }
     }
 
-    return false;
+    return { success: false, error: 'Action not found: ' + actionId };
   } catch (error) {
     Logger.log('Error in appendToActionNotes: ' + error);
-    return false;
+    return { success: false, error: error.message };
   }
 }
 
@@ -518,13 +518,13 @@ function appendToActionNotes(actionId, noteText) {
  * Also pushes the status change back to the source agenda document
  * @param {string} actionId - Action ID
  * @param {string} newStatus - New status value
- * @returns {boolean} Success status
+ * @returns {Object} Result with success status and error if failed
  */
 function updateActionStatus(actionId, newStatus) {
   // Update in database
-  var success = updateAction(actionId, { status: newStatus });
+  var result = updateAction(actionId, { status: newStatus });
 
-  if (success) {
+  if (result.success) {
     // Get the full action data to push to agenda
     clearActionsCache();
     var action = getActionById(actionId);
@@ -538,7 +538,7 @@ function updateActionStatus(actionId, newStatus) {
     }
   }
 
-  return success;
+  return result;
 }
 
 /**

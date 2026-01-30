@@ -3426,7 +3426,7 @@ return;
             btn.disabled = false;
             btn.innerHTML = originalHtml;
           }
-          alert('Error: Story not found. It may have been deleted or the ID changed.\n\nPlease refresh the page and try again.');
+          showError('Story not found. It may have been deleted. Please refresh and try again.');
           return;
         }
         closeModal('storyModal');
@@ -3438,7 +3438,7 @@ return;
           btn.disabled = false;
           btn.innerHTML = originalHtml;
         }
-        alert('Failed to update status: ' + error);
+        showError('Failed to update status: ' + error);
       })
       .updateStoryStatus(storyId, newStatus);
   }
@@ -3503,7 +3503,7 @@ return;
     var solutionId = document.getElementById('storySolution').value;
 
     if (!solutionId) {
-      alert('Please select a solution');
+      showToast('Please select a solution', 'warning');
       return;
     }
 
@@ -3549,17 +3549,17 @@ return;
         .withSuccessHandler(function(result) {
           resetButton();
           if (!result) {
-            alert('Error: Story not found. It may have been deleted or the ID changed.\n\nPlease refresh the page and try again.');
+            showError('Story not found. It may have been deleted. Please refresh and try again.');
             return;
           }
           closeModal('editStoryModal');
           loadStories();
           loadOverview();
-          alert('Story updated successfully!');
+          showSuccess('Story updated successfully!');
         })
         .withFailureHandler(function(error) {
           resetButton();
-          alert('Failed to update story: ' + error);
+          showError('Failed to update story: ' + error);
         })
         .updateStory(storyId, storyData);
     } else {
@@ -3570,11 +3570,11 @@ return;
           closeModal('editStoryModal');
           loadStories();
           loadOverview();
-          alert('Story created successfully!');
+          showSuccess('Story created successfully!');
         })
         .withFailureHandler(function(error) {
           resetButton();
-          alert('Failed to create story: ' + error);
+          showError('Failed to create story: ' + error);
         })
         .createStory(storyData);
     }
@@ -4334,7 +4334,7 @@ return;
     };
 
     if (!updates.name) {
-      alert('Event name is required.');
+      showToast('Event name is required', 'warning');
       return;
     }
 
@@ -4347,7 +4347,7 @@ return;
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save Changes';
         if (!result) {
-          alert('Error: Event not found. It may have been deleted.\n\nPlease refresh the page and try again.');
+          showError('Event not found. It may have been deleted. Please refresh and try again.');
           return;
         }
         // Update local state
@@ -4365,7 +4365,7 @@ return;
       .withFailureHandler(function(error) {
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save Changes';
-        alert('Failed to save event: ' + error);
+        showError('Failed to save event: ' + error);
       })
       .updateEvent(currentEventDetail.event_id, updates);
   }
@@ -4380,13 +4380,13 @@ return;
         if (result) {
           closeModal('eventModal');
           loadEvents();
-          alert('Event deleted.');
+          showSuccess('Event deleted');
         } else {
-          alert('Failed to delete event. It may have already been deleted.');
+          showError('Failed to delete event. It may have already been deleted.');
         }
       })
       .withFailureHandler(function(error) {
-        alert('Failed to delete event: ' + error);
+        showError('Failed to delete event: ' + error);
       })
       .deleteEvent(eventId);
   }
@@ -4415,14 +4415,14 @@ return;
               btn.textContent = btn.dataset.originalText;
             }
           });
-          alert('Error: Event not found. It may have been deleted or the ID changed.\n\nPlease refresh the page and try again.');
+          showError('Event not found. It may have been deleted. Please refresh and try again.');
           return;
         }
         closeModal('eventModal');
         loadEvents();
         // Show brief success notification
         var statusNames = { confirmed: 'confirmed', cancelled: 'declined', attended: 'marked as attended' };
-        alert('Event ' + (statusNames[newStatus] || 'updated') + ' successfully!');
+        showSuccess('Event ' + (statusNames[newStatus] || 'updated') + ' successfully!');
       })
       .withFailureHandler(function(error) {
         // Re-enable buttons
@@ -4432,7 +4432,7 @@ return;
             btn.textContent = btn.dataset.originalText;
           }
         });
-        alert('Failed to update event status: ' + error);
+        showError('Failed to update event status: ' + error);
       })
       .updateEventStatus(eventId, newStatus);
   }
@@ -4447,7 +4447,7 @@ return;
 
     var name = document.getElementById('newEventName').value.trim();
     if (!name) {
-      alert('Please enter an event name');
+      showToast('Please enter an event name', 'warning');
       return;
     }
 
@@ -4462,7 +4462,7 @@ return;
       return evt.name && evt.name.toLowerCase() === name.toLowerCase() && evt.year === year;
     });
     if (duplicate) {
-      alert('An event with this name already exists for ' + year + '. Please use a different name or edit the existing event.');
+      showToast('An event with this name already exists for ' + year + '. Please use a different name or edit the existing event.', 'warning');
       return;
     }
 
@@ -4491,13 +4491,13 @@ return;
           closeModal('addEventModal');
           loadEvents();
         } else {
-          alert('Event created but no ID returned');
+          showError('Event created but no ID returned');
         }
       })
       .withFailureHandler(function(error) {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Add Event';
-        alert('Failed to add event: ' + error);
+        showError('Failed to add event: ' + error);
       })
       .createEvent(eventData);
   }
@@ -4707,11 +4707,11 @@ return;
           document.getElementById('guestSearchInput').value = '';
           document.getElementById('guestSearchResults').innerHTML = '<div class="empty-state-sm">Search to find contacts</div>';
         } else {
-          alert(result.error || 'Failed to add guest');
+          showError(result.error || 'Failed to add guest');
         }
       })
       .withFailureHandler(function(error) {
-        alert('Failed to add guest: ' + error);
+        showError('Failed to add guest: ' + error);
       })
       .addGuestToEvent(currentEventId, email);
   }
@@ -4724,11 +4724,11 @@ return;
           loadEventGuests();
           generatePrepReport();
         } else {
-          alert(result.error || 'Failed to add guest');
+          showError(result.error || 'Failed to add guest');
         }
       })
       .withFailureHandler(function(error) {
-        alert('Failed to add guest: ' + error);
+        showError('Failed to add guest: ' + error);
       })
       .addGuestToEvent(currentEventId, email);
   }
@@ -4741,11 +4741,11 @@ return;
         if (result.success) {
           loadEventGuests();
         } else {
-          alert(result.error || 'Failed to remove guest');
+          showError(result.error || 'Failed to remove guest');
         }
       })
       .withFailureHandler(function(error) {
-        alert('Failed to remove guest: ' + error);
+        showError('Failed to remove guest: ' + error);
       })
       .removeGuestFromEvent(currentEventId, email);
   }
@@ -4754,12 +4754,12 @@ return;
     google.script.run
       .withSuccessHandler(function(result) {
         if (!result.success) {
-          alert(result.error || 'Failed to update attendance');
+          showError(result.error || 'Failed to update attendance');
           loadEventGuests(); // Reload to reset checkbox
         }
       })
       .withFailureHandler(function(error) {
-        alert('Failed to update attendance: ' + error);
+        showError('Failed to update attendance: ' + error);
         loadEventGuests();
       })
       .markGuestAttended(currentEventId, email, attended);
@@ -4956,13 +4956,13 @@ return;
           // Open the doc in a new tab
           window.open(result.url, '_blank');
         } else {
-          alert('Export failed: ' + (result.error || 'Unknown error'));
+          showError('Export failed: ' + (result.error || 'Unknown error'));
         }
       })
       .withFailureHandler(function(error) {
         exportBtn.disabled = false;
         exportBtn.innerHTML = originalText;
-        alert('Export failed: ' + error.message);
+        showError('Export failed: ' + error.message);
       })
       .exportPrepReportToDoc(currentEventId);
   }
@@ -5003,31 +5003,31 @@ return;
                 submitBtn.textContent = 'Add Contact';
                 closeModal('newContactFromEventModal');
                 loadEventGuests();
-                alert('Contact added successfully!');
+                showSuccess('Contact added successfully!');
               })
               .withFailureHandler(function(error) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Add Contact';
                 closeModal('newContactFromEventModal');
-                alert('Contact created but failed to add to guest list: ' + error);
+                showToast('Contact created but failed to add to guest list: ' + error, 'warning');
               })
               .addGuestToEvent(currentEventId, contactData.email);
           } else {
             submitBtn.disabled = false;
             submitBtn.textContent = 'Add Contact';
             closeModal('newContactFromEventModal');
-            alert('Contact added successfully!');
+            showSuccess('Contact added successfully!');
           }
         } else {
           submitBtn.disabled = false;
           submitBtn.textContent = 'Add Contact';
-          alert(result.error || 'Failed to create contact');
+          showError(result.error || 'Failed to create contact');
         }
       })
       .withFailureHandler(function(error) {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Add Contact';
-        alert('Failed to create contact: ' + error);
+        showError('Failed to create contact: ' + error);
       })
       .createContactForAgency(contactData);
   }
@@ -5098,12 +5098,12 @@ return;
           renderPipeline();
           loadOverview(); // Refresh stats
         } else {
-          alert('Failed to update story status');
+          showError('Failed to update story status');
           renderPipeline(); // Re-render to reset position
         }
       })
       .withFailureHandler(function(error) {
-        alert('Error updating status: ' + error);
+        showError('Error updating status: ' + error);
         renderPipeline(); // Re-render to reset position
       })
       .updateStoryStatus(storyId, newStatus);
@@ -5130,7 +5130,7 @@ return;
             btn.disabled = false;
             btn.innerHTML = originalHtml;
           }
-          alert('Failed to delete story');
+          showError('Failed to delete story');
         }
       })
       .withFailureHandler(function(error) {
@@ -5138,7 +5138,7 @@ return;
           btn.disabled = false;
           btn.innerHTML = originalHtml;
         }
-        alert('Error deleting story: ' + error);
+        showError('Error deleting story: ' + error);
       })
       .deleteStory(storyId);
   }

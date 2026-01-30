@@ -675,4 +675,33 @@ Files updated:
 
 ---
 
+## Comprehensive Review Checklist
+
+Work through these reviews systematically to ensure webapp quality.
+
+### Code Quality
+- [x] **1. Security Audit** - XSS vulnerabilities, input validation, data sanitization, access control gaps (completed 2026-01-29)
+- [x] **2. Error Handling Review** - Consistent patterns, user-friendly messages, logging, graceful failures (completed 2026-01-29: found 113 alert() calls to replace, missing withFailureHandler on some calls, inconsistent return types in actions-api.gs)
+- [x] **3. Performance Audit** - API response sizes, redundant calls, caching opportunities, render optimization (completed 2026-01-29: found global search loads all data, SEP page 33 API calls, potential 5MB limit risks)
+
+### Architecture
+- [ ] **4. DRY Audit** - Duplicate code across pages, opportunities for shared utilities
+- [ ] **5. API Consistency** - Naming conventions, return formats, parameter patterns across all APIs
+- [ ] **6. State Management** - How each page handles state, potential race conditions, stale data
+
+### User Experience
+- [ ] **7. Accessibility Audit** - Keyboard navigation, screen reader support, color contrast, focus states
+- [ ] **8. Mobile/Responsive Review** - Layout issues on different screen sizes
+- [ ] **9. Loading States** - Spinners, skeletons, empty states, error states across all views
+
+### Data Integrity
+- [ ] **10. Schema Validation** - Column names match between code and databases, required fields enforced
+- [ ] **11. Data Flow Audit** - Trace data from source docs → sync scripts → databases → APIs → UI
+
+### Documentation
+- [ ] **12. Code Comments** - Missing explanations for complex logic
+- [ ] **13. About Page Accuracy** - Does documentation match current functionality?
+
+---
+
 *This file should be updated when new patterns emerge or mistakes are identified.*

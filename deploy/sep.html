@@ -3238,7 +3238,7 @@ var SEP = (function() {
 
     // Validate date format
     if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-      alert('Please use YYYY-MM-DD format');
+      showToast('Please use YYYY-MM-DD format', 'warning');
       return;
     }
 
@@ -3249,7 +3249,7 @@ var SEP = (function() {
         loadSolutionsWithProgress();
       })
       .withFailureHandler(function(error) {
-        alert('Failed to update milestone: ' + error.message);
+        showError('Failed to update milestone: ' + error.message);
       })
       .updateSolutionSEPMilestone(solutionId, milestone, dateStr);
   }
@@ -3280,7 +3280,7 @@ var SEP = (function() {
       }
     }
     if (!solution) {
-      alert('Solution not found: ' + solutionId);
+      showError('Solution not found: ' + solutionId);
       return;
     }
 
@@ -4117,7 +4117,7 @@ return;
   function saveAgencyNotes(agencyId) {
     var notes = document.getElementById('agencyNotes').value;
     // TODO: Implement save to backend
-    alert('Notes saved (backend integration pending)');
+    showSuccess('Notes saved (backend integration pending)');
   }
 
   function cancelAgencyNotes() {
@@ -4389,13 +4389,13 @@ return;
           // Refresh the agency view
           selectAgency(state.linkContactAgencyId);
         } else {
-          alert('Failed to link contact: ' + (result.error || 'Unknown error'));
+          showError('Failed to link contact: ' + (result.error || 'Unknown error'));
         }
       })
       .withFailureHandler(function(error) {
         btn.disabled = false;
         btn.innerHTML = '<span class="material-icons">person_add</span> Add Contact';
-        alert('Failed to link contact: ' + error);
+        showError('Failed to link contact: ' + error);
       })
       .updateContactAgency(email, state.linkContactAgencyId);
   }
@@ -4407,11 +4407,11 @@ return;
     var title = document.getElementById('newContactTitle').value.trim();
 
     if (!firstName || !lastName) {
-      alert('Please enter first and last name');
+      showToast('Please enter first and last name', 'warning');
       return;
     }
     if (!email || !email.includes('@')) {
-      alert('Please enter a valid email address');
+      showToast('Please enter a valid email address', 'warning');
       return;
     }
 
@@ -4429,13 +4429,13 @@ return;
           // Refresh the agency view
           selectAgency(state.linkContactAgencyId);
         } else {
-          alert('Failed to add contact: ' + (result.error || 'Unknown error'));
+          showError('Failed to add contact: ' + (result.error || 'Unknown error'));
         }
       })
       .withFailureHandler(function(error) {
         btn.disabled = false;
         btn.innerHTML = '<span class="material-icons">person_add</span> Add Contact';
-        alert('Failed to add contact: ' + error);
+        showError('Failed to add contact: ' + error);
       })
       .createContactForAgency({
         first_name: firstName,
@@ -4457,11 +4457,11 @@ return;
           // Refresh the agency view
           selectAgency(agencyId);
         } else {
-          alert('Failed to remove contact: ' + (result.error || 'Unknown error'));
+          showError('Failed to remove contact: ' + (result.error || 'Unknown error'));
         }
       })
       .withFailureHandler(function(error) {
-        alert('Failed to remove contact: ' + error);
+        showError('Failed to remove contact: ' + error);
       })
       .updateContactAgency(contactId, '');
   }
@@ -4537,7 +4537,7 @@ return;
       contact = state.contacts.find(function(c) { return c.email === email; });
     }
     if (!contact) {
-      alert('Contact not found');
+      showError('Contact not found');
       return;
     }
 
@@ -4678,7 +4678,7 @@ return;
 
       // Validate result - updateEngagement returns null if not found
       if (isEditing && !result) {
-        alert('Error: Engagement not found. It may have been deleted. Please refresh the page.');
+        showError('Engagement not found. It may have been deleted. Please refresh the page.');
         state.editingEngagementId = null;
         state.editingOriginalParticipants = null;
         closeModal('engagementModal');
@@ -4693,13 +4693,13 @@ return;
       if (state.selectedAgency) {
         selectAgency(state.selectedAgency);
       }
-      alert(isEditing ? 'Engagement updated!' : 'Engagement logged successfully!');
+      showSuccess(isEditing ? 'Engagement updated!' : 'Engagement logged successfully!');
     };
 
     var failureHandler = function(error) {
       submitBtn.disabled = false;
       submitBtn.textContent = isEditing ? 'Update Engagement' : 'Log Engagement';
-      alert('Failed to ' + (isEditing ? 'update' : 'log') + ' engagement: ' + error);
+      showError('Failed to ' + (isEditing ? 'update' : 'log') + ' engagement: ' + error);
     };
 
     // Helper function to perform the actual save
@@ -4938,7 +4938,7 @@ return;
         showToast('Contact marked as contacted today');
       })
       .withFailureHandler(function(err) {
-        alert('Failed to update: ' + err);
+        showError('Failed to update: ' + err);
       })
       .updateContactLastContactDate(email, today);
   }
@@ -5299,7 +5299,7 @@ return;
 
     var e = state.currentEngagementDetail;
     if (!e || !e.engagement_id) {
-      alert('Error: No engagement selected');
+      showError('No engagement selected');
       return;
     }
 
@@ -5343,7 +5343,7 @@ return;
         saveBtn.textContent = 'Save Changes';
 
         if (!result) {
-          alert('Error: Engagement not found. It may have been deleted.');
+          showError('Engagement not found. It may have been deleted.');
           closeModal('engagementDetailModal');
           loadRecentEngagements();
           return;
@@ -5355,12 +5355,12 @@ return;
         if (state.selectedAgency) {
           selectAgency(state.selectedAgency);
         }
-        alert('Engagement updated!');
+        showSuccess('Engagement updated!');
       })
       .withFailureHandler(function(error) {
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save Changes';
-        alert('Failed to update engagement: ' + error);
+        showError('Failed to update engagement: ' + error);
       })
       .updateEngagement(e.engagement_id, updates);
   }
@@ -5409,7 +5409,7 @@ return;
   function deleteEngagement() {
     var e = state.currentEngagementDetail;
     if (!e || !e.engagement_id) {
-      alert('Cannot delete: Engagement ID not found');
+      showError('Cannot delete: Engagement ID not found');
       return;
     }
 
@@ -5427,11 +5427,11 @@ return;
             selectAgency(state.selectedAgency);
           }
         } else {
-          alert('Failed to delete: ' + (result.error || 'Unknown error'));
+          showError('Failed to delete: ' + (result.error || 'Unknown error'));
         }
       })
       .withFailureHandler(function(error) {
-        alert('Failed to delete: ' + error);
+        showError('Failed to delete: ' + error);
       })
       .deleteEngagement(e.engagement_id);
   }
@@ -5642,7 +5642,7 @@ return;
     var fullText = 'To: ' + to + '\nSubject: ' + subject + '\n\n' + body;
 
     navigator.clipboard.writeText(fullText).then(function() {
-      alert('Email copied to clipboard!');
+      showSuccess('Email copied to clipboard!');
     }).catch(function(err) {
       // Fallback for older browsers
       var textArea = document.createElement('textarea');
@@ -5651,7 +5651,7 @@ return;
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
-      alert('Email copied to clipboard!');
+      showSuccess('Email copied to clipboard!');
     });
   }
 
@@ -5674,12 +5674,12 @@ return;
     var solutionId = document.getElementById('emailSolution').value;
 
     if (!to) {
-      alert('Please enter at least one recipient.');
+      showToast('Please enter at least one recipient', 'warning');
       return;
     }
 
     if (!subject) {
-      alert('Please enter a subject.');
+      showToast('Please enter a subject', 'warning');
       return;
     }
 
@@ -5710,17 +5710,17 @@ return;
         btn.innerHTML = originalHtml;
 
         if (result && result.engagement_id) {
-          alert('Email logged as engagement successfully!');
+          showSuccess('Email logged as engagement successfully!');
           closeModal('emailTemplateModal');
           loadRecentEngagements();
         } else {
-          alert('Error logging engagement. Please try again.');
+          showError('Error logging engagement. Please try again.');
         }
       })
       .withFailureHandler(function(error) {
         btn.disabled = false;
         btn.innerHTML = originalHtml;
-        alert('Error: ' + error.message);
+        showError(error.message);
       })
       .createEngagement(engagement);
   }
@@ -5742,7 +5742,7 @@ return;
     }
 
     if (solutionContacts.length === 0) {
-      alert('No stakeholders with email addresses found for this solution.');
+      showToast('No stakeholders with email addresses found for this solution', 'warning');
       return;
     }
 
