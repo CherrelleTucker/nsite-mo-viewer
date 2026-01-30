@@ -257,6 +257,30 @@ Added state flags to prevent users from triggering duplicate API calls by clicki
 
 ---
 
+## [2.2.12] - 2026-01-30
+
+### Code Comments (Review 12)
+
+Added explanatory comments to complex logic throughout the codebase:
+
+**sync-common.gs (6 HIGH priority):**
+- `CORE_ID_BRACKET_PATTERN` regex - explains what it matches and captures
+- Legacy sub-solution marker regex - explains old "Name:" format detection
+- Nested list item processing - documents indent preservation algorithm
+- `parseTabDate_()` - explains 2-digit year handling and epoch fallback
+- `getTabNameForYear_()` - documents why 2024 is the Archive cutoff
+- `createUpdateKey_()` - explains 150-char truncation rationale
+
+**actions-api.gs (2 MEDIUM priority):**
+- Date sorting - documents epoch fallback for missing dates
+- `generateActionId_()` - explains 4-digit random number formula (1000-9999)
+
+**outreach-api.gs (2 MEDIUM priority):**
+- `EVENT_STATUS_INFO` - documents pipeline progression order
+- Event date sorting - explains 2099 far-future date fallback
+
+---
+
 ## [2.2.11] - 2026-01-30
 
 ### Data Flow Audit (Review 11)

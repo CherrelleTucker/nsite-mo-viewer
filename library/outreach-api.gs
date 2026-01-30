@@ -56,7 +56,8 @@ function loadAllEvents_() {
     }
   }
 
-  // Sort by start_date ascending
+  // Sort by start_date ascending (soonest first)
+  // Events without dates use far-future date (2099) so they sort to the end
   _outreachCache.sort(function(a, b) {
     var dateA = a.start_date ? new Date(a.start_date) : new Date('2099-12-31');
     var dateB = b.start_date ? new Date(b.start_date) : new Date('2099-12-31');
@@ -88,7 +89,12 @@ var EVENT_TYPES = ['conference', 'workshop', 'webinar', 'meeting', 'site_visit']
 var EVENT_STATUSES = ['potential', 'considering', 'confirmed', 'attended', 'cancelled'];
 
 /**
- * Event status info
+ * Event status info with pipeline progression
+ *
+ * 'order' defines the pipeline stage: 1=earliest, 5=final
+ * Used for sorting events by status and displaying in Comms pipeline view
+ *
+ * Flow: Potential → Considering → Confirmed → Attended (or Cancelled)
  */
 var EVENT_STATUS_INFO = {
   'potential': { name: 'Potential', order: 1, color: '#9E9E9E', description: 'Discovered opportunity' },

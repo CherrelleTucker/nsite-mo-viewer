@@ -70,10 +70,11 @@ function getAllActions(limit) {
     }
 
     // Sort by created_at descending (newest first)
+    // Missing dates default to epoch (1970) so they sort to the bottom
     actions.sort(function(a, b) {
       var dateA = a.created_at ? new Date(a.created_at) : new Date(0);
       var dateB = b.created_at ? new Date(b.created_at) : new Date(0);
-      return dateB - dateA;
+      return dateB - dateA;  // Negative = a after b (descending)
     });
 
     // Update cache
@@ -672,10 +673,13 @@ function formatStatusForDisplay_(status) {
 
 /**
  * Generate a unique action ID
+ * Format: ACT_YYYYMMDD_RRRR (e.g., ACT_20260130_5432)
  * @returns {string} Action ID
  */
 function generateActionId_() {
   var dateStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd');
+  // Generate 4-digit random number (1000-9999) for uniqueness within a day
+  // Math: random() * 9000 gives 0-8999, + 1000 shifts to 1000-9999
   var random = Math.floor(Math.random() * 9000) + 1000;
   return 'ACT_' + dateStr + '_' + random;
 }

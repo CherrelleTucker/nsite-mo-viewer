@@ -29,10 +29,13 @@
 // CONFIGURATION
 // ============================================================================
 
-// The :new: emoji marker
+// The 🆕 emoji marker indicates new updates to capture from agenda documents
 var NEW_MARKER = '🆕';
 
-// Pattern to detect [core_id] in square brackets
+// Pattern to detect [core_id] in square brackets at end of text
+// Matches: "Solution Name [core_id]" or "[core_id]" alone
+// Example: "HLS (LP DAAC) [hls_ls]" captures "hls_ls"
+// The captured group (1) contains the core_id without brackets
 var CORE_ID_BRACKET_PATTERN = /\[([^\]]+)\]$/;
 
 // Cache for config values
@@ -212,7 +215,10 @@ function parseUpdatesFromTableFormat_(doc, source, docUrl) {
 
           if (!item.text) continue;
 
+          // Check if line has [core_id] format (modern standard)
           var hasCoreId = CORE_ID_BRACKET_PATTERN.test(item.text);
+          // Legacy format: "Sub-solution Name:" (colon at end, no brackets)
+          // Used in older agendas before [core_id] format was adopted
           var isLegacySubSolutionMarker = /^[A-Za-z0-9\s\-\.]+:\s*$/.test(item.text);
 
           if (hasCoreId) {
@@ -232,13 +238,20 @@ function parseUpdatesFromTableFormat_(doc, source, docUrl) {
             currentSolutionNestingLevel = item.nesting;
           }
 
+          // Found a 🆕 update - collect it and any nested child items
           if (item.text.indexOf(NEW_MARKER) !== -1 && currentSolution) {
             var updateNestingLevel = item.nesting;
             var updateParts = [item.text.replace(NEW_MARKER, '').trim()];
 
+            // Collect all child items (more deeply nested than this update)
+            // They become part of the update text with indent preserved
+            // Example agenda structure:
+            //   🆕 Main update text [hls]
+            //     ○ Sub-item 1        → "  • Sub-item 1"
+            //       ■ Sub-sub-item    → "    • Sub-sub-item"
             for (var k = j + 1; k < listItems.length; k++) {
               var childItem = listItems[k];
-              if (childItem.nesting <= updateNestingLevel) break;
+              if (childItem.nesting <= updateNestingLevel) break;  // Stop at same/lower level
               if (childItem.text) {
                 var indent = '  '.repeat(childItem.nesting - updateNestingLevel);
                 updateParts.push(indent + '• ' + childItem.text);
@@ -310,7 +323,10 @@ function parseUpdatesFromBody_(body, source, docUrl, meetingDate, tabName) {
 
           if (!item.text) continue;
 
+          // Check if line has [core_id] format (modern standard)
           var hasCoreId = CORE_ID_BRACKET_PATTERN.test(item.text);
+          // Legacy format: "Sub-solution Name:" (colon at end, no brackets)
+          // Used in older agendas before [core_id] format was adopted
           var isLegacySubSolutionMarker = /^[A-Za-z0-9\s\-\.]+:\s*$/.test(item.text);
 
           if (hasCoreId) {
@@ -330,13 +346,20 @@ function parseUpdatesFromBody_(body, source, docUrl, meetingDate, tabName) {
             currentSolutionNestingLevel = item.nesting;
           }
 
+          // Found a 🆕 update - collect it and any nested child items
           if (item.text.indexOf(NEW_MARKER) !== -1 && currentSolution) {
             var updateNestingLevel = item.nesting;
             var updateParts = [item.text.replace(NEW_MARKER, '').trim()];
 
+            // Collect all child items (more deeply nested than this update)
+            // They become part of the update text with indent preserved
+            // Example agenda structure:
+            //   🆕 Main update text [hls]
+            //     ○ Sub-item 1        → "  • Sub-item 1"
+            //       ■ Sub-sub-item    → "    • Sub-sub-item"
             for (var k = j + 1; k < listItems.length; k++) {
               var childItem = listItems[k];
-              if (childItem.nesting <= updateNestingLevel) break;
+              if (childItem.nesting <= updateNestingLevel) break;  // Stop at same/lower level
               if (childItem.text) {
                 var indent = '  '.repeat(childItem.nesting - updateNestingLevel);
                 updateParts.push(indent + '• ' + childItem.text);
@@ -453,23 +476,27 @@ function getDocumentBodyWithTabName_(doc) {
 
 /**
  * Parse a tab name date
+ * Supports formats: "01_13", "01/13", "01_13_26", "01/13/2026"
  * @param {string} tabName - Tab name like "01_13" or "01/13/26"
- * @returns {Date} Parsed date
+ * @returns {Date} Parsed date (or epoch if unparseable)
  */
 function parseTabDate_(tabName) {
-  var parts = tabName.split(/[/_]/);
+  var parts = tabName.split(/[/_]/);  // Split on underscore or slash
   if (parts.length >= 2) {
-    var month = parseInt(parts[0], 10) - 1;
+    var month = parseInt(parts[0], 10) - 1;  // JS months are 0-indexed
     var day = parseInt(parts[1], 10);
+    // If no year provided, assume current year
     var year = parts.length >= 3 ? parseInt(parts[2], 10) : new Date().getFullYear();
 
+    // Convert 2-digit years to 4-digit: 26 → 2026, 99 → 2099
+    // Safe assumption since this codebase started in 2024
     if (year < 100) {
       year += 2000;
     }
 
     return new Date(year, month, day);
   }
-  return new Date(0);
+  return new Date(0);  // Return epoch (1970) for unparseable dates - sorts to bottom
 }
 
 /**
@@ -609,8 +636,14 @@ function getYearFromDate_(dateStr) {
 }
 
 /**
- * Get tab name for a year (Archive for pre-2024)
+ * Get tab name for a year
  * Tab structure: 2026, 2025, 2024, Archive (pre-2024), _Lookup
+ *
+ * Years < 2024 go to "Archive" (consolidates historical data)
+ * 2024+ get their own yearly tabs (keeps recent data organized)
+ *
+ * Why 2024? The MO-Viewer project started in 2024; earlier data
+ * is historical backfill that doesn't need per-year organization.
  */
 function getTabNameForYear_(year) {
   year = parseInt(year, 10);
@@ -677,6 +710,12 @@ function syncUpdatesToTab_(sheet, updates) {
 
 /**
  * Create a key for update deduplication
+ * Key format: "solution_id|first_150_chars_of_text"
+ *
+ * Truncate at 150 chars because:
+ * - Long update texts with minor variations would be treated as duplicates
+ * - First 150 chars typically capture the essence of the update
+ * - Keeps key comparison fast for large datasets
  */
 function createUpdateKey_(solution, updateText) {
   var normalizedSolution = (solution || '').toLowerCase().trim();

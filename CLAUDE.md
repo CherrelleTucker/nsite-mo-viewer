@@ -1,6 +1,6 @@
 # Claude Code Instructions for MO-Viewer
 
-**Version:** 2.2.11 | **Updated:** 2026-01-30 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
+**Version:** 2.2.12 | **Updated:** 2026-01-30 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
 
 ---
 
@@ -699,7 +699,7 @@ Work through these reviews systematically to ensure webapp quality.
 - [x] **11. Data Flow Audit** - Trace data from source docs → sync scripts → databases → APIs → UI (completed 2026-01-30: fixed solution/solution_id column inconsistency, renamed extractSolutionName_ to extractSolutionId_, added MoApi fallback, replaced indexOf with includes)
 
 ### Documentation
-- [ ] **12. Code Comments** - Missing explanations for complex logic
+- [x] **12. Code Comments** - Missing explanations for complex logic (completed 2026-01-30: added comments to 10 complex areas in sync-common.gs, actions-api.gs, outreach-api.gs)
 - [ ] **13. About Page Accuracy** - Does documentation match current functionality?
 
 ---
