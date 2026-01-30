@@ -504,6 +504,9 @@ button {
 .search-results {
   max-height: 400px;
   overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .search-hint {
@@ -516,70 +519,57 @@ button {
   margin: 0;
 }
 
-.search-loading {
-  padding: var(--space-lg);
-  text-align: center;
-}
-
-.search-group {
-  border-bottom: 1px solid var(--color-border);
-}
-
-.search-group:last-child {
-  border-bottom: none;
-}
-
-.search-group-header {
+.search-list {
+  list-style: none;
+  margin: 0;
   padding: var(--space-sm) var(--space-md);
-  background: var(--color-surface-alt);
-  font-size: var(--font-xs);
+}
+
+.search-group-title {
   font-weight: 600;
   color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: var(--font-sm);
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-xs);
 }
 
-.search-result {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
+.search-group-title:first-child {
+  margin-top: 0;
+}
+
+.search-item {
+  padding: var(--space-xs) 0;
+  padding-left: var(--space-md);
   cursor: pointer;
-  transition: background 0.1s;
+  border-radius: var(--radius-sm);
 }
 
-.search-result:hover {
+.search-item:hover {
   background: var(--color-surface-alt);
 }
 
-.search-result .material-icons {
+.search-item::before {
+  content: "•";
+  margin-left: calc(-1 * var(--space-md));
+  margin-right: var(--space-sm);
   color: var(--color-text-muted);
-  font-size: 18px;
 }
 
-.search-result-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.search-result-title {
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.search-result-subtitle {
+.search-item-meta {
+  color: var(--color-text-muted);
   font-size: var(--font-xs);
-  color: var(--color-text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.search-result-action {
-  color: var(--color-text-muted);
-  font-size: 14px;
+.search-show-more {
+  padding: var(--space-xs) 0;
+  padding-left: var(--space-md);
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: var(--font-sm);
+}
+
+.search-show-more:hover {
+  text-decoration: underline;
 }
 
 .search-no-results {

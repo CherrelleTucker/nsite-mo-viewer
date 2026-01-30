@@ -43,7 +43,8 @@
   <div class="search-modal-overlay" id="searchModal" onclick="closeGlobalSearch(event)">
     <div class="search-modal" onclick="event.stopPropagation()">
       <div class="search-input-wrapper">
-        <span class="material-icons">search</span>
+        <span class="material-icons" id="searchIcon">search</span>
+        <span class="loading-spinner-sm" id="searchSpinner" style="display:none;"></span>
         <input type="text" id="globalSearchInput" placeholder="Search solutions, contacts, actions..."
                onkeyup="handleSearchInput(event)" autocomplete="off">
         <button class="search-close-btn" onclick="closeGlobalSearch()" title="Close (Esc)">
@@ -575,6 +576,8 @@
       if (event && event.target !== event.currentTarget) return;
       document.getElementById('searchModal').classList.remove('active');
       document.getElementById('globalSearchInput').value = '';
+      document.getElementById('searchIcon').style.display = 'inline';
+      document.getElementById('searchSpinner').style.display = 'none';
     }
 
     function handleSearchInput(event) {
@@ -593,6 +596,8 @@
 
       // Show hint if empty
       if (!query) {
+        document.getElementById('searchIcon').style.display = 'inline';
+        document.getElementById('searchSpinner').style.display = 'none';
         document.getElementById('searchResults').innerHTML =
           '<div class="search-hint"><p>Start typing to search across all data</p></div>';
         return;
@@ -600,14 +605,17 @@
 
       // Require at least 2 characters
       if (query.length < 2) {
+        document.getElementById('searchIcon').style.display = 'inline';
+        document.getElementById('searchSpinner').style.display = 'none';
         document.getElementById('searchResults').innerHTML =
           '<div class="search-hint"><p>Type at least 2 characters to search</p></div>';
         return;
       }
 
       // Show loading
-      document.getElementById('searchResults').innerHTML =
-        '<div class="search-loading"><span class="loading-spinner"></span></div>';
+      document.getElementById('searchIcon').style.display = 'none';
+      document.getElementById('searchSpinner').style.display = 'inline-block';
+      document.getElementById('searchResults').innerHTML = '';
 
       // Debounce search
       searchDebounceTimer = setTimeout(function() {
@@ -618,15 +626,22 @@
     function performGlobalSearch(query) {
       google.script.run
         .withSuccessHandler(function(results) {
+          document.getElementById('searchIcon').style.display = 'inline';
+          document.getElementById('searchSpinner').style.display = 'none';
           renderSearchResults(results, query);
         })
         .withFailureHandler(function(error) {
+          document.getElementById('searchIcon').style.display = 'inline';
+          document.getElementById('searchSpinner').style.display = 'none';
           document.getElementById('searchResults').innerHTML =
             '<div class="search-no-results"><p>Search failed. Please try again.</p></div>';
           console.error('Search error:', error);
         })
         .globalSearch(query);
     }
+
+    var SEARCH_INITIAL_SHOW = 5;
+    var SEARCH_SHOW_MORE = 10;
 
     function renderSearchResults(results, query) {
       var container = document.getElementById('searchResults');
@@ -636,60 +651,96 @@
         return;
       }
 
-      var html = '';
+      // Store results globally for "show more" functionality
+      window.searchResultsData = results;
+
+      var html = '<ul class="search-list">';
 
       // Solutions
       if (results.solutions && results.solutions.length > 0) {
-        html += '<div class="search-group">';
-        html += '<div class="search-group-header">Solutions (' + results.solutions.length + ')</div>';
-        results.solutions.forEach(function(sol) {
-          html += '<div class="search-result" onclick="goToSearchResult(\'implementation\', \'' + escapeHtml(sol.core_id || '') + '\')">';
-          html += '<span class="material-icons">storage</span>';
-          html += '<div class="search-result-content">';
-          html += '<div class="search-result-title">' + escapeHtml(sol.core_id || sol.core_official_name) + '</div>';
-          html += '<div class="search-result-subtitle">' + escapeHtml(sol.admin_lifecycle_phase || '') + ' · ' + escapeHtml(sol.core_group || '') + '</div>';
-          html += '</div>';
-          html += '<span class="material-icons search-result-action">chevron_right</span>';
-          html += '</div>';
-        });
-        html += '</div>';
+        html += '<li class="search-group-title">Solutions (' + results.solutions.length + ')</li>';
+        html += renderGroupItems(results.solutions, 'solutions', SEARCH_INITIAL_SHOW);
       }
 
       // Contacts
       if (results.contacts && results.contacts.length > 0) {
-        html += '<div class="search-group">';
-        html += '<div class="search-group-header">Contacts (' + results.contacts.length + ')</div>';
-        results.contacts.forEach(function(contact) {
-          html += '<div class="search-result" onclick="goToSearchResult(\'contacts\', \'' + escapeHtml(contact.email || '') + '\')">';
-          html += '<span class="material-icons">person</span>';
-          html += '<div class="search-result-content">';
-          html += '<div class="search-result-title">' + escapeHtml(contact.full_name || contact.first_name + ' ' + contact.last_name) + '</div>';
-          html += '<div class="search-result-subtitle">' + escapeHtml(contact.organization || '') + '</div>';
-          html += '</div>';
-          html += '<span class="material-icons search-result-action">chevron_right</span>';
-          html += '</div>';
-        });
-        html += '</div>';
+        html += '<li class="search-group-title">Contacts (' + results.contacts.length + ')</li>';
+        html += renderGroupItems(results.contacts, 'contacts', SEARCH_INITIAL_SHOW);
       }
 
       // Actions
       if (results.actions && results.actions.length > 0) {
-        html += '<div class="search-group">';
-        html += '<div class="search-group-header">Actions (' + results.actions.length + ')</div>';
-        results.actions.forEach(function(action) {
-          html += '<div class="search-result" onclick="goToSearchResult(\'actions\', \'' + escapeHtml(action.action_id || '') + '\')">';
-          html += '<span class="material-icons">check_circle</span>';
-          html += '<div class="search-result-content">';
-          html += '<div class="search-result-title">' + escapeHtml((action.task || '').substring(0, 60)) + '</div>';
-          html += '<div class="search-result-subtitle">' + escapeHtml(action.assigned_to || '') + ' · ' + escapeHtml(action.status || '') + '</div>';
-          html += '</div>';
-          html += '<span class="material-icons search-result-action">chevron_right</span>';
-          html += '</div>';
-        });
-        html += '</div>';
+        html += '<li class="search-group-title">Actions (' + results.actions.length + ')</li>';
+        html += renderGroupItems(results.actions, 'actions', SEARCH_INITIAL_SHOW);
       }
 
+      html += '</ul>';
       container.innerHTML = html;
+    }
+
+    function renderGroupItems(items, groupType, showCount) {
+      var html = '';
+      var visibleItems = items.slice(0, showCount);
+      var hiddenCount = items.length - showCount;
+
+      visibleItems.forEach(function(item, index) {
+        html += renderSearchItem(item, groupType, index);
+      });
+
+      if (hiddenCount > 0) {
+        html += '<li class="search-show-more" onclick="showMoreResults(\'' + groupType + '\', ' + showCount + ')">';
+        html += 'Show ' + Math.min(hiddenCount, SEARCH_SHOW_MORE) + ' more...';
+        if (hiddenCount > SEARCH_SHOW_MORE) html += ' (' + hiddenCount + ' remaining)';
+        html += '</li>';
+      }
+
+      return html;
+    }
+
+    function renderSearchItem(item, groupType, index) {
+      var html = '';
+      if (groupType === 'solutions') {
+        var label = escapeHtml(item.core_id || item.core_official_name);
+        var subtitle = [item.admin_lifecycle_phase, item.core_group].filter(Boolean).join(' · ');
+        if (subtitle) label += ' <span class="search-item-meta">(' + escapeHtml(subtitle) + ')</span>';
+        html = '<li class="search-item" data-group="solutions" data-index="' + index + '" onclick="goToSearchResult(\'implementation\', \'' + escapeHtml(item.core_id || '') + '\')">' + label + '</li>';
+      } else if (groupType === 'contacts') {
+        var name = escapeHtml(item.full_name || (item.first_name + ' ' + item.last_name));
+        if (item.organization) name += ' <span class="search-item-meta">(' + escapeHtml(item.organization) + ')</span>';
+        html = '<li class="search-item" data-group="contacts" data-index="' + index + '" onclick="goToSearchResult(\'contacts\', \'' + escapeHtml(item.email || '') + '\')">' + name + '</li>';
+      } else if (groupType === 'actions') {
+        var task = escapeHtml((item.task || '').substring(0, 80));
+        var meta = [item.assigned_to, item.status].filter(Boolean).join(' · ');
+        if (meta) task += ' <span class="search-item-meta">(' + escapeHtml(meta) + ')</span>';
+        html = '<li class="search-item" data-group="actions" data-index="' + index + '" onclick="goToSearchResult(\'actions\', \'' + escapeHtml(item.action_id || '') + '\')">' + task + '</li>';
+      }
+      return html;
+    }
+
+    function showMoreResults(groupType, currentCount) {
+      var items = window.searchResultsData[groupType];
+      var newCount = currentCount + SEARCH_SHOW_MORE;
+
+      // Find and replace the group's items
+      var showMoreBtn = document.querySelector('.search-show-more[onclick*="' + groupType + '"]');
+      if (!showMoreBtn) return;
+
+      var newHtml = '';
+      var visibleItems = items.slice(currentCount, newCount);
+      visibleItems.forEach(function(item, i) {
+        newHtml += renderSearchItem(item, groupType, currentCount + i);
+      });
+
+      var hiddenCount = items.length - newCount;
+      if (hiddenCount > 0) {
+        newHtml += '<li class="search-show-more" onclick="showMoreResults(\'' + groupType + '\', ' + newCount + ')">';
+        newHtml += 'Show ' + Math.min(hiddenCount, SEARCH_SHOW_MORE) + ' more...';
+        if (hiddenCount > SEARCH_SHOW_MORE) newHtml += ' (' + hiddenCount + ' remaining)';
+        newHtml += '</li>';
+      }
+
+      showMoreBtn.insertAdjacentHTML('beforebegin', newHtml);
+      showMoreBtn.remove();
     }
 
     function goToSearchResult(page, id) {
