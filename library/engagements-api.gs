@@ -82,10 +82,14 @@ var ENGAGEMENT_DIRECTIONS = [
  */
 function getAllEngagements(limit) {
   var engagements = loadAllEngagements_();
+  var result;
   if (limit && limit > 0) {
-    return deepCopy(engagements.slice(0, limit));
+    result = deepCopy(engagements.slice(0, limit));
+  } else {
+    result = deepCopy(engagements);
   }
-  return deepCopy(engagements);
+  logResponseSize(result, 'getAllEngagements');
+  return result;
 }
 
 /**
@@ -641,4 +645,103 @@ function logQuickEngagement(params) {
     summary: params.summary || '',
     logged_by: params.logged_by || Session.getEffectiveUser().getEmail()
   });
+}
+
+// ============================================================================
+// SEP PAGE COMBINED INIT (Performance Optimization)
+// ============================================================================
+
+/**
+ * Get all data needed for SEP page initialization in a single call
+ * Reduces 9 separate API calls to 1 combined call
+ * @returns {Object} Combined SEP init data
+ */
+function getSEPInitData() {
+  try {
+    var result = {
+      dashboardStats: null,
+      solutionsByMilestone: {},
+      solutions: [],
+      cycles: [],
+      needsOutreach: [],
+      agencyHierarchy: [],
+      agencyEngagementCounts: {},
+      recentEngagements: []
+    };
+
+    // Load dashboard stats
+    try {
+      result.dashboardStats = getSEPDashboardStats();
+    } catch (e) {
+      Logger.log('getSEPInitData - dashboardStats error: ' + e.message);
+    }
+
+    // Load solutions grouped by milestone
+    try {
+      result.solutionsByMilestone = getSolutionsBySEPMilestone();
+    } catch (e) {
+      Logger.log('getSEPInitData - solutionsByMilestone error: ' + e.message);
+    }
+
+    // Load full solutions list
+    try {
+      var allSolutions = getAllSolutions();
+      result.solutions = allSolutions.filter(function(s) { return s && s.core_id; });
+    } catch (e) {
+      Logger.log('getSEPInitData - solutions error: ' + e.message);
+    }
+
+    // Load SEP cycles
+    try {
+      result.cycles = getSEPCycles();
+    } catch (e) {
+      Logger.log('getSEPInitData - cycles error: ' + e.message);
+    }
+
+    // Load solutions needing outreach
+    try {
+      result.needsOutreach = getSolutionsNeedingOutreach(2);
+    } catch (e) {
+      Logger.log('getSEPInitData - needsOutreach error: ' + e.message);
+    }
+
+    // Load agency hierarchy
+    try {
+      result.agencyHierarchy = getAgencyHierarchy();
+    } catch (e) {
+      Logger.log('getSEPInitData - agencyHierarchy error: ' + e.message);
+    }
+
+    // Load agency engagement counts
+    try {
+      result.agencyEngagementCounts = getEngagementCountsByAgency();
+    } catch (e) {
+      Logger.log('getSEPInitData - agencyEngagementCounts error: ' + e.message);
+    }
+
+    // Load recent engagements
+    try {
+      result.recentEngagements = getRecentEngagements(30, 10);
+    } catch (e) {
+      Logger.log('getSEPInitData - recentEngagements error: ' + e.message);
+    }
+
+    // Log response size for monitoring
+    logResponseSize(result, 'getSEPInitData');
+
+    return result;
+  } catch (error) {
+    Logger.log('getSEPInitData error: ' + error.message);
+    return {
+      dashboardStats: null,
+      solutionsByMilestone: {},
+      solutions: [],
+      cycles: [],
+      needsOutreach: [],
+      agencyHierarchy: [],
+      agencyEngagementCounts: {},
+      recentEngagements: [],
+      error: error.message
+    };
+  }
 }

@@ -3237,6 +3237,10 @@ return;
         .withSuccessHandler(function(s) {
           if (s) renderStoryDetailModal(s);
         })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load story:', error);
+          window.showError('Failed to load story details');
+        })
         .getStoryById(storyId);
       return;
     }
@@ -3460,6 +3464,10 @@ return;
       google.script.run
         .withSuccessHandler(function(s) {
           if (s) populateStoryForm(s);
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load story for editing:', error);
+          window.showError('Failed to load story for editing');
         })
         .getStoryById(storyId);
       return;
@@ -3810,9 +3818,7 @@ return;
   }
 
   function closeModal(modalId, event) {
-    if (!event || event.target === document.getElementById(modalId)) {
-      document.getElementById(modalId).classList.remove('active');
-    }
+    window.closeModal(modalId, event);
   }
 
   // ============================================
@@ -4008,6 +4014,10 @@ return;
         .withSuccessHandler(function(e) {
           if (e) renderEventDetailModal(e);
         })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load event:', error);
+          window.showError('Failed to load event details');
+        })
         .getEventById(eventId);
       return;
     }
@@ -4036,6 +4046,10 @@ return;
     google.script.run
       .withSuccessHandler(function(guests) {
         document.getElementById('guestCountBadge').textContent = (guests || []).length;
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load guest count:', error);
+        document.getElementById('guestCountBadge').textContent = '?';
       })
       .getEventGuests(event.event_id);
 
@@ -4161,19 +4175,7 @@ return;
   }
 
   function formatDateForInput(dateStr) {
-    if (!dateStr) return '';
-    // Handle ISO dates by extracting just the date part
-    var dateOnly = String(dateStr).split('T')[0];
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
-      return dateOnly;
-    }
-    // Fallback
-    try {
-      var d = new Date(dateStr);
-      return d.toISOString().split('T')[0];
-    } catch (e) {
-      return '';
-    }
+    return window.formatDateForInput(dateStr);
   }
 
   function showEventEditForm() {
@@ -4505,18 +4507,7 @@ return;
   // ============================================
   // Utility functions
   function formatDate(dateStr) {
-    if (!dateStr) return '--';
-    // Handle ISO dates (2026-01-23T00:00:00.000Z) by extracting just the date part
-    // This avoids timezone conversion issues where UTC midnight becomes previous day locally
-    var dateOnly = String(dateStr).split('T')[0];
-    var parts = dateOnly.split('-');
-    if (parts.length === 3) {
-      var date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-    // Fallback for other formats
-    var date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return window.formatDateShort(dateStr);
   }
 
   function capitalizeFirst(str) {

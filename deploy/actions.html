@@ -1611,16 +1611,22 @@ var ActionsModule = (function() {
     };
 
     google.script.run
-      .withSuccessHandler(function(actionId) {
-        btn.textContent = 'Added!';
-        btn.style.background = '#10b981';
-        setTimeout(function() {
-          closeAddModal();
+      .withSuccessHandler(function(result) {
+        if (result && result.success) {
+          btn.textContent = 'Added!';
+          btn.style.background = '#10b981';
+          setTimeout(function() {
+            closeAddModal();
+            btn.disabled = false;
+            btn.textContent = 'Add Action';
+            btn.style.background = '';
+            refreshData();
+          }, 600);
+        } else {
           btn.disabled = false;
           btn.textContent = 'Add Action';
-          btn.style.background = '';
-          refreshData();
-        }, 600);
+          showError(result ? result.error : 'Failed to add action');
+        }
       })
       .withFailureHandler(function(err) {
         btn.disabled = false;

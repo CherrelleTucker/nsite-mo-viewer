@@ -2422,13 +2422,95 @@ var SEP = (function() {
 
   function init() {
     setDefaultDate();
-    loadDashboardStats();
-    loadSolutionsWithProgress();
-    loadCycles();
-    loadNeedsOutreach();
-    loadAgencies();
-    loadRecentEngagements();
+
+    // Load most init data in a single combined call (reduces 9 calls to 2)
+    google.script.run
+      .withSuccessHandler(function(data) {
+        if (!data) {
+          console.error('SEP init returned null');
+          return;
+        }
+
+        // Dashboard stats
+        if (data.dashboardStats) {
+          updateDashboardStatsUI(data.dashboardStats);
+        }
+
+        // Solutions by milestone
+        state.solutionsByMilestone = data.solutionsByMilestone || {};
+        renderPipeline();
+
+        // Full solutions list
+        state.solutions = (data.solutions || []).filter(function(s) { return s && s.core_id; });
+        populateSolutionDropdown();
+        renderPipeline();
+        renderOverviewTable();
+
+        // Cycles
+        state.cycles = data.cycles || [];
+        renderCycleDropdown();
+
+        // Needs outreach
+        state.needsOutreach = data.needsOutreach || [];
+        renderNeedsOutreach();
+
+        // Agency hierarchy and counts
+        state.agencyHierarchy = data.agencyHierarchy || [];
+        state.agencyEngagementCounts = data.agencyEngagementCounts || {};
+        renderAgencyTree();
+
+        // Recent engagements
+        state.engagements = data.recentEngagements || [];
+        renderRecentEngagements();
+        if (state.solutions && state.solutions.length > 0) { renderOverviewTable(); }
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load SEP init data:', error);
+        // Fall back to individual calls if combined fails
+        loadDashboardStats();
+        loadSolutionsWithProgress();
+        loadCycles();
+        loadNeedsOutreach();
+        loadAgencies();
+        loadRecentEngagements();
+      })
+      .getSEPInitData();
+
+    // Contacts still loaded separately (large dataset, may already be cached)
     loadAllContacts();
+  }
+
+  // Helper to update dashboard stats UI (extracted from loadDashboardStats success handler)
+  function updateDashboardStatsUI(stats) {
+    if (!stats) return;
+
+    var engEl = document.getElementById('statEngagementsMonth');
+    var contactsEl = document.getElementById('statContactsEngaged');
+    var solutionsEl = document.getElementById('statSolutionsEngaged');
+    var heatLabelEl = document.getElementById('statHeatLabel');
+    var heatIconEl = document.getElementById('statHeatIcon');
+    var heatCardEl = document.getElementById('statHeatCard');
+
+    if (engEl) engEl.textContent = stats.engagements_this_month || 0;
+    if (contactsEl) contactsEl.textContent = stats.contacts_this_month || 0;
+    if (solutionsEl) solutionsEl.textContent = stats.solutions_this_month || 0;
+
+    if (heatLabelEl && heatIconEl) {
+      var level = stats.heat_level || 'cold';
+      heatLabelEl.textContent = level.charAt(0).toUpperCase() + level.slice(1);
+      heatIconEl.textContent = stats.heat_icon || 'ac_unit';
+
+      if (heatCardEl) {
+        heatCardEl.classList.remove('heat-hot', 'heat-warm', 'heat-cold');
+        heatCardEl.classList.add('heat-' + level);
+
+        var weekCount = stats.last_week_count || 0;
+        var twoWeekCount = stats.last_two_weeks_count || 0;
+        var tooltipText = weekCount + ' engagement' + (weekCount !== 1 ? 's' : '') + ' this week, ' +
+                          twoWeekCount + ' in past 2 weeks';
+        heatCardEl.title = tooltipText;
+      }
+    }
   }
 
   function loadAllContacts() {
@@ -3598,21 +3680,7 @@ var SEP = (function() {
   }
 
   function formatDateForInput(dateStr) {
-    if (!dateStr) return '';
-    try {
-      // Handle ISO dates (2026-01-23T00:00:00.000Z) by extracting just the date part
-      // This avoids timezone conversion issues
-      var dateOnly = String(dateStr).split('T')[0];
-      // Validate it looks like YYYY-MM-DD
-      if (/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
-        return dateOnly;
-      }
-      // Fallback: parse and extract date (may have timezone issues)
-      var d = new Date(dateStr);
-      return d.toISOString().split('T')[0];
-    } catch (e) {
-      return '';
-    }
+    return window.formatDateForInput(dateStr);
   }
 
   function updateMilestoneDate(solutionId, milestoneId, date) {
@@ -4744,34 +4812,25 @@ return;
 
   function closeModal(modalId, event) {
     var modal = document.getElementById(modalId);
-    if (!modal) return; // Modal doesn't exist, nothing to close
-    if (!event || event.target === modal) {
-      modal.classList.remove('active');
+    if (!modal) return;
+    // Only proceed if clicking overlay or called programmatically
+    if (event && event.target !== modal) return;
 
-      // If closing engagement detail and we came from solution modal, go back
-      if (modalId === 'engagementDetailModal' && state.engagementReturnTo) {
-        var returnTo = state.engagementReturnTo;
-        state.engagementReturnTo = null; // Clear the return context
-        if (returnTo.type === 'solution' && returnTo.solutionId) {
-          showSolutionDetail(returnTo.solutionId);
-        }
+    // Close using global utility
+    window.closeModal(modalId, event);
+
+    // If closing engagement detail and we came from solution modal, go back
+    if (modalId === 'engagementDetailModal' && state.engagementReturnTo) {
+      var returnTo = state.engagementReturnTo;
+      state.engagementReturnTo = null;
+      if (returnTo.type === 'solution' && returnTo.solutionId) {
+        showSolutionDetail(returnTo.solutionId);
       }
     }
   }
 
   function formatDate(dateStr) {
-    if (!dateStr) return '--';
-    // Handle ISO dates (2026-01-23T00:00:00.000Z) by extracting just the date part
-    // This avoids timezone conversion issues where UTC midnight becomes previous day locally
-    var dateOnly = String(dateStr).split('T')[0];
-    var parts = dateOnly.split('-');
-    if (parts.length === 3) {
-      var date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-    // Fallback for other formats
-    var date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return window.formatDateShort(dateStr);
   }
 
   // escapeHtml() and escapeAttr() - use globals from index.html
@@ -4943,16 +5002,7 @@ return;
       .updateContactLastContactDate(email, today);
   }
 
-  function showToast(message) {
-    var toast = document.createElement('div');
-    toast.style.cssText = 'position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--color-text); color: white; padding: 12px 24px; border-radius: var(--radius-md); font-size: var(--font-size-sm); z-index: 9999; animation: fadeIn 0.3s;';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(function() {
-      toast.style.animation = 'fadeOut 0.3s';
-      setTimeout(function() { toast.remove(); }, 300);
-    }, 2000);
-  }
+  // showToast removed - uses global showToast() from index.html
 
   // ========================================================================
   // CONTACT ENGAGEMENT HISTORY

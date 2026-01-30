@@ -90,6 +90,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.3] - 2026-01-30
+
+### Fixed
+- **Error Handling (Review 2)** - Added missing `withFailureHandler` to 4 API calls in comms.html
+  - `showStoryDetail()` - now shows toast on failure instead of silent fail
+  - `editStory()` - now shows toast on failure
+  - `showEventDetail()` - now shows toast on failure
+  - `getEventGuests()` - now shows "?" badge on failure instead of crash
+- **createAction() Return Type** - Now returns consistent `{success, data}` object
+  - Previously returned raw actionId string on success, threw on error
+  - Updated callers in `actions.html` and `team.html` to handle new format
+- **Invisible Toast Text** - Toast notifications now have explicit text color
+  - Added `color: var(--color-text)` to `.toast` class in shared-page-styles.html
+  - Warning messages now visible (dark text on white background)
+
+### Performance (Review 3)
+- **Global Search Optimization** - Early termination and minimal data return
+  - Stops searching once 5 matches found (instead of filtering all records)
+  - Returns only display fields, not full 60+ column objects
+  - Reduces memory usage for 4,000+ contact searches
+- **SEP Page Init Optimization** - Reduced API calls from 9 to 2
+  - New `getSEPInitData()` combined endpoint returns all init data in one call
+  - Dashboard stats, solutions, cycles, agencies, engagements all bundled
+  - Fallback to individual calls if combined endpoint fails
+- **Response Size Monitoring** - Added `logResponseSize()` to high-risk endpoints
+  - `getAllEngagements()`, `getUpdatesForSolutionCard()`, `getAllHistoricalUpdatesForReport()`
+  - Logs warnings at 2MB and 4MB thresholds (5MB is the limit)
+
+---
+
+## [2.2.4] - 2026-01-30
+
+### DRY Audit (Review 4) - Code Consolidation
+
+#### Security Fix
+- **Team.escapeHtml Security Gap** - Removed local `Team.escapeHtml()` from team.html
+  - Local version was missing single quote escape (XSS vulnerability)
+  - Now uses global `escapeHtml()` from index.html which escapes all characters
+
+#### Shared Utilities Added to index.html
+- **closeModal(modalId, event)** - Generic modal close utility
+  - Works with any modal by ID
+  - Only closes when clicking overlay, not content
+  - 5 pages updated to delegate to global function
+- **formatDateShort(dateStr)** - Format date as "Jan 29" (no year)
+  - Handles ISO date strings with timezone-safe parsing
+- **formatDateFull(dateStr)** - Format date as "Jan 29, 2026" (with year)
+- **formatDateForInput(dateStr)** - Format date as "2026-01-29" (for HTML inputs)
+
+#### Duplicate Code Removed
+- **showToast** - Removed from contacts.html and sep.html (now use global)
+- **closeModal** - Updated 5 pages to delegate to global utility
+  - contacts.html, implementation.html, topsheet.html, comms.html, sep.html
+- **formatDate** - Updated sep.html and comms.html to use global formatDateShort
+- **formatDateForInput** - Updated sep.html and comms.html to use global utility
+
+---
+
 ## [Unreleased]
 
 ### Added

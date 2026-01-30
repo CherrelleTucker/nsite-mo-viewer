@@ -1081,9 +1081,7 @@ var TopSheet = (function() {
   }
 
   function closeModal(event) {
-    if (!event || event.target === document.getElementById('solutionModal')) {
-      document.getElementById('solutionModal').classList.remove('active');
-    }
+    window.closeModal('solutionModal', event);
   }
 
   function exportCSV() {

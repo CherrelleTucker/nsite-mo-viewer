@@ -458,6 +458,78 @@
       }
     }
 
+    /**
+     * Close a modal by ID
+     * @param {string} modalId - The ID of the modal element
+     * @param {Event} event - Optional click event (closes only if clicking overlay)
+     */
+    function closeModal(modalId, event) {
+      var modal = document.getElementById(modalId);
+      if (!modal) return;
+      if (!event || event.target === modal) {
+        modal.classList.remove('active');
+      }
+    }
+
+    // ========================================================================
+    // DATE UTILITIES
+    // ========================================================================
+
+    /**
+     * Format a date string for display (short format without year)
+     * @param {string} dateStr - Date string (ISO format or other)
+     * @returns {string} Formatted date like "Jan 29" or "--" if empty
+     */
+    function formatDateShort(dateStr) {
+      if (!dateStr) return '--';
+      // Handle ISO dates by extracting just the date part to avoid timezone issues
+      var dateOnly = String(dateStr).split('T')[0];
+      var parts = dateOnly.split('-');
+      if (parts.length === 3) {
+        var date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+      // Fallback for other formats
+      var date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    /**
+     * Format a date string for display (full format with year)
+     * @param {string} dateStr - Date string (ISO format or other)
+     * @returns {string} Formatted date like "Jan 29, 2026" or "" if empty
+     */
+    function formatDateFull(dateStr) {
+      if (!dateStr) return '';
+      var dateOnly = String(dateStr).split('T')[0];
+      var parts = dateOnly.split('-');
+      if (parts.length === 3) {
+        var date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      }
+      var date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    /**
+     * Format a date string for HTML date input (YYYY-MM-DD)
+     * @param {string} dateStr - Date string (ISO format or other)
+     * @returns {string} Formatted date like "2026-01-29" or "" if empty
+     */
+    function formatDateForInput(dateStr) {
+      if (!dateStr) return '';
+      var dateOnly = String(dateStr).split('T')[0];
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+        return dateOnly;
+      }
+      try {
+        var d = new Date(dateStr);
+        return d.toISOString().split('T')[0];
+      } catch (e) {
+        return '';
+      }
+    }
+
     // ========================================================================
     // GLOBAL SEARCH
     // ========================================================================

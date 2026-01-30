@@ -262,7 +262,7 @@ function getActionsOverview() {
 /**
  * Create a new action
  * @param {Object} actionData - Action data
- * @returns {string} New action ID
+ * @returns {Object} Result with success status and data (action ID) or error
  */
 function createAction(actionData) {
   try {
@@ -332,10 +332,10 @@ function createAction(actionData) {
       }
     }
 
-    return actionId;
+    return { success: true, data: actionId };
   } catch (error) {
     Logger.log('Error in createAction: ' + error);
-    throw new Error('Failed to create action: ' + error.message);
+    return { success: false, error: 'Failed to create action: ' + error.message };
   }
 }
 

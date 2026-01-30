@@ -94,3 +94,8 @@ function getDirectionOptions() {
 function logQuickEngagement(params) {
   return MoApi.logQuickEngagement(params);
 }
+
+// SEP Page Combined Init (Performance Optimization)
+function getSEPInitData() {
+  return MoApi.getSEPInitData();
+}

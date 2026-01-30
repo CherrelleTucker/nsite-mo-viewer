@@ -1,6 +1,6 @@
 # Claude Code Instructions for MO-Viewer
 
-**Version:** 2.2.0 | **Updated:** 2026-01-29 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
+**Version:** 2.2.4 | **Updated:** 2026-01-30 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
 
 ---
 
@@ -681,11 +681,11 @@ Work through these reviews systematically to ensure webapp quality.
 
 ### Code Quality
 - [x] **1. Security Audit** - XSS vulnerabilities, input validation, data sanitization, access control gaps (completed 2026-01-29)
-- [x] **2. Error Handling Review** - Consistent patterns, user-friendly messages, logging, graceful failures (completed 2026-01-29: found 113 alert() calls to replace, missing withFailureHandler on some calls, inconsistent return types in actions-api.gs)
-- [x] **3. Performance Audit** - API response sizes, redundant calls, caching opportunities, render optimization (completed 2026-01-29: found global search loads all data, SEP page 33 API calls, potential 5MB limit risks)
+- [x] **2. Error Handling Review** - Consistent patterns, user-friendly messages, logging, graceful failures (completed 2026-01-29, fixes deployed 2026-01-30: added withFailureHandler to 4 comms.html calls, fixed createAction return type consistency, fixed invisible toast text)
+- [x] **3. Performance Audit** - API response sizes, redundant calls, caching opportunities, render optimization (completed 2026-01-30: global search early termination, SEP page 9→2 API calls via getSEPInitData, response size monitoring added to high-risk endpoints)
 
 ### Architecture
-- [ ] **4. DRY Audit** - Duplicate code across pages, opportunities for shared utilities
+- [x] **4. DRY Audit** - Duplicate code across pages, opportunities for shared utilities (completed 2026-01-30: Team.escapeHtml security fix, global closeModal/showToast utilities, date formatting consolidation)
 - [ ] **5. API Consistency** - Naming conventions, return formats, parameter patterns across all APIs
 - [ ] **6. State Management** - How each page handles state, potential race conditions, stale data
 

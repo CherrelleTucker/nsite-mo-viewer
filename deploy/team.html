@@ -3621,9 +3621,9 @@
             '<div class="kudos-avatar">' + toInitials + '</div>' +
             '<div class="kudos-meta">' +
               '<div class="kudos-names">' +
-                '<span class="from">' + Team.escapeHtml(k.from_name) + '</span>' +
+                '<span class="from">' + escapeHtml(k.from_name) + '</span>' +
                 '<span class="arrow">&rarr;</span>' +
-                '<span class="to">' + Team.escapeHtml(k.to_name) + '</span>' +
+                '<span class="to">' + escapeHtml(k.to_name) + '</span>' +
               '</div>' +
               '<div class="kudos-time">' + timeAgo + '</div>' +
             '</div>' +
@@ -3632,7 +3632,7 @@
               catName +
             '</span>' +
           '</div>' +
-          '<div class="kudos-message">' + Team.escapeHtml(k.message) + '</div>' +
+          '<div class="kudos-message">' + escapeHtml(k.message) + '</div>' +
         '</div>';
       }).join('');
 
@@ -3660,7 +3660,7 @@
           var rankClass = i === 0 ? 'gold' : (i === 1 ? 'silver' : (i === 2 ? 'bronze' : ''));
           html += '<div class="kudos-top-item">' +
             '<span class="rank ' + rankClass + '">' + (i + 1) + '</span>' +
-            '<span style="flex:1;">' + Team.escapeHtml(r.name) + '</span>' +
+            '<span style="flex:1;">' + escapeHtml(r.name) + '</span>' +
             '<span style="color:#e91e63;font-weight:600;">' + r.count + '</span>' +
           '</div>';
         });
@@ -3782,14 +3782,7 @@
       return 'Just now';
     },
 
-    escapeHtml: function(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    },
+    // escapeHtml removed - use global escapeHtml() from index.html
 
     setView: function(view) {
       this.currentView = view;
@@ -5628,14 +5621,20 @@
         actionData.source_date = new Date().toISOString().split('T')[0];
 
         google.script.run
-          .withSuccessHandler(function() {
-            btn.innerHTML = '<span class="material-icons">check</span> Added!';
-            setTimeout(function() {
-              Team.closeModal('addActionModal');
+          .withSuccessHandler(function(result) {
+            if (result && result.success) {
+              btn.innerHTML = '<span class="material-icons">check</span> Added!';
+              setTimeout(function() {
+                Team.closeModal('addActionModal');
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-icons">add</span> Add Action';
+                Team.loadActions();
+              }, 600);
+            } else {
               btn.disabled = false;
               btn.innerHTML = '<span class="material-icons">add</span> Add Action';
-              Team.loadActions();
-            }, 600);
+              showError(result ? result.error : 'Failed to add action');
+            }
           })
           .withFailureHandler(function(err) {
             btn.disabled = false;

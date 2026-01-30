@@ -394,10 +394,11 @@ function globalSearch(query) {
   var maxResults = 5; // Limit per category
 
   try {
-    // Search Solutions
+    // Search Solutions - early termination, minimal data return
     var solutions = MoApi.getAllSolutions();
     if (solutions && solutions.length > 0) {
-      results.solutions = solutions.filter(function(sol) {
+      for (var i = 0; i < solutions.length && results.solutions.length < maxResults; i++) {
+        var sol = solutions[i];
         var searchText = [
           sol.core_official_name || '',
           sol.core_id || '',
@@ -405,18 +406,27 @@ function globalSearch(query) {
           sol.core_group || '',
           sol.core_alternate_names || ''
         ].join(' ').toLowerCase();
-        return searchText.includes(queryLower);
-      }).slice(0, maxResults);
+        if (searchText.includes(queryLower)) {
+          // Return only fields needed for display
+          results.solutions.push({
+            core_id: sol.core_id || '',
+            core_official_name: sol.core_official_name || '',
+            admin_lifecycle_phase: sol.admin_lifecycle_phase || '',
+            core_group: sol.core_group || ''
+          });
+        }
+      }
     }
   } catch (e) {
     Logger.log('Error searching solutions: ' + e.message);
   }
 
   try {
-    // Search Contacts
+    // Search Contacts - early termination, minimal data return
     var contacts = MoApi.getAllContacts();
     if (contacts && contacts.length > 0) {
-      results.contacts = contacts.filter(function(contact) {
+      for (var i = 0; i < contacts.length && results.contacts.length < maxResults; i++) {
+        var contact = contacts[i];
         var searchText = [
           contact.first_name || '',
           contact.last_name || '',
@@ -424,26 +434,45 @@ function globalSearch(query) {
           contact.email || '',
           contact.organization || ''
         ].join(' ').toLowerCase();
-        return searchText.includes(queryLower);
-      }).slice(0, maxResults);
+        if (searchText.includes(queryLower)) {
+          // Return only fields needed for display
+          results.contacts.push({
+            email: contact.email || '',
+            first_name: contact.first_name || '',
+            last_name: contact.last_name || '',
+            organization: contact.organization || '',
+            title: contact.title || ''
+          });
+        }
+      }
     }
   } catch (e) {
     Logger.log('Error searching contacts: ' + e.message);
   }
 
   try {
-    // Search Actions
+    // Search Actions - early termination, minimal data return
     var actions = MoApi.getAllActions();
     if (actions && actions.length > 0) {
-      results.actions = actions.filter(function(action) {
+      for (var i = 0; i < actions.length && results.actions.length < maxResults; i++) {
+        var action = actions[i];
         var searchText = [
           action.task || '',
           action.assigned_to || '',
           action.notes || '',
           action.solution_id || ''
         ].join(' ').toLowerCase();
-        return searchText.includes(queryLower);
-      }).slice(0, maxResults);
+        if (searchText.includes(queryLower)) {
+          // Return only fields needed for display
+          results.actions.push({
+            action_id: action.action_id || '',
+            task: action.task || '',
+            assigned_to: action.assigned_to || '',
+            status: action.status || '',
+            solution_id: action.solution_id || ''
+          });
+        }
+      }
     }
   } catch (e) {
     Logger.log('Error searching actions: ' + e.message);

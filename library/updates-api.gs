@@ -304,7 +304,7 @@ function getUpdatesForSolutionCard(solutionName) {
     }
   });
 
-  return {
+  var result = {
     recent: recent,
     extended: extended,
     hasMore: extendedTotal > 0,
@@ -312,6 +312,11 @@ function getUpdatesForSolutionCard(solutionName) {
     extendedTotal: extendedTotal,
     totalCount: allSolutionUpdates.length
   };
+
+  // Log response size for monitoring
+  logResponseSize(result, 'getUpdatesForSolutionCard');
+
+  return result;
 }
 
 /**
@@ -623,6 +628,9 @@ function getAllHistoricalUpdatesForReport(yearTabs, solutionFilter, maxUpdates) 
         }
       };
     }
+
+    // Log response size for monitoring
+    logResponseSize(result, 'getAllHistoricalUpdatesForReport');
 
     return result;
   } catch (error) {

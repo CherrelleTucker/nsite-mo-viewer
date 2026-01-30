@@ -1308,9 +1308,7 @@ renderPagination();
   }
 
   function closeModal(event) {
-    if (!event || event.target === document.getElementById('contactModal')) {
-      document.getElementById('contactModal').classList.remove('active');
-    }
+    window.closeModal('contactModal', event);
   }
 
   function refresh() {
@@ -1437,24 +1435,7 @@ renderPagination();
     return false;
   }
 
-  function showToast(message, type) {
-    // Create toast if doesn't exist
-    var toast = document.getElementById('contactsToast');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.id = 'contactsToast';
-      toast.className = 'toast';
-      document.body.appendChild(toast);
-    }
-
-    toast.textContent = message;
-    toast.className = 'toast ' + (type || 'info');
-    toast.classList.add('show');
-
-    setTimeout(function() {
-      toast.classList.remove('show');
-    }, 3000);
-  }
+  // showToast removed - uses global showToast() from index.html
 
   function exportList() {
     // Export current filtered list
