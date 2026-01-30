@@ -391,10 +391,10 @@ function globalSearch(query) {
     actions: []
   };
 
-  var maxResults = 5; // Limit per category
+  var maxResults = 50; // Limit per category (frontend handles "show more")
 
   try {
-    // Search Solutions - early termination, minimal data return
+    // Search Solutions
     var solutions = MoApi.getAllSolutions();
     if (solutions && solutions.length > 0) {
       for (var i = 0; i < solutions.length && results.solutions.length < maxResults; i++) {
@@ -407,7 +407,6 @@ function globalSearch(query) {
           sol.core_alternate_names || ''
         ].join(' ').toLowerCase();
         if (searchText.includes(queryLower)) {
-          // Return only fields needed for display
           results.solutions.push({
             core_id: sol.core_id || '',
             core_official_name: sol.core_official_name || '',
@@ -422,8 +421,9 @@ function globalSearch(query) {
   }
 
   try {
-    // Search Contacts - early termination, minimal data return
+    // Search Contacts - de-duplicate by name
     var contacts = MoApi.getAllContacts();
+    var seenNames = {};
     if (contacts && contacts.length > 0) {
       for (var i = 0; i < contacts.length && results.contacts.length < maxResults; i++) {
         var contact = contacts[i];
@@ -435,11 +435,16 @@ function globalSearch(query) {
           contact.organization || ''
         ].join(' ').toLowerCase();
         if (searchText.includes(queryLower)) {
-          // Return only fields needed for display
+          // De-duplicate by full name
+          var fullName = (contact.full_name || ((contact.first_name || '') + ' ' + (contact.last_name || ''))).toLowerCase().trim();
+          if (seenNames[fullName]) continue;
+          seenNames[fullName] = true;
+
           results.contacts.push({
             email: contact.email || '',
             first_name: contact.first_name || '',
             last_name: contact.last_name || '',
+            full_name: contact.full_name || '',
             organization: contact.organization || '',
             title: contact.title || ''
           });
@@ -451,7 +456,7 @@ function globalSearch(query) {
   }
 
   try {
-    // Search Actions - early termination, minimal data return
+    // Search Actions
     var actions = MoApi.getAllActions();
     if (actions && actions.length > 0) {
       for (var i = 0; i < actions.length && results.actions.length < maxResults; i++) {
@@ -463,7 +468,6 @@ function globalSearch(query) {
           action.solution_id || ''
         ].join(' ').toLowerCase();
         if (searchText.includes(queryLower)) {
-          // Return only fields needed for display
           results.actions.push({
             action_id: action.action_id || '',
             task: action.task || '',
