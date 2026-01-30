@@ -235,6 +235,16 @@ Added state flags to prevent users from triggering duplicate API calls by clicki
 
 ---
 
+## [2.2.8] - 2026-01-30
+
+### Responsive (Review 8 - Quick Fix)
+
+- Added responsive breakpoints for stats-row in shared-page-styles.html
+  - ≤1024px: 2-column grid (tablets/smaller laptops)
+  - ≤600px: 1-column grid with smaller padding/icons (mobile)
+
+---
+
 ## [Unreleased]
 
 ### Added

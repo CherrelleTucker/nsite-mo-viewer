@@ -219,6 +219,28 @@ a:focus-visible {
   color: #e91e63;
 }
 
+/* Stats row responsive */
+@media (max-width: 1024px) {
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    padding: var(--space-sm);
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+}
+
 /* ==========================================================================
    VIEW PANELS
    ========================================================================== */

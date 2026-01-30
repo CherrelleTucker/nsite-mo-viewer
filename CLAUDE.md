@@ -691,7 +691,7 @@ Work through these reviews systematically to ensure webapp quality.
 
 ### User Experience
 - [x] **7. Accessibility Audit** - Keyboard navigation, screen reader support, color contrast, focus states (completed 2026-01-30: skip link, focus-visible styles, aria-labels on 26 modal close buttons and icon buttons, Escape key closes modals, toast aria-live)
-- [ ] **8. Mobile/Responsive Review** - Layout issues on different screen sizes
+- [x] **8. Mobile/Responsive Review** - Layout issues on different screen sizes (completed 2026-01-30: quick fix - stats-row responsive breakpoints at 1024px and 600px)
 - [ ] **9. Loading States** - Spinners, skeletons, empty states, error states across all views
 
 ### Data Integrity
