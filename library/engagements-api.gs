@@ -119,12 +119,12 @@ function validateEngagementData_(data) {
   }
 
   // Valid activity type
-  if (data.activity_type && ENGAGEMENT_ACTIVITY_TYPES.indexOf(data.activity_type) === -1) {
+  if (data.activity_type && !ENGAGEMENT_ACTIVITY_TYPES.includes(data.activity_type)) {
     errors.push('Invalid activity type: ' + data.activity_type + '. Valid types: ' + ENGAGEMENT_ACTIVITY_TYPES.join(', '));
   }
 
   // Valid direction (if provided)
-  if (data.direction && ENGAGEMENT_DIRECTIONS.indexOf(data.direction) === -1) {
+  if (data.direction && !ENGAGEMENT_DIRECTIONS.includes(data.direction)) {
     errors.push('Invalid direction: ' + data.direction + '. Valid directions: ' + ENGAGEMENT_DIRECTIONS.join(', '));
   }
 

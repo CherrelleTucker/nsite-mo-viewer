@@ -216,12 +216,12 @@ function parseUpdatesFromTableFormat_(doc, source, docUrl) {
           var isLegacySubSolutionMarker = /^[A-Za-z0-9\s\-\.]+:\s*$/.test(item.text);
 
           if (hasCoreId) {
-            currentSolution = extractSolutionName_(item.text);
+            currentSolution = extractSolutionId_(item.text);
             currentSolutionNestingLevel = item.nesting;
           }
           else if (currentSolution === null || item.nesting <= currentSolutionNestingLevel) {
             if (item.text.indexOf(NEW_MARKER) === -1) {
-              currentSolution = extractSolutionName_(item.text);
+              currentSolution = extractSolutionId_(item.text);
               currentSolutionNestingLevel = item.nesting;
             }
           }
@@ -314,12 +314,12 @@ function parseUpdatesFromBody_(body, source, docUrl, meetingDate, tabName) {
           var isLegacySubSolutionMarker = /^[A-Za-z0-9\s\-\.]+:\s*$/.test(item.text);
 
           if (hasCoreId) {
-            currentSolution = extractSolutionName_(item.text);
+            currentSolution = extractSolutionId_(item.text);
             currentSolutionNestingLevel = item.nesting;
           }
           else if (currentSolution === null || item.nesting <= currentSolutionNestingLevel) {
             if (item.text.indexOf(NEW_MARKER) === -1) {
-              currentSolution = extractSolutionName_(item.text);
+              currentSolution = extractSolutionId_(item.text);
               currentSolutionNestingLevel = item.nesting;
             }
           }
@@ -517,12 +517,12 @@ function extractMeetingDateFromDoc_(doc) {
 }
 
 /**
- * Extract solution identifier from text
+ * Extract solution identifier (core_id) from text
  * Supports: "Name [core_id]", "[core_id]", "Name (Provider)"
  * @param {string} text - Raw text
  * @returns {string} The core_id or cleaned solution name
  */
-function extractSolutionName_(text) {
+function extractSolutionId_(text) {
   if (!text) return '';
 
   text = text.trim();

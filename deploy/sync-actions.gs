@@ -382,7 +382,7 @@ function parseActionTable_(table, category, docName, docId) {
       source_date: parseSourceTab_(sourceTab),
       source_url: 'https://docs.google.com/document/d/' + docId,
       category: category,
-      solution: solution,
+      solution_id: solution,
       status: normalizeStatus_(status),
       assigned_to: owner,
       task: task,
@@ -444,7 +444,7 @@ function upsertAction_(actionData) {
       case 'source_date': return actionData.source_date || '';
       case 'source_url': return actionData.source_url || '';
       case 'category': return actionData.category || '';
-      case 'solution': return actionData.solution || actionData.category || '';
+      case 'solution_id': return actionData.solution_id || actionData.category || '';
       case 'status': return actionData.status || 'not_started';
       case 'assigned_to': return actionData.assigned_to || '';
       case 'task': return actionData.task || '';
@@ -488,7 +488,13 @@ function detectSolution_(taskText, category) {
 
   // Use the MoApi library function
   // This reads solution names from the database (including alternate_names)
-  var foundIds = MoApi.findSolutionIdsInText(taskText);
+  var foundIds = [];
+  try {
+    foundIds = MoApi.findSolutionIdsInText(taskText);
+  } catch (e) {
+    Logger.log('MoApi library not available or error: ' + e.message);
+    foundIds = [];
+  }
 
   if (foundIds.length > 0) {
     return foundIds[0];

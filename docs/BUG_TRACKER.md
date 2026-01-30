@@ -526,6 +526,14 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 
 ---
 
+## Cross-Page UX Issues
+
+| ID | Issue | Priority | Status | Notes |
+|----|-------|----------|--------|-------|
+| UX-001 | Delete buttons lack loading feedback | P2 | [ ] | Delete actions in detail modals (engagements, availability, etc.) should show loading/in-progress icon like save buttons do |
+
+---
+
 ## Quick Wins (< 1 hour each)
 
 These can be knocked out quickly:
@@ -691,3 +699,4 @@ Before MO-Viewer can be packaged for other organizations, a comprehensive testin
 | 2026-01-23 | **CLEANUP**: Removed all debug console.log statements from deploy/*.html (31 instances); converted error logs to console.error |
 | 2026-01-28 | **LOGGED**: SEP-029 to SEP-031 - SPA navigation null element errors in sep.html (renderRecentEngagements, renderNeedsOutreach, renderAgencyTree) |
 | 2026-01-28 | **LOGGED**: RPT-022 - MoApi.getApplicationSectors needs library redeployment |
+| 2026-01-30 | **LOGGED**: UX-001 - Delete buttons in detail modals (engagements, availability, etc.) need loading/in-progress feedback like other button actions |

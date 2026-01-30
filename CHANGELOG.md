@@ -257,6 +257,24 @@ Added state flags to prevent users from triggering duplicate API calls by clicki
 
 ---
 
+## [2.2.11] - 2026-01-30
+
+### Data Flow Audit (Review 11)
+
+Fixed data flow inconsistencies identified during audit:
+
+**sync-actions.gs:**
+- Changed `solution` field to `solution_id` for column name consistency with MO-DB_Actions schema
+- Added try-catch around `MoApi.findSolutionIdsInText()` call for graceful fallback when library unavailable
+
+**sync-common.gs:**
+- Renamed `extractSolutionName_()` to `extractSolutionId_()` for clarity (function returns core_id, not name)
+
+**engagements-api.gs:**
+- Replaced `.indexOf() === -1` with `.includes()` for activity type and direction validation
+
+---
+
 ## [2.2.10] - 2026-01-30
 
 ### Schema Validation (Review 10)
