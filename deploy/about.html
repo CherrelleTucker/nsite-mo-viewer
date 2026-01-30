@@ -540,6 +540,7 @@
         <div class="page-card-header topsheet">
           <span class="material-icons">table_chart</span>
           <h4>Top Sheet</h4>
+          <span class="status-badge planned">HOME PAGE</span>
         </div>
         <div class="page-card-body">
           <div class="data-flow-mini">
@@ -550,21 +551,25 @@
           <div class="page-details">
             <div class="detail-group">
               <span class="detail-label">Data:</span>
-              <span>All solutions with Implementation milestones (ATP, F2I, ORR, Closeout) and SEP milestones (WS1-5, TP4-8)</span>
+              <span>All solutions with Implementation milestones (ATP, F2I, ORR, Closeout + memo dates) and SEP milestones (WS1-5, TP4-8)</span>
             </div>
             <div class="detail-group">
               <span class="detail-label">Transforms:</span>
-              <span>Date formatting, sorting, filtering by cycle/phase</span>
+              <span>Date formatting (day month year), sorting, filtering, grouping by cycle/phase/group</span>
             </div>
             <div class="detail-group">
               <span class="detail-label">Updates:</span>
-              <span>Fresh on page load from MO-DB_Solutions</span>
+              <span>Fresh on page load from MO-DB_Solutions; toggle/selection states persist via localStorage</span>
             </div>
           </div>
           <div class="next-steps">
             <span class="next-label">Key Features:</span>
             <ul>
-              <li><strong>SEP Toggle:</strong> Show/hide SEP milestone columns (WS1/TP4 through WS5/TP8)</li>
+              <li><strong>Solution Picker:</strong> Select which solutions to display with Default/All/None quick actions (uses admin_default_in_dashboard)</li>
+              <li><strong>Grouping:</strong> Group rows by Cycle, Phase, or Group with collapsible headers</li>
+              <li><strong>Show Memos Toggle:</strong> Display DG memo date columns interleaved with milestone dates</li>
+              <li><strong>Show SEP Toggle:</strong> Show/hide SEP milestone columns (WS1/TP4 through WS5/TP8)</li>
+              <li><strong>Detail Modal:</strong> Click any solution to view milestone details in a popup</li>
               <li><strong>Sticky Columns:</strong> Solution, Cycle, Phase stay fixed during horizontal scroll</li>
               <li><strong>Sortable:</strong> Click column headers to sort by any milestone date</li>
               <li><strong>CSV Export:</strong> Download filtered table with current columns</li>
@@ -867,11 +872,11 @@
     <div class="version-info">
       <div class="version-item">
         <span class="version-label">Version</span>
-        <span class="version-value">2.1.5</span>
+        <span class="version-value">2.2.0</span>
       </div>
       <div class="version-item">
         <span class="version-label">Updated</span>
-        <span class="version-value">January 28, 2026</span>
+        <span class="version-value">January 29, 2026</span>
       </div>
       <div class="version-item">
         <span class="version-label">Repository</span>

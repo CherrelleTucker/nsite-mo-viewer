@@ -1,6 +1,6 @@
 # Claude Code Instructions for MO-Viewer
 
-**Version:** 2.1.5 | **Updated:** 2026-01-28 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
+**Version:** 2.2.0 | **Updated:** 2026-01-29 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
 
 ---
 
@@ -294,6 +294,46 @@ When making significant changes, update ALL relevant files:
 7. **Forgetting about.html** - This is the user-facing documentation. Keep it current.
 
 8. **Editing deploy instead of library** - For API logic changes, edit `library/*-api.gs` files.
+
+---
+
+## Data Standards
+
+### Date Format
+
+**All dates in backend databases MUST use YYYY-MM-DD format (ISO 8601).**
+
+| Context | Format | Example |
+|---------|--------|---------|
+| Database storage | `YYYY-MM-DD` | `2026-01-29` |
+| API responses | `YYYY-MM-DD` | `2026-01-29` |
+| JavaScript Date objects | `.toISOString().split('T')[0]` | `2026-01-29` |
+| Display in webapp | Flexible (user-friendly) | `Jan 29, 2026` or `1/29/2026` |
+
+**Why:** Consistent date format prevents sorting issues, enables reliable date comparisons, and maintains compatibility across systems.
+
+**When writing dates:**
+```javascript
+// Backend/API - always YYYY-MM-DD
+var today = new Date().toISOString().split('T')[0];  // "2026-01-29"
+
+// Display in HTML - format for readability
+var displayDate = new Date(isoDate).toLocaleDateString('en-US', {
+  year: 'numeric', month: 'short', day: 'numeric'
+});  // "Jan 29, 2026"
+```
+
+### Solution-Earthdata Mapping
+
+When syncing earthdata.nasa.gov content to MO-DB_Solutions, use `earthdata-solutions-content.json` as the source. Sub-projects inherit from parent solutions:
+
+| core_id Pattern | Earthdata Source |
+|-----------------|------------------|
+| `hls_*` (except hls_ll, hls_vi) | HLS |
+| `opera_*` | Respective OPERA product |
+| `nisar_*` | Respective NISAR product |
+| `pbl_*` | PBL |
+| `aq_*` | Air Quality |
 
 ---
 

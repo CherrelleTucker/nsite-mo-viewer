@@ -7,18 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.0] - 2026-01-29
+
+### Added
+- **Solution Top Sheet Page** - New home page showing all solutions with milestone dates in a consolidated table
+  - **Default landing page** - Top Sheet is now the first page shown after sign-in
+  - Implementation milestones: ATP DG, F2I DG, ORR, Closeout
+  - Memo dates (toggleable): ATP Memo, F2I Memo, ORR Memo, Closeout Memo
+  - SEP milestones (toggleable): WS1/TP4, WS2/TP5, WS3/TP6, WS4/TP7, WS5/TP8
+  - **Solution Picker** - Select which solutions to display with Default/All/None quick actions
+    - Default selection uses `admin_default_in_dashboard` field from MO-DB_Solutions
+    - Selection persists via localStorage
+  - **Grouping** - Group rows by Cycle, Phase, or Group with section headers
+    - "No Group/Cycle/Phase" items grouped together at the end
+  - **Detail Modal** - Click any solution to view milestone details in a popup
+    - Shows Implementation milestones with memo dates (if Show Memos enabled)
+    - Shows SEP milestones (if Show SEP enabled)
+  - Sticky columns (Solution, Cycle, Phase) stay visible during horizontal scroll
+  - Date format shows day (e.g., "15 Jan 2024")
+  - Sortable columns - click headers to sort
+  - CSV export of current filtered/sorted view
+  - Toggle states persist via localStorage
+
+### Changed
+- **Navigation** - Top Sheet moved to first position in primary navigation
+  - Shows icon only when not active, full label when active
+- **Home page redirect** - Sign-in now redirects to Top Sheet instead of Implementation
+
+---
+
 ## [Unreleased]
 
 ### Added
-- **Solution Top Sheet Page** - New page showing all solutions with milestone dates in a consolidated table
-  - Implementation milestones: ATP DG, F2I DG, ORR, Closeout
-  - SEP milestones (toggleable): WS1/TP4, WS2/TP5, WS3/TP6, WS4/TP7, WS5/TP8
-  - Sticky columns (Solution, Cycle, Phase) stay visible during horizontal scroll
-  - Filter by cycle, phase, and search text
-  - Sortable columns - click headers to sort
-  - CSV export of current filtered/sorted view
-  - SEP toggle state persists via localStorage
-
 - **Share with Team File Upload** - Implementation solution detail modal now includes file upload feature
   - "Share with Team" button appears in Documentation Links section (only for solutions with `admin_shared_team_folder` configured)
   - Drag-and-drop upload dialog with file browser fallback
