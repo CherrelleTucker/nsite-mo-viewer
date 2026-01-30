@@ -63,6 +63,11 @@ function getAgencyById(agencyId) {
  * @returns {Object} Created agency with ID
  */
 function createAgency(agencyData) {
+  // Validate required fields
+  if (!agencyData.name || !String(agencyData.name).trim()) {
+    return { success: false, error: 'Agency name is required' };
+  }
+
   var sheetInfo = getSheetForWrite_('AGENCIES_SHEET_ID');
   var sheet = sheetInfo.sheet;
   var headers = sheetInfo.headers;

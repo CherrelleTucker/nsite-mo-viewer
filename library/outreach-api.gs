@@ -142,6 +142,11 @@ function getEventById(eventId) {
  */
 function createEvent(eventData) {
   try {
+    // Validate required fields
+    if (!eventData.name || !String(eventData.name).trim()) {
+      return { success: false, error: 'Event name is required' };
+    }
+
     var sheet = getOutreachSheet_();
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 

@@ -266,6 +266,14 @@ function getUpcomingAvailability(days) {
  */
 function addAvailability(data) {
   try {
+    // Validate required fields
+    if (!data.type || !String(data.type).trim()) {
+      return { success: false, error: 'Availability type is required' };
+    }
+    if (!data.start_date) {
+      return { success: false, error: 'Start date is required' };
+    }
+
     var sheet = getAvailabilitySheet_();
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 
@@ -494,6 +502,11 @@ function getWeeklySchedule() {
  */
 function addMeeting(data) {
   try {
+    // Validate required fields
+    if (!data.meeting_name || !String(data.meeting_name).trim()) {
+      return { success: false, error: 'Meeting name is required' };
+    }
+
     var sheet = getMeetingsSheet_();
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 
@@ -701,6 +714,14 @@ function getGlossaryByCategory(category) {
  */
 function addGlossaryTerm(data) {
   try {
+    // Validate required fields
+    if (!data.term || !String(data.term).trim()) {
+      return { success: false, error: 'Term is required' };
+    }
+    if (!data.definition || !String(data.definition).trim()) {
+      return { success: false, error: 'Definition is required' };
+    }
+
     var sheet = getGlossarySheet_();
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 

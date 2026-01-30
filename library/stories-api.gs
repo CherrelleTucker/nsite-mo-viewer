@@ -170,6 +170,14 @@ function getStoryById(storyId) {
  */
 function createStory(storyData) {
   try {
+    // Validate required fields
+    if (!storyData.title || !String(storyData.title).trim()) {
+      return { success: false, error: 'Story title is required' };
+    }
+    if (!storyData.solution_id || !String(storyData.solution_id).trim()) {
+      return { success: false, error: 'Solution is required' };
+    }
+
     var sheet = getStoriesSheet_();
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 

@@ -266,6 +266,11 @@ function getActionsOverview() {
  */
 function createAction(actionData) {
   try {
+    // Validate required fields
+    if (!actionData.task || !String(actionData.task).trim()) {
+      return { success: false, error: 'Task description is required' };
+    }
+
     var sheet = getDatabaseSheet('Actions');
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 

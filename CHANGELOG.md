@@ -257,6 +257,27 @@ Added state flags to prevent users from triggering duplicate API calls by clicki
 
 ---
 
+## [2.2.10] - 2026-01-30
+
+### Schema Validation (Review 10)
+
+Added backend validation to all write functions to enforce required fields before database writes:
+
+| API File | Function | Validation |
+|----------|----------|------------|
+| actions-api.gs | `createAction()` | task required |
+| outreach-api.gs | `createEvent()` | name required |
+| stories-api.gs | `createStory()` | title, solution_id required |
+| team-api.gs | `addAvailability()` | type, start_date required |
+| team-api.gs | `addMeeting()` | meeting_name required |
+| team-api.gs | `addGlossaryTerm()` | term, definition required |
+| agencies-api.gs | `createAgency()` | name required |
+| parking-lot-api.gs | `createParkingLotItem()` | title, item_type required |
+
+All validations return `{success: false, error: "..."}` with user-friendly messages.
+
+---
+
 ## [Unreleased]
 
 ### Added

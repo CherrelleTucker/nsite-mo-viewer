@@ -172,6 +172,14 @@ function getParkingLotItemById(itemId) {
  * @returns {Object} Created item with ID
  */
 function createParkingLotItem(itemData) {
+  // Validate required fields
+  if (!itemData.title || !String(itemData.title).trim()) {
+    return { success: false, error: 'Title is required' };
+  }
+  if (!itemData.item_type || !String(itemData.item_type).trim()) {
+    return { success: false, error: 'Item type is required' };
+  }
+
   var sheet = getParkingLotSheet_();
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 
