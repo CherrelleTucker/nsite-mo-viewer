@@ -97,7 +97,8 @@ Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across li
 | Column | Type | Required | Description |
 |--------|------|----------|-------------|
 | `admin_lifecycle_phase` | STRING | Yes | Phase (Preformulation, Formulation, Implementation, Operations, Closeout) |
-| `admin_default_in_dashboard` | BOOLEAN | No | Show in default selection |
+| `admin_default_in_dashboard` | BOOLEAN | No | Show in default selection (Y/N) |
+| `sep_active` | BOOLEAN | No | Solution is active in SEP pipeline (TRUE/FALSE) |
 | `admin_row_last_updated` | DATE | Yes | Last update timestamp |
 | `admin_drive_folder` | STRING | No | Google Drive folder URL |
 | `admin_shared_team_folder` | STRING | No | Google Drive folder URL for implementation team file sharing |
