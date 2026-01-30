@@ -3354,6 +3354,8 @@
     meetings: [],
     availability: [],
     editingAvailabilityId: null,
+    isSavingAvailability: false,
+    isSubmittingKudos: false,
     documents: [],
     kudos: [],
     kudosStats: null,
@@ -3501,6 +3503,8 @@
     },
 
     submitKudos: function() {
+      if (this.isSubmittingKudos) return; // Prevent double-submit
+
       var recipientSelect = document.getElementById('kudosRecipient');
       var category = document.getElementById('kudosCategory').value;
       var message = document.getElementById('kudosMessage').value.trim();
@@ -3533,6 +3537,7 @@
       var postToSlack = document.getElementById('kudosPostToSlack');
       var shouldPostToSlack = postToSlack && postToSlack.checked;
 
+      this.isSubmittingKudos = true;
       var btn = document.querySelector('.btn-kudos');
       btn.classList.add('sending');
       btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Sending...';
@@ -3547,6 +3552,7 @@
 
       google.script.run
         .withSuccessHandler(function(result) {
+          Team.isSubmittingKudos = false;
           btn.classList.remove('sending');
           btn.innerHTML = '<span class="material-icons">check</span> Sent!';
 
@@ -3576,6 +3582,7 @@
           Team.loadKudos();
         })
         .withFailureHandler(function(error) {
+          Team.isSubmittingKudos = false;
           btn.classList.remove('sending');
           btn.innerHTML = '<span class="material-icons">send</span> Send Kudos!';
           showError('Failed to send kudos: ' + (error.message || error));
@@ -4516,6 +4523,8 @@
     },
 
     saveAvailability: function() {
+      if (this.isSavingAvailability) return; // Prevent double-submit
+
       var typeSelect = document.getElementById('availTypeSelect');
       var personSelect = document.getElementById('availPersonSelect');
       var selectedOption = personSelect.options[personSelect.selectedIndex];
@@ -4549,6 +4558,7 @@
       }
 
       // Show loading state
+      this.isSavingAvailability = true;
       saveBtn.classList.add('loading');
 
       var data = {
@@ -4570,7 +4580,9 @@
       if (this.editingAvailabilityId) {
         google.script.run
           .withSuccessHandler(function(result) {
-            saveBtn.classList.remove('loading');
+            self.isSavingAvailability = false;
+            var btn = document.getElementById('saveAvailabilityBtn');
+            if (btn) btn.classList.remove('loading');
             if (result && result.success) {
               self.editingAvailabilityId = null;
               Team.closeModal('addAvailabilityModal');
@@ -4580,7 +4592,9 @@
             }
           })
           .withFailureHandler(function(error) {
-            saveBtn.classList.remove('loading');
+            self.isSavingAvailability = false;
+            var btn = document.getElementById('saveAvailabilityBtn');
+            if (btn) btn.classList.remove('loading');
             handleError(error);
             showError('Failed to update: ' + (error.message || error));
           })
@@ -4588,12 +4602,16 @@
       } else {
         google.script.run
           .withSuccessHandler(function() {
-            saveBtn.classList.remove('loading');
+            self.isSavingAvailability = false;
+            var btn = document.getElementById('saveAvailabilityBtn');
+            if (btn) btn.classList.remove('loading');
             Team.closeModal('addAvailabilityModal');
             Team.loadData();
           })
           .withFailureHandler(function(error) {
-            saveBtn.classList.remove('loading');
+            self.isSavingAvailability = false;
+            var btn = document.getElementById('saveAvailabilityBtn');
+            if (btn) btn.classList.remove('loading');
             handleError(error);
             showError('Failed to save: ' + (error.message || error));
           })
@@ -4614,7 +4632,8 @@
 
       google.script.run
         .withSuccessHandler(function(result) {
-          saveBtn.classList.remove('loading');
+          var btn = document.getElementById('saveAvailabilityBtn');
+          if (btn) btn.classList.remove('loading');
           if (result && result.success) {
             self.editingAvailabilityId = null;
             Team.closeModal('addAvailabilityModal');
@@ -4624,7 +4643,8 @@
           }
         })
         .withFailureHandler(function(error) {
-          saveBtn.classList.remove('loading');
+          var btn = document.getElementById('saveAvailabilityBtn');
+          if (btn) btn.classList.remove('loading');
           handleError(error);
           showError('Failed to delete: ' + (error.message || error));
         })

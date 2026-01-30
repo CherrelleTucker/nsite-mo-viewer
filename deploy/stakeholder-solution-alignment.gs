@@ -93,14 +93,14 @@ function getAllNeeds() {
 /**
  * Match solution from MO-DB_Solutions to needs in MO-DB_Needs
  *
- * Primary matching: need.core_id === solution.core_id (direct match)
+ * Primary matching: need.solution_id === solution.core_id (direct match)
  * Fallback matching: Parse solution name from parentheses or text patterns
  *
  * MO-DB_Solutions uses (Schema v2):
  *   - core_id: Primary identifier (e.g., "hls", "opera-dist")
  *
- * MO-DB_Needs should have:
- *   - core_id: Foreign key to MO-DB_Solutions (e.g., "hls")
+ * MO-DB_Needs uses (Schema v3 - rebuilt 2026-01-29):
+ *   - solution_id: Foreign key to MO-DB_Solutions.core_id (e.g., "hls")
  *   - solution: Full survey name for display
  */
 function matchSolutionToNeeds_(solution, allNeeds) {
@@ -120,9 +120,9 @@ function matchSolutionToNeeds_(solution, allNeeds) {
   if (!solId && !solName) return [];
 
   return allNeeds.filter(function(need) {
-    // PRIMARY: Direct core_id match (preferred method)
-    var needCoreId = (need.core_id || '').toLowerCase().trim();
-    if (needCoreId && solId && needCoreId === solId) return true;
+    // PRIMARY: Direct solution_id match (preferred method - Schema v3)
+    var needSolutionId = (need.solution_id || need.core_id || '').toLowerCase().trim();
+    if (needSolutionId && solId && needSolutionId === solId) return true;
 
     // FALLBACK: Parse solution name if core_id not set
     var needSol = (need.solution || '').toLowerCase().trim();
@@ -199,6 +199,7 @@ function getNeedsForSolution(solutionName) {
  * @param {Object} options - Filter options
  * @param {string} options.cycle - Filter by cycle
  * @param {boolean} options.defaultOnly - Only default solutions
+ * @param {Array} options.solutionIds - Specific solution IDs to include
  * @returns {Object} Need alignment report data
  */
 function generateNeedAlignmentReport(options) {
@@ -215,7 +216,17 @@ function generateNeedAlignmentReport(options) {
       });
     }
 
-    if (options.defaultOnly) {
+    // Filter by specific solution IDs (from picker)
+    if (options.solutionIds && options.solutionIds.length > 0) {
+      var idSet = {};
+      options.solutionIds.forEach(function(id) {
+        idSet[id.toLowerCase()] = true;
+      });
+      solutions = solutions.filter(function(s) {
+        return idSet[(s.core_id || '').toLowerCase()];
+      });
+    } else if (options.defaultOnly) {
+      // Only apply defaultOnly if no specific IDs provided
       solutions = solutions.filter(function(s) {
         return s.admin_default_in_dashboard === 'Y';
       });
@@ -251,8 +262,22 @@ function generateNeedAlignmentReport(options) {
       // Aggregate stakeholder needs
       var needsAnalysis = analyzeNeeds_(solutionNeeds);
 
+      // Alignment decisions from database (manual review status)
+      // Must be loaded BEFORE calculateNeedAlignment_ to exclude N/A characteristics
+      var alignmentDecisions = {
+        horiz_resolution: sol.alignment_horiz_resolution || '',
+        temporal_freq: sol.alignment_temporal_freq || '',
+        geo_domain: sol.alignment_geo_domain || '',
+        latency: sol.alignment_latency || '',
+        spectral_bands: sol.alignment_spectral_bands || '',
+        vertical_resolution: sol.alignment_vertical_resolution || '',
+        notes: sol.alignment_notes || '',
+        last_reviewed: sol.alignment_last_reviewed || ''
+      };
+
       // Calculate alignment score comparing needs vs solution
-      var alignmentResult = calculateNeedAlignment_(solutionProvides, needsAnalysis, solutionNeeds);
+      // Pass alignmentDecisions to exclude N/A characteristics from score
+      var alignmentResult = calculateNeedAlignment_(solutionProvides, needsAnalysis, solutionNeeds, alignmentDecisions);
 
       return {
         solution_id: solId,
@@ -287,7 +312,10 @@ function generateNeedAlignmentReport(options) {
         alignmentScore: alignmentResult.score,
         scoreBreakdown: alignmentResult.breakdown,
         scoreSummary: alignmentResult.summary,
-        gaps: alignmentResult.gaps
+        gaps: alignmentResult.gaps,
+
+        // Manual alignment decisions (from MO-DB_Solutions)
+        alignmentDecisions: alignmentDecisions
       };
     });
 
@@ -323,15 +351,15 @@ function analyzeNeeds_(needs) {
   var bySurveyYear = {};
   var degreeNeedMetValues = [];
 
-  // Track ALL characteristics from survey
+  // Track ALL characteristics from survey (Schema v3 column names - 2026-01-29)
   var characteristics = {
     horizontal_resolution: {},
     vertical_resolution: {},
     temporal_frequency: {},
-    data_latency: {},
+    data_latency_value: {},         // Was: data_latency
     geographic_coverage: {},
-    spectral_bands: {},
-    measurement_uncertainty: {},
+    spectral_bands_value: {},       // Was: spectral_bands
+    uncertainty_type: {},           // Was: measurement_uncertainty
     required_processing_level: {},
     preferred_format: {},
     preferred_access: {},
@@ -418,13 +446,29 @@ function formatAllValues_(obj) {
 /**
  * Calculate need alignment score comparing what solution delivers vs what stakeholders need
  * Returns object with score, breakdown, and identified gaps
+ * @param {Object} solutionProvides - What the solution delivers
+ * @param {Object} needsAnalysis - Aggregated stakeholder needs
+ * @param {Array} needs - Raw needs data
+ * @param {Object} alignmentDecisions - Manual alignment decisions (optional)
  */
-function calculateNeedAlignment_(solutionProvides, needsAnalysis, needs) {
+function calculateNeedAlignment_(solutionProvides, needsAnalysis, needs, alignmentDecisions) {
+  alignmentDecisions = alignmentDecisions || {};
+
+  // Check which characteristics are marked N/A (excluded from calculations)
+  var resolutionNA = alignmentDecisions.horiz_resolution === 'N/A';
+  var frequencyNA = alignmentDecisions.temporal_freq === 'N/A';
+  var coverageNA = alignmentDecisions.geo_domain === 'N/A';
+
+  // Adjust max points based on N/A exclusions
+  var resMax = resolutionNA ? 0 : 20;
+  var freqMax = frequencyNA ? 0 : 20;
+  var covMax = coverageNA ? 0 : 20;
+
   var breakdown = {
     degreeNeedMet: { points: 0, max: 40, details: [] },
-    resolutionMatch: { points: 0, max: 20, details: [] },
-    frequencyMatch: { points: 0, max: 20, details: [] },
-    coverageMatch: { points: 0, max: 20, details: [] }
+    resolutionMatch: { points: 0, max: resMax, details: [], excluded: resolutionNA },
+    frequencyMatch: { points: 0, max: freqMax, details: [], excluded: frequencyNA },
+    coverageMatch: { points: 0, max: covMax, details: [], excluded: coverageNA }
   };
 
   var gaps = [];
@@ -446,75 +490,87 @@ function calculateNeedAlignment_(solutionProvides, needsAnalysis, needs) {
     breakdown.degreeNeedMet.details.push('No degree_need_met data available');
   }
 
-  // 2. Resolution match (max 20 pts)
-  var solRes = (solutionProvides.horizontal_resolution || '').toLowerCase();
-  if (solRes && needsAnalysis.resolutionNeeds.length > 0) {
-    var topResNeed = needsAnalysis.resolutionNeeds[0].name.toLowerCase();
-    var resMatch = checkResolutionMatch_(solRes, topResNeed);
+  // 2. Resolution match (max 20 pts) - skip if N/A
+  if (resolutionNA) {
+    breakdown.resolutionMatch.details.push('N/A - Excluded from alignment calculation');
+  } else {
+    var solRes = (solutionProvides.horizontal_resolution || '').toLowerCase();
+    if (solRes && needsAnalysis.resolutionNeeds.length > 0) {
+      var topResNeed = needsAnalysis.resolutionNeeds[0].name.toLowerCase();
+      var resMatch = checkResolutionMatch_(solRes, topResNeed);
 
-    if (resMatch.matches) {
-      breakdown.resolutionMatch.points = 20;
-      breakdown.resolutionMatch.details.push('Solution provides: ' + solutionProvides.horizontal_resolution);
-      breakdown.resolutionMatch.details.push('Top need: ' + needsAnalysis.resolutionNeeds[0].name + ' (MATCHED)');
-    } else if (resMatch.partial) {
-      breakdown.resolutionMatch.points = 10;
-      breakdown.resolutionMatch.details.push('Partial match - Solution: ' + solutionProvides.horizontal_resolution);
-      breakdown.resolutionMatch.details.push('Top need: ' + needsAnalysis.resolutionNeeds[0].name);
-    } else {
-      breakdown.resolutionMatch.details.push('GAP - Solution: ' + (solutionProvides.horizontal_resolution || 'unknown'));
-      breakdown.resolutionMatch.details.push('Top need: ' + needsAnalysis.resolutionNeeds[0].name);
-      gaps.push('Resolution gap: ' + needsAnalysis.resolutionNeeds[0].count + ' stakeholders need ' + needsAnalysis.resolutionNeeds[0].name);
+      if (resMatch.matches) {
+        breakdown.resolutionMatch.points = 20;
+        breakdown.resolutionMatch.details.push('Solution provides: ' + solutionProvides.horizontal_resolution);
+        breakdown.resolutionMatch.details.push('Top need: ' + needsAnalysis.resolutionNeeds[0].name + ' (MATCHED)');
+      } else if (resMatch.partial) {
+        breakdown.resolutionMatch.points = 10;
+        breakdown.resolutionMatch.details.push('Partial match - Solution: ' + solutionProvides.horizontal_resolution);
+        breakdown.resolutionMatch.details.push('Top need: ' + needsAnalysis.resolutionNeeds[0].name);
+      } else {
+        breakdown.resolutionMatch.details.push('GAP - Solution: ' + (solutionProvides.horizontal_resolution || 'unknown'));
+        breakdown.resolutionMatch.details.push('Top need: ' + needsAnalysis.resolutionNeeds[0].name);
+        gaps.push('Resolution gap: ' + needsAnalysis.resolutionNeeds[0].count + ' stakeholders need ' + needsAnalysis.resolutionNeeds[0].name);
+      }
+    } else if (!solRes) {
+      breakdown.resolutionMatch.details.push('Solution resolution not specified');
     }
-  } else if (!solRes) {
-    breakdown.resolutionMatch.details.push('Solution resolution not specified');
   }
 
-  // 3. Frequency match (max 20 pts)
-  var solFreq = (solutionProvides.temporal_frequency || '').toLowerCase();
-  if (solFreq && needsAnalysis.frequencyNeeds.length > 0) {
-    var topFreqNeed = needsAnalysis.frequencyNeeds[0].name.toLowerCase();
-    var freqMatch = checkFrequencyMatch_(solFreq, topFreqNeed);
+  // 3. Frequency match (max 20 pts) - skip if N/A
+  if (frequencyNA) {
+    breakdown.frequencyMatch.details.push('N/A - Excluded from alignment calculation');
+  } else {
+    var solFreq = (solutionProvides.temporal_frequency || '').toLowerCase();
+    if (solFreq && needsAnalysis.frequencyNeeds.length > 0) {
+      var topFreqNeed = needsAnalysis.frequencyNeeds[0].name.toLowerCase();
+      var freqMatch = checkFrequencyMatch_(solFreq, topFreqNeed);
 
-    if (freqMatch.matches) {
-      breakdown.frequencyMatch.points = 20;
-      breakdown.frequencyMatch.details.push('Solution provides: ' + solutionProvides.temporal_frequency);
-      breakdown.frequencyMatch.details.push('Top need: ' + needsAnalysis.frequencyNeeds[0].name + ' (MATCHED)');
-    } else if (freqMatch.exceeds) {
-      breakdown.frequencyMatch.points = 20;
-      breakdown.frequencyMatch.details.push('Solution exceeds need - provides: ' + solutionProvides.temporal_frequency);
-      breakdown.frequencyMatch.details.push('Top need: ' + needsAnalysis.frequencyNeeds[0].name);
-    } else {
-      breakdown.frequencyMatch.points = 5;
-      breakdown.frequencyMatch.details.push('GAP - Solution: ' + (solutionProvides.temporal_frequency || 'unknown'));
-      breakdown.frequencyMatch.details.push('Top need: ' + needsAnalysis.frequencyNeeds[0].name);
-      gaps.push('Frequency gap: ' + needsAnalysis.frequencyNeeds[0].count + ' stakeholders need ' + needsAnalysis.frequencyNeeds[0].name);
+      if (freqMatch.matches) {
+        breakdown.frequencyMatch.points = 20;
+        breakdown.frequencyMatch.details.push('Solution provides: ' + solutionProvides.temporal_frequency);
+        breakdown.frequencyMatch.details.push('Top need: ' + needsAnalysis.frequencyNeeds[0].name + ' (MATCHED)');
+      } else if (freqMatch.exceeds) {
+        breakdown.frequencyMatch.points = 20;
+        breakdown.frequencyMatch.details.push('Solution exceeds need - provides: ' + solutionProvides.temporal_frequency);
+        breakdown.frequencyMatch.details.push('Top need: ' + needsAnalysis.frequencyNeeds[0].name);
+      } else {
+        breakdown.frequencyMatch.points = 5;
+        breakdown.frequencyMatch.details.push('GAP - Solution: ' + (solutionProvides.temporal_frequency || 'unknown'));
+        breakdown.frequencyMatch.details.push('Top need: ' + needsAnalysis.frequencyNeeds[0].name);
+        gaps.push('Frequency gap: ' + needsAnalysis.frequencyNeeds[0].count + ' stakeholders need ' + needsAnalysis.frequencyNeeds[0].name);
+      }
+    } else if (!solFreq) {
+      breakdown.frequencyMatch.details.push('Solution frequency not specified');
     }
-  } else if (!solFreq) {
-    breakdown.frequencyMatch.details.push('Solution frequency not specified');
   }
 
-  // 4. Geographic coverage match (max 20 pts)
-  var solCov = (solutionProvides.geographic_domain || '').toLowerCase();
-  if (solCov && needsAnalysis.coverageNeeds.length > 0) {
-    var topCovNeed = needsAnalysis.coverageNeeds[0].name.toLowerCase();
+  // 4. Geographic coverage match (max 20 pts) - skip if N/A
+  if (coverageNA) {
+    breakdown.coverageMatch.details.push('N/A - Excluded from alignment calculation');
+  } else {
+    var solCov = (solutionProvides.geographic_domain || '').toLowerCase();
+    if (solCov && needsAnalysis.coverageNeeds.length > 0) {
+      var topCovNeed = needsAnalysis.coverageNeeds[0].name.toLowerCase();
 
-    if (solCov.indexOf('global') !== -1 ||
-        solCov.indexOf(topCovNeed) !== -1 ||
-        topCovNeed.indexOf(solCov) !== -1) {
-      breakdown.coverageMatch.points = 20;
-      breakdown.coverageMatch.details.push('Solution provides: ' + solutionProvides.geographic_domain);
-      breakdown.coverageMatch.details.push('Top need: ' + needsAnalysis.coverageNeeds[0].name + ' (MATCHED)');
-    } else {
-      breakdown.coverageMatch.points = 10;
-      breakdown.coverageMatch.details.push('Partial - Solution: ' + solutionProvides.geographic_domain);
-      breakdown.coverageMatch.details.push('Top need: ' + needsAnalysis.coverageNeeds[0].name);
-      gaps.push('Coverage gap: ' + needsAnalysis.coverageNeeds[0].count + ' stakeholders need ' + needsAnalysis.coverageNeeds[0].name + ', solution provides ' + solutionProvides.geographic_domain);
+      if (solCov.includes('global') ||
+          solCov.includes(topCovNeed) ||
+          topCovNeed.includes(solCov)) {
+        breakdown.coverageMatch.points = 20;
+        breakdown.coverageMatch.details.push('Solution provides: ' + solutionProvides.geographic_domain);
+        breakdown.coverageMatch.details.push('Top need: ' + needsAnalysis.coverageNeeds[0].name + ' (MATCHED)');
+      } else {
+        breakdown.coverageMatch.points = 10;
+        breakdown.coverageMatch.details.push('Partial - Solution: ' + solutionProvides.geographic_domain);
+        breakdown.coverageMatch.details.push('Top need: ' + needsAnalysis.coverageNeeds[0].name);
+        gaps.push('Coverage gap: ' + needsAnalysis.coverageNeeds[0].count + ' stakeholders need ' + needsAnalysis.coverageNeeds[0].name + ', solution provides ' + solutionProvides.geographic_domain);
+      }
+    } else if (!solCov && needsAnalysis.coverageNeeds.length > 0) {
+      breakdown.coverageMatch.details.push('Solution coverage not specified');
+      gaps.push('Coverage undefined: ' + needsAnalysis.coverageNeeds[0].count + ' stakeholders need ' + needsAnalysis.coverageNeeds[0].name + ', but solution coverage not specified');
+    } else if (!solCov) {
+      breakdown.coverageMatch.details.push('Solution coverage not specified');
     }
-  } else if (!solCov && needsAnalysis.coverageNeeds.length > 0) {
-    breakdown.coverageMatch.details.push('Solution coverage not specified');
-    gaps.push('Coverage undefined: ' + needsAnalysis.coverageNeeds[0].count + ' stakeholders need ' + needsAnalysis.coverageNeeds[0].name + ', but solution coverage not specified');
-  } else if (!solCov) {
-    breakdown.coverageMatch.details.push('Solution coverage not specified');
   }
 
   var totalScore = breakdown.degreeNeedMet.points +
@@ -522,11 +578,24 @@ function calculateNeedAlignment_(solutionProvides, needsAnalysis, needs) {
                    breakdown.frequencyMatch.points +
                    breakdown.coverageMatch.points;
 
+  // Calculate max possible points (excluding N/A characteristics)
+  var maxPossible = breakdown.degreeNeedMet.max +
+                    breakdown.resolutionMatch.max +
+                    breakdown.frequencyMatch.max +
+                    breakdown.coverageMatch.max;
+
+  // Normalize score to percentage of applicable max
+  // If all characteristics are N/A except degreeNeedMet (max=40), score of 40 = 100%
+  var normalizedScore = maxPossible > 0 ? Math.round((totalScore / maxPossible) * 100) : 0;
+
   return {
-    score: Math.min(totalScore, 100),
+    score: Math.min(normalizedScore, 100),
+    rawScore: totalScore,
+    maxPossible: maxPossible,
     breakdown: breakdown,
     summary: buildNeedAlignmentSummary_(breakdown),
-    gaps: gaps
+    gaps: gaps,
+    excludedCount: (resolutionNA ? 1 : 0) + (frequencyNA ? 1 : 0) + (coverageNA ? 1 : 0)
   };
 }
 
@@ -634,6 +703,147 @@ function calculateAlignmentSummary_(alignments) {
     totalGaps: gapCount,
     lowSatisfactionCount: lowSatisfactionCount
   };
+}
+
+// ============================================================================
+// ALIGNMENT DECISIONS: Update Functions
+// ============================================================================
+
+/**
+ * Update alignment decision for a solution characteristic
+ * @param {string} solutionId - Solution core_id
+ * @param {string} characteristic - Characteristic key (horiz_resolution, temporal_freq, etc.)
+ * @param {string} decision - Decision value (Acceptable, Gap, N/A)
+ * @param {string} notes - Optional notes
+ * @returns {Object} Result with success status
+ */
+function updateAlignmentDecision(solutionId, characteristic, decision, notes) {
+  try {
+    var sheetId = getConfigValue('SOLUTIONS_SHEET_ID');
+    if (!sheetId) {
+      return { success: false, error: 'SOLUTIONS_SHEET_ID not configured' };
+    }
+
+    var ss = SpreadsheetApp.openById(sheetId);
+    var sheet = ss.getSheets()[0];
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+
+    // Find column indices
+    var coreIdCol = headers.indexOf('core_id');
+    var alignmentCol = headers.indexOf('alignment_' + characteristic);
+    var notesCol = headers.indexOf('alignment_notes');
+    var reviewedCol = headers.indexOf('alignment_last_reviewed');
+
+    if (coreIdCol === -1) {
+      return { success: false, error: 'core_id column not found' };
+    }
+    if (alignmentCol === -1) {
+      return { success: false, error: 'alignment_' + characteristic + ' column not found' };
+    }
+
+    // Find the solution row
+    var rowIndex = -1;
+    for (var i = 1; i < data.length; i++) {
+      if (String(data[i][coreIdCol]).toLowerCase().trim() === solutionId.toLowerCase().trim()) {
+        rowIndex = i + 1; // 1-indexed for sheet
+        break;
+      }
+    }
+
+    if (rowIndex === -1) {
+      return { success: false, error: 'Solution not found: ' + solutionId };
+    }
+
+    // Update the alignment decision
+    sheet.getRange(rowIndex, alignmentCol + 1).setValue(decision);
+
+    // Update notes if provided
+    if (notes && notesCol !== -1) {
+      var existingNotes = sheet.getRange(rowIndex, notesCol + 1).getValue() || '';
+      var newNotes = existingNotes ? existingNotes + '\n' + notes : notes;
+      sheet.getRange(rowIndex, notesCol + 1).setValue(newNotes);
+    }
+
+    // Update last reviewed date
+    if (reviewedCol !== -1) {
+      var today = new Date().toISOString().split('T')[0];
+      sheet.getRange(rowIndex, reviewedCol + 1).setValue(today);
+    }
+
+    // Clear cache
+    clearSolutionsCache_();
+
+    return {
+      success: true,
+      solution_id: solutionId,
+      characteristic: characteristic,
+      decision: decision,
+      updated_at: new Date().toISOString()
+    };
+
+  } catch (e) {
+    Logger.log('updateAlignmentDecision error: ' + e.message);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Bulk update alignment decisions for a solution
+ * @param {string} solutionId - Solution core_id
+ * @param {Object} decisions - Object with characteristic keys and decision values
+ * @param {string} notes - Optional notes for all updates
+ * @returns {Object} Result with success status
+ */
+function updateAlignmentDecisions(solutionId, decisions, notes) {
+  var results = [];
+  var allSuccess = true;
+
+  for (var characteristic in decisions) {
+    if (decisions.hasOwnProperty(characteristic)) {
+      var result = updateAlignmentDecision(solutionId, characteristic, decisions[characteristic], null);
+      results.push(result);
+      if (!result.success) allSuccess = false;
+    }
+  }
+
+  // Add notes separately if provided
+  if (notes) {
+    try {
+      var sheetId = getConfigValue('SOLUTIONS_SHEET_ID');
+      var ss = SpreadsheetApp.openById(sheetId);
+      var sheet = ss.getSheets()[0];
+      var data = sheet.getDataRange().getValues();
+      var headers = data[0];
+      var coreIdCol = headers.indexOf('core_id');
+      var notesCol = headers.indexOf('alignment_notes');
+
+      if (notesCol !== -1) {
+        for (var i = 1; i < data.length; i++) {
+          if (String(data[i][coreIdCol]).toLowerCase().trim() === solutionId.toLowerCase().trim()) {
+            sheet.getRange(i + 1, notesCol + 1).setValue(notes);
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      Logger.log('Error updating notes: ' + e.message);
+    }
+  }
+
+  return {
+    success: allSuccess,
+    solution_id: solutionId,
+    updates: results
+  };
+}
+
+/**
+ * Clear solutions cache (called after alignment updates)
+ */
+function clearSolutionsCache_() {
+  var cache = CacheService.getScriptCache();
+  cache.remove('_solutionsCache');
 }
 
 // ============================================================================
@@ -1423,15 +1633,15 @@ function exportNeedAlignmentToSheet(options) {
     // ========================================
     var gapSheet = newSS.insertSheet('Gap Analysis - All Characteristics');
 
-    // Characteristic mapping (same as frontend)
+    // Characteristic mapping (Schema v3 column names - 2026-01-29)
     var charMap = [
       { key: 'horizontal_resolution', label: 'Horizontal Resolution', solKey: 'horizontal_resolution' },
       { key: 'vertical_resolution', label: 'Vertical Resolution', solKey: null },
       { key: 'temporal_frequency', label: 'Temporal Frequency', solKey: 'temporal_frequency' },
-      { key: 'data_latency', label: 'Data Latency', solKey: null },
+      { key: 'data_latency_value', label: 'Data Latency', solKey: null },
       { key: 'geographic_coverage', label: 'Geographic Coverage', solKey: 'geographic_domain' },
-      { key: 'spectral_bands', label: 'Spectral Bands', solKey: null },
-      { key: 'measurement_uncertainty', label: 'Measurement Uncertainty', solKey: null },
+      { key: 'spectral_bands_value', label: 'Spectral Bands', solKey: null },
+      { key: 'uncertainty_type', label: 'Measurement Uncertainty', solKey: null },
       { key: 'required_processing_level', label: 'Required Processing Level', solKey: null },
       { key: 'preferred_format', label: 'Preferred Format', solKey: null },
       { key: 'preferred_access', label: 'Preferred Access', solKey: null },

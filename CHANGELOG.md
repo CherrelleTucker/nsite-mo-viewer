@@ -177,6 +177,33 @@ Shared utilities remain public: `clearConfigCache()`, `clearSheetDataCache()`
 
 ---
 
+## [2.2.6] - 2026-01-30
+
+### State Management (Review 6)
+
+#### Element Existence Checks in Async Handlers
+Added null checks before manipulating DOM elements in async callbacks to prevent errors when modals close during API calls:
+- **comms.html** - `saveEventDetails()` success/failure handlers check button, title, modal existence
+- **sep.html** - `submitEngagement()` handlers check button existence
+- **team.html** - `saveAvailability()`, `deleteAvailability()` handlers check button existence
+
+#### Double-Submit Prevention (isSaving Guards)
+Added state flags to prevent users from triggering duplicate API calls by clicking save buttons rapidly:
+
+**comms.html:**
+- Added `isSavingEvent`, `isSavingStory`, `isSubmittingNewEvent` flags to state
+- Guards added to `saveEventDetails()`, `submitStory()`, `submitNewEvent()`
+
+**sep.html:**
+- Added `isSubmittingEngagement`, `isSavingEngagementDetail` flags to state
+- Guards added to `submitEngagement()`, `saveEngagementDetail()`
+
+**team.html:**
+- Added `isSavingAvailability`, `isSubmittingKudos` flags to Team object
+- Guards added to `saveAvailability()`, `submitKudos()`
+
+---
+
 ## [Unreleased]
 
 ### Added

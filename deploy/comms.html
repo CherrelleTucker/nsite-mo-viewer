@@ -2664,7 +2664,11 @@ var COMMS = (function() {
     eventFilters: {
       year: '2026',
       status: ''
-    }
+    },
+    // Save guards to prevent double-submit
+    isSavingEvent: false,
+    isSavingStory: false,
+    isSubmittingNewEvent: false
   };
 
   function init() {
@@ -3506,6 +3510,7 @@ return;
 
   function submitStory(event) {
     event.preventDefault();
+    if (state.isSavingStory) return; // Prevent double-submit
 
     var storyId = document.getElementById('editStoryId').value;
     var solutionId = document.getElementById('storySolution').value;
@@ -3541,12 +3546,14 @@ return;
     };
 
     // Show loading state
+    state.isSavingStory = true;
     var saveBtn = document.getElementById('saveStoryBtn');
     var originalText = saveBtn.textContent;
     saveBtn.disabled = true;
     saveBtn.textContent = 'Saving...';
 
     function resetButton() {
+      state.isSavingStory = false;
       saveBtn.disabled = false;
       saveBtn.textContent = originalText;
     }
@@ -4315,6 +4322,8 @@ return;
   function saveEventDetails(e) {
     if (e) e.preventDefault();
     if (!currentEventDetail) return;
+    if (state.isSavingEvent) return; // Prevent double-submit
+    state.isSavingEvent = true;
 
     var updates = {
       name: document.getElementById('editEventName').value.trim(),
@@ -4346,8 +4355,13 @@ return;
 
     google.script.run
       .withSuccessHandler(function(result) {
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Save Changes';
+        state.isSavingEvent = false;
+        // Check if elements still exist (modal may have closed)
+        var btn = document.getElementById('saveEventBtn');
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Save Changes';
+        }
         if (!result || !result.success) {
           showError(result && result.error ? result.error : 'Event not found or failed to update');
           return;
@@ -4358,15 +4372,25 @@ return;
         if (idx !== -1) {
           state.events[idx] = result.data;
         }
-        // Update modal title
-        document.getElementById('modalEventName').textContent = result.data.name || 'Event Details';
-        // Switch back to view mode
-        renderEventViewMode(result.data);
+        // Update modal title (check element exists)
+        var modalTitle = document.getElementById('modalEventName');
+        if (modalTitle) {
+          modalTitle.textContent = result.data.name || 'Event Details';
+        }
+        // Switch back to view mode (only if modal still open)
+        var modal = document.getElementById('eventModal');
+        if (modal && modal.classList.contains('active')) {
+          renderEventViewMode(result.data);
+        }
         loadEvents(); // Refresh the events list
       })
       .withFailureHandler(function(error) {
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Save Changes';
+        state.isSavingEvent = false;
+        var btn = document.getElementById('saveEventBtn');
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Save Changes';
+        }
         showError('Failed to save event: ' + error);
       })
       .updateEvent(currentEventDetail.event_id, updates);
@@ -4446,6 +4470,7 @@ return;
 
   function submitNewEvent(e) {
     e.preventDefault();
+    if (state.isSubmittingNewEvent) return; // Prevent double-submit
 
     var name = document.getElementById('newEventName').value.trim();
     if (!name) {
@@ -4481,12 +4506,14 @@ return;
       source: 'manual_entry'
     };
 
+    state.isSubmittingNewEvent = true;
     var submitBtn = document.querySelector('#addEventForm button[type="submit"]');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Adding...';
 
     google.script.run
       .withSuccessHandler(function(result) {
+        state.isSubmittingNewEvent = false;
         submitBtn.disabled = false;
         submitBtn.textContent = 'Add Event';
         if (result && result.success && result.data) {
@@ -4497,6 +4524,7 @@ return;
         }
       })
       .withFailureHandler(function(error) {
+        state.isSubmittingNewEvent = false;
         submitBtn.disabled = false;
         submitBtn.textContent = 'Add Event';
         showError('Failed to add event: ' + error);

@@ -2414,7 +2414,10 @@ var SEP = (function() {
     // Engagement detail
     currentEngagementDetail: null,
     editingEngagementId: null,
-    editingOriginalParticipants: null
+    editingOriginalParticipants: null,
+    // Save guards to prevent double-submit
+    isSubmittingEngagement: false,
+    isSavingEngagementDetail: false
   };
 
   // Store all engagements for filtering
@@ -4722,6 +4725,8 @@ return;
 
   function submitEngagement(event) {
     event.preventDefault();
+    if (state.isSubmittingEngagement) return; // Prevent double-submit
+    state.isSubmittingEngagement = true;
 
     var submitBtn = document.getElementById('engSubmitBtn');
     var originalText = submitBtn.textContent;
@@ -4741,8 +4746,13 @@ return;
     };
 
     var successHandler = function(result) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Log Engagement';
+      state.isSubmittingEngagement = false;
+      // Check if button still exists (modal may have closed)
+      var btn = document.getElementById('engSubmitBtn');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Log Engagement';
+      }
 
       // Handle different return formats
       if (isEditing) {
@@ -4774,8 +4784,12 @@ return;
     };
 
     var failureHandler = function(error) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = isEditing ? 'Update Engagement' : 'Log Engagement';
+      state.isSubmittingEngagement = false;
+      var btn = document.getElementById('engSubmitBtn');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = isEditing ? 'Update Engagement' : 'Log Engagement';
+      }
       showError('Failed to ' + (isEditing ? 'update' : 'log') + ' engagement: ' + error);
     };
 
@@ -5355,6 +5369,7 @@ return;
 
   function saveEngagementDetail(event) {
     event.preventDefault();
+    if (state.isSavingEngagementDetail) return; // Prevent double-submit
 
     var e = state.currentEngagementDetail;
     if (!e || !e.engagement_id) {
@@ -5362,6 +5377,7 @@ return;
       return;
     }
 
+    state.isSavingEngagementDetail = true;
     var saveBtn = document.getElementById('detailSaveBtn');
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<span class="material-icons" style="font-size: 16px; animation: spin 1s linear infinite;">refresh</span> Saving...';
@@ -5390,6 +5406,7 @@ return;
       confirmMsg += 'Continue with save?';
 
       if (!confirm(confirmMsg)) {
+        state.isSavingEngagementDetail = false;
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save Changes';
         return;
@@ -5398,6 +5415,7 @@ return;
 
     google.script.run
       .withSuccessHandler(function(result) {
+        state.isSavingEngagementDetail = false;
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save Changes';
 
@@ -5417,6 +5435,7 @@ return;
         showSuccess('Engagement updated!');
       })
       .withFailureHandler(function(error) {
+        state.isSavingEngagementDetail = false;
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save Changes';
         showError('Failed to update engagement: ' + error);
