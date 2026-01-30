@@ -245,6 +245,18 @@ Added state flags to prevent users from triggering duplicate API calls by clicki
 
 ---
 
+## [2.2.9] - 2026-01-30
+
+### Loading States (Review 9)
+
+- Consolidated `.empty-state` CSS into shared-page-styles.html
+- Added SVG icon support to shared empty-state style
+- Removed 8 duplicate `.empty-state` definitions from individual pages:
+  - contacts.html, actions.html, schedule.html, implementation.html
+  - team.html, comms.html, sep.html, topsheet.html
+
+---
+
 ## [Unreleased]
 
 ### Added
