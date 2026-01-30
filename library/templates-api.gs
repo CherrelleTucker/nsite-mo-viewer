@@ -72,7 +72,7 @@ function loadAllTemplates_() {
 /**
  * Clear templates cache (call after mutations)
  */
-function clearTemplatesCache() {
+function clearTemplatesCache_() {
   _templatesCache = null;
 }
 

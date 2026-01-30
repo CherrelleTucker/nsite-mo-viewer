@@ -34,7 +34,7 @@ var UPDATES_CACHE_DURATION = 60 * 1000; // 1 minute
 /**
  * Clear updates cache
  */
-function clearUpdatesCache() {
+function clearUpdatesCache_() {
   _updatesCache = {};
   _updatesCacheTime = {};
 }

@@ -4348,20 +4348,20 @@ return;
       .withSuccessHandler(function(result) {
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save Changes';
-        if (!result) {
-          showError('Event not found. It may have been deleted. Please refresh and try again.');
+        if (!result || !result.success) {
+          showError(result && result.error ? result.error : 'Event not found or failed to update');
           return;
         }
         // Update local state
-        currentEventDetail = result;
-        var idx = state.events.findIndex(function(ev) { return ev.event_id === result.event_id; });
+        currentEventDetail = result.data;
+        var idx = state.events.findIndex(function(ev) { return ev.event_id === result.data.event_id; });
         if (idx !== -1) {
-          state.events[idx] = result;
+          state.events[idx] = result.data;
         }
         // Update modal title
-        document.getElementById('modalEventName').textContent = result.name || 'Event Details';
+        document.getElementById('modalEventName').textContent = result.data.name || 'Event Details';
         // Switch back to view mode
-        renderEventViewMode(result);
+        renderEventViewMode(result.data);
         loadEvents(); // Refresh the events list
       })
       .withFailureHandler(function(error) {
@@ -4379,12 +4379,12 @@ return;
 
     google.script.run
       .withSuccessHandler(function(result) {
-        if (result) {
+        if (result && result.success) {
           closeModal('eventModal');
           loadEvents();
           showSuccess('Event deleted');
         } else {
-          showError('Failed to delete event. It may have already been deleted.');
+          showError(result && result.error ? result.error : 'Failed to delete event');
         }
       })
       .withFailureHandler(function(error) {
@@ -4409,7 +4409,7 @@ return;
 
     google.script.run
       .withSuccessHandler(function(result) {
-        if (!result) {
+        if (!result || !result.success) {
           // Re-enable buttons on error
           buttons.forEach(function(btn) {
             btn.disabled = false;
@@ -4417,7 +4417,7 @@ return;
               btn.textContent = btn.dataset.originalText;
             }
           });
-          showError('Event not found. It may have been deleted. Please refresh and try again.');
+          showError(result && result.error ? result.error : 'Failed to update event status');
           return;
         }
         closeModal('eventModal');
@@ -4489,11 +4489,11 @@ return;
       .withSuccessHandler(function(result) {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Add Event';
-        if (result && result.event_id) {
+        if (result && result.success && result.data) {
           closeModal('addEventModal');
           loadEvents();
         } else {
-          showError('Event created but no ID returned');
+          showError(result && result.error ? result.error : 'Failed to create event');
         }
       })
       .withFailureHandler(function(error) {

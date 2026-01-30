@@ -73,7 +73,7 @@ function loadAllParkingLotItems_() {
 /**
  * Clear parking lot cache (call after mutations)
  */
-function clearParkingLotCache() {
+function clearParkingLotCache_() {
   _parkingLotCache = null;
 }
 
@@ -200,7 +200,7 @@ function createParkingLotItem(itemData) {
   });
 
   sheet.appendRow(newRow);
-  clearParkingLotCache();
+  clearParkingLotCache_();
 
   return itemData;
 }
@@ -244,7 +244,7 @@ function updateParkingLotItem(itemId, updates) {
     }
   });
 
-  clearParkingLotCache();
+  clearParkingLotCache_();
 
   return getParkingLotItemById(itemId);
 }
@@ -267,7 +267,7 @@ function deleteParkingLotItem(itemId) {
   for (var i = 1; i < data.length; i++) {
     if (data[i][idColIndex] === itemId) {
       sheet.deleteRow(i + 1);
-      clearParkingLotCache();
+      clearParkingLotCache_();
       return true;
     }
   }

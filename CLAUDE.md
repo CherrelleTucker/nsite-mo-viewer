@@ -1,6 +1,6 @@
 # Claude Code Instructions for MO-Viewer
 
-**Version:** 2.2.4 | **Updated:** 2026-01-30 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
+**Version:** 2.2.5 | **Updated:** 2026-01-30 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
 
 ---
 
@@ -686,7 +686,7 @@ Work through these reviews systematically to ensure webapp quality.
 
 ### Architecture
 - [x] **4. DRY Audit** - Duplicate code across pages, opportunities for shared utilities (completed 2026-01-30: Team.escapeHtml security fix, global closeModal/showToast utilities, date formatting consolidation)
-- [ ] **5. API Consistency** - Naming conventions, return formats, parameter patterns across all APIs
+- [x] **5. API Consistency** - Naming conventions, return formats, parameter patterns across all APIs (completed 2026-01-30: standardized write returns to {success, data, error}, cache functions to private suffix)
 - [ ] **6. State Management** - How each page handles state, potential race conditions, stale data
 
 ### User Experience

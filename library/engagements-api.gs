@@ -147,42 +147,46 @@ function validateEngagementData_(data) {
 /**
  * Create a new engagement
  * @param {Object} engagementData - Engagement data
- * @returns {Object} Created engagement with ID
- * @throws {Error} If validation fails
+ * @returns {Object} Result object {success: true, data: engagement} or {success: false, error: message}
  */
 function createEngagement(engagementData) {
-  // Validate input
-  var validation = validateEngagementData_(engagementData);
-  if (!validation.valid) {
-    throw new Error('Validation failed: ' + validation.errors.join('; '));
+  try {
+    // Validate input
+    var validation = validateEngagementData_(engagementData);
+    if (!validation.valid) {
+      return { success: false, error: 'Validation failed: ' + validation.errors.join('; ') };
+    }
+
+    var sheetInfo = getSheetForWrite_('ENGAGEMENTS_SHEET_ID');
+    var sheet = sheetInfo.sheet;
+    var headers = sheetInfo.headers;
+
+    // Generate engagement_id if not provided
+    if (!engagementData.engagement_id) {
+      engagementData.engagement_id = 'ENG_' + new Date().getTime();
+    }
+
+    // Set created_at timestamp
+    engagementData.created_at = new Date().toISOString();
+
+    // Default date to today if not provided
+    if (!engagementData.date) {
+      engagementData.date = new Date().toISOString().split('T')[0];
+    }
+
+    // Build row from headers
+    var newRow = headers.map(function(header) {
+      return engagementData[header] !== undefined ? engagementData[header] : '';
+    });
+
+    sheet.appendRow(newRow);
+    clearEngagementsCache_();
+
+    return { success: true, data: engagementData };
+  } catch (error) {
+    Logger.log('Error in createEngagement: ' + error);
+    return { success: false, error: 'Failed to create engagement: ' + error.message };
   }
-
-  var sheetInfo = getSheetForWrite_('ENGAGEMENTS_SHEET_ID');
-  var sheet = sheetInfo.sheet;
-  var headers = sheetInfo.headers;
-
-  // Generate engagement_id if not provided
-  if (!engagementData.engagement_id) {
-    engagementData.engagement_id = 'ENG_' + new Date().getTime();
-  }
-
-  // Set created_at timestamp
-  engagementData.created_at = new Date().toISOString();
-
-  // Default date to today if not provided
-  if (!engagementData.date) {
-    engagementData.date = new Date().toISOString().split('T')[0];
-  }
-
-  // Build row from headers
-  var newRow = headers.map(function(header) {
-    return engagementData[header] !== undefined ? engagementData[header] : '';
-  });
-
-  sheet.appendRow(newRow);
-  clearEngagementsCache_();
-
-  return engagementData;
 }
 
 /**

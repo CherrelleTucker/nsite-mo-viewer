@@ -148,6 +148,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.5] - 2026-01-30
+
+### API Consistency (Review 5)
+
+#### Standardized Write Operation Returns
+All write operations now return consistent `{success, data?, error?}` objects:
+- **outreach-api.gs** - Updated `createEvent()`, `updateEvent()`, `deleteEvent()`
+  - Previously returned objects directly, null, or boolean
+  - Now returns `{success: true, data: ...}` or `{success: false, error: "..."}`
+- **engagements-api.gs** - Updated `createEngagement()`
+  - Previously threw Error on validation failure
+  - Now returns `{success: false, error: "..."}` for validation errors
+- **comms.html** - Updated all event handlers to check `result.success`
+- **sep.html** - Updated engagement handlers to check `result.success`
+
+#### Standardized Cache Functions to Private
+Renamed per-API cache clear functions to private (underscore suffix):
+- `clearActionsCache()` → `clearActionsCache_()`
+- `clearContactsCache()` → `clearContactsCache_()`
+- `clearSolutionsCache()` → `clearSolutionsCache_()`
+- `clearSolutionNameMapCache()` → `clearSolutionNameMapCache_()`
+- `clearTemplatesCache()` → `clearTemplatesCache_()`
+- `clearUpdatesCache()` → `clearUpdatesCache_()`
+- `clearParkingLotCache()` → `clearParkingLotCache_()`
+
+Shared utilities remain public: `clearConfigCache()`, `clearSheetDataCache()`
+
+---
+
 ## [Unreleased]
 
 ### Added

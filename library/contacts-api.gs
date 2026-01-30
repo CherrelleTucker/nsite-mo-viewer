@@ -32,7 +32,7 @@ function loadAllContacts_() {
 /**
  * Clear contacts cache
  */
-function clearContactsCache() {
+function clearContactsCache_() {
   clearSheetDataCache(CONTACTS_CACHE_KEY);
 }
 

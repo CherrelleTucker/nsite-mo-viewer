@@ -138,64 +138,78 @@ function getEventById(eventId) {
 /**
  * Create a new event
  * @param {Object} eventData - Event data object
- * @returns {Object} The created event with generated event_id
+ * @returns {Object} Result object {success: true, data: eventData} or {success: false, error: message}
  */
 function createEvent(eventData) {
-  var sheet = getOutreachSheet_();
-  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  try {
+    var sheet = getOutreachSheet_();
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 
-  if (!eventData.event_id) {
-    var timestamp = new Date().getTime();
-    eventData.event_id = 'EVT_' + timestamp;
+    if (!eventData.event_id) {
+      var timestamp = new Date().getTime();
+      eventData.event_id = 'EVT_' + timestamp;
+    }
+
+    eventData.created_at = new Date().toISOString();
+    eventData.status = eventData.status || 'potential';
+    eventData.event_type = eventData.event_type || 'conference';
+
+    var newRow = headers.map(function(header) {
+      return eventData[header] !== undefined ? eventData[header] : '';
+    });
+
+    sheet.appendRow(newRow);
+    clearOutreachCache_();
+
+    return { success: true, data: eventData };
+  } catch (error) {
+    Logger.log('Error in createEvent: ' + error);
+    return { success: false, error: 'Failed to create event: ' + error.message };
   }
-
-  eventData.created_at = new Date().toISOString();
-  eventData.status = eventData.status || 'potential';
-  eventData.event_type = eventData.event_type || 'conference';
-
-  var newRow = headers.map(function(header) {
-    return eventData[header] !== undefined ? eventData[header] : '';
-  });
-
-  sheet.appendRow(newRow);
-  clearOutreachCache_();
-
-  return eventData;
 }
 
 /**
  * Update an event
+ * @param {string} eventId - Event ID to update
+ * @param {Object} updates - Fields to update
+ * @returns {Object} Result object {success: true, data: event} or {success: false, error: message}
  */
 function updateEvent(eventId, updates) {
-  var sheet = getOutreachSheet_();
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0];
+  try {
+    var sheet = getOutreachSheet_();
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
 
-  var idColIndex = headers.indexOf('event_id');
-  if (idColIndex === -1) {
-    throw new Error('event_id column not found');
-  }
-
-  var rowIndex = -1;
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][idColIndex] === eventId) {
-      rowIndex = i;
-      break;
+    var idColIndex = headers.indexOf('event_id');
+    if (idColIndex === -1) {
+      return { success: false, error: 'event_id column not found' };
     }
-  }
 
-  if (rowIndex === -1) {
-    return null;
-  }
-
-  headers.forEach(function(header, colIndex) {
-    if (updates.hasOwnProperty(header) && header !== 'event_id' && header !== 'created_at') {
-      sheet.getRange(rowIndex + 1, colIndex + 1).setValue(updates[header]);
+    var rowIndex = -1;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][idColIndex] === eventId) {
+        rowIndex = i;
+        break;
+      }
     }
-  });
 
-  clearOutreachCache_();
-  return getEventById(eventId);
+    if (rowIndex === -1) {
+      return { success: false, error: 'Event not found' };
+    }
+
+    headers.forEach(function(header, colIndex) {
+      if (updates.hasOwnProperty(header) && header !== 'event_id' && header !== 'created_at') {
+        sheet.getRange(rowIndex + 1, colIndex + 1).setValue(updates[header]);
+      }
+    });
+
+    clearOutreachCache_();
+    var updatedEvent = getEventById(eventId);
+    return { success: true, data: updatedEvent };
+  } catch (error) {
+    Logger.log('Error in updateEvent: ' + error);
+    return { success: false, error: 'Failed to update event: ' + error.message };
+  }
 }
 
 /**
@@ -207,24 +221,33 @@ function updateEventStatus(eventId, newStatus) {
 
 /**
  * Delete an event
+ * @param {string} eventId - Event ID to delete
+ * @returns {Object} Result object {success: true} or {success: false, error: message}
  */
 function deleteEvent(eventId) {
-  var sheet = getOutreachSheet_();
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0];
+  try {
+    var sheet = getOutreachSheet_();
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
 
-  var idColIndex = headers.indexOf('event_id');
-  if (idColIndex === -1) return false;
-
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][idColIndex] === eventId) {
-      sheet.deleteRow(i + 1);
-      clearOutreachCache_();
-      return true;
+    var idColIndex = headers.indexOf('event_id');
+    if (idColIndex === -1) {
+      return { success: false, error: 'event_id column not found' };
     }
-  }
 
-  return false;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][idColIndex] === eventId) {
+        sheet.deleteRow(i + 1);
+        clearOutreachCache_();
+        return { success: true };
+      }
+    }
+
+    return { success: false, error: 'Event not found' };
+  } catch (error) {
+    Logger.log('Error in deleteEvent: ' + error);
+    return { success: false, error: 'Failed to delete event: ' + error.message };
+  }
 }
 
 // ============================================================================

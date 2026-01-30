@@ -36,7 +36,7 @@ var _solutionsCache = null;
 /**
  * Clear solutions cache (call after mutations)
  */
-function clearSolutionsCache() {
+function clearSolutionsCache_() {
   _solutionsCache = null;
 }
 
@@ -654,7 +654,7 @@ function escapeRegExp_(string) {
  * Clear solution name map cache
  * Call this if solutions database is updated
  */
-function clearSolutionNameMapCache() {
+function clearSolutionNameMapCache_() {
   _solutionNameMapCache = null;
 }
 

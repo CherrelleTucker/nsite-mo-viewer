@@ -4744,14 +4744,23 @@ return;
       submitBtn.disabled = false;
       submitBtn.textContent = 'Log Engagement';
 
-      // Validate result - updateEngagement returns null if not found
-      if (isEditing && !result) {
-        showError('Engagement not found. It may have been deleted. Please refresh the page.');
-        state.editingEngagementId = null;
-        state.editingOriginalParticipants = null;
-        closeModal('engagementModal');
-        loadRecentEngagements();
-        return;
+      // Handle different return formats
+      if (isEditing) {
+        // updateEngagement returns engagement object or null
+        if (!result) {
+          showError('Engagement not found. It may have been deleted. Please refresh the page.');
+          state.editingEngagementId = null;
+          state.editingOriginalParticipants = null;
+          closeModal('engagementModal');
+          loadRecentEngagements();
+          return;
+        }
+      } else {
+        // createEngagement returns {success, data/error}
+        if (!result || !result.success) {
+          showError(result && result.error ? result.error : 'Failed to log engagement');
+          return;
+        }
       }
 
       state.editingEngagementId = null;
@@ -5759,12 +5768,12 @@ return;
         btn.disabled = false;
         btn.innerHTML = originalHtml;
 
-        if (result && result.engagement_id) {
+        if (result && result.success && result.data) {
           showSuccess('Email logged as engagement successfully!');
           closeModal('emailTemplateModal');
           loadRecentEngagements();
         } else {
-          showError('Error logging engagement. Please try again.');
+          showError(result && result.error ? result.error : 'Error logging engagement. Please try again.');
         }
       })
       .withFailureHandler(function(error) {

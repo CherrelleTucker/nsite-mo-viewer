@@ -16,7 +16,7 @@ var ACTIONS_CACHE_DURATION = 60 * 1000; // 1 minute
 /**
  * Clear actions cache
  */
-function clearActionsCache() {
+function clearActionsCache_() {
   _actionsCache = null;
   _actionsCacheTime = null;
 }
@@ -310,7 +310,7 @@ function createAction(actionData) {
     });
 
     sheet.appendRow(newRow);
-    clearActionsCache();
+    clearActionsCache_();
 
     // Send Slack notification if assigned to someone
     var assignee = actionData.assigned_to || '';
@@ -382,7 +382,7 @@ function updateAction(actionId, updates) {
       sheet.getRange(rowIndex, updatedAtCol + 1).setValue(new Date().toISOString());
     }
 
-    clearActionsCache();
+    clearActionsCache_();
     return { success: true };
   } catch (error) {
     Logger.log('Error in updateAction: ' + error);
@@ -418,7 +418,7 @@ function deleteAction(actionId) {
 
     // Delete the row
     sheet.deleteRow(rowIndex);
-    clearActionsCache();
+    clearActionsCache_();
 
     return { success: true };
   } catch (error) {
@@ -462,7 +462,7 @@ function appendToActionNotes(actionId, noteText) {
           sheet.getRange(rowIndex, updatedAtCol + 1).setValue(new Date().toISOString());
         }
 
-        clearActionsCache();
+        clearActionsCache_();
         return { success: true };
       }
     }
@@ -487,7 +487,7 @@ function updateActionStatus(actionId, newStatus) {
 
   if (result.success) {
     // Get the full action data to push to agenda
-    clearActionsCache();
+    clearActionsCache_();
     var action = getActionById(actionId);
     if (action) {
       try {
