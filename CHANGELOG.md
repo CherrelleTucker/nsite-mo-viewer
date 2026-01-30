@@ -9,7 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No unreleased changes_
+### Added
+- **Share with Team File Upload** - Implementation solution detail modal now includes file upload feature
+  - "Share with Team" button appears in Documentation Links section (only for solutions with `admin_shared_team_folder` configured)
+  - Drag-and-drop upload dialog with file browser fallback
+  - Upload progress indicator with file-by-file status
+  - Files uploaded directly to solution's shared Google Drive team folder
+  - "Open in Drive" link to access the team folder
+  - New database column: `admin_shared_team_folder` in MO-DB_Solutions
+  - New API: `file-upload-api.gs` with `uploadFileToTeamFolder()` function
 
 ---
 

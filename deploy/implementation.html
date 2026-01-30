@@ -226,6 +226,79 @@
   </div>
 </div>
 
+<!-- Team Folder Upload Dialog -->
+<div class="modal-overlay" id="uploadModal" onclick="Implementation.closeUploadModal(event)">
+  <div class="modal-content upload-modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">
+        <span class="material-icons">upload_file</span>
+        Share with Implementation Team
+      </h2>
+      <button class="modal-close" onclick="Implementation.closeUploadModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="upload-description">
+        Upload files to share with the <strong id="uploadSolutionName">--</strong> implementation team.
+        Files will be added to the team's shared Google Drive folder.
+      </p>
+
+      <div class="upload-dropzone" id="uploadDropzone">
+        <div class="dropzone-content">
+          <span class="material-icons dropzone-icon">cloud_upload</span>
+          <p class="dropzone-text">Drag and drop files here</p>
+          <p class="dropzone-subtext">or</p>
+          <label class="btn btn-secondary dropzone-btn">
+            <span class="material-icons">folder_open</span>
+            Browse Files
+            <input type="file" id="fileInput" multiple style="display: none;" onchange="Implementation.handleFileSelect(event)">
+          </label>
+        </div>
+        <div class="dropzone-drag-active">
+          <span class="material-icons">file_download</span>
+          <p>Drop files to upload</p>
+        </div>
+      </div>
+
+      <div class="upload-file-list" id="uploadFileList" style="display: none;">
+        <div class="file-list-header">
+          <span>Files to upload</span>
+          <button class="btn btn-sm btn-text" onclick="Implementation.clearUploadFiles()">Clear all</button>
+        </div>
+        <div class="file-list-items" id="fileListItems"></div>
+      </div>
+
+      <div class="upload-status" id="uploadStatus" style="display: none;">
+        <div class="upload-progress">
+          <div class="upload-progress-bar" id="uploadProgressBar"></div>
+        </div>
+        <p class="upload-status-text" id="uploadStatusText">Uploading...</p>
+      </div>
+
+      <div class="upload-success" id="uploadSuccess" style="display: none;">
+        <span class="material-icons success-icon">check_circle</span>
+        <p class="success-text">Files uploaded successfully!</p>
+        <p class="success-subtext">The team has been notified via email.</p>
+      </div>
+
+      <div class="upload-error" id="uploadError" style="display: none;">
+        <span class="material-icons error-icon">error</span>
+        <p class="error-text" id="uploadErrorText">Upload failed</p>
+      </div>
+
+      <div class="upload-actions">
+        <a href="#" target="_blank" id="openDriveLink" class="btn btn-secondary">
+          <span class="material-icons">folder_open</span>
+          Open in Drive
+        </a>
+        <button class="btn btn-primary" id="uploadBtn" onclick="Implementation.uploadFiles()" disabled>
+          <span class="material-icons">cloud_upload</span>
+          <span id="uploadBtnText">Upload Files</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Implementation-NSITE Styles -->
 <style>
   /* Page accent color for shared styles */
@@ -1057,6 +1130,286 @@
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
+
+  /* Upload Modal Styles */
+  .upload-modal-content {
+    max-width: 520px;
+  }
+
+  .upload-modal-content .modal-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .upload-modal-content .modal-title .material-icons {
+    color: var(--color-primary);
+  }
+
+  .upload-description {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-lg);
+    line-height: 1.5;
+  }
+
+  .upload-dropzone {
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    text-align: center;
+    transition: all 0.2s;
+    position: relative;
+    background: var(--color-surface-alt);
+  }
+
+  .upload-dropzone:hover {
+    border-color: var(--color-primary);
+    background: rgba(11, 61, 145, 0.02);
+  }
+
+  .upload-dropzone.drag-active {
+    border-color: var(--color-primary);
+    background: rgba(11, 61, 145, 0.05);
+  }
+
+  .upload-dropzone.drag-active .dropzone-content {
+    display: none;
+  }
+
+  .upload-dropzone.drag-active .dropzone-drag-active {
+    display: flex;
+  }
+
+  .dropzone-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .dropzone-drag-active {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--color-primary);
+  }
+
+  .dropzone-drag-active .material-icons {
+    font-size: 48px;
+    animation: bounce 0.5s infinite alternate;
+  }
+
+  @keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-8px); }
+  }
+
+  .dropzone-icon {
+    font-size: 48px;
+    color: var(--color-text-muted);
+  }
+
+  .dropzone-text {
+    font-size: var(--font-size-md);
+    font-weight: 500;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .dropzone-subtext {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  .dropzone-btn {
+    margin-top: var(--space-sm);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .upload-file-list {
+    margin-top: var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .file-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+  }
+
+  .file-list-items {
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--color-border-light);
+    font-size: var(--font-size-sm);
+  }
+
+  .file-item:last-child {
+    border-bottom: none;
+  }
+
+  .file-item .material-icons {
+    color: var(--color-text-muted);
+    font-size: 18px;
+  }
+
+  .file-item-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .file-item-size {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .file-item-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    color: var(--color-text-muted);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .file-item-remove:hover {
+    background: var(--color-error-light);
+    color: var(--color-error);
+  }
+
+  .upload-status {
+    margin-top: var(--space-md);
+    text-align: center;
+  }
+
+  .upload-progress {
+    height: 6px;
+    background: var(--color-surface-alt);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: var(--space-sm);
+  }
+
+  .upload-progress-bar {
+    height: 100%;
+    background: var(--color-primary);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  .upload-status-text {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .upload-success {
+    margin-top: var(--space-md);
+    text-align: center;
+    padding: var(--space-lg);
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: var(--radius-md);
+  }
+
+  .upload-success .success-icon {
+    font-size: 48px;
+    color: var(--color-success);
+  }
+
+  .upload-success .success-text {
+    font-size: var(--font-size-md);
+    font-weight: 500;
+    color: var(--color-success);
+    margin: var(--space-sm) 0 0;
+  }
+
+  .upload-success .success-subtext {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: var(--space-xs) 0 0;
+  }
+
+  .upload-error {
+    margin-top: var(--space-md);
+    text-align: center;
+    padding: var(--space-lg);
+    background: rgba(211, 47, 47, 0.1);
+    border-radius: var(--radius-md);
+  }
+
+  .upload-error .error-icon {
+    font-size: 48px;
+    color: var(--color-error);
+  }
+
+  .upload-error .error-text {
+    font-size: var(--font-size-sm);
+    color: var(--color-error);
+    margin: var(--space-sm) 0 0;
+  }
+
+  .upload-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-top: var(--space-lg);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--color-border-light);
+  }
+
+  .upload-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .share-team-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-xs);
+    color: white;
+    background: var(--color-primary);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .share-team-btn:hover {
+    background: var(--color-primary-dark);
+  }
+
+  .share-team-btn .material-icons {
+    font-size: 14px;
+  }
 </style>
 
 <!-- Implementation-NSITE JavaScript -->
@@ -1836,6 +2189,12 @@ return;
     if (sol.docs_science_sow) html += '<a href="' + escapeHtml(sol.docs_science_sow) + '" target="_blank" class="solution-action-btn"><span class="material-icons">insert_drive_file</span>Science SOW</a>';
     if (sol.docs_risk_register) html += '<a href="' + escapeHtml(sol.docs_risk_register) + '" target="_blank" class="solution-action-btn"><span class="material-icons">warning</span>Risk Register</a>';
     if (sol.product_data_products) html += '<a href="' + escapeHtml(sol.product_data_products) + '" target="_blank" class="solution-action-btn"><span class="material-icons">table_chart</span>Data Products</a>';
+    // Share with Team button - only show if team folder is configured
+    if (sol.admin_shared_team_folder) {
+      html += '<button class="share-team-btn" onclick="Implementation.openUploadModal(\'' + escapeAttr(sol.core_id) + '\', \'' + escapeAttr(sol.admin_shared_team_folder) + '\')">';
+      html += '<span class="material-icons">upload_file</span>Share with Team';
+      html += '</button>';
+    }
     html += '</div></div>';
 
     // Document Status section
@@ -2135,7 +2494,247 @@ return;
   function showError(message) {
     var container = document.getElementById('solutionsContainer');
     container.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>' + message + '</p></div>';
-}
+  }
+
+  // ============================================================================
+  // TEAM FOLDER UPLOAD FUNCTIONALITY
+  // ============================================================================
+
+  var uploadState = {
+    solutionId: null,
+    folderId: null,
+    files: []
+  };
+
+  function openUploadModal(solutionId, folderUrl) {
+    // Extract folder ID from URL
+    // Handles: https://drive.google.com/drive/folders/FOLDER_ID
+    var folderId = extractFolderId(folderUrl);
+    if (!folderId) {
+      alert('Invalid team folder URL configured for this solution.');
+      return;
+    }
+
+    uploadState.solutionId = solutionId;
+    uploadState.folderId = folderId;
+    uploadState.files = [];
+
+    // Reset UI
+    document.getElementById('uploadSolutionName').textContent = solutionId.toUpperCase();
+    document.getElementById('openDriveLink').href = folderUrl;
+    document.getElementById('uploadDropzone').style.display = 'block';
+    document.getElementById('uploadFileList').style.display = 'none';
+    document.getElementById('uploadStatus').style.display = 'none';
+    document.getElementById('uploadSuccess').style.display = 'none';
+    document.getElementById('uploadError').style.display = 'none';
+    document.getElementById('uploadBtn').disabled = true;
+    document.getElementById('uploadBtnText').textContent = 'Upload Files';
+    document.getElementById('fileInput').value = '';
+
+    // Show modal
+    document.getElementById('uploadModal').classList.add('active');
+
+    // Setup drag-and-drop
+    setupDropzone();
+  }
+
+  function extractFolderId(url) {
+    if (!url) return null;
+    // Handle direct folder ID
+    if (!url.includes('/')) return url;
+    // Handle URLs like: https://drive.google.com/drive/folders/1abc123xyz
+    var match = url.match(/folders\/([a-zA-Z0-9_-]+)/);
+    return match ? match[1] : null;
+  }
+
+  function setupDropzone() {
+    var dropzone = document.getElementById('uploadDropzone');
+
+    dropzone.ondragenter = function(e) {
+      e.preventDefault();
+      dropzone.classList.add('drag-active');
+    };
+
+    dropzone.ondragover = function(e) {
+      e.preventDefault();
+      dropzone.classList.add('drag-active');
+    };
+
+    dropzone.ondragleave = function(e) {
+      e.preventDefault();
+      // Only remove class if leaving the dropzone itself
+      if (e.target === dropzone) {
+        dropzone.classList.remove('drag-active');
+      }
+    };
+
+    dropzone.ondrop = function(e) {
+      e.preventDefault();
+      dropzone.classList.remove('drag-active');
+      var files = e.dataTransfer.files;
+      addFilesToUpload(files);
+    };
+  }
+
+  function handleFileSelect(event) {
+    var files = event.target.files;
+    addFilesToUpload(files);
+  }
+
+  function addFilesToUpload(files) {
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i];
+      // Check for duplicates
+      var exists = uploadState.files.some(function(f) { return f.name === file.name; });
+      if (!exists) {
+        uploadState.files.push(file);
+      }
+    }
+    updateFileList();
+  }
+
+  function updateFileList() {
+    var listContainer = document.getElementById('uploadFileList');
+    var listItems = document.getElementById('fileListItems');
+
+    if (uploadState.files.length === 0) {
+      listContainer.style.display = 'none';
+      document.getElementById('uploadBtn').disabled = true;
+      return;
+    }
+
+    listContainer.style.display = 'block';
+    document.getElementById('uploadBtn').disabled = false;
+
+    var html = '';
+    uploadState.files.forEach(function(file, index) {
+      html += '<div class="file-item">';
+      html += '<span class="material-icons">' + getFileIcon(file.type) + '</span>';
+      html += '<span class="file-item-name">' + escapeHtml(file.name) + '</span>';
+      html += '<span class="file-item-size">' + formatFileSize(file.size) + '</span>';
+      html += '<button class="file-item-remove" onclick="Implementation.removeUploadFile(' + index + ')">';
+      html += '<span class="material-icons">close</span>';
+      html += '</button>';
+      html += '</div>';
+    });
+    listItems.innerHTML = html;
+  }
+
+  function getFileIcon(mimeType) {
+    if (!mimeType) return 'insert_drive_file';
+    if (mimeType.includes('image')) return 'image';
+    if (mimeType.includes('pdf')) return 'picture_as_pdf';
+    if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return 'table_chart';
+    if (mimeType.includes('document') || mimeType.includes('word')) return 'description';
+    if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return 'slideshow';
+    return 'insert_drive_file';
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    var k = 1024;
+    var sizes = ['B', 'KB', 'MB', 'GB'];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  function removeUploadFile(index) {
+    uploadState.files.splice(index, 1);
+    updateFileList();
+  }
+
+  function clearUploadFiles() {
+    uploadState.files = [];
+    updateFileList();
+  }
+
+  function uploadFiles() {
+    if (uploadState.files.length === 0) return;
+
+    // Show progress
+    document.getElementById('uploadDropzone').style.display = 'none';
+    document.getElementById('uploadFileList').style.display = 'none';
+    document.getElementById('uploadStatus').style.display = 'block';
+    document.getElementById('uploadSuccess').style.display = 'none';
+    document.getElementById('uploadError').style.display = 'none';
+    document.getElementById('uploadBtn').disabled = true;
+    document.getElementById('uploadBtnText').textContent = 'Uploading...';
+
+    var totalFiles = uploadState.files.length;
+    var uploadedCount = 0;
+    var failedFiles = [];
+
+    // Upload files sequentially
+    function uploadNext(index) {
+      if (index >= totalFiles) {
+        // All done
+        if (failedFiles.length === 0) {
+          showUploadSuccess();
+        } else {
+          showUploadError('Failed to upload: ' + failedFiles.join(', '));
+        }
+        return;
+      }
+
+      var file = uploadState.files[index];
+      var progressPercent = Math.round((index / totalFiles) * 100);
+      document.getElementById('uploadProgressBar').style.width = progressPercent + '%';
+      document.getElementById('uploadStatusText').textContent = 'Uploading ' + (index + 1) + ' of ' + totalFiles + ': ' + file.name;
+
+      // Read file as base64
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var base64Data = e.target.result.split(',')[1]; // Remove data:mime;base64, prefix
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result && result.success) {
+              uploadedCount++;
+            } else {
+              failedFiles.push(file.name);
+            }
+            uploadNext(index + 1);
+          })
+          .withFailureHandler(function(error) {
+            console.error('Upload failed for ' + file.name + ':', error);
+            failedFiles.push(file.name);
+            uploadNext(index + 1);
+          })
+          .uploadFileToTeamFolder(uploadState.folderId, file.name, base64Data, file.type, uploadState.solutionId);
+      };
+
+      reader.onerror = function() {
+        failedFiles.push(file.name);
+        uploadNext(index + 1);
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    uploadNext(0);
+  }
+
+  function showUploadSuccess() {
+    document.getElementById('uploadStatus').style.display = 'none';
+    document.getElementById('uploadSuccess').style.display = 'block';
+    document.getElementById('uploadProgressBar').style.width = '100%';
+    document.getElementById('uploadBtn').style.display = 'none';
+  }
+
+  function showUploadError(message) {
+    document.getElementById('uploadStatus').style.display = 'none';
+    document.getElementById('uploadError').style.display = 'block';
+    document.getElementById('uploadErrorText').textContent = message;
+    document.getElementById('uploadBtn').disabled = false;
+    document.getElementById('uploadBtnText').textContent = 'Retry';
+  }
+
+  function closeUploadModal(event) {
+    if (!event || event.target === document.getElementById('uploadModal')) {
+      document.getElementById('uploadModal').classList.remove('active');
+      uploadState.files = [];
+    }
+  }
 
   // Close picker when clicking outside (only if picker exists and is open)
   document.addEventListener('click', function(e) {
@@ -2164,7 +2763,14 @@ return;
     clearSolutionSelection: clearSolutionSelection,
     toggleExtendedUpdates: toggleExtendedUpdates,
     toggleStatusSummary: toggleStatusSummary,
-    viewSolutionContacts: viewSolutionContacts
+    viewSolutionContacts: viewSolutionContacts,
+    // Team folder upload
+    openUploadModal: openUploadModal,
+    closeUploadModal: closeUploadModal,
+    handleFileSelect: handleFileSelect,
+    removeUploadFile: removeUploadFile,
+    clearUploadFiles: clearUploadFiles,
+    uploadFiles: uploadFiles
   };
 })();
 

@@ -1,7 +1,7 @@
 # MO-Viewer Data Schema
 
-**Version:** 2.1.3
-**Date:** 2026-01-26
+**Version:** 2.3.0
+**Date:** 2026-01-29
 **Reference:** [ARCHITECTURE.md](../ARCHITECTURE.md)
 
 ---
@@ -70,7 +70,7 @@ This document defines the unified data schema for the MO-Viewer platform. The sc
 
 ### 1. SOLUTIONS (MO-DB_Solutions)
 
-**Status: ACTIVE** - 48 rows, 64 columns (Schema v2)
+**Status: ACTIVE** - 48 rows, 65 columns (Schema v2)
 
 Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across lifecycle phases.
 
@@ -93,13 +93,14 @@ Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across li
 | `funding_period` | STRING | No | Funding period description |
 | `funding_type` | STRING | No | Funding type (ISON, etc.) |
 
-#### admin_ - Administrative (6 columns)
+#### admin_ - Administrative (7 columns)
 | Column | Type | Required | Description |
 |--------|------|----------|-------------|
 | `admin_lifecycle_phase` | STRING | Yes | Phase (Preformulation, Formulation, Implementation, Operations, Closeout) |
 | `admin_default_in_dashboard` | BOOLEAN | No | Show in default selection |
 | `admin_row_last_updated` | DATE | Yes | Last update timestamp |
 | `admin_drive_folder` | STRING | No | Google Drive folder URL |
+| `admin_shared_team_folder` | STRING | No | Google Drive folder URL for implementation team file sharing |
 | `admin_solution_notes` | STRING | No | Internal notes |
 | `admin_additional_resources` | STRING | No | Additional resource links |
 
@@ -135,15 +136,37 @@ Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across li
 | `comms_agency_impact` | STRING | No | Agency use and impact |
 | `comms_public_links` | STRING | No | Links to public communications |
 
-#### product_ - Technical Specifications (6 columns)
+#### product_ - Technical Specifications (9 columns)
 | Column | Type | Required | Description |
 |--------|------|----------|-------------|
 | `product_platform` | STRING | No | Platform/sensor (e.g., "Landsat 8/9, Sentinel-2") |
 | `product_temporal_freq` | STRING | No | Temporal frequency (e.g., "2-3 days") |
 | `product_horiz_resolution` | STRING | No | Horizontal resolution (e.g., "30m") |
 | `product_geo_domain` | STRING | No | Geographic domain (Global, CONUS, etc.) |
+| `product_latency` | STRING | No | Data latency (e.g., "< 3 days") |
+| `product_spectral_bands` | STRING | No | Spectral bands available |
+| `product_vertical_resolution` | STRING | No | Vertical resolution (for 3D products) |
 | `product_assigned_daac` | STRING | No | Assigned DAAC (LP DAAC, PO.DAAC, etc.) |
 | `product_data_products` | STRING | No | URL to data products table |
+
+#### alignment_ - Need Alignment Status (8 columns)
+Tracks whether deviations between stakeholder needs and solution capabilities are acceptable.
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `alignment_horiz_resolution` | STRING | No | Acceptable / Gap / N/A |
+| `alignment_temporal_freq` | STRING | No | Acceptable / Gap / N/A |
+| `alignment_geo_domain` | STRING | No | Acceptable / Gap / N/A |
+| `alignment_latency` | STRING | No | Acceptable / Gap / N/A |
+| `alignment_spectral_bands` | STRING | No | Acceptable / Gap / N/A |
+| `alignment_vertical_resolution` | STRING | No | Acceptable / Gap / N/A |
+| `alignment_notes` | STRING | No | Explanation for alignment decisions |
+| `alignment_last_reviewed` | DATE | No | Date of last alignment review (YYYY-MM-DD) |
+
+**Alignment Values:**
+- **Acceptable** - Deviation exists but stakeholders accept it
+- **Gap** - Deviation exists and needs addressing
+- **N/A** - Characteristic doesn't apply to this solution (service solutions, admin entries)
 
 #### milestone_ - Decision Gates (16 columns)
 | Column | Type | Required | Description |
@@ -832,6 +855,124 @@ Comprehensive email and meeting templates for stakeholder engagement and communi
 
 ---
 
+### 15. NEEDS (MO-DB_Needs)
+
+**Status: ACTIVE** - Schema v3 (rebuilt 2026-01-29) - Survey response data from stakeholder lists
+
+Stores stakeholder survey responses extracted from Solution Stakeholder Lists. This database links stakeholder requirements to solutions and captures measurement requirements, satisfaction metrics, and impact assessments.
+
+**Schema v3** was rebuilt from source files in `source-archives/stakeholder-data/DB-Solution Stakeholder Lists/` to ensure data fidelity across all survey years (2016, 2018, 2020, 2022, 2024).
+
+#### Identity (4 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `solution_id` | STRING | Yes | Foreign key to MO-DB_Solutions.core_id |
+| `solution` | STRING | Yes | Original survey solution name |
+| `survey_year` | INTEGER | Yes | Survey year (2016, 2018, 2020, 2022, 2024) |
+| `need_id` | STRING | No | Original survey need/requirement ID |
+
+#### Contact (7 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `submitter_name` | STRING | No | Survey respondent name |
+| `submitter_email` | STRING | No | Survey respondent email |
+| `sme_name` | STRING | No | Subject matter expert name |
+| `sme_email` | STRING | No | Subject matter expert email |
+| `department` | STRING | No | Executive department or agency |
+| `agency` | STRING | No | Sub-agency or bureau |
+| `organization` | STRING | No | Organizational unit |
+
+#### Application Context (7 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `strategic_objective` | STRING | No | Department/agency strategic objective |
+| `application_description` | STRING | No | Application area description |
+| `similar_to_previous` | STRING | No | Whether similar to previous surveys |
+| `need_nature_type` | STRING | No | Nature of the need (monitoring, assessment, etc.) |
+| `need_nature_frequency` | STRING | No | How often the need applies |
+| `feature_to_observe` | STRING | No | Feature or phenomenon to observe |
+| `how_long_required` | STRING | No | Duration the data is needed |
+
+#### Measurement Requirements (12 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `horizontal_resolution` | STRING | No | Required horizontal resolution |
+| `acceptable_horizontal_resolution` | STRING | No | Acceptable alternative resolution (2022+) |
+| `vertical_resolution` | STRING | No | Required vertical resolution |
+| `temporal_frequency` | STRING | No | Required temporal frequency |
+| `geographic_coverage` | STRING | No | Required geographic coverage area |
+| `data_latency_critical` | STRING | No | Whether data latency is critical (Yes/No) |
+| `data_latency_value` | STRING | No | Required data latency timeframe |
+| `acceptable_latency` | STRING | No | Acceptable latency alternative (2022+) |
+| `spectral_bands_critical` | STRING | No | Whether spectral bands are critical (Yes/No) |
+| `spectral_bands_value` | STRING | No | Required spectral bands |
+| `uncertainty_critical` | STRING | No | Whether uncertainty is critical (Yes/No) |
+| `uncertainty_type` | STRING | No | Required measurement uncertainty type |
+
+#### Satisfaction Metrics (5 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `degree_need_met` | FLOAT | No | Degree to which need is met (0-100 scale, normalized) |
+| `efficiency_gain` | STRING | No | Efficiency improvement if need is met |
+| `geo_coverage_met` | STRING | No | Whether geographic coverage met |
+| `resolution_met` | STRING | No | Whether resolution requirement met |
+| `frequency_met` | STRING | No | Whether frequency requirement met |
+
+#### Impact (2 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `impact_if_unavailable` | STRING | No | Impact if data becomes unavailable |
+| `impact_if_unmet` | STRING | No | Impact if requirement not met |
+
+#### Infrastructure (5 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `has_infrastructure` | STRING | No | Whether infrastructure exists to use data |
+| `support_needed` | STRING | No | Support needed to use data |
+| `limiting_factors` | STRING | No | Factors limiting use |
+| `discovery_tools` | STRING | No | Data discovery tools currently used |
+| `preferred_access` | STRING | No | Preferred data access method |
+
+#### Data Format (4 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `required_processing_level` | STRING | No | Required data processing level |
+| `preferred_format` | STRING | No | Preferred data format |
+| `preferred_missions` | STRING | No | Preferred satellite missions |
+| `products_currently_used` | STRING | No | Products currently being used |
+
+#### Training and Resources (3 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `training_needs` | STRING | No | Training needs identified |
+| `data_sharing_scope` | STRING | No | Scope of data sharing requirements |
+| `resources_needed` | STRING | No | Resources needed to utilize data |
+
+#### Other (3 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `critical_attributes_ranking` | STRING | No | Ranking of critical attributes |
+| `other_attributes` | STRING | No | Other limiting attributes |
+| `additional_comments` | STRING | No | Additional comments or information |
+
+#### Metadata (3 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `source_file` | STRING | Yes | Source Excel filename |
+| `source_url` | STRING | No | Google Sheets URL for source |
+| `extracted_at` | DATE | Yes | Extraction date (YYYY-MM-DD) |
+
+**Key Relationships:**
+- `solution_id` → `MO-DB_Solutions.core_id` (many-to-one)
+- Survey responses can be aggregated by solution, year, department, or agency
+
+**API Functions:**
+- `getAllNeeds()` - Load all needs
+- `getNeedsForSolution(solution)` - Filter by solution using `matchSolutionToNeeds_()`
+- `analyzeNeeds_(needs)` - Aggregate characteristics, satisfaction, and demographics
+
+---
+
 ## Enumerations
 
 ### Phase
@@ -1262,6 +1403,7 @@ The original SolutionFlow schema maps to this unified schema:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.3.0 | 2026-01-29 | Added `admin_shared_team_folder` column to SOLUTIONS for implementation team file sharing functionality. |
 | 2.0.0 | 2026-01-22 | **SOLUTIONS Schema v2**: Refactored with 9 semantic prefixes (core_, funding_, admin_, team_, earthdata_, comms_, product_, milestone_, docs_). Reduced from 76 to 64 columns. Added presentation URLs for milestones. Column names use underscores for JS compatibility. |
 | 1.1.0 | 2026-01-18 | Added Team Viewer tables: AVAILABILITY, MEETINGS, GLOSSARY, CONFIG. Added new enumerations for availability and meeting types. |
 | 1.0.1 | 2026-01-17 | Added Data Sources section with Monthly Meeting Presentations sync documentation |
