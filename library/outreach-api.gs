@@ -132,11 +132,7 @@ function getAllEvents(limit) {
  * Get event by ID
  */
 function getEventById(eventId) {
-  var events = loadAllEvents_();
-  var event = events.find(function(e) {
-    return e.event_id === eventId;
-  });
-  return event ? deepCopy(event) : null;
+  return getById(loadAllEvents_(), 'event_id', eventId);
 }
 
 /**
@@ -239,11 +235,7 @@ function deleteEvent(eventId) {
  * Get events by status
  */
 function getEventsByStatus(status) {
-  var events = loadAllEvents_();
-  var results = events.filter(function(e) {
-    return e.status && e.status.toLowerCase() === status.toLowerCase();
-  });
-  return deepCopy(results);
+  return filterByProperty(loadAllEvents_(), 'status', status, true);
 }
 
 /**
@@ -261,23 +253,15 @@ function getEventsByYear(year) {
  * Get events by type
  */
 function getEventsByType(eventType) {
-  var events = loadAllEvents_();
-  var results = events.filter(function(e) {
-    return e.event_type && e.event_type.toLowerCase() === eventType.toLowerCase();
-  });
-  return deepCopy(results);
+  return filterByProperty(loadAllEvents_(), 'event_type', eventType, true);
 }
 
 /**
  * Get events by sector
  */
 function getEventsBySector(sector) {
-  var events = loadAllEvents_();
-  var sectorLower = sector.toLowerCase();
-  var results = events.filter(function(e) {
-    return e.sector && e.sector.toLowerCase().includes(sectorLower);
-  });
-  return deepCopy(results);
+  // Use contains match (exactMatch=false) since sector may have multiple values
+  return filterByProperty(loadAllEvents_(), 'sector', sector, false);
 }
 
 /**
@@ -347,11 +331,7 @@ function getConfirmedEvents(year) {
  * Get potential events (opportunities)
  */
 function getPotentialEvents() {
-  var events = loadAllEvents_();
-  var results = events.filter(function(e) {
-    return e.status === 'potential';
-  });
-  return deepCopy(results);
+  return filterByProperty(loadAllEvents_(), 'status', 'potential', true);
 }
 
 /**

@@ -504,3 +504,95 @@ function logResponseSize(data, functionName) {
 
   return data;
 }
+
+// ============================================================================
+// ARRAY UTILITY HELPERS
+// ============================================================================
+
+/**
+ * Count occurrences by field value
+ * Useful for statistics aggregation (e.g., count contacts by department)
+ *
+ * @param {Array} array - Array of objects
+ * @param {string} fieldName - Field to count by
+ * @returns {Object} Map of {fieldValue: count}
+ */
+function countByField(array, fieldName) {
+  if (!array || !Array.isArray(array)) return {};
+
+  var counts = {};
+  array.forEach(function(item) {
+    var value = item[fieldName];
+    if (value !== undefined && value !== null && value !== '') {
+      var key = String(value);
+      counts[key] = (counts[key] || 0) + 1;
+    }
+  });
+  return counts;
+}
+
+/**
+ * Get unique values from array by field
+ *
+ * @param {Array} array - Array of objects
+ * @param {string} fieldName - Field to get unique values from
+ * @returns {Array} Array of unique values (sorted)
+ */
+function getUniqueValues(array, fieldName) {
+  if (!array || !Array.isArray(array)) return [];
+
+  var seen = {};
+  var unique = [];
+  array.forEach(function(item) {
+    var value = item[fieldName];
+    if (value !== undefined && value !== null && value !== '' && !seen[value]) {
+      seen[value] = true;
+      unique.push(value);
+    }
+  });
+  return unique.sort();
+}
+
+/**
+ * Find item by ID field
+ * Returns deep copy to prevent mutation
+ *
+ * @param {Array} array - Array of objects
+ * @param {string} idField - Name of the ID field
+ * @param {*} id - ID value to find
+ * @returns {Object|null} Found item (deep copy) or null
+ */
+function getById(array, idField, id) {
+  if (!array || !Array.isArray(array) || !id) return null;
+
+  var item = array.find(function(obj) {
+    return obj[idField] === id;
+  });
+
+  return item ? deepCopy(item) : null;
+}
+
+/**
+ * Deduplicate array by field (keeps first occurrence)
+ *
+ * @param {Array} array - Array of objects
+ * @param {string} fieldName - Field to deduplicate by
+ * @param {boolean} caseInsensitive - Whether to ignore case (default: true)
+ * @returns {Array} Deduplicated array
+ */
+function deduplicateByField(array, fieldName, caseInsensitive) {
+  if (!array || !Array.isArray(array)) return [];
+  if (caseInsensitive === undefined) caseInsensitive = true;
+
+  var seen = {};
+  return array.filter(function(item) {
+    var value = item[fieldName];
+    if (value === undefined || value === null || value === '') return false;
+
+    var key = caseInsensitive ? String(value).toLowerCase() : String(value);
+    if (seen[key]) return false;
+
+    seen[key] = true;
+    return true;
+  });
+}

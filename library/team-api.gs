@@ -104,10 +104,7 @@ function getInternalTeam() {
  * @returns {Array} Matching team members
  */
 function getInternalTeamByTeam(teamName) {
-  var team = getInternalTeam();
-  return team.filter(function(m) {
-    return m.internal_team && m.internal_team.toLowerCase() === teamName.toLowerCase();
-  });
+  return filterByProperty(getInternalTeam(), 'internal_team', teamName, true);
 }
 
 /**
@@ -116,16 +113,9 @@ function getInternalTeamByTeam(teamName) {
  */
 function getInternalTeamStats() {
   var team = getInternalTeam();
-  var byTeam = {};
-
-  team.forEach(function(m) {
-    var t = m.internal_team || 'Unassigned';
-    byTeam[t] = (byTeam[t] || 0) + 1;
-  });
-
   return {
     total: team.length,
-    by_team: byTeam
+    by_team: countByField(team, 'internal_team')
   };
 }
 
@@ -441,11 +431,7 @@ function getAllMeetings() {
  * @returns {Object} Meeting object or null
  */
 function getMeetingById(meetingId) {
-  var meetings = loadAllMeetings_();
-  var found = meetings.find(function(m) {
-    return m.meeting_id === meetingId;
-  });
-  return found ? deepCopy(found) : null;
+  return getById(loadAllMeetings_(), 'meeting_id', meetingId);
 }
 
 /**
@@ -454,11 +440,7 @@ function getMeetingById(meetingId) {
  * @returns {Array} Meetings on that day
  */
 function getMeetingsByDay(day) {
-  var meetings = loadAllMeetings_();
-  var results = meetings.filter(function(m) {
-    return m.day_of_week && m.day_of_week.toLowerCase() === day.toLowerCase();
-  });
-  return deepCopy(results);
+  return filterByProperty(loadAllMeetings_(), 'day_of_week', day, true);
 }
 
 /**
@@ -467,11 +449,7 @@ function getMeetingsByDay(day) {
  * @returns {Array} Meetings in that category
  */
 function getMeetingsByCategory(category) {
-  var meetings = loadAllMeetings_();
-  var results = meetings.filter(function(m) {
-    return m.category && m.category.toLowerCase() === category.toLowerCase();
-  });
-  return deepCopy(results);
+  return filterByProperty(loadAllMeetings_(), 'category', category, true);
 }
 
 /**
@@ -687,11 +665,7 @@ function getGlossaryTerms() {
  * @returns {Object} Term object or null
  */
 function getGlossaryTermById(termId) {
-  var terms = loadAllGlossaryTerms_();
-  var found = terms.find(function(t) {
-    return t.term_id === termId;
-  });
-  return found ? deepCopy(found) : null;
+  return getById(loadAllGlossaryTerms_(), 'term_id', termId);
 }
 
 /**
@@ -717,11 +691,7 @@ function searchGlossary(query) {
  * @returns {Array} Terms in that category
  */
 function getGlossaryByCategory(category) {
-  var terms = loadAllGlossaryTerms_();
-  var results = terms.filter(function(t) {
-    return t.category && t.category.toLowerCase() === category.toLowerCase();
-  });
-  return deepCopy(results);
+  return filterByProperty(loadAllGlossaryTerms_(), 'category', category, true);
 }
 
 /**
@@ -851,13 +821,6 @@ function getTeamOverview() {
   // Team counts
   var teamStats = getInternalTeamStats();
 
-  // Meeting counts by category
-  var meetingsByCategory = {};
-  meetings.forEach(function(m) {
-    var cat = m.category || 'Other';
-    meetingsByCategory[cat] = (meetingsByCategory[cat] || 0) + 1;
-  });
-
   return {
     team: {
       total: teamStats.total,
@@ -870,7 +833,7 @@ function getTeamOverview() {
     },
     meetings: {
       total_active: meetings.length,
-      by_category: meetingsByCategory
+      by_category: countByField(meetings, 'category')
     }
   };
 }

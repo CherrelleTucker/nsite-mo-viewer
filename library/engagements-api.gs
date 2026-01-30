@@ -12,69 +12,37 @@
 // CONFIGURATION
 // ============================================================================
 
-/**
- * Get the Engagements sheet
- * Reads ENGAGEMENTS_SHEET_ID from MO-DB_Config
- */
-function getEngagementsSheet_() {
-  var sheetId = getConfigValue('ENGAGEMENTS_SHEET_ID');
-  if (!sheetId) {
-    throw new Error('ENGAGEMENTS_SHEET_ID not configured in MO-DB_Config');
-  }
-  var ss = SpreadsheetApp.openById(sheetId);
-  return ss.getSheets()[0];
-}
-
-/**
- * Cache for engagements data (refreshed per execution)
- */
-var _engagementsCache = null;
+// Uses shared utilities from config-helpers.gs:
+// - loadSheetData_() for cached data loading
+// - getSheetForWrite_(), findRowByField_() for write operations
+// - filterByProperty(), countByField(), getById() for queries
+// - deepCopy() for safe object copying
 
 /**
  * Load all engagements into memory for fast querying
+ * Uses shared loadSheetData_() with filtering and sorting
  */
 function loadAllEngagements_() {
-  if (_engagementsCache !== null) {
-    return _engagementsCache;
-  }
+  var allData = loadSheetData_('ENGAGEMENTS_SHEET_ID', '_engagements');
 
-  var sheet = getEngagementsSheet_();
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0];
-
-  _engagementsCache = [];
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    var engagement = {};
-    headers.forEach(function(header, j) {
-      var value = row[j];
-      if (value instanceof Date) {
-        engagement[header] = value.toISOString();
-      } else {
-        engagement[header] = value;
-      }
-    });
-    // Only include records with engagement_id
-    if (engagement.engagement_id) {
-      _engagementsCache.push(engagement);
-    }
-  }
+  // Filter to only include records with engagement_id
+  var filtered = allData.filter(function(e) { return e.engagement_id; });
 
   // Sort by date descending (most recent first)
-  _engagementsCache.sort(function(a, b) {
+  filtered.sort(function(a, b) {
     var dateA = a.date ? new Date(a.date) : new Date(0);
     var dateB = b.date ? new Date(b.date) : new Date(0);
     return dateB - dateA;
   });
 
-  return _engagementsCache;
+  return filtered;
 }
 
 /**
  * Clear engagements cache (call after mutations)
  */
 function clearEngagementsCache_() {
-  _engagementsCache = null;
+  clearSheetDataCache('_engagements');
 }
 
 // ============================================================================
@@ -126,11 +94,7 @@ function getAllEngagements(limit) {
  * @returns {Object|null} Engagement record or null
  */
 function getEngagementById(engagementId) {
-  var engagements = loadAllEngagements_();
-  var engagement = engagements.find(function(e) {
-    return e.engagement_id === engagementId;
-  });
-  return engagement ? deepCopy(engagement) : null;
+  return getById(loadAllEngagements_(), 'engagement_id', engagementId);
 }
 
 /**
@@ -189,8 +153,9 @@ function createEngagement(engagementData) {
     throw new Error('Validation failed: ' + validation.errors.join('; '));
   }
 
-  var sheet = getEngagementsSheet_();
-  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var sheetInfo = getSheetForWrite_('ENGAGEMENTS_SHEET_ID');
+  var sheet = sheetInfo.sheet;
+  var headers = sheetInfo.headers;
 
   // Generate engagement_id if not provided
   if (!engagementData.engagement_id) {
@@ -223,32 +188,20 @@ function createEngagement(engagementData) {
  * @returns {Object|null} Updated engagement or null if not found
  */
 function updateEngagement(engagementId, updates) {
-  var sheet = getEngagementsSheet_();
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0];
+  var sheetInfo = getSheetForWrite_('ENGAGEMENTS_SHEET_ID');
+  var sheet = sheetInfo.sheet;
+  var headers = sheetInfo.headers;
 
-  var idColIndex = headers.indexOf('engagement_id');
-  if (idColIndex === -1) {
-    throw new Error('engagement_id column not found');
-  }
-
-  // Find row to update
-  var rowIndex = -1;
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][idColIndex] === engagementId) {
-      rowIndex = i;
-      break;
-    }
-  }
-
+  // Find row using shared utility
+  var rowIndex = findRowByField_(sheet, headers, 'engagement_id', engagementId);
   if (rowIndex === -1) {
     return null;
   }
 
-  // Update cells
+  // Update cells (rowIndex is already 1-indexed)
   headers.forEach(function(header, colIndex) {
     if (updates.hasOwnProperty(header) && header !== 'engagement_id' && header !== 'created_at') {
-      sheet.getRange(rowIndex + 1, colIndex + 1).setValue(updates[header]);
+      sheet.getRange(rowIndex, colIndex + 1).setValue(updates[header]);
     }
   });
 
@@ -263,24 +216,19 @@ function updateEngagement(engagementId, updates) {
  * @returns {Object} Success status object
  */
 function deleteEngagement(engagementId) {
-  var sheet = getEngagementsSheet_();
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0];
+  var sheetInfo = getSheetForWrite_('ENGAGEMENTS_SHEET_ID');
+  var sheet = sheetInfo.sheet;
+  var headers = sheetInfo.headers;
 
-  var idColIndex = headers.indexOf('engagement_id');
-  if (idColIndex === -1) {
-    return { success: false, error: 'engagement_id column not found' };
+  // Find row using shared utility
+  var rowIndex = findRowByField_(sheet, headers, 'engagement_id', engagementId);
+  if (rowIndex === -1) {
+    return createResult(false, null, 'Engagement not found');
   }
 
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][idColIndex] === engagementId) {
-      sheet.deleteRow(i + 1);
-      clearEngagementsCache_();
-      return { success: true };
-    }
-  }
-
-  return { success: false, error: 'Engagement not found' };
+  sheet.deleteRow(rowIndex);
+  clearEngagementsCache_();
+  return createResult(true);
 }
 
 // ============================================================================
@@ -316,11 +264,7 @@ function getEngagementsByContact(contactId) {
  * @returns {Array} Engagements involving this agency
  */
 function getEngagementsByAgency(agencyId) {
-  var engagements = loadAllEngagements_();
-  var results = engagements.filter(function(e) {
-    return e.agency_id === agencyId;
-  });
-  return deepCopy(results);
+  return filterByProperty(loadAllEngagements_(), 'agency_id', agencyId, true);
 }
 
 /**
@@ -350,11 +294,7 @@ function getEngagementsBySolution(solutionId) {
  * @returns {Array} Matching engagements
  */
 function getEngagementsByActivityType(activityType) {
-  var engagements = loadAllEngagements_();
-  var results = engagements.filter(function(e) {
-    return e.activity_type && e.activity_type.toLowerCase() === activityType.toLowerCase();
-  });
-  return deepCopy(results);
+  return filterByProperty(loadAllEngagements_(), 'activity_type', activityType, true);
 }
 
 /**
@@ -363,11 +303,7 @@ function getEngagementsByActivityType(activityType) {
  * @returns {Array} Engagements for this touchpoint
  */
 function getEngagementsByTouchpoint(touchpoint) {
-  var engagements = loadAllEngagements_();
-  var results = engagements.filter(function(e) {
-    return e.touchpoint_reference === touchpoint;
-  });
-  return deepCopy(results);
+  return filterByProperty(loadAllEngagements_(), 'touchpoint_reference', touchpoint, true);
 }
 
 /**
@@ -478,28 +414,21 @@ function getOverdueFollowUps() {
 function getEngagementStats() {
   var engagements = loadAllEngagements_();
 
-  var byType = {};
-  var byDirection = {};
-  var byTouchpoint = {};
-  var byMonth = {};
+  // Use shared utilities for simple counting
+  var byType = countByField(engagements, 'activity_type');
+  var byDirection = countByField(engagements, 'direction');
+  var byTouchpoint = countByField(engagements, 'touchpoint_reference');
 
+  // Month counting needs date substring extraction (keep custom)
+  var byMonth = {};
   engagements.forEach(function(e) {
-    if (e.activity_type) {
-      byType[e.activity_type] = (byType[e.activity_type] || 0) + 1;
-    }
-    if (e.direction) {
-      byDirection[e.direction] = (byDirection[e.direction] || 0) + 1;
-    }
-    if (e.touchpoint_reference) {
-      byTouchpoint[e.touchpoint_reference] = (byTouchpoint[e.touchpoint_reference] || 0) + 1;
-    }
     if (e.date) {
       var monthKey = e.date.substring(0, 7); // YYYY-MM
       byMonth[monthKey] = (byMonth[monthKey] || 0) + 1;
     }
   });
 
-  // Get unique contacts/agencies involved
+  // Get unique contacts/agencies involved (comma-separated fields need custom logic)
   var uniqueContacts = {};
   var uniqueAgencies = {};
   engagements.forEach(function(e) {
@@ -622,14 +551,9 @@ function getSEPDashboardStats() {
  */
 function getEngagementsByLogger(limit) {
   limit = limit || 10;
-  var engagements = loadAllEngagements_();
 
-  var byLogger = {};
-  engagements.forEach(function(e) {
-    if (e.logged_by) {
-      byLogger[e.logged_by] = (byLogger[e.logged_by] || 0) + 1;
-    }
-  });
+  // Use shared utility for counting
+  var byLogger = countByField(loadAllEngagements_(), 'logged_by');
 
   var results = Object.keys(byLogger).map(function(logger) {
     return { logged_by: logger, count: byLogger[logger] };

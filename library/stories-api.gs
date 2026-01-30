@@ -160,11 +160,7 @@ function getAllStories(limit) {
  * @returns {Object|null} Story record or null
  */
 function getStoryById(storyId) {
-  var stories = loadAllStories_();
-  var story = stories.find(function(s) {
-    return s.story_id === storyId;
-  });
-  return story ? deepCopy(story) : null;
+  return getById(loadAllStories_(), 'story_id', storyId);
 }
 
 /**
@@ -322,11 +318,7 @@ function deleteStory(storyId) {
  * @returns {Array} Stories in this status
  */
 function getStoriesByStatus(status) {
-  var stories = loadAllStories_();
-  var results = stories.filter(function(s) {
-    return s.status && s.status.toLowerCase() === status.toLowerCase();
-  });
-  return deepCopy(results);
+  return filterByProperty(loadAllStories_(), 'status', status, true);
 }
 
 /**
@@ -335,11 +327,7 @@ function getStoriesByStatus(status) {
  * @returns {Array} Stories of this type
  */
 function getStoriesByContentType(contentType) {
-  var stories = loadAllStories_();
-  var results = stories.filter(function(s) {
-    return s.content_type && s.content_type.toLowerCase() === contentType.toLowerCase();
-  });
-  return deepCopy(results);
+  return filterByProperty(loadAllStories_(), 'content_type', contentType, true);
 }
 
 /**
@@ -367,11 +355,7 @@ function getStoriesBySolution(solutionId) {
  * @returns {Array} Stories for this channel
  */
 function getStoriesByChannel(channel) {
-  var stories = loadAllStories_();
-  var results = stories.filter(function(s) {
-    return s.channel && s.channel.toLowerCase() === channel.toLowerCase();
-  });
-  return deepCopy(results);
+  return filterByProperty(loadAllStories_(), 'channel', channel, true);
 }
 
 /**
@@ -379,24 +363,7 @@ function getStoriesByChannel(channel) {
  * @returns {Object} Count of stories in each status
  */
 function getStoryPipelineCounts() {
-  var stories = loadAllStories_();
-  var counts = {
-    idea: 0,
-    researching: 0,
-    drafting: 0,
-    review: 0,
-    published: 0,
-    archived: 0
-  };
-
-  stories.forEach(function(s) {
-    var status = (s.status || 'idea').toLowerCase();
-    if (counts.hasOwnProperty(status)) {
-      counts[status]++;
-    }
-  });
-
-  return counts;
+  return countByField(loadAllStories_(), 'status');
 }
 
 /**

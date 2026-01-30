@@ -95,13 +95,7 @@ function getAllActions(limit) {
  * @returns {Object|null} Action object or null
  */
 function getActionById(actionId) {
-  var actions = getAllActions();
-  for (var i = 0; i < actions.length; i++) {
-    if (actions[i].action_id === actionId) {
-      return actions[i];
-    }
-  }
-  return null;
+  return getById(getAllActions(), 'action_id', actionId);
 }
 
 // ============================================================================
@@ -114,13 +108,7 @@ function getActionById(actionId) {
  * @returns {Array} Filtered actions
  */
 function getActionsByStatus(status) {
-  var actions = getAllActions();
-  var statusLower = status.toLowerCase();
-
-  return actions.filter(function(action) {
-    var actionStatus = (action.status || '').toLowerCase();
-    return actionStatus === statusLower;
-  });
+  return filterByProperty(getAllActions(), 'status', status, true);
 }
 
 /**
@@ -129,13 +117,7 @@ function getActionsByStatus(status) {
  * @returns {Array} Filtered actions
  */
 function getActionsByCategory(category) {
-  var actions = getAllActions();
-  var categoryLower = category.toLowerCase();
-
-  return actions.filter(function(action) {
-    var actionCategory = (action.category || '').toLowerCase();
-    return actionCategory === categoryLower;
-  });
+  return filterByProperty(getAllActions(), 'category', category, true);
 }
 
 /**
@@ -144,13 +126,8 @@ function getActionsByCategory(category) {
  * @returns {Array} Filtered actions
  */
 function getActionsByAssignee(assignee) {
-  var actions = getAllActions();
-  var assigneeLower = assignee.toLowerCase();
-
-  return actions.filter(function(action) {
-    var assigned = (action.assigned_to || '').toLowerCase();
-    return assigned.includes(assigneeLower);
-  });
+  // Use contains match (exactMatch=false) since assigned_to may have multiple names
+  return filterByProperty(getAllActions(), 'assigned_to', assignee, false);
 }
 
 /**
@@ -220,15 +197,7 @@ function getActionPipelineCounts() {
  * @returns {Object} Counts by category
  */
 function getActionCategoryCounts() {
-  var actions = getAllActions();
-  var counts = {};
-
-  actions.forEach(function(action) {
-    var category = action.category || 'Other';
-    counts[category] = (counts[category] || 0) + 1;
-  });
-
-  return counts;
+  return countByField(getAllActions(), 'category');
 }
 
 /**
@@ -236,15 +205,7 @@ function getActionCategoryCounts() {
  * @returns {Object} Counts by assignee
  */
 function getActionAssigneeCounts() {
-  var actions = getOpenActions();
-  var counts = {};
-
-  actions.forEach(function(action) {
-    var assignee = action.assigned_to || 'Unassigned';
-    counts[assignee] = (counts[assignee] || 0) + 1;
-  });
-
-  return counts;
+  return countByField(getOpenActions(), 'assigned_to');
 }
 
 /**
@@ -719,17 +680,7 @@ function generateActionId_() {
  * @returns {Array} List of unique assignees
  */
 function getUniqueAssignees() {
-  var actions = getAllActions();
-  var assignees = {};
-
-  actions.forEach(function(action) {
-    var assignee = action.assigned_to;
-    if (assignee && assignee.trim()) {
-      assignees[assignee.trim()] = true;
-    }
-  });
-
-  return Object.keys(assignees).sort();
+  return getUniqueValues(getAllActions(), 'assigned_to');
 }
 
 /**
@@ -737,17 +688,7 @@ function getUniqueAssignees() {
  * @returns {Array} List of unique categories
  */
 function getUniqueCategories() {
-  var actions = getAllActions();
-  var categories = {};
-
-  actions.forEach(function(action) {
-    var category = action.category;
-    if (category && category.trim()) {
-      categories[category.trim()] = true;
-    }
-  });
-
-  return Object.keys(categories).sort();
+  return getUniqueValues(getAllActions(), 'category');
 }
 
 /**
@@ -755,17 +696,7 @@ function getUniqueCategories() {
  * @returns {Array} List of unique solution IDs
  */
 function getUniqueSolutions() {
-  var actions = getAllActions();
-  var solutions = {};
-
-  actions.forEach(function(action) {
-    var solutionId = action.solution_id;
-    if (solutionId && solutionId.trim()) {
-      solutions[solutionId.trim()] = true;
-    }
-  });
-
-  return Object.keys(solutions).sort();
+  return getUniqueValues(getAllActions(), 'solution_id');
 }
 
 // ============================================================================

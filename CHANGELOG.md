@@ -64,6 +64,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.2] - 2026-01-29
+
+### Changed
+- **DRY Refactoring** - Migrated API files to use shared utilities from config-helpers.gs
+  - Replaced 6+ custom `getXById()` implementations with shared `getById()` helper
+  - Replaced 15+ custom filter functions with shared `filterByProperty()` helper
+  - Replaced 8+ manual counting loops with shared `countByField()` helper
+  - Replaced 3+ unique value functions with shared `getUniqueValues()` helper
+  - Standardized cache clearing to use `clearSheetDataCache()`
+  - All refactored functions maintain identical behavior
+
+### Refactored Files
+- `library/agencies-api.gs` - loadAllAgencies_, getAgencyById, filter/count functions
+- `library/engagements-api.gs` - loadAllEngagements_, getEngagementById, filter/count functions
+- `library/actions-api.gs` - getActionById, filter/count/unique functions
+- `library/team-api.gs` - getById, filter, count functions for meetings/glossary
+- `library/outreach-api.gs` - getEventById, filter functions
+- `library/stories-api.gs` - getStoryById, filter/count functions
+
+### Eliminated Code Duplication
+- ~150 lines of duplicate filter/map/count patterns removed
+- Consistent use of shared utilities across all API files
+- Centralized data loading pattern via loadSheetData_()
+
+---
+
 ## [Unreleased]
 
 ### Added
