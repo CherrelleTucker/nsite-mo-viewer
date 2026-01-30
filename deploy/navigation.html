@@ -2,14 +2,6 @@
 <nav class="nav-bar">
   <!-- Primary Viewer Tabs (NSITE = "in sight") -->
   <div class="nav-primary">
-    <button type="button" class="nav-tab <?= activePage === 'topsheet' ? 'active' : '' ?>"
-            data-page="topsheet"
-            onclick="navigateTo('topsheet')"
-            title="Solution milestone top sheet">
-      <span class="material-icons">table_chart</span>
-      <span class="nav-label" style="<?= activePage === 'topsheet' ? '' : 'display:none' ?>">Top Sheet</span>
-    </button>
-
     <button type="button" class="nav-tab <?= activePage === 'implementation' ? 'active' : '' ?>"
             data-page="implementation"
             onclick="navigateTo('implementation')"
@@ -40,6 +32,14 @@
 
   <!-- Secondary Tabs -->
   <div class="nav-secondary">
+    <button type="button" class="nav-tab <?= activePage === 'topsheet' ? 'active' : '' ?>"
+            data-page="topsheet"
+            onclick="navigateTo('topsheet')"
+            title="Solution milestone top sheet">
+      <span class="material-icons">table_chart</span>
+      <span class="nav-label" <?= activePage === 'topsheet' ? '' : 'style="display:none"' ?>>Top Sheet</span>
+    </button>
+
     <button type="button" class="nav-tab <?= activePage === 'quick-update' ? 'active' : '' ?>"
             data-page="quick-update"
             onclick="navigateTo('quick-update')"

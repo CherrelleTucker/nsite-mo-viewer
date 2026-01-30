@@ -30,9 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Toggle states persist via localStorage
 
 ### Changed
-- **Navigation** - Top Sheet moved to first position in primary navigation
+- **Navigation** - Top Sheet moved to secondary nav (with other shared resources)
   - Shows icon only when not active, full label when active
 - **Home page redirect** - Sign-in now redirects to Top Sheet instead of Implementation
+- **UI Cleanup** - Removed redundant page headers from NSITE pages
+  - Implementation: Removed "Implementation-NSITE" header and tracking summary bar (DAAC, Deep Dives, Actions, Stakeholders)
+  - SEP: Removed "SEP-NSITE" header, view toggle/buttons aligned right
+  - Comms: Removed "Comms-NSITE" header, view toggle/buttons aligned right
 
 ---
 
