@@ -70,7 +70,7 @@ This document defines the unified data schema for the MO-Viewer platform. The sc
 
 ### 1. SOLUTIONS (MO-DB_Solutions)
 
-**Status: ACTIVE** - 48 rows, 65 columns (Schema v2)
+**Status: ACTIVE** - 48 rows, 69 columns (Schema v2)
 
 Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across lifecycle phases.
 
@@ -168,20 +168,24 @@ Tracks whether deviations between stakeholder needs and solution capabilities ar
 - **Gap** - Deviation exists and needs addressing
 - **N/A** - Characteristic doesn't apply to this solution (service solutions, admin entries)
 
-#### milestone_ - Decision Gates (16 columns)
+#### milestone_ - Decision Gates (20 columns)
 | Column | Type | Required | Description |
 |--------|------|----------|-------------|
 | `milestone_jpl_milestones` | BOOLEAN | No | Uses JPL milestone system |
 | `milestone_atp_date` | DATE | No | ATP Decision Gate date |
+| `milestone_atp_memo_date` | DATE | No | ATP memo signature date |
 | `milestone_atp_presentation_url` | STRING | No | ATP presentation URL |
 | `milestone_atp_memo_url` | STRING | No | ATP memo URL |
 | `milestone_f2i_date` | DATE | No | F2I Decision Gate date |
+| `milestone_f2i_memo_date` | DATE | No | F2I memo signature date |
 | `milestone_f2i_presentation_url` | STRING | No | F2I presentation URL |
 | `milestone_f2i_memo_url` | STRING | No | F2I memo URL |
 | `milestone_orr_date` | DATE | No | ORR date |
+| `milestone_orr_memo_date` | DATE | No | ORR memo signature date |
 | `milestone_orr_presentation_url` | STRING | No | ORR presentation URL |
 | `milestone_orr_memo_url` | STRING | No | ORR memo URL |
 | `milestone_closeout_date` | DATE | No | Closeout date |
+| `milestone_closeout_memo_date` | DATE | No | Closeout memo signature date |
 | `milestone_closeout_presentation_url` | STRING | No | Closeout presentation URL |
 | `milestone_closeout_memo_url` | STRING | No | Closeout memo URL |
 | `milestone_deep_dive_date` | DATE | No | Deep dive date |

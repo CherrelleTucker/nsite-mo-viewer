@@ -535,6 +535,44 @@
         </div>
       </div>
 
+      <!-- Top Sheet -->
+      <div class="page-card">
+        <div class="page-card-header topsheet">
+          <span class="material-icons">table_chart</span>
+          <h4>Top Sheet</h4>
+        </div>
+        <div class="page-card-body">
+          <div class="data-flow-mini">
+            <span class="flow-chip source">MO-DB_Solutions</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip output">Milestone Table</span>
+          </div>
+          <div class="page-details">
+            <div class="detail-group">
+              <span class="detail-label">Data:</span>
+              <span>All solutions with Implementation milestones (ATP, F2I, ORR, Closeout) and SEP milestones (WS1-5, TP4-8)</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Transforms:</span>
+              <span>Date formatting, sorting, filtering by cycle/phase</span>
+            </div>
+            <div class="detail-group">
+              <span class="detail-label">Updates:</span>
+              <span>Fresh on page load from MO-DB_Solutions</span>
+            </div>
+          </div>
+          <div class="next-steps">
+            <span class="next-label">Key Features:</span>
+            <ul>
+              <li><strong>SEP Toggle:</strong> Show/hide SEP milestone columns (WS1/TP4 through WS5/TP8)</li>
+              <li><strong>Sticky Columns:</strong> Solution, Cycle, Phase stay fixed during horizontal scroll</li>
+              <li><strong>Sortable:</strong> Click column headers to sort by any milestone date</li>
+              <li><strong>CSV Export:</strong> Download filtered table with current columns</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       <!-- Schedule -->
       <div class="page-card">
         <div class="page-card-header schedule">
@@ -1191,6 +1229,7 @@
   .page-card-header.actions { background: #059669; }
   .page-card-header.contacts { background: #7c3aed; }
   .page-card-header.reports { background: #dc2626; }
+  .page-card-header.topsheet { background: #6366f1; }
   .page-card-header.schedule { background: #d97706; }
   .page-card-header.quickupdate { background: #0891b2; }
 

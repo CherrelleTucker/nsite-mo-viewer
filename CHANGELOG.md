@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Solution Top Sheet Page** - New page showing all solutions with milestone dates in a consolidated table
+  - Implementation milestones: ATP DG, F2I DG, ORR, Closeout
+  - SEP milestones (toggleable): WS1/TP4, WS2/TP5, WS3/TP6, WS4/TP7, WS5/TP8
+  - Sticky columns (Solution, Cycle, Phase) stay visible during horizontal scroll
+  - Filter by cycle, phase, and search text
+  - Sortable columns - click headers to sort
+  - CSV export of current filtered/sorted view
+  - SEP toggle state persists via localStorage
+
 - **Share with Team File Upload** - Implementation solution detail modal now includes file upload feature
   - "Share with Team" button appears in Documentation Links section (only for solutions with `admin_shared_team_folder` configured)
   - Drag-and-drop upload dialog with file browser fallback

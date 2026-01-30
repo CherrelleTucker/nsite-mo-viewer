@@ -1474,6 +1474,19 @@ var Implementation = (function() {
         updateMilestones();
         updateTrackingStats();
         applyFilters();
+
+        // Check if navigating from Top Sheet with a solution to open
+        var openSolutionId = sessionStorage.getItem('openSolutionId');
+        if (openSolutionId) {
+          sessionStorage.removeItem('openSolutionId');
+          // Find and open the solution
+          var sol = state.solutions.find(function(s) {
+            return s.core_id && s.core_id.toLowerCase() === openSolutionId.toLowerCase();
+          });
+          if (sol) {
+            setTimeout(function() { openDetailModal(sol.core_id); }, 100);
+          }
+        }
       })
       .withFailureHandler(function(error) {
         console.error('FAILURE: Failed to load solutions:', error);

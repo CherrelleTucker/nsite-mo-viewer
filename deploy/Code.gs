@@ -132,6 +132,10 @@ var PAGES = {
     title: 'Reports',
     icon: 'description'
   },
+  'topsheet': {
+    title: 'Top Sheet',
+    icon: 'table_chart'
+  },
   'schedule': {
     title: 'Schedule',
     icon: 'calendar_today'
@@ -149,7 +153,7 @@ var PAGES = {
 /**
  * Default page to show
  */
-var DEFAULT_PAGE = 'implementation';
+var DEFAULT_PAGE = 'topsheet';
 
 // ============================================================================
 // WEB APP ENTRY POINT
@@ -829,7 +833,7 @@ function verifyPassphraseAccess(email, passphrase) {
       authorized: true,
       email: email,
       sessionToken: token,
-      redirectUrl: scriptUrl + '?page=implementation&session=' + token
+      redirectUrl: scriptUrl + '?page=' + DEFAULT_PAGE + '&session=' + token
     };
   }
 
@@ -843,7 +847,7 @@ function verifyPassphraseAccess(email, passphrase) {
       authorized: true,
       email: email,
       sessionToken: token,
-      redirectUrl: scriptUrl + '?page=implementation&session=' + token
+      redirectUrl: scriptUrl + '?page=' + DEFAULT_PAGE + '&session=' + token
     };
   } else {
     Logger.log('Email not in whitelist: ' + email);
@@ -960,7 +964,7 @@ function authorizeAndCheckAccess() {
     return {
       authorized: true,
       email: email,
-      redirectUrl: scriptUrl + '?page=implementation&auth=complete'
+      redirectUrl: scriptUrl + '?page=' + DEFAULT_PAGE + '&auth=complete'
     };
   } else {
     // Store email so access-denied page can show it

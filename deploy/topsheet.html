@@ -1,0 +1,1266 @@
+<!-- Solution Top Sheet View -->
+<!-- Consolidated table of all solutions with milestone dates -->
+
+<div class="topsheet-viewer">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Solution Top Sheet</h1>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-secondary btn-sm" onclick="TopSheet.exportCSV()">
+        <span class="material-icons">download</span>
+        Export
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <!-- Solution Picker -->
+    <div class="filter-group picker-group">
+      <label class="filter-label">Solutions:</label>
+      <button class="btn btn-secondary btn-sm picker-btn" id="solutionPickerBtn" onclick="TopSheet.togglePicker()">
+        <span id="pickerLabel">Loading...</span>
+        <span class="material-icons">expand_more</span>
+      </button>
+      <div class="picker-dropdown" id="solutionPickerDropdown">
+        <div class="picker-actions">
+          <button class="btn btn-xs" onclick="TopSheet.selectDefault()">Default</button>
+          <button class="btn btn-xs" onclick="TopSheet.selectAll()">All</button>
+          <button class="btn btn-xs" onclick="TopSheet.selectNone()">None</button>
+        </div>
+        <div class="picker-list" id="pickerList">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Group:</label>
+      <select class="form-select filter-select" id="filterGroupBy" onchange="TopSheet.applyFilters()">
+        <option value="">No Grouping</option>
+        <option value="cycle">By Cycle</option>
+        <option value="phase">By Phase</option>
+        <option value="group">By Group</option>
+      </select>
+    </div>
+    <div class="filter-search">
+      <span class="material-icons">search</span>
+      <input type="text" class="form-input search-input" id="filterSearch"
+             placeholder="Search solutions..."
+             oninput="TopSheet.applyFilters()">
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="TopSheet.clearFilters()">
+      Clear
+    </button>
+    <div class="filter-group toggle-group">
+      <label class="toggle-label">
+        <input type="checkbox" id="showDocsToggle" onchange="TopSheet.toggleDocs()">
+        <span class="toggle-text">Show Memos</span>
+      </label>
+    </div>
+    <div class="filter-group toggle-group">
+      <label class="toggle-label">
+        <input type="checkbox" id="showSepToggle" onchange="TopSheet.toggleSEP()">
+        <span class="toggle-text">Show SEP</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Solutions Table -->
+  <div class="table-container">
+    <table class="topsheet-table" id="topsheetTable">
+      <thead>
+        <tr id="tableHeader">
+          <!-- Headers generated dynamically -->
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <!-- Rows generated dynamically -->
+      </tbody>
+    </table>
+    <div class="loading-state" id="loadingState">
+      <span class="loading-spinner"></span>
+      <p>Loading solutions...</p>
+    </div>
+    <div class="empty-state" id="emptyState" style="display: none;">
+      <span class="material-icons">search_off</span>
+      <p>No solutions match your filters</p>
+    </div>
+  </div>
+</div>
+
+<!-- Solution Detail Modal -->
+<div class="modal-overlay" id="solutionModal" onclick="TopSheet.closeModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalTitle">Solution Details</h2>
+      <button class="modal-close" onclick="TopSheet.closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- Dynamic content -->
+    </div>
+  </div>
+</div>
+
+<!-- Top Sheet Styles -->
+<style>
+  .topsheet-viewer {
+    --page-accent: var(--color-primary);
+    max-width: 1800px;
+    margin: 0 auto;
+  }
+
+  /* Filter Bar */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+  }
+
+  .filter-group { display: flex; align-items: center; gap: var(--space-sm); }
+  .filter-label { font-size: var(--font-size-sm); font-weight: 500; color: var(--color-text-secondary); }
+  .filter-select { min-width: 120px; padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-sm); }
+
+  .filter-search {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .filter-search .material-icons { color: var(--color-text-secondary); font-size: 18px; }
+  .filter-search .search-input {
+    border: none;
+    background: transparent;
+    flex: 1;
+    font-size: var(--font-size-sm);
+    outline: none;
+  }
+
+  .toggle-group {
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+  }
+
+  .toggle-group:first-of-type {
+    margin-left: auto;
+  }
+
+  .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+
+  .toggle-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--color-primary);
+  }
+
+  /* Table Container */
+  .table-container {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow-x: auto;
+    position: relative;
+    min-height: 300px;
+  }
+
+  .loading-state, .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+    color: var(--color-text-secondary);
+  }
+
+  .loading-state .loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .empty-state .material-icons {
+    font-size: 48px;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Table */
+  .topsheet-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+
+  .topsheet-table th,
+  .topsheet-table td {
+    padding: var(--space-sm) var(--space-md);
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .topsheet-table th {
+    background: var(--color-surface-alt);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .topsheet-table th:hover {
+    background: var(--color-border);
+  }
+
+  .topsheet-table th .sort-icon {
+    font-size: 14px;
+    vertical-align: middle;
+    margin-left: 4px;
+    opacity: 0.5;
+  }
+
+  .topsheet-table th.sorted .sort-icon {
+    opacity: 1;
+  }
+
+  .topsheet-table tbody tr:hover {
+    background: var(--color-surface-alt);
+  }
+
+  /* Sticky columns */
+  .topsheet-table th.sticky,
+  .topsheet-table td.sticky {
+    position: sticky;
+    background: var(--color-surface);
+    z-index: 5;
+  }
+
+  .topsheet-table th.sticky {
+    background: var(--color-surface-alt);
+    z-index: 15;
+  }
+
+  .topsheet-table .col-solution { left: 0; width: 70px; min-width: 70px; }
+  .topsheet-table .col-cycle { left: 70px; width: 45px; min-width: 45px; }
+  .topsheet-table .col-phase { left: 115px; width: 90px; min-width: 90px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .topsheet-table tbody tr:hover td.sticky {
+    background: var(--color-surface-alt);
+  }
+
+  /* Sticky column shadow */
+  .topsheet-table td.col-phase,
+  .topsheet-table th.col-phase {
+    box-shadow: 4px 0 6px -2px rgba(0,0,0,0.1);
+  }
+
+  /* Date cells */
+  .date-cell {
+    font-family: var(--font-mono, monospace);
+    font-size: 12px;
+  }
+
+  .date-past { color: var(--color-success); }
+  .date-future { color: var(--color-info); }
+  .date-empty { color: var(--color-text-muted); }
+
+  /* SEP columns header styling */
+  .sep-header {
+    background: rgba(139, 69, 19, 0.1) !important;
+    color: var(--color-sep, #8B4513);
+  }
+
+  /* Memo columns header styling */
+  .memo-header {
+    background: rgba(124, 58, 237, 0.1) !important;
+    color: #7c3aed;
+  }
+
+  /* Solution link */
+  .solution-link {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .solution-link:hover {
+    text-decoration: underline;
+  }
+
+  /* Combined date cell (for SEP WS/TP) */
+  .combined-date {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 11px;
+  }
+
+  .combined-date .ws-date {
+    color: var(--color-info);
+  }
+
+  .combined-date .tp-date {
+    color: var(--color-sep, #8B4513);
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: flex-start;
+    padding: var(--space-xl);
+    z-index: 1000;
+    overflow-y: auto;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal-content {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    width: 100%;
+    max-width: 600px;
+    margin-top: var(--space-xl);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modal-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .modal-close:hover { color: var(--color-text); }
+
+  .modal-body {
+    padding: var(--space-lg);
+  }
+
+  /* Modal sections */
+  .modal-section {
+    margin-bottom: var(--space-lg);
+  }
+
+  .modal-section:last-child { margin-bottom: 0; }
+
+  .modal-section-title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-sm);
+  }
+
+  .modal-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-md);
+  }
+
+  .modal-info-item {
+    text-align: center;
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+  }
+
+  .modal-info-label {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+  }
+
+  .modal-info-value {
+    font-size: var(--font-size-md);
+    font-weight: 500;
+  }
+
+  /* Milestone table in modal */
+  .milestone-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+
+  .milestone-table th,
+  .milestone-table td {
+    padding: var(--space-sm);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .milestone-table th {
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+
+  .milestone-table .date-past { color: var(--color-success); }
+  .milestone-table .date-future { color: var(--color-info); }
+  .milestone-table .date-empty { color: var(--color-text-muted); }
+
+  .sep-section-title {
+    color: var(--color-sep, #8B4513);
+  }
+
+  /* Solution Picker */
+  .picker-group {
+    position: relative;
+  }
+
+  .picker-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    min-width: 150px;
+    justify-content: space-between;
+  }
+
+  .picker-btn .material-icons {
+    font-size: 18px;
+    transition: transform 0.2s;
+  }
+
+  .picker-btn.open .material-icons {
+    transform: rotate(180deg);
+  }
+
+  .picker-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 100;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    min-width: 250px;
+    max-height: 350px;
+    display: none;
+    flex-direction: column;
+  }
+
+  .picker-dropdown.open {
+    display: flex;
+  }
+
+  .picker-actions {
+    display: flex;
+    gap: var(--space-xs);
+    padding: var(--space-sm);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface-alt);
+  }
+
+  .picker-actions .btn-xs {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .picker-list {
+    overflow-y: auto;
+    max-height: 280px;
+    padding: var(--space-xs);
+  }
+
+  .picker-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+  }
+
+  .picker-item:hover {
+    background: var(--color-surface-alt);
+  }
+
+  .picker-item input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--color-primary);
+  }
+
+  .picker-item-label {
+    font-size: var(--font-size-sm);
+    flex: 1;
+  }
+
+  .picker-item-cycle {
+    font-size: 11px;
+    color: var(--color-text-muted);
+  }
+
+  /* Group headers in table */
+  .group-header-row {
+    background: var(--color-surface-alt) !important;
+  }
+
+  .group-header-row td {
+    padding: var(--space-sm) var(--space-md);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    border-bottom: 2px solid var(--color-border);
+  }
+
+  .group-header-row td .material-icons {
+    font-size: 16px;
+    vertical-align: middle;
+    margin-right: var(--space-xs);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .filter-bar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .sep-toggle {
+      margin-left: 0;
+    }
+
+    .picker-dropdown {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 90vw;
+    }
+  }
+</style>
+
+<!-- Top Sheet JavaScript -->
+<script>
+var TopSheet = (function() {
+  // State
+  var state = {
+    solutions: [],
+    filteredSolutions: [],
+    selectedSolutions: {},  // { core_id: true/false }
+    groupBy: '',            // '', 'cycle', 'phase', 'group'
+    pickerOpen: false,
+    showSEP: false,
+    showDocs: false,
+    sortColumn: 'core_id',
+    sortDirection: 'asc',
+    loaded: false
+  };
+
+  // Column definitions
+  var CORE_COLUMNS = [
+    { key: 'core_id', label: 'Solution', sticky: true, className: 'col-solution' },
+    { key: 'core_cycle', label: 'Cycle', sticky: true, className: 'col-cycle' },
+    { key: 'admin_lifecycle_phase', label: 'Phase', sticky: true, className: 'col-phase' }
+  ];
+
+  var DG_COLUMNS = [
+    { key: 'milestone_atp_date', label: 'ATP DG', type: 'date' },
+    { key: 'milestone_f2i_date', label: 'F2I DG', type: 'date' },
+    { key: 'milestone_orr_date', label: 'ORR', type: 'date' },
+    { key: 'milestone_closeout_date', label: 'Closeout', type: 'date' }
+  ];
+
+  var MEMO_COLUMNS = [
+    { key: 'milestone_atp_memo_date', label: 'ATP Memo', type: 'date', isMemo: true },
+    { key: 'milestone_f2i_memo_date', label: 'F2I Memo', type: 'date', isMemo: true },
+    { key: 'milestone_orr_memo_date', label: 'ORR Memo', type: 'date', isMemo: true },
+    { key: 'milestone_closeout_memo_date', label: 'Closeout Memo', type: 'date', isMemo: true }
+  ];
+
+  var SEP_COLUMNS = [
+    { key: 'sep_1', label: 'WS1/TP4', type: 'sep', wsKey: 'sep_ws1_date', tpKey: 'sep_tp4_date' },
+    { key: 'sep_2', label: 'WS2/TP5', type: 'sep', wsKey: 'sep_ws2_date', tpKey: 'sep_tp5_date' },
+    { key: 'sep_3', label: 'WS3/TP6', type: 'sep', wsKey: 'sep_ws3_date', tpKey: 'sep_tp6_date' },
+    { key: 'sep_4', label: 'WS4/TP7', type: 'sep', wsKey: 'sep_ws4_date', tpKey: 'sep_tp7_date' },
+    { key: 'sep_5', label: 'WS5/TP8', type: 'sep', wsKey: 'sep_ws5_date', tpKey: 'sep_tp8_date' }
+  ];
+
+  function init() {
+    // Restore toggle states from localStorage
+    if (localStorage.getItem('topsheet_showSEP') === 'true') {
+      state.showSEP = true;
+      var sepToggle = document.getElementById('showSepToggle');
+      if (sepToggle) sepToggle.checked = true;
+    }
+    if (localStorage.getItem('topsheet_showDocs') === 'true') {
+      state.showDocs = true;
+      var docsToggle = document.getElementById('showDocsToggle');
+      if (docsToggle) docsToggle.checked = true;
+    }
+
+    // Restore groupBy from localStorage
+    var savedGroupBy = localStorage.getItem('topsheet_groupBy') || '';
+    state.groupBy = savedGroupBy;
+    var groupBySelect = document.getElementById('filterGroupBy');
+    if (groupBySelect) groupBySelect.value = savedGroupBy;
+
+    // Close picker when clicking outside
+    document.addEventListener('click', function(e) {
+      var picker = document.getElementById('solutionPickerDropdown');
+      var btn = document.getElementById('solutionPickerBtn');
+      if (state.pickerOpen && picker && btn && !picker.contains(e.target) && !btn.contains(e.target)) {
+        closePicker();
+      }
+    });
+
+    loadSolutions();
+  }
+
+  function loadSolutions() {
+    showLoading(true);
+
+    google.script.run
+      .withSuccessHandler(function(solutions) {
+        state.solutions = solutions || [];
+        state.filteredSolutions = state.solutions.slice();
+        state.loaded = true;
+
+        // Initialize picker with solutions
+        populatePicker();
+
+        // Try to restore selected solutions from localStorage
+        var savedSelection = localStorage.getItem('topsheet_selectedSolutions');
+        if (savedSelection) {
+          try {
+            state.selectedSolutions = JSON.parse(savedSelection);
+          } catch (e) {
+            selectDefault();
+          }
+        } else {
+          selectDefault();
+        }
+
+        updatePickerLabel();
+        applyFilters();
+        showLoading(false);
+      })
+      .withFailureHandler(function(err) {
+        console.error('Failed to load solutions:', err);
+        showLoading(false);
+        showError('Failed to load solutions');
+      })
+      .getAllSolutions();
+  }
+
+  function showLoading(show) {
+    var loadingEl = document.getElementById('loadingState');
+    var tableEl = document.getElementById('topsheetTable');
+    if (loadingEl) loadingEl.style.display = show ? 'flex' : 'none';
+    if (tableEl) tableEl.style.display = show ? 'none' : 'table';
+  }
+
+  function showError(msg) {
+    var emptyEl = document.getElementById('emptyState');
+    if (emptyEl) {
+      emptyEl.innerHTML = '<span class="material-icons">error</span><p>' + escapeHtml(msg) + '</p>';
+      emptyEl.style.display = 'flex';
+    }
+  }
+
+  function toggleSEP() {
+    var toggle = document.getElementById('showSepToggle');
+    state.showSEP = toggle ? toggle.checked : false;
+    localStorage.setItem('topsheet_showSEP', state.showSEP);
+    render();
+  }
+
+  function toggleDocs() {
+    var toggle = document.getElementById('showDocsToggle');
+    state.showDocs = toggle ? toggle.checked : false;
+    localStorage.setItem('topsheet_showDocs', state.showDocs);
+    render();
+  }
+
+  function buildColumns() {
+    var columns = CORE_COLUMNS.slice();
+
+    // Add DG columns, interleaved with memo columns if showDocs is true
+    if (state.showDocs) {
+      for (var i = 0; i < DG_COLUMNS.length; i++) {
+        columns.push(DG_COLUMNS[i]);
+        columns.push(MEMO_COLUMNS[i]);
+      }
+    } else {
+      columns = columns.concat(DG_COLUMNS);
+    }
+
+    // Add SEP columns if enabled
+    if (state.showSEP) {
+      columns = columns.concat(SEP_COLUMNS);
+    }
+
+    return columns;
+  }
+
+  function applyFilters() {
+    var searchFilter = (document.getElementById('filterSearch').value || '').toLowerCase().trim();
+    var groupBySelect = document.getElementById('filterGroupBy');
+    state.groupBy = groupBySelect ? groupBySelect.value : '';
+    localStorage.setItem('topsheet_groupBy', state.groupBy);
+
+    state.filteredSolutions = state.solutions.filter(function(sol) {
+      // Solution selection filter
+      if (!state.selectedSolutions[sol.core_id]) {
+        return false;
+      }
+
+      // Search filter
+      if (searchFilter) {
+        var searchText = [
+          sol.core_id || '',
+          sol.core_official_name || '',
+          sol.core_group || '',
+          sol.admin_lifecycle_phase || ''
+        ].join(' ').toLowerCase();
+
+        if (searchText.indexOf(searchFilter) === -1) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    // Apply current sort
+    sortData();
+    render();
+  }
+
+  function clearFilters() {
+    document.getElementById('filterSearch').value = '';
+    var groupBySelect = document.getElementById('filterGroupBy');
+    if (groupBySelect) groupBySelect.value = '';
+    selectDefault();
+  }
+
+  function sortBy(columnKey) {
+    if (state.sortColumn === columnKey) {
+      state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      state.sortColumn = columnKey;
+      state.sortDirection = 'asc';
+    }
+    sortData();
+    render();
+  }
+
+  function sortData() {
+    var col = state.sortColumn;
+    var dir = state.sortDirection === 'asc' ? 1 : -1;
+
+    // If grouping is enabled, sort by group first
+    if (state.groupBy) {
+      state.filteredSolutions.sort(function(a, b) {
+        var groupA = getGroupValue(a);
+        var groupB = getGroupValue(b);
+
+        // "No Group/Cycle/Phase" goes to the end
+        var aIsEmpty = groupA.indexOf('No ') === 0 || groupA === 'Ungrouped';
+        var bIsEmpty = groupB.indexOf('No ') === 0 || groupB === 'Ungrouped';
+
+        if (aIsEmpty && !bIsEmpty) return 1;
+        if (!aIsEmpty && bIsEmpty) return -1;
+
+        // Sort by group name first
+        if (groupA !== groupB) {
+          return groupA.localeCompare(groupB);
+        }
+
+        // Within same group, sort by the selected column
+        return compareValues(a, b, col, dir);
+      });
+    } else {
+      state.filteredSolutions.sort(function(a, b) {
+        return compareValues(a, b, col, dir);
+      });
+    }
+  }
+
+  function compareValues(a, b, col, dir) {
+    var valA = a[col];
+    var valB = b[col];
+
+    // Handle nulls
+    if (!valA && !valB) return 0;
+    if (!valA) return 1;
+    if (!valB) return -1;
+
+    // Handle dates
+    if (col.indexOf('date') !== -1) {
+      var dateA = parseDate(valA);
+      var dateB = parseDate(valB);
+      if (dateA && dateB) return (dateA - dateB) * dir;
+      if (!dateA) return 1;
+      if (!dateB) return -1;
+    }
+
+    // String comparison
+    return String(valA).localeCompare(String(valB)) * dir;
+  }
+
+  function parseDate(dateStr) {
+    if (!dateStr) return null;
+    var d = new Date(dateStr);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '--';
+    var d = parseDate(dateStr);
+    if (!d) return '--';
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  function getDateClass(dateStr) {
+    if (!dateStr) return 'date-empty';
+    var d = parseDate(dateStr);
+    if (!d) return 'date-empty';
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return d < today ? 'date-past' : 'date-future';
+  }
+
+  function render() {
+    var columns = buildColumns();
+
+    renderHeader(columns);
+    renderBody(columns);
+
+    // Show/hide empty state
+    var emptyEl = document.getElementById('emptyState');
+    var tableEl = document.getElementById('topsheetTable');
+    if (state.filteredSolutions.length === 0 && state.loaded) {
+      if (emptyEl) emptyEl.style.display = 'flex';
+      if (tableEl) tableEl.style.display = 'none';
+    } else {
+      if (emptyEl) emptyEl.style.display = 'none';
+      if (tableEl) tableEl.style.display = 'table';
+    }
+  }
+
+  function renderHeader(columns) {
+    var headerRow = document.getElementById('tableHeader');
+    if (!headerRow) return;
+
+    var html = '';
+    columns.forEach(function(col) {
+      var isSorted = state.sortColumn === col.key;
+      var sortedClass = isSorted ? ' sorted' : '';
+      var stickyClass = col.sticky ? ' sticky ' + col.className : '';
+      var sepClass = col.type === 'sep' ? ' sep-header' : '';
+      var memoClass = col.isMemo ? ' memo-header' : '';
+      var sortIcon = isSorted ? (state.sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more';
+
+      html += '<th class="' + stickyClass + sepClass + memoClass + sortedClass + '" onclick="TopSheet.sortBy(\'' + col.key + '\')">';
+      html += escapeHtml(col.label);
+      html += '<span class="material-icons sort-icon">' + sortIcon + '</span>';
+      html += '</th>';
+    });
+
+    headerRow.innerHTML = html;
+  }
+
+  function renderBody(columns) {
+    var tbody = document.getElementById('tableBody');
+    if (!tbody) return;
+
+    var html = '';
+    var currentGroup = null;
+    var colCount = columns.length;
+
+    state.filteredSolutions.forEach(function(sol) {
+      // Check if we need a group header
+      if (state.groupBy) {
+        var groupValue = getGroupValue(sol);
+        if (groupValue !== currentGroup) {
+          currentGroup = groupValue;
+          html += '<tr class="group-header-row">';
+          html += '<td colspan="' + colCount + '">';
+          html += '<span class="material-icons">folder</span>';
+          html += escapeHtml(groupValue || 'Ungrouped');
+          html += '</td>';
+          html += '</tr>';
+        }
+      }
+
+      html += '<tr>';
+      columns.forEach(function(col) {
+        var stickyClass = col.sticky ? ' sticky ' + col.className : '';
+
+        if (col.key === 'core_id') {
+          // Solution link
+          html += '<td class="' + stickyClass + '">';
+          html += '<span class="solution-link" onclick="TopSheet.openSolution(\'' + escapeAttr(sol.core_id) + '\')">';
+          html += escapeHtml((sol.core_id || '').toUpperCase());
+          html += '</span>';
+          html += '</td>';
+        } else if (col.key === 'core_cycle') {
+          html += '<td class="' + stickyClass + '">C' + escapeHtml(sol.core_cycle || '?') + '</td>';
+        } else if (col.key === 'admin_lifecycle_phase') {
+          var phase = sol.admin_lifecycle_phase || '';
+          html += '<td class="' + stickyClass + '">' + escapeHtml(phase || '--') + '</td>';
+        } else if (col.type === 'date') {
+          var dateVal = sol[col.key];
+          var dateClass = getDateClass(dateVal);
+          html += '<td class="date-cell ' + dateClass + '">' + formatDate(dateVal) + '</td>';
+        } else if (col.type === 'sep') {
+          // Combined WS/TP cell
+          var wsDate = sol[col.wsKey];
+          var tpDate = sol[col.tpKey];
+          html += '<td class="date-cell">';
+          html += '<div class="combined-date">';
+          html += '<span class="ws-date">' + (wsDate ? formatDate(wsDate) : '--') + '</span>';
+          html += '<span class="tp-date">' + (tpDate ? formatDate(tpDate) : '--') + '</span>';
+          html += '</div>';
+          html += '</td>';
+        } else {
+          html += '<td>' + escapeHtml(sol[col.key] || '') + '</td>';
+        }
+      });
+      html += '</tr>';
+    });
+
+    tbody.innerHTML = html;
+  }
+
+  function getGroupValue(sol) {
+    switch (state.groupBy) {
+      case 'cycle':
+        return sol.core_cycle ? 'Cycle ' + sol.core_cycle : 'No Cycle';
+      case 'phase':
+        return sol.admin_lifecycle_phase || 'No Phase';
+      case 'group':
+        return sol.core_group || 'No Group';
+      default:
+        return null;
+    }
+  }
+
+  function openSolution(solutionId) {
+    var sol = state.solutions.find(function(s) {
+      return s.core_id && s.core_id.toLowerCase() === solutionId.toLowerCase();
+    });
+    if (!sol) return;
+
+    document.getElementById('modalTitle').textContent = (sol.core_id || '').toUpperCase();
+    document.getElementById('modalBody').innerHTML = buildModalContent(sol);
+    document.getElementById('solutionModal').classList.add('active');
+  }
+
+  function buildModalContent(sol) {
+    var html = '';
+
+    // Basic info section
+    html += '<div class="modal-section">';
+    html += '<div class="modal-info-grid">';
+    html += '<div class="modal-info-item"><div class="modal-info-label">Cycle</div><div class="modal-info-value">C' + escapeHtml(sol.core_cycle || '?') + '</div></div>';
+    html += '<div class="modal-info-item"><div class="modal-info-label">Phase</div><div class="modal-info-value">' + escapeHtml(sol.admin_lifecycle_phase || '--') + '</div></div>';
+    html += '<div class="modal-info-item"><div class="modal-info-label">Group</div><div class="modal-info-value">' + escapeHtml(sol.core_group || '--') + '</div></div>';
+    html += '</div>';
+    html += '</div>';
+
+    // Implementation Milestones
+    html += '<div class="modal-section">';
+    html += '<div class="modal-section-title">Implementation Milestones</div>';
+    html += '<table class="milestone-table">';
+    html += '<tr><th>Milestone</th><th>Date</th>';
+    if (state.showDocs) html += '<th>Memo</th>';
+    html += '</tr>';
+
+    var dgMilestones = [
+      { label: 'ATP DG', dateKey: 'milestone_atp_date', memoKey: 'milestone_atp_memo_date' },
+      { label: 'F2I DG', dateKey: 'milestone_f2i_date', memoKey: 'milestone_f2i_memo_date' },
+      { label: 'ORR', dateKey: 'milestone_orr_date', memoKey: 'milestone_orr_memo_date' },
+      { label: 'Closeout', dateKey: 'milestone_closeout_date', memoKey: 'milestone_closeout_memo_date' }
+    ];
+
+    dgMilestones.forEach(function(m) {
+      var dateVal = sol[m.dateKey];
+      var memoVal = sol[m.memoKey];
+      html += '<tr>';
+      html += '<td>' + escapeHtml(m.label) + '</td>';
+      html += '<td class="' + getDateClass(dateVal) + '">' + formatDate(dateVal) + '</td>';
+      if (state.showDocs) {
+        html += '<td class="' + getDateClass(memoVal) + '">' + formatDate(memoVal) + '</td>';
+      }
+      html += '</tr>';
+    });
+
+    html += '</table>';
+    html += '</div>';
+
+    // SEP Milestones (if visible)
+    if (state.showSEP) {
+      html += '<div class="modal-section">';
+      html += '<div class="modal-section-title sep-section-title">SEP Milestones</div>';
+      html += '<table class="milestone-table">';
+      html += '<tr><th>Milestone</th><th>Working Session</th><th>Touchpoint</th></tr>';
+
+      var sepMilestones = [
+        { label: 'WS1/TP4', wsKey: 'sep_ws1_date', tpKey: 'sep_tp4_date' },
+        { label: 'WS2/TP5', wsKey: 'sep_ws2_date', tpKey: 'sep_tp5_date' },
+        { label: 'WS3/TP6', wsKey: 'sep_ws3_date', tpKey: 'sep_tp6_date' },
+        { label: 'WS4/TP7', wsKey: 'sep_ws4_date', tpKey: 'sep_tp7_date' },
+        { label: 'WS5/TP8', wsKey: 'sep_ws5_date', tpKey: 'sep_tp8_date' }
+      ];
+
+      sepMilestones.forEach(function(m) {
+        var wsVal = sol[m.wsKey];
+        var tpVal = sol[m.tpKey];
+        html += '<tr>';
+        html += '<td>' + escapeHtml(m.label) + '</td>';
+        html += '<td class="' + getDateClass(wsVal) + '">' + formatDate(wsVal) + '</td>';
+        html += '<td class="' + getDateClass(tpVal) + '">' + formatDate(tpVal) + '</td>';
+        html += '</tr>';
+      });
+
+      html += '</table>';
+      html += '</div>';
+    }
+
+    return html;
+  }
+
+  function closeModal(event) {
+    if (!event || event.target === document.getElementById('solutionModal')) {
+      document.getElementById('solutionModal').classList.remove('active');
+    }
+  }
+
+  function exportCSV() {
+    var columns = buildColumns();
+
+    // Build column definitions for export
+    var exportColumns = [];
+    columns.forEach(function(col) {
+      if (col.type === 'sep') {
+        // Split SEP columns into WS and TP
+        exportColumns.push({ key: col.wsKey, label: col.label.split('/')[0] });
+        exportColumns.push({ key: col.tpKey, label: col.label.split('/')[1] });
+      } else {
+        exportColumns.push({ key: col.key, label: col.label });
+      }
+    });
+
+    exportToCSV(state.filteredSolutions, exportColumns, 'solution-top-sheet');
+  }
+
+  // === Solution Picker Functions ===
+
+  function populatePicker() {
+    var listEl = document.getElementById('pickerList');
+    if (!listEl) return;
+
+    // Sort solutions by cycle then by name
+    var sortedSolutions = state.solutions.slice().sort(function(a, b) {
+      var cycleA = a.core_cycle || 0;
+      var cycleB = b.core_cycle || 0;
+      if (cycleA !== cycleB) return cycleA - cycleB;
+      return (a.core_id || '').localeCompare(b.core_id || '');
+    });
+
+    var html = '';
+    sortedSolutions.forEach(function(sol) {
+      var id = sol.core_id || '';
+      var cycle = sol.core_cycle ? 'C' + sol.core_cycle : '';
+      html += '<label class="picker-item">';
+      html += '<input type="checkbox" data-id="' + escapeAttr(id) + '" onchange="TopSheet.onSolutionToggle(this)">';
+      html += '<span class="picker-item-label">' + escapeHtml(id.toUpperCase()) + '</span>';
+      html += '<span class="picker-item-cycle">' + escapeHtml(cycle) + '</span>';
+      html += '</label>';
+    });
+
+    listEl.innerHTML = html;
+  }
+
+  function updatePickerCheckboxes() {
+    var listEl = document.getElementById('pickerList');
+    if (!listEl) return;
+
+    var checkboxes = listEl.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(function(cb) {
+      var id = cb.getAttribute('data-id');
+      cb.checked = state.selectedSolutions[id] === true;
+    });
+  }
+
+  function updatePickerLabel() {
+    var labelEl = document.getElementById('pickerLabel');
+    if (!labelEl) return;
+
+    var selectedCount = Object.keys(state.selectedSolutions).filter(function(k) {
+      return state.selectedSolutions[k];
+    }).length;
+
+    var total = state.solutions.length;
+
+    if (selectedCount === 0) {
+      labelEl.textContent = 'None selected';
+    } else if (selectedCount === total) {
+      labelEl.textContent = 'All (' + total + ')';
+    } else {
+      labelEl.textContent = selectedCount + ' of ' + total;
+    }
+  }
+
+  function togglePicker() {
+    state.pickerOpen = !state.pickerOpen;
+    var dropdown = document.getElementById('solutionPickerDropdown');
+    var btn = document.getElementById('solutionPickerBtn');
+    if (dropdown) dropdown.classList.toggle('open', state.pickerOpen);
+    if (btn) btn.classList.toggle('open', state.pickerOpen);
+
+    if (state.pickerOpen) {
+      updatePickerCheckboxes();
+    }
+  }
+
+  function closePicker() {
+    state.pickerOpen = false;
+    var dropdown = document.getElementById('solutionPickerDropdown');
+    var btn = document.getElementById('solutionPickerBtn');
+    if (dropdown) dropdown.classList.remove('open');
+    if (btn) btn.classList.remove('open');
+  }
+
+  function selectDefault() {
+    state.selectedSolutions = {};
+    state.solutions.forEach(function(sol) {
+      // Select if admin_default_in_dashboard is 'Y' or 'y'
+      var isDefault = (sol.admin_default_in_dashboard || '').toLowerCase() === 'y';
+      if (isDefault) {
+        state.selectedSolutions[sol.core_id] = true;
+      }
+    });
+
+    // If no defaults found, select all
+    var hasSelection = Object.keys(state.selectedSolutions).some(function(k) {
+      return state.selectedSolutions[k];
+    });
+    if (!hasSelection) {
+      selectAll();
+      return;
+    }
+
+    saveSelection();
+    updatePickerCheckboxes();
+    updatePickerLabel();
+    applyFilters();
+  }
+
+  function selectAll() {
+    state.selectedSolutions = {};
+    state.solutions.forEach(function(sol) {
+      state.selectedSolutions[sol.core_id] = true;
+    });
+    saveSelection();
+    updatePickerCheckboxes();
+    updatePickerLabel();
+    applyFilters();
+  }
+
+  function selectNone() {
+    state.selectedSolutions = {};
+    saveSelection();
+    updatePickerCheckboxes();
+    updatePickerLabel();
+    applyFilters();
+  }
+
+  function onSolutionToggle(checkbox) {
+    var id = checkbox.getAttribute('data-id');
+    state.selectedSolutions[id] = checkbox.checked;
+    saveSelection();
+    updatePickerLabel();
+    applyFilters();
+  }
+
+  function saveSelection() {
+    localStorage.setItem('topsheet_selectedSolutions', JSON.stringify(state.selectedSolutions));
+  }
+
+  // Public API
+  return {
+    init: init,
+    toggleSEP: toggleSEP,
+    toggleDocs: toggleDocs,
+    applyFilters: applyFilters,
+    clearFilters: clearFilters,
+    sortBy: sortBy,
+    openSolution: openSolution,
+    closeModal: closeModal,
+    exportCSV: exportCSV,
+    togglePicker: togglePicker,
+    selectDefault: selectDefault,
+    selectAll: selectAll,
+    selectNone: selectNone,
+    onSolutionToggle: onSolutionToggle
+  };
+})();
+
+// Initialize on page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', TopSheet.init);
+} else {
+  TopSheet.init();
+}
+</script>
