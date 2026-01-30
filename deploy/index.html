@@ -19,6 +19,9 @@
   <?!= include('shared-page-styles'); ?>
 </head>
 <body>
+  <!-- Skip to main content link for keyboard users -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
   <!-- Header -->
   <header class="header">
     <div class="header-left">
@@ -59,7 +62,7 @@
   <?!= include('navigation'); ?>
 
   <!-- Main Content Area -->
-  <main class="main-content">
+  <main class="main-content" id="main-content">
     <div class="content-wrapper" id="contentArea">
       <? if (activePage === 'implementation') { ?>
         <?!= include('implementation'); ?>
@@ -113,7 +116,7 @@
     <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
       <div class="modal-header">
         <h2 class="modal-title">Send Feedback</h2>
-        <button class="modal-close" onclick="closeFeedbackModal()">&times;</button>
+        <button class="modal-close" onclick="closeFeedbackModal()" aria-label="Close dialog">&times;</button>
       </div>
       <div class="modal-body">
         <form id="feedbackForm" onsubmit="submitFeedback(event)">
@@ -468,8 +471,35 @@
       if (!modal) return;
       if (!event || event.target === modal) {
         modal.classList.remove('active');
+        modal.classList.remove('show');
       }
     }
+
+    /**
+     * Close any open modal (for Escape key handling)
+     */
+    function closeActiveModal() {
+      // Check for modals with 'active' class
+      var activeModal = document.querySelector('.modal.active, .modal-overlay.active');
+      if (activeModal) {
+        activeModal.classList.remove('active');
+        return true;
+      }
+      // Check for modals with 'show' class (team.html pattern)
+      var showModal = document.querySelector('.modal.show');
+      if (showModal) {
+        showModal.classList.remove('show');
+        return true;
+      }
+      return false;
+    }
+
+    // Global Escape key handler for modals
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeActiveModal();
+      }
+    });
 
     // ========================================================================
     // DATE UTILITIES
@@ -870,6 +900,9 @@
         container = document.createElement('div');
         container.id = 'toast-container';
         container.className = 'toast-container';
+        container.setAttribute('role', 'status');
+        container.setAttribute('aria-live', 'polite');
+        container.setAttribute('aria-label', 'Notifications');
         document.body.appendChild(container);
       }
 
@@ -885,7 +918,7 @@
       toast.innerHTML =
         '<span class="toast-icon"><span class="material-icons">' + icons[type] + '</span></span>' +
         '<span class="toast-content">' + message + '</span>' +
-        '<button class="toast-close" onclick="this.parentElement.remove()"><span class="material-icons">close</span></button>';
+        '<button class="toast-close" onclick="this.parentElement.remove()" aria-label="Dismiss notification"><span class="material-icons" aria-hidden="true">close</span></button>';
 
       container.appendChild(toast);
 

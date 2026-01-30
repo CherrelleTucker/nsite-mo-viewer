@@ -18,6 +18,65 @@
  */
 
 /* ==========================================================================
+   ACCESSIBILITY - Focus Styles
+   ========================================================================== */
+
+/* Skip to main content link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--color-primary);
+  color: white;
+  padding: 8px 16px;
+  z-index: 10000;
+  text-decoration: none;
+  border-radius: 0 0 4px 0;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Global focus-visible styles for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--page-accent, var(--color-primary));
+  outline-offset: 2px;
+}
+
+/* Remove default outline for mouse users, keep for keyboard */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Buttons and interactive elements */
+button:focus-visible,
+.btn:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--page-accent, var(--color-primary));
+  outline-offset: 2px;
+}
+
+/* Modal close button focus */
+.modal-close:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+/* View toggle buttons */
+.view-btn:focus-visible {
+  outline: 2px solid var(--page-accent, var(--color-primary));
+  outline-offset: -2px;
+}
+
+/* Stat cards when focusable */
+.stat-card:focus-visible {
+  outline: 2px solid var(--page-accent, var(--color-primary));
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
    PAGE HEADER
    ========================================================================== */
 
@@ -312,8 +371,15 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  outline: none;
   border-color: var(--page-accent, var(--color-primary));
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb, 59, 130, 246), 0.15);
+}
+
+.form-group input:focus-visible,
+.form-group select:focus-visible,
+.form-group textarea:focus-visible {
+  outline: 2px solid var(--page-accent, var(--color-primary));
+  outline-offset: 1px;
 }
 
 .form-row {

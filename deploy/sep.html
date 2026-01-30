@@ -248,7 +248,7 @@
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title" id="modalSolutionName">Solution Details</h2>
-      <button class="modal-close" onclick="SEP.closeModal('solutionModal')">&times;</button>
+      <button class="modal-close" onclick="SEP.closeModal('solutionModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body" id="solutionModalBody">
       <!-- Dynamic content -->
@@ -261,7 +261,7 @@
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title">Log Engagement</h2>
-      <button class="modal-close" onclick="SEP.closeModal('engagementModal')">&times;</button>
+      <button class="modal-close" onclick="SEP.closeModal('engagementModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
       <form id="engagementForm" onsubmit="SEP.submitEngagement(event)">
@@ -340,7 +340,7 @@
   <div class="modal-content modal-md" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title" id="modalContactName">Contact Details</h2>
-      <button class="modal-close" onclick="SEP.closeModal('contactModal')">&times;</button>
+      <button class="modal-close" onclick="SEP.closeModal('contactModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body" id="contactModalBody">
       <!-- Populated dynamically -->
@@ -353,7 +353,7 @@
   <div class="modal-content modal-md" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title">Engagement Details</h2>
-      <button class="modal-close" onclick="SEP.closeModal('engagementDetailModal')">&times;</button>
+      <button class="modal-close" onclick="SEP.closeModal('engagementDetailModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body" id="engagementDetailContent">
       <!-- Populated dynamically -->
@@ -366,7 +366,7 @@
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title">All Engagements</h2>
-      <button class="modal-close" onclick="SEP.closeModal('allEngagementsModal')">&times;</button>
+      <button class="modal-close" onclick="SEP.closeModal('allEngagementsModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
       <!-- Filters -->
@@ -412,7 +412,7 @@
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title" id="contactHistoryTitle">Engagement History</h2>
-      <button class="modal-close" onclick="SEP.closeModal('contactHistoryModal')">&times;</button>
+      <button class="modal-close" onclick="SEP.closeModal('contactHistoryModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body" id="contactHistoryContent">
       <div class="loading-state"><span class="loading-spinner"></span></div>
@@ -425,7 +425,7 @@
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title">Add Contact to <span id="linkContactAgencyName">Agency</span></h2>
-      <button class="modal-close" onclick="SEP.closeModal('linkContactModal')">&times;</button>
+      <button class="modal-close" onclick="SEP.closeModal('linkContactModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
       <div class="form-group">
@@ -479,7 +479,7 @@
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title">Compose Email</h2>
-      <button class="modal-close" onclick="SEP.closeModal('emailTemplateModal')">&times;</button>
+      <button class="modal-close" onclick="SEP.closeModal('emailTemplateModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
       <div class="email-composer">
@@ -2958,7 +2958,7 @@ var SEP = (function() {
     html += '<span class="quad-id">' + escapeHtml(sol.core_id) + '</span>';
     html += '<span class="milestone-badge">' + escapeHtml(milestone) + '</span>';
     html += '</div>';
-    html += '<button class="btn btn-sm btn-icon" onclick="event.stopPropagation(); SEP.logEngagementForSolution(\'' + escapeAttr(sol.core_id) + '\')" title="Log Engagement"><span class="material-icons">add</span></button>';
+    html += '<button class="btn btn-sm btn-icon" onclick="event.stopPropagation(); SEP.logEngagementForSolution(\'' + escapeAttr(sol.core_id) + '\')" aria-label="Log engagement for this solution"><span class="material-icons" aria-hidden="true">add</span></button>';
     html += '</div>';
     html += '<div class="quad-name">' + escapeHtml(sol.core_official_name || '') + '</div>';
     html += '<div class="quad-stats-row">';
@@ -4067,11 +4067,11 @@ return;
         }
         html += '</div>';
         html += '<div class="contact-actions">';
-        html += '<button class="contact-action-btn" onclick="event.stopPropagation(); SEP.logEngagementFor(\'' + escapeAttr(c.email) + '\')" title="Log Engagement"><span class="material-icons">add_circle</span></button>';
+        html += '<button class="contact-action-btn" onclick="event.stopPropagation(); SEP.logEngagementFor(\'' + escapeAttr(c.email) + '\')" aria-label="Log engagement"><span class="material-icons" aria-hidden="true">add_circle</span></button>';
         if (c.email) {
-          html += '<a class="contact-action-btn" href="mailto:' + escapeAttr(c.email) + '" onclick="event.stopPropagation();" title="Send Email"><span class="material-icons">email</span></a>';
+          html += '<a class="contact-action-btn" href="mailto:' + escapeAttr(c.email) + '" onclick="event.stopPropagation();" aria-label="Send email"><span class="material-icons" aria-hidden="true">email</span></a>';
         }
-        html += '<button class="contact-action-btn contact-action-remove" onclick="event.stopPropagation(); SEP.removeContactFromAgency(\'' + escapeAttr(c.email) + '\', \'' + escapeAttr(agency.agency_id) + '\')" title="Remove from Agency"><span class="material-icons">person_remove</span></button>';
+        html += '<button class="contact-action-btn contact-action-remove" onclick="event.stopPropagation(); SEP.removeContactFromAgency(\'' + escapeAttr(c.email) + '\', \'' + escapeAttr(agency.agency_id) + '\')" aria-label="Remove from agency"><span class="material-icons" aria-hidden="true">person_remove</span></button>';
         html += '</div>';
         html += '</div>';
       });
@@ -5227,8 +5227,8 @@ return;
     html += '<div style="flex: 1;"><div style="font-size: 16px; font-weight: 600;">' + escapeHtml(e.subject || 'No subject') + '</div>';
     html += '<div style="color: var(--color-text-secondary); font-size: 13px;">' + escapeHtml(e.activity_type || 'Unknown') + '</div></div>';
     html += '<div class="engagement-detail-actions">';
-    html += '<button class="btn btn-sm btn-secondary" onclick="SEP.showEngagementEditForm()" title="Edit"><span class="material-icons">edit</span></button>';
-    html += '<button class="btn btn-sm btn-danger" onclick="SEP.deleteEngagement()" title="Delete"><span class="material-icons">delete</span></button>';
+    html += '<button class="btn btn-sm btn-secondary" onclick="SEP.showEngagementEditForm()" aria-label="Edit engagement"><span class="material-icons" aria-hidden="true">edit</span></button>';
+    html += '<button class="btn btn-sm btn-danger" onclick="SEP.deleteEngagement()" aria-label="Delete engagement"><span class="material-icons" aria-hidden="true">delete</span></button>';
     html += '</div>';
     html += '</div>';
 
@@ -5285,7 +5285,7 @@ return;
     html += '<div style="flex: 1;">';
     html += '<input type="text" id="detailSubject" value="' + escapeAttr(e.subject || '') + '" placeholder="Subject" required style="font-size: 16px; font-weight: 600; width: 100%; border: none; border-bottom: 1px solid var(--color-border); padding: 4px 0; background: transparent;">';
     html += '</div>';
-    html += '<button type="button" class="btn btn-sm btn-danger" onclick="SEP.deleteEngagement()" title="Delete"><span class="material-icons">delete</span></button>';
+    html += '<button type="button" class="btn btn-sm btn-danger" onclick="SEP.deleteEngagement()" aria-label="Delete engagement"><span class="material-icons" aria-hidden="true">delete</span></button>';
     html += '</div>';
 
     // Form fields in a grid

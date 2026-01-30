@@ -549,7 +549,7 @@
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title" id="modalStoryTitle">Story Details</h2>
-      <button class="modal-close" onclick="COMMS.closeModal('storyModal')">&times;</button>
+      <button class="modal-close" onclick="COMMS.closeModal('storyModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body" id="storyModalBody">
       <!-- Dynamic content -->
@@ -562,7 +562,7 @@
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title" id="editStoryModalTitle">New Story</h2>
-      <button class="modal-close" onclick="COMMS.closeModal('editStoryModal')">&times;</button>
+      <button class="modal-close" onclick="COMMS.closeModal('editStoryModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
       <form id="storyForm" onsubmit="COMMS.submitStory(event)">
@@ -742,7 +742,7 @@
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title">Add New Event</h2>
-      <button class="modal-close" onclick="COMMS.closeModal('addEventModal')">&times;</button>
+      <button class="modal-close" onclick="COMMS.closeModal('addEventModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
       <form id="addEventForm" onsubmit="COMMS.submitNewEvent(event)">
@@ -819,7 +819,7 @@
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title" id="modalEventName">Event Details</h2>
-      <button class="modal-close" onclick="COMMS.closeModal('eventModal')">&times;</button>
+      <button class="modal-close" onclick="COMMS.closeModal('eventModal')" aria-label="Close dialog">&times;</button>
     </div>
     <!-- Modal Tabs -->
     <div class="modal-tabs">
@@ -894,7 +894,7 @@
   <div class="modal-content modal-md" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title">Add New Contact</h2>
-      <button class="modal-close" onclick="COMMS.closeModal('newContactFromEventModal')">&times;</button>
+      <button class="modal-close" onclick="COMMS.closeModal('newContactFromEventModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
       <form id="newContactFromEventForm" onsubmit="COMMS.submitNewContactFromEvent(event)">
@@ -3401,7 +3401,7 @@ return;
         html += '<button class="btn btn-secondary" id="advanceStatusBtn" onclick="COMMS.advanceStatus(\'' + escapeAttr(story.story_id) + '\', \'' + nextStatus + '\')"><span class="material-icons">arrow_forward</span> Move to ' + capitalizeFirst(nextStatus) + '</button>';
       }
     }
-    html += '<button class="btn btn-danger" id="deleteStoryBtn" style="margin-left: auto;" onclick="COMMS.deleteStory(\'' + escapeAttr(story.story_id) + '\')"><span class="material-icons">delete</span></button>';
+    html += '<button class="btn btn-danger" id="deleteStoryBtn" style="margin-left: auto;" onclick="COMMS.deleteStory(\'' + escapeAttr(story.story_id) + '\')" aria-label="Delete story"><span class="material-icons" aria-hidden="true">delete</span></button>';
     html += '</div>';
 
     html += '</div>';
@@ -4080,8 +4080,8 @@ return;
     html += '<span class="event-status ' + statusClass + '">' + (event.status || 'potential') + '</span>';
     html += '</div>';
     html += '<div class="event-detail-actions">';
-    html += '<button class="btn btn-sm btn-secondary" onclick="COMMS.showEventEditForm()" title="Edit"><span class="material-icons">edit</span></button>';
-    html += '<button class="btn btn-sm btn-danger" onclick="COMMS.deleteEvent(\'' + escapeAttr(event.event_id) + '\')" title="Delete"><span class="material-icons">delete</span></button>';
+    html += '<button class="btn btn-sm btn-secondary" onclick="COMMS.showEventEditForm()" aria-label="Edit event"><span class="material-icons" aria-hidden="true">edit</span></button>';
+    html += '<button class="btn btn-sm btn-danger" onclick="COMMS.deleteEvent(\'' + escapeAttr(event.event_id) + '\')" aria-label="Delete event"><span class="material-icons" aria-hidden="true">delete</span></button>';
     html += '</div>';
     html += '</div>';
 

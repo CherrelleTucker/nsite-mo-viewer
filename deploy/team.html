@@ -551,7 +551,7 @@
   <div class="modal-content modal-sm">
     <div class="modal-header">
       <h3>Add Availability Entry</h3>
-      <button class="modal-close" onclick="Team.closeModal('addAvailabilityModal')">&times;</button>
+      <button class="modal-close" onclick="Team.closeModal('addAvailabilityModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
       <form id="availabilityForm">
@@ -637,7 +637,7 @@
   <div class="modal-content">
     <div class="modal-header">
       <h3>Add Meeting</h3>
-      <button class="modal-close" onclick="Team.closeModal('addMeetingModal')">&times;</button>
+      <button class="modal-close" onclick="Team.closeModal('addMeetingModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
       <form id="meetingForm">
@@ -749,7 +749,7 @@
   <div class="modal-content modal-lg">
     <div class="modal-header">
       <h3 id="meetingDetailTitle">Meeting Details</h3>
-      <button class="modal-close" onclick="Team.closeModal('meetingDetailModal')">&times;</button>
+      <button class="modal-close" onclick="Team.closeModal('meetingDetailModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body" id="meetingDetailBody">
       <!-- Populated dynamically -->
@@ -766,7 +766,7 @@
   <div class="modal-content modal-lg">
     <div class="modal-header">
       <h3 id="memberDetailTitle">Team Member</h3>
-      <button class="modal-close" onclick="Team.closeModal('memberDetailModal')">&times;</button>
+      <button class="modal-close" onclick="Team.closeModal('memberDetailModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
       <div class="member-detail">
@@ -862,7 +862,7 @@
   <div class="modal-content modal-md">
     <div class="modal-header">
       <h3 id="plItemDetailTitle">Item Details</h3>
-      <button class="modal-close" onclick="Team.closeModal('plItemDetailModal')">&times;</button>
+      <button class="modal-close" onclick="Team.closeModal('plItemDetailModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
       <div class="pl-detail-header">
@@ -971,7 +971,7 @@
   <div class="modal-content">
     <div class="modal-header">
       <h3>Add Action</h3>
-      <button class="modal-close" onclick="Team.closeModal('addActionModal')">&times;</button>
+      <button class="modal-close" onclick="Team.closeModal('addActionModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
       <form id="add-action-form" onsubmit="return Team.submitAction(event)">
@@ -5336,7 +5336,7 @@
       assigneeField.className = 'detail-field';
       assigneeField.innerHTML = '<label>Assigned To</label>' +
         '<div class="value assignee-field"><span class="current-assignee">' + escapeHtml(action.assigned_to || 'Unassigned') + '</span>' +
-        '<button class="btn-reassign" onclick="Team.showReassign()" title="Reassign"><span class="material-icons">edit</span></button></div>';
+        '<button class="btn-reassign" onclick="Team.showReassign()" aria-label="Reassign action"><span class="material-icons" aria-hidden="true">edit</span></button></div>';
       container.appendChild(assigneeField);
 
       // Reassign form (hidden)

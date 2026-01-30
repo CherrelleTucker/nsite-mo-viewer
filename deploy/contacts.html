@@ -128,7 +128,7 @@
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title" id="modalContactName">Contact Details</h2>
-      <button class="modal-close" onclick="Contacts.closeModal()">&times;</button>
+      <button class="modal-close" onclick="Contacts.closeModal()" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body" id="modalBody">
       <!-- Dynamic content -->
@@ -141,7 +141,7 @@
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title">Add New Contact</h2>
-      <button class="modal-close" onclick="Contacts.closeAddModal()">&times;</button>
+      <button class="modal-close" onclick="Contacts.closeAddModal()" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
       <form id="addContactForm" onsubmit="return Contacts.submitNewContact(event)">

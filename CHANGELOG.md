@@ -204,6 +204,37 @@ Added state flags to prevent users from triggering duplicate API calls by clicki
 
 ---
 
+## [2.2.7] - 2026-01-30
+
+### Accessibility (Review 7)
+
+#### Skip to Main Content
+- Added skip link at top of page for keyboard users to bypass navigation
+- Link appears on first Tab press, jumps to main content area
+
+#### Focus Styles
+- Added `:focus-visible` styles globally for keyboard-only focus indicators
+- Buttons, links, form inputs, modal close buttons all show visible focus ring
+- Form inputs get outline + box-shadow on keyboard focus
+
+#### Screen Reader Support
+- Toast notifications now have `role="status"` and `aria-live="polite"` for announcements
+- Toast close button has `aria-label="Dismiss notification"`
+- All 26 modal close buttons now have `aria-label="Close dialog"`
+- Icon-only buttons (edit, delete, add) now have descriptive `aria-label` attributes
+- Icon elements marked with `aria-hidden="true"` to prevent duplicate announcements
+
+#### Keyboard Navigation
+- Global Escape key handler closes any open modal
+- Works with both `.active` and `.show` modal class patterns
+
+#### Files Updated
+- index.html, shared-page-styles.html
+- topsheet.html, contacts.html, actions.html, implementation.html
+- comms.html, sep.html, team.html
+
+---
+
 ## [Unreleased]
 
 ### Added
