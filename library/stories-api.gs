@@ -88,7 +88,8 @@ var CONTENT_TYPES = [
   'social_media',
   'external_mention',
   'nugget',
-  'key_date'
+  'key_date',
+  'highlighter_blurb'
 ];
 
 /**
@@ -100,7 +101,8 @@ var CONTENT_TYPE_NAMES = {
   'social_media': 'Social Media',
   'external_mention': 'External Mention',
   'nugget': 'Nugget Slide',
-  'key_date': 'Key Date'
+  'key_date': 'Key Date',
+  'highlighter_blurb': 'Highlighter Blurb'
 };
 
 /**
@@ -193,7 +195,8 @@ function createStory(storyData) {
         'social_media': 'SOC',
         'external_mention': 'EXT',
         'nugget': 'NUG',
-        'key_date': 'KEY'
+        'key_date': 'KEY',
+        'highlighter_blurb': 'HLB'
       }[contentType] || 'STY';
       var timestamp = new Date().getTime();
       storyData.story_id = prefix + '_' + timestamp;
@@ -934,16 +937,95 @@ function searchStories(query) {
 
 /**
  * Get stories for pipeline view (optimized for UI)
+ * Excludes highlighter_blurb content type since they show in Reporting section
  * @returns {Array} Stories with pipeline-relevant fields
  */
 function getPipelineStoriesForUI() {
   var stories = loadAllStories_();
 
-  // Filter to active pipeline (exclude archived)
+  // Filter to active pipeline (exclude archived and highlighter blurbs)
   var active = stories.filter(function(s) {
-    return s.status !== 'archived';
+    return s.status !== 'archived' && s.content_type !== 'highlighter_blurb';
   });
 
   // Return all fields for complete data in UI (no need for secondary fetch)
   return deepCopy(active);
+}
+
+// ============================================================================
+// HIGHLIGHTER BLURBS (HQ REPORTING)
+// ============================================================================
+
+/**
+ * Get highlighter blurbs for HQ reporting
+ * Blurbs are short updates sent to NASA HQ weekly (typically Tuesdays)
+ * @param {number} limit - Optional max results (default: 20)
+ * @returns {Array} Highlighter blurb records
+ */
+function getHighlighterBlurbs(limit) {
+  limit = limit || 20;
+  var stories = loadAllStories_();
+
+  var blurbs = stories.filter(function(s) {
+    return s.content_type === 'highlighter_blurb';
+  });
+
+  // Sort by target_date or created_date descending (most recent first)
+  blurbs.sort(function(a, b) {
+    var dateA = a.target_date || a.created_date || '';
+    var dateB = b.target_date || b.created_date || '';
+    return dateB.localeCompare(dateA);
+  });
+
+  return deepCopy(blurbs.slice(0, limit));
+}
+
+/**
+ * Get blurbs due this week (for Tuesday deadline)
+ * @returns {Array} Blurbs with target_date in current week
+ */
+function getBlurbsDueThisWeek() {
+  var stories = loadAllStories_();
+
+  // Calculate this week's Tuesday
+  var today = new Date();
+  var dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, 2=Tue...
+  var daysUntilTuesday = (2 - dayOfWeek + 7) % 7;
+  if (daysUntilTuesday === 0 && today.getHours() >= 17) {
+    daysUntilTuesday = 7; // If it's Tuesday evening, target next week
+  }
+
+  var nextTuesday = new Date(today);
+  nextTuesday.setDate(today.getDate() + daysUntilTuesday);
+  nextTuesday.setHours(23, 59, 59, 999);
+
+  var lastTuesday = new Date(nextTuesday);
+  lastTuesday.setDate(nextTuesday.getDate() - 7);
+  lastTuesday.setHours(0, 0, 0, 0);
+
+  var blurbs = stories.filter(function(s) {
+    if (s.content_type !== 'highlighter_blurb') return false;
+    if (!s.target_date) return false;
+    var targetDate = new Date(s.target_date);
+    return targetDate >= lastTuesday && targetDate <= nextTuesday;
+  });
+
+  return deepCopy(blurbs);
+}
+
+/**
+ * Get next Tuesday date for blurb deadline
+ * @returns {string} ISO date string for next Tuesday
+ */
+function getNextBlurbDeadline() {
+  var today = new Date();
+  var dayOfWeek = today.getDay();
+  var daysUntilTuesday = (2 - dayOfWeek + 7) % 7;
+  if (daysUntilTuesday === 0 && today.getHours() >= 17) {
+    daysUntilTuesday = 7;
+  }
+
+  var nextTuesday = new Date(today);
+  nextTuesday.setDate(today.getDate() + daysUntilTuesday);
+  return nextTuesday.toISOString().split('T')[0];
 }

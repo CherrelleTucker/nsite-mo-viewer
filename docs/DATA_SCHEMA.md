@@ -1,7 +1,7 @@
 # MO-Viewer Data Schema
 
-**Version:** 2.3.0
-**Date:** 2026-01-29
+**Version:** 2.5.0
+**Date:** 2026-02-02
 **Reference:** [ARCHITECTURE.md](../ARCHITECTURE.md)
 
 ---
@@ -375,29 +375,48 @@ Future table for SEP-NSITE viewer. Will track stakeholder engagement across the 
 
 ---
 
-### 4. STORIES
+### 4. STORIES (MO-DB_Stories)
 
-Primary table for Comms-Viewer. Tracks communications pipeline from idea to publication.
+**Status: ACTIVE** - Communications pipeline and content tracking
+
+Primary table for Comms-Viewer. Tracks communications pipeline from idea to publication, including Highlighter Blurbs for HQ reporting.
 
 | Column | Type | Required | Description |
 |--------|------|----------|-------------|
-| `story_id` | STRING | Yes | Primary key (e.g., "STORY_001") |
+| `story_id` | STRING | Yes | Primary key (e.g., "STY_001", "HLB_001") |
 | `title` | STRING | Yes | Story title/headline |
-| `solution_id` | STRING | No | Foreign key to SOLUTIONS |
+| `solution_id` | STRING | No | Foreign key to SOLUTIONS (core_id) |
+| `content_type` | STRING | Yes | Content type (see ContentType enum) |
 | `status` | STRING | Yes | Pipeline status (see StoryStatus enum) |
 | `channel` | STRING | No | Target channel (see Channel enum) |
 | `priority` | STRING | No | Priority level (high, medium, low) |
 | `admin_priority` | STRING | No | NASA admin priority alignment |
 | `description` | STRING | No | Story description/summary |
 | `key_message` | STRING | No | Key message to communicate |
+| `background_info` | STRING | No | Background context for Highlighter Blurbs (technical details, team, SNWG boilerplate) |
+| `blurb_content` | STRING | No | Complete blurb text as submitted to HQ portal (Title + Description + Background) |
 | `target_audience` | STRING | No | Intended audience |
-| `scheduled_date` | DATE | No | Target publication date |
-| `published_date` | DATE | No | Actual publication date |
+| `target_date` | DATE | No | Target completion/submission date |
+| `publish_date` | DATE | No | Actual publication date |
+| `hq_submission_date` | DATE | No | Date submitted to HQ portal (Highlighter Blurbs) |
 | `url` | STRING | No | Published URL |
 | `author` | STRING | No | Story author |
+| `notes` | STRING | No | Internal notes |
 | `source_doc` | STRING | No | Source document type |
+| `idea_date` | DATE | No | Date idea was captured |
+| `created_date` | DATE | Yes | Record creation timestamp |
 | `last_updated` | DATE | Yes | Last update timestamp |
-| `created_at` | DATE | Yes | Record creation timestamp |
+
+**Content Types:**
+| Type | ID Prefix | Description |
+|------|-----------|-------------|
+| `story` | STY | Impact story / feature article |
+| `web_content` | WEB | Website content |
+| `social_media` | SOC | Social media post |
+| `external_mention` | EXT | External press/blog mention |
+| `nugget` | NUG | Nugget slide |
+| `key_date` | KEY | Key date/anniversary |
+| `highlighter_blurb` | HLB | HQ Highlighter report blurb (weekly Tuesday deadline) |
 
 **Indexes:**
 - Primary: `story_id`
@@ -508,7 +527,68 @@ Tracks action items from all source documents.
 
 ---
 
-### 7. UPDATE_HISTORY
+### 7. ENGAGEMENTS (MO-DB_Engagements)
+
+**Status: ACTIVE** - SEP Page / Stakeholder Engagement Tracking
+
+Tracks all stakeholder interactions: emails, calls, meetings, webinars, conferences, site visits, and training sessions. Used for the SEP (Stakeholder Engagement Pipeline) dashboard.
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `engagement_id` | STRING | Yes | Primary key (auto-generated, e.g., "ENG_1706000000000") |
+| `date` | DATE | Yes | Date of the engagement (YYYY-MM-DD) |
+| `activity_type` | STRING | Yes | Type of interaction (Email, Phone, Meeting, Webinar, Conference, Site Visit, Training) |
+| `direction` | STRING | No | Direction of communication (Outbound, Inbound, Bidirectional) |
+| `subject` | STRING | Yes | Brief subject line for the engagement |
+| `participants` | STRING | No | Comma-separated list of participant emails |
+| `contact_ids` | STRING | No | Comma-separated list of contact IDs |
+| `agency_id` | STRING | No | Foreign key to MO-DB_Agencies |
+| `solution_id` | STRING | Yes | Primary solution ID (foreign key to MO-DB_Solutions.core_id) |
+| `secondary_solution_id` | STRING | No | Secondary solution ID (optional) |
+| `additional_solution_ids` | STRING | No | Comma-separated additional solution IDs (optional) |
+| `summary` | STRING | No | Detailed summary of the engagement (max 2000 chars) |
+| `touchpoint_reference` | STRING | No | SEP touchpoint reference (T4, W1, W2, T5, T6, T7, T8) |
+| `follow_up_date` | DATE | No | Scheduled follow-up date (YYYY-MM-DD) |
+| `logged_by` | STRING | No | Email of user who logged the engagement |
+| `created_at` | DATETIME | Yes | Record creation timestamp |
+
+**Indexes:**
+- Primary: `engagement_id`
+- Secondary: `date`, `solution_id`, `participants`, `agency_id`
+
+**Multi-Solution Support:**
+Engagements can be tagged with multiple solutions:
+- `solution_id` - Primary solution (required)
+- `secondary_solution_id` - Secondary solution (optional)
+- `additional_solution_ids` - Additional solutions as comma-separated list (optional)
+
+When searching for engagements by solution (e.g., in the SEP dashboard), all three fields are searched.
+
+**Example:**
+```json
+{
+  "engagement_id": "ENG_1706000000000",
+  "date": "2026-01-30",
+  "activity_type": "Meeting",
+  "direction": "Bidirectional",
+  "subject": "HLS/OPERA Integration Planning",
+  "participants": "john.doe@usgs.gov, jane.smith@noaa.gov",
+  "contact_ids": "",
+  "agency_id": "usgs",
+  "solution_id": "hls",
+  "secondary_solution_id": "opera",
+  "additional_solution_ids": "",
+  "summary": "Discussed cross-solution data integration opportunities between HLS and OPERA products.",
+  "touchpoint_reference": "T5",
+  "follow_up_date": "2026-02-15",
+  "logged_by": "user@nasa.gov",
+  "created_at": "2026-01-30T14:30:00Z"
+}
+```
+
+---
+
+### 8. UPDATE_HISTORY
 
 Audit log of all updates to any entity.
 
@@ -545,7 +625,7 @@ Audit log of all updates to any entity.
 
 ---
 
-### 8. SOLUTION_STAKEHOLDERS (Junction Table - Planned)
+### 9. SOLUTION_STAKEHOLDERS (Junction Table - Planned)
 
 Many-to-many relationship between solutions and stakeholders.
 
@@ -570,7 +650,7 @@ Many-to-many relationship between solutions and stakeholders.
 
 ---
 
-### 9. AVAILABILITY (MO-DB_Availability)
+### 10. AVAILABILITY (MO-DB_Availability)
 
 **Status: ACTIVE** - Team Viewer
 
@@ -633,7 +713,7 @@ Tracks team member availability, office closures, and travel schedules.
 
 ---
 
-### 10. MEETINGS (MO-DB_Meetings)
+### 11. MEETINGS (MO-DB_Meetings)
 
 **Status: ACTIVE** - Team Viewer
 
@@ -688,7 +768,7 @@ Tracks recurring and ad-hoc meetings for the MO team.
 
 ---
 
-### 11. GLOSSARY (MO-DB_Glossary)
+### 12. GLOSSARY (MO-DB_Glossary)
 
 **Status: ACTIVE** - Team Viewer / Shared Resource
 
@@ -723,7 +803,7 @@ Glossary of terms, acronyms, and definitions used across NSITE MO.
 
 ---
 
-### 12. KUDOS (MO-DB_Kudos)
+### 13. KUDOS (MO-DB_Kudos)
 
 **Status: ACTIVE** - Team Viewer / Peer Recognition
 
@@ -763,7 +843,7 @@ Add `SLACK_KUDOS_WEBHOOK_URL` to MO-DB_Config with an incoming webhook URL for y
 
 ---
 
-### 13. CONFIG (MO-DB_Config)
+### 14. CONFIG (MO-DB_Config)
 
 **Status: ACTIVE** - System Configuration
 
@@ -799,7 +879,7 @@ Central configuration store for all document IDs, sheet IDs, and system settings
 
 ---
 
-### 14. TEMPLATES (MO-DB_Templates)
+### 15. TEMPLATES (MO-DB_Templates)
 
 **Status: NEW** - Email/Meeting Templates for SEP and Comms
 
@@ -860,7 +940,7 @@ Comprehensive email and meeting templates for stakeholder engagement and communi
 
 ---
 
-### 15. NEEDS (MO-DB_Needs)
+### 16. NEEDS (MO-DB_Needs)
 
 **Status: ACTIVE** - Schema v3 (rebuilt 2026-01-29) - Survey response data from stakeholder lists
 
@@ -1014,14 +1094,38 @@ Touchpoint definitions:
 | T7 | Soft Launch & Training | Training and soft launch |
 | T8 | Closeout Stories | Final success stories |
 
+### ContentType (Stories)
+```
+story | web_content | social_media | external_mention | nugget | key_date | highlighter_blurb
+```
+
+| Code | ID Prefix | Description |
+|------|-----------|-------------|
+| story | STY | Impact story / feature article |
+| web_content | WEB | Website content |
+| social_media | SOC | Social media post |
+| external_mention | EXT | External press/blog mention |
+| nugget | NUG | Nugget slide |
+| key_date | KEY | Key date/anniversary |
+| highlighter_blurb | HLB | HQ Highlighter report blurb |
+
 ### StoryStatus
 ```
-idea | draft | reviewed | submitted | published | archived
+idea | researching | drafting | review | published | archived
 ```
+
+| Code | Name | Order | Description |
+|------|------|-------|-------------|
+| idea | Idea | 1 | Initial idea captured |
+| researching | Researching | 2 | Gathering information |
+| drafting | Drafting | 3 | Writing in progress |
+| review | Review | 4 | Under review |
+| published | Published | 5 | Live/published |
+| archived | Archived | 6 | No longer active |
 
 ### Channel
 ```
-web | social | newsletter | webinar | conference | press | slides
+web | social | slide | external | newsletter
 ```
 
 ### MilestoneType
@@ -1408,6 +1512,8 @@ The original SolutionFlow schema maps to this unified schema:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.5.0 | 2026-02-02 | **STORIES Schema Update**: Added `background_info` (for Highlighter Blurb background sections), `hq_submission_date` (HQ portal submission tracking), `content_type` (with 7 types including `highlighter_blurb`). Added Content Types table. Renamed columns for consistency: `scheduled_date`→`target_date`, `published_date`→`publish_date`, `created_at`→`created_date`. |
+| 2.4.0 | 2026-01-30 | Added ENGAGEMENTS table (section 7) with multi-solution support: `solution_id` (primary, required), `secondary_solution_id` (optional), `additional_solution_ids` (optional, comma-separated). Renumbered subsequent sections 8-16. |
 | 2.3.0 | 2026-01-29 | Added `admin_shared_team_folder` column to SOLUTIONS for implementation team file sharing functionality. |
 | 2.0.0 | 2026-01-22 | **SOLUTIONS Schema v2**: Refactored with 9 semantic prefixes (core_, funding_, admin_, team_, earthdata_, comms_, product_, milestone_, docs_). Reduced from 76 to 64 columns. Added presentation URLs for milestones. Column names use underscores for JS compatibility. |
 | 1.1.0 | 2026-01-18 | Added Team Viewer tables: AVAILABILITY, MEETINGS, GLOSSARY, CONFIG. Added new enumerations for availability and meeting types. |

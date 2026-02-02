@@ -115,3 +115,16 @@ function searchStories(query) {
 function getPipelineStoriesForUI() {
   return MoApi.getPipelineStoriesForUI();
 }
+
+// Highlighter Blurbs (HQ Reporting)
+function getHighlighterBlurbs(limit) {
+  return MoApi.getHighlighterBlurbs(limit);
+}
+
+function getBlurbsDueThisWeek() {
+  return MoApi.getBlurbsDueThisWeek();
+}
+
+function getNextBlurbDeadline() {
+  return MoApi.getNextBlurbDeadline();
+}

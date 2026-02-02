@@ -21,6 +21,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Tools View** in Comms-NSITE - New view for team-curated tools and generators
   - Presentation Builder is the first tool in this view
   - Designed to expand with additional comms tools over time
+- **Highlighter Blurbs** - HQ reporting support in Comms > Messaging view
+  - Short updates sent to NASA HQ weekly (Tuesdays)
+  - New content type `highlighter_blurb` (HLB prefix) in MO-DB_Stories database
+  - New schema columns: `background_info`, `blurb_content`, `hq_submission_date`
+  - **Table/Card View Toggle** - Switch between compact table and card views
+  - **Search & Filter** - Search by title, solution, or content; filter by status
+  - **"Submitted to HQ" status** - Replaces "Published" terminology for blurbs
+  - Reporting section shows blurbs with deadline tracking
+  - Due-soon blurbs highlighted with orange indicator
+  - Quick "New Blurb" button pre-fills form with Tuesday deadline
+  - Detail modal shows all blurb fields: background info, blurb content, HQ submission date
+  - Collapsible Key Messages sections in Messaging cards (collapsed by default)
+  - Bullet text auto-formatted to proper HTML lists
+  - Initial blurb data import: 29 records from NSITE Highlighter Blurbs document
+    - 3 drafts ready for HQ review
+    - 9 leads from monthly meetings (need drafting)
+    - 17 previously submitted blurbs (May-June 2025)
 - **White-Label Branding System** - Platform now supports full customization for other teams
   - **Application Name** - Configurable via `APP_NAME`, `ORG_NAME`, `APP_TAGLINE` config keys
   - **Page Names** - Primary tabs configurable via `PAGE_1_NAME`, `PAGE_2_NAME`, `PAGE_3_NAME`

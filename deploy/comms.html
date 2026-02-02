@@ -22,13 +22,9 @@
           <span class="material-icons">calendar_today</span>
           <span>Calendar</span>
         </button>
-        <button class="view-btn" data-view="priorities" onclick="COMMS.setView('priorities')">
-          <span class="material-icons">flag</span>
-          <span>Priorities</span>
-        </button>
-        <button class="view-btn" data-view="messages" onclick="COMMS.setView('messages')">
-          <span class="material-icons">chat</span>
-          <span>Messages</span>
+        <button class="view-btn" data-view="messaging" onclick="COMMS.setView('messaging')">
+          <span class="material-icons">campaign</span>
+          <span>Messaging</span>
         </button>
         <button class="view-btn" data-view="tools" onclick="COMMS.setView('tools')">
           <span class="material-icons">build</span>
@@ -299,150 +295,147 @@
       </div>
     </div>
 
-    <!-- Priorities View -->
-    <div class="view-panel" id="prioritiesView">
-      <div class="priorities-layout">
-        <div class="priorities-header">
-          <h2>Admin Priorities Alignment</h2>
-          <p class="priorities-subtitle">Track story coverage across administration priorities</p>
-        </div>
-
-        <!-- Priority Cards -->
-        <div class="priorities-grid" id="prioritiesGrid">
-          <!-- Partnerships -->
-          <div class="priority-card" data-priority="partnerships">
-            <div class="priority-header">
+    <!-- Messaging View (Priorities + Key Messages) -->
+    <div class="view-panel" id="messagingView">
+      <div class="messaging-layout">
+        <!-- Priority Coverage Bar (Compact) -->
+        <div class="priority-bar">
+          <div class="priority-bar-label">
+            <span class="material-icons">flag</span>
+            <span>Priority Alignment</span>
+          </div>
+          <div class="priority-chips" id="priorityChips">
+            <button class="priority-chip" data-priority="partnerships" onclick="COMMS.togglePriorityDetail('partnerships')">
               <span class="material-icons">group</span>
-              <h3>Partnerships & Decision Support</h3>
-            </div>
-            <div class="priority-stats">
-              <span class="priority-count" id="priorityCountPartnerships">0</span>
-              <span class="priority-label">stories</span>
-            </div>
-            <div class="priority-stories" id="priorityStoriesPartnerships">
-              <div class="empty-state">No stories tagged</div>
-            </div>
-          </div>
-
-          <!-- Citizens -->
-          <div class="priority-card" data-priority="citizens">
-            <div class="priority-header">
+              <span class="chip-label">Partnerships</span>
+              <span class="chip-count" id="priorityCountPartnerships">0</span>
+            </button>
+            <button class="priority-chip" data-priority="citizens" onclick="COMMS.togglePriorityDetail('citizens')">
               <span class="material-icons">home</span>
-              <h3>Benefits to American Citizens</h3>
-            </div>
-            <div class="priority-stats">
-              <span class="priority-count" id="priorityCountCitizens">0</span>
-              <span class="priority-label">stories</span>
-            </div>
-            <div class="priority-stories" id="priorityStoriesCitizens">
-              <div class="empty-state">No stories tagged</div>
-            </div>
-          </div>
-
-          <!-- AI Innovation -->
-          <div class="priority-card" data-priority="ai_innovation">
-            <div class="priority-header">
+              <span class="chip-label">Citizens</span>
+              <span class="chip-count" id="priorityCountCitizens">0</span>
+            </button>
+            <button class="priority-chip" data-priority="ai_innovation" onclick="COMMS.togglePriorityDetail('ai_innovation')">
               <span class="material-icons">memory</span>
-              <h3>AI Leadership & Tech Innovation</h3>
-            </div>
-            <div class="priority-stats">
-              <span class="priority-count" id="priorityCountAiInnovation">0</span>
-              <span class="priority-label">stories</span>
-            </div>
-            <div class="priority-stories" id="priorityStoriesAiInnovation">
-              <div class="empty-state">No stories tagged</div>
-            </div>
-          </div>
-
-          <!-- Science Integrity -->
-          <div class="priority-card" data-priority="science_integrity">
-            <div class="priority-header">
+              <span class="chip-label">AI/Innovation</span>
+              <span class="chip-count" id="priorityCountAiInnovation">0</span>
+            </button>
+            <button class="priority-chip" data-priority="science_integrity" onclick="COMMS.togglePriorityDetail('science_integrity')">
               <span class="material-icons">emoji_events</span>
-              <h3>Gold Standard Science & Research Integrity</h3>
-            </div>
-            <div class="priority-stats">
-              <span class="priority-count" id="priorityCountScienceIntegrity">0</span>
-              <span class="priority-label">stories</span>
-            </div>
-            <div class="priority-stories" id="priorityStoriesScienceIntegrity">
-              <div class="empty-state">No stories tagged</div>
-            </div>
-          </div>
-
-          <!-- Efficiency -->
-          <div class="priority-card" data-priority="efficiency">
-            <div class="priority-header">
+              <span class="chip-label">Science</span>
+              <span class="chip-count" id="priorityCountScienceIntegrity">0</span>
+            </button>
+            <button class="priority-chip" data-priority="efficiency" onclick="COMMS.togglePriorityDetail('efficiency')">
               <span class="material-icons">flash_on</span>
-              <h3>Government Efficiency</h3>
-            </div>
-            <div class="priority-stats">
-              <span class="priority-count" id="priorityCountEfficiency">0</span>
-              <span class="priority-label">stories</span>
-            </div>
-            <div class="priority-stories" id="priorityStoriesEfficiency">
-              <div class="empty-state">No stories tagged</div>
-            </div>
-          </div>
-
-          <!-- Untagged -->
-          <div class="priority-card priority-card-warning" data-priority="untagged">
-            <div class="priority-header">
+              <span class="chip-label">Efficiency</span>
+              <span class="chip-count" id="priorityCountEfficiency">0</span>
+            </button>
+            <button class="priority-chip priority-chip-warning" data-priority="untagged" onclick="COMMS.togglePriorityDetail('untagged')">
               <span class="material-icons">error</span>
-              <h3>Not Yet Aligned</h3>
+              <span class="chip-label">Untagged</span>
+              <span class="chip-count" id="priorityCountUntagged">0</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Priority Detail Panel (shown when chip clicked) -->
+        <div class="priority-detail-panel" id="priorityDetailPanel" style="display: none;">
+          <div class="priority-detail-header">
+            <span class="material-icons" id="priorityDetailIcon">flag</span>
+            <h3 id="priorityDetailTitle">Priority Stories</h3>
+            <button class="btn btn-icon" onclick="COMMS.closePriorityDetail()" aria-label="Close">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+          <div class="priority-detail-content" id="priorityDetailContent">
+            <!-- Stories will be rendered here -->
+          </div>
+        </div>
+
+        <!-- Reporting Section (Highlighter Blurbs for HQ) -->
+        <div class="reporting-section">
+          <div class="reporting-header">
+            <div class="reporting-title">
+              <span class="material-icons">description</span>
+              <div>
+                <h3>HQ Reporting</h3>
+                <p>Highlighter blurbs for weekly HQ updates</p>
+              </div>
             </div>
-            <div class="priority-stats">
-              <span class="priority-count" id="priorityCountUntagged">0</span>
-              <span class="priority-label">stories need tagging</span>
+            <div class="reporting-deadline" id="blurbDeadline">
+              <span class="material-icons">schedule</span>
+              <span>Next deadline: <strong id="nextDeadlineDate">Tuesday</strong></span>
             </div>
-            <div class="priority-stories" id="priorityStoriesUntagged">
-              <div class="empty-state">All stories tagged!</div>
+            <div class="blurb-view-toggle">
+              <button class="view-btn" id="blurbViewCards" onclick="COMMS.setBlurbView('cards')" title="Card view">
+                <span class="material-icons">view_agenda</span>
+              </button>
+              <button class="view-btn active" id="blurbViewTable" onclick="COMMS.setBlurbView('table')" title="Table view">
+                <span class="material-icons">table_rows</span>
+              </button>
+            </div>
+            <div class="blurb-search-wrapper">
+              <span class="material-icons">search</span>
+              <input type="text" id="blurbSearchInput" placeholder="Search blurbs..." oninput="COMMS.filterBlurbs()">
+            </div>
+            <select id="blurbStatusFilter" onchange="COMMS.filterBlurbs()" class="blurb-filter-select">
+              <option value="">All Status</option>
+              <option value="idea">Idea</option>
+              <option value="drafting">Drafting</option>
+              <option value="review">Review</option>
+              <option value="published">Submitted</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" onclick="COMMS.showNewBlurbModal()">
+              <span class="material-icons">add</span>
+              New Blurb
+            </button>
+          </div>
+          <div class="reporting-content" id="blurbsContainer">
+            <div class="loading-state" style="display: flex;">
+              <span class="loading-spinner"></span>
+              <span>Loading blurbs...</span>
             </div>
           </div>
         </div>
 
-        <!-- Priority Summary -->
-        <div class="priorities-summary">
-          <h3>Coverage Summary</h3>
-          <div class="priority-bars" id="priorityBars">
-            <!-- Will be rendered by JS -->
+        <!-- Key Messages Section (Main Content) -->
+        <div class="messages-section">
+          <div class="messages-header">
+            <div class="messages-title">
+              <span class="material-icons">chat</span>
+              <div>
+                <h2>Solution Key Messages</h2>
+                <p>Approved talking points for communications and outreach</p>
+              </div>
+            </div>
+            <div class="messages-search">
+              <span class="material-icons">search</span>
+              <input type="text" id="messagesSearchInput" placeholder="Search solutions or messages..." oninput="COMMS.searchMessages()">
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Key Messages View -->
-    <div class="view-panel" id="messagesView">
-      <div class="messages-layout">
-        <div class="messages-header">
-          <h2>Solution Key Messages</h2>
-          <p class="messages-subtitle">Approved messaging for communications and outreach</p>
-          <div class="messages-search">
-            <span class="material-icons">search</span>
-            <input type="text" id="messagesSearchInput" placeholder="Search messages..." oninput="COMMS.searchMessages()">
+          <!-- Messages Summary -->
+          <div class="messages-summary" id="messagesSummary">
+            <div class="summary-stat">
+              <span class="summary-value" id="msgTotalSolutions">--</span>
+              <span class="summary-label">With Messages</span>
+            </div>
+            <div class="summary-stat">
+              <span class="summary-value" id="msgCoverage">--</span>
+              <span class="summary-label">Coverage</span>
+            </div>
+            <div class="summary-stat">
+              <span class="summary-value" id="msgByFocus">--</span>
+              <span class="summary-label">Focus Types</span>
+            </div>
           </div>
-        </div>
 
-        <!-- Messages Summary -->
-        <div class="messages-summary" id="messagesSummary">
-          <div class="summary-stat">
-            <span class="summary-value" id="msgTotalSolutions">--</span>
-            <span class="summary-label">Solutions with Messages</span>
-          </div>
-          <div class="summary-stat">
-            <span class="summary-value" id="msgCoverage">--</span>
-            <span class="summary-label">Coverage</span>
-          </div>
-          <div class="summary-stat">
-            <span class="summary-value" id="msgByFocus">--</span>
-            <span class="summary-label">Focus Types</span>
-          </div>
-        </div>
-
-        <!-- Messages Grid -->
-        <div class="messages-grid" id="messagesGrid">
-          <div class="loading-state">
-            <span class="loading-spinner"></span>
-            <span>Loading key messages...</span>
+          <!-- Messages Grid -->
+          <div class="messages-grid" id="messagesGrid">
+            <div class="loading-state">
+              <span class="loading-spinner"></span>
+              <span>Loading key messages...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -625,13 +618,14 @@
         <div class="form-row">
           <div class="form-group">
             <label>Content Type</label>
-            <select id="storyContentType">
+            <select id="storyContentType" onchange="COMMS.toggleBlurbFields()">
               <option value="story">Impact Story</option>
               <option value="web_content">Web Content</option>
               <option value="social_media">Social Media</option>
               <option value="external_mention">External Mention</option>
               <option value="nugget">Nugget Slide</option>
               <option value="key_date">Key Date</option>
+              <option value="highlighter_blurb">Highlighter Blurb</option>
             </select>
           </div>
           <div class="form-group">
@@ -772,6 +766,22 @@
         <div class="form-group">
           <label>Published Link</label>
           <input type="url" id="storyPublishedLink" placeholder="https://...">
+        </div>
+        <!-- Highlighter Blurb specific fields -->
+        <div id="blurbFields" style="display: none;">
+          <div class="form-group">
+            <label>Background Information</label>
+            <textarea id="storyBackgroundInfo" rows="3" maxlength="1500" placeholder="Background context on technical details, team, products, missions. Include SNWG boilerplate if needed."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Blurb Content *</label>
+            <textarea id="storyBlurbContent" rows="8" maxlength="4000" placeholder="Full formatted blurb text (Title + Accomplishment Description + Background) as submitted to HQ."></textarea>
+            <small style="color: var(--color-text-secondary);">This is the complete text submitted to the Highlighter portal.</small>
+          </div>
+          <div class="form-group">
+            <label>HQ Submission Date</label>
+            <input type="date" id="storyHqSubmissionDate">
+          </div>
         </div>
         <div class="form-group">
           <label>Notes</label>
@@ -1392,6 +1402,7 @@
   .card-type.type-external_mention { background: rgba(96, 125, 139, 0.1); color: #607D8B; }
   .card-type.type-nugget { background: rgba(255, 152, 0, 0.1); color: #FF9800; }
   .card-type.type-key_date { background: rgba(244, 67, 54, 0.1); color: #F44336; }
+  .card-type.type-highlighter_blurb { background: rgba(103, 58, 183, 0.1); color: #673AB7; }
   .card-date { font-size: var(--font-size-xs); color: var(--color-text-muted); }
   .card-title {
     font-weight: 600;
@@ -2089,143 +2100,465 @@
     font-weight: normal;
   }
 
-  /* Priorities View */
-  .priorities-layout { padding: var(--space-md); }
-  .priorities-header {
-    margin-bottom: var(--space-lg);
-  }
-  .priorities-header h2 {
-    margin: 0 0 var(--space-xs) 0;
-    font-size: var(--font-size-xl);
-  }
-  .priorities-subtitle {
-    color: var(--color-text-muted);
-    font-size: var(--font-size-sm);
-    margin: 0;
-  }
-  .priorities-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+  /* Messaging View */
+  .messaging-layout {
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
     gap: var(--space-md);
-    margin-bottom: var(--space-lg);
   }
-  .priority-card {
+
+  /* Priority Bar (Compact) */
+  .priority-bar {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+  }
+  .priority-bar-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+  }
+  .priority-bar-label .material-icons {
+    font-size: 18px;
+    color: var(--page-accent, var(--color-comms));
+  }
+  .priority-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    flex: 1;
+  }
+  .priority-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border-light);
+    border-radius: 20px;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .priority-chip:hover {
+    background: var(--color-primary-light);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+  .priority-chip.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+  }
+  .priority-chip .material-icons {
+    font-size: 16px;
+  }
+  .chip-label {
+    font-weight: 500;
+  }
+  .chip-count {
+    background: rgba(0,0,0,0.1);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+  }
+  .priority-chip.active .chip-count {
+    background: rgba(255,255,255,0.2);
+  }
+  .priority-chip-warning {
+    background: rgba(255, 152, 0, 0.1);
+    border-color: rgba(255, 152, 0, 0.3);
+    color: #E65100;
+  }
+  .priority-chip-warning:hover {
+    background: rgba(255, 152, 0, 0.2);
+    border-color: #F57C00;
+  }
+  .priority-chip-warning .chip-count {
+    background: rgba(255, 152, 0, 0.2);
+  }
+
+  /* Priority Detail Panel */
+  .priority-detail-panel {
     background: var(--color-surface);
     border: 1px solid var(--color-border-light);
     border-radius: var(--radius-md);
     padding: var(--space-md);
-    transition: box-shadow 0.2s;
+    animation: slideDown 0.2s ease;
   }
-  .priority-card:hover { box-shadow: var(--shadow-sm); }
-  .priority-card-warning {
-    background: rgba(255, 152, 0, 0.05);
-    border-color: rgba(255, 152, 0, 0.3);
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-  .priority-header {
+  .priority-detail-header {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
-    margin-bottom: var(--space-sm);
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--color-border-light);
   }
-  .priority-header h3 {
+  .priority-detail-header .material-icons {
+    color: var(--page-accent, var(--color-comms));
+  }
+  .priority-detail-header h3 {
     margin: 0;
-    font-size: var(--font-size-sm);
-    font-weight: 600;
+    flex: 1;
+    font-size: var(--font-size-md);
   }
-  .priority-icon { color: var(--color-primary); }
-  .priority-card-warning .priority-icon { color: #F57C00; }
-  .priority-stats {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-xs);
-    margin-bottom: var(--space-sm);
-  }
-  .priority-count {
-    font-size: var(--font-size-2xl);
-    font-weight: 700;
-    color: var(--color-primary);
-  }
-  .priority-card-warning .priority-count { color: #F57C00; }
-  .priority-label {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-muted);
-  }
-  .priority-stories {
-    max-height: 200px;
+  .priority-detail-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-sm);
+    max-height: 300px;
     overflow-y: auto;
   }
   .priority-story-item {
-    padding: var(--space-xs) var(--space-sm);
+    padding: var(--space-sm);
     background: var(--color-surface-alt);
     border-radius: var(--radius-sm);
-    margin-bottom: var(--space-xs);
     font-size: var(--font-size-sm);
     cursor: pointer;
     transition: background 0.15s;
   }
   .priority-story-item:hover { background: var(--color-border-light); }
-  .priority-story-title { font-weight: 500; margin-bottom: 2px; }
+  .priority-story-title { font-weight: 500; margin-bottom: 4px; }
   .priority-story-meta {
     font-size: var(--font-size-xs);
     color: var(--color-text-muted);
   }
-  .priorities-summary {
+
+  /* Reporting Section (Highlighter Blurbs) */
+  .reporting-section {
     background: var(--color-surface);
     border: 1px solid var(--color-border-light);
     border-radius: var(--radius-md);
     padding: var(--space-md);
+    margin-bottom: var(--space-sm);
   }
-  .priorities-summary h3 {
-    margin: 0 0 var(--space-md) 0;
-    font-size: var(--font-size-md);
-  }
-  .priority-bar-item {
+  .reporting-header {
     display: flex;
     align-items: center;
     gap: var(--space-md);
-    margin-bottom: var(--space-sm);
+    margin-bottom: var(--space-md);
+    flex-wrap: wrap;
   }
-  .priority-bar-label {
-    width: 200px;
-    font-size: var(--font-size-sm);
-    flex-shrink: 0;
-  }
-  .priority-bar-track {
+  .reporting-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
     flex: 1;
-    height: 20px;
+    min-width: 200px;
+  }
+  .reporting-title .material-icons {
+    font-size: 20px;
+    color: var(--page-accent, var(--color-comms));
+  }
+  .reporting-title h3 {
+    margin: 0;
+    font-size: var(--font-size-md);
+  }
+  .reporting-title p {
+    margin: 0;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+  .reporting-deadline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    padding: 6px 12px;
+    background: rgba(255, 152, 0, 0.1);
+    border-radius: var(--radius-sm);
+  }
+  .reporting-deadline .material-icons {
+    font-size: 16px;
+    color: #F57C00;
+  }
+  .reporting-deadline strong {
+    color: #E65100;
+  }
+  .reporting-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  .blurb-empty {
+    text-align: center;
+    padding: var(--space-lg);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+  .blurb-card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
     background: var(--color-surface-alt);
     border-radius: var(--radius-sm);
+    border-left: 3px solid var(--page-accent, var(--color-comms));
+    cursor: pointer;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+  }
+  .blurb-card:hover {
+    background: var(--color-surface);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .blurb-card.blurb-due-soon {
+    border-left-color: #F57C00;
+    background: rgba(255, 152, 0, 0.05);
+  }
+  .blurb-card.blurb-due-soon:hover {
+    background: rgba(255, 152, 0, 0.1);
+  }
+  .blurb-card.blurb-submitted {
+    border-left-color: #4CAF50;
+    opacity: 0.8;
+  }
+  .blurb-content {
+    flex: 1;
+    min-width: 0;
+  }
+  .blurb-title {
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+    margin-bottom: 4px;
+  }
+  .blurb-solution {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+  }
+  .blurb-text {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  .priority-bar-fill {
-    height: 100%;
-    background: var(--color-primary);
-    border-radius: var(--radius-sm);
-    transition: width 0.3s ease;
-  }
-  .priority-bar-value {
-    width: 60px;
-    text-align: right;
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    color: var(--color-text-muted);
+  .blurb-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
     flex-shrink: 0;
   }
-
-  /* Key Messages View */
-  .messages-layout { padding: var(--space-md); }
-  .messages-header {
-    margin-bottom: var(--space-lg);
-  }
-  .messages-header h2 {
-    margin: 0 0 var(--space-xs) 0;
-    font-size: var(--font-size-xl);
-  }
-  .messages-subtitle {
+  .blurb-date {
+    font-size: var(--font-size-xs);
     color: var(--color-text-muted);
-    font-size: var(--font-size-sm);
-    margin: 0 0 var(--space-md) 0;
   }
+  .blurb-status {
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--color-surface);
+    text-transform: capitalize;
+  }
+  .blurb-status.status-idea { background: #E0E0E0; }
+  .blurb-status.status-drafting { background: #FFE0B2; color: #E65100; }
+  .blurb-status.status-review { background: #E1BEE7; color: #7B1FA2; }
+  .blurb-status.status-published { background: #C8E6C9; color: #2E7D32; }
+  .blurbs-show-more {
+    text-align: center;
+    padding-top: var(--space-sm);
+  }
+
+  /* Blurb View Toggle */
+  .blurb-view-toggle {
+    display: flex;
+    gap: 2px;
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+  }
+  .blurb-view-toggle .view-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    color: var(--color-text-muted);
+    transition: all 0.15s ease;
+  }
+  .blurb-view-toggle .view-btn:hover {
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+  }
+  .blurb-view-toggle .view-btn.active {
+    background: var(--color-surface);
+    color: var(--page-accent, var(--color-comms));
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .blurb-view-toggle .view-btn .material-icons {
+    font-size: 18px;
+  }
+
+  /* Blurb Search */
+  .blurb-search-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    min-width: 180px;
+  }
+  .blurb-search-wrapper .material-icons {
+    font-size: 18px;
+    color: var(--color-text-muted);
+  }
+  .blurb-search-wrapper input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: var(--font-size-sm);
+    width: 100%;
+  }
+  .blurb-filter-select {
+    padding: 6px 10px;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+  }
+  .blurb-filter-select:focus {
+    outline: none;
+    border-color: var(--page-accent, var(--color-comms));
+  }
+
+  /* Blurb Table View */
+  .blurb-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+  .blurb-table th {
+    text-align: left;
+    padding: 8px 12px;
+    font-weight: 500;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .blurb-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-border-light);
+    vertical-align: middle;
+  }
+  .blurb-table tr {
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .blurb-table tbody tr:hover {
+    background: var(--color-surface-alt);
+  }
+  .blurb-table tr.blurb-row-due {
+    background: rgba(255, 152, 0, 0.05);
+  }
+  .blurb-table tr.blurb-row-due:hover {
+    background: rgba(255, 152, 0, 0.1);
+  }
+  .blurb-table tr.blurb-row-submitted {
+    opacity: 0.7;
+  }
+  .blurb-table .blurb-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .blurb-status-dot.dot-idea { background: #9E9E9E; }
+  .blurb-status-dot.dot-drafting { background: #FF9800; }
+  .blurb-status-dot.dot-review { background: #9C27B0; }
+  .blurb-status-dot.dot-published { background: #4CAF50; }
+  .blurb-status-dot.dot-due { background: #F57C00; animation: pulse 1.5s infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .blurb-table .blurb-title-cell {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .blurb-table .blurb-solution-cell {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+  }
+  .blurb-table .blurb-date-cell {
+    white-space: nowrap;
+    color: var(--color-text-secondary);
+  }
+  .blurb-table .blurb-actions-cell {
+    text-align: right;
+  }
+  .blurb-table .blurb-actions-cell button {
+    padding: 4px 8px;
+    font-size: var(--font-size-xs);
+  }
+
+  /* Key Messages Section */
+  .messages-section {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    flex: 1;
+  }
+  .messages-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+  }
+  .messages-title {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+  .messages-title .material-icons {
+    font-size: 24px;
+    color: var(--page-accent, var(--color-comms));
+    margin-top: 2px;
+  }
+  .messages-title h2 {
+    margin: 0 0 var(--space-xs) 0;
+    font-size: var(--font-size-lg);
+  }
+  .messages-title p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  /* Key Messages Search & Grid */
   .messages-search {
     display: flex;
     align-items: center;
@@ -2344,6 +2677,67 @@
   }
   .message-link:hover { text-decoration: underline; }
   .message-link svg { width: 14px; height: 14px; }
+
+  /* Collapsible Message Sections */
+  .message-section-collapsible {
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+    overflow: hidden;
+  }
+  .message-section-collapsible:last-child {
+    margin-bottom: 0;
+  }
+  .message-section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-surface-alt);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    transition: background 0.15s;
+  }
+  .message-section-header:hover {
+    background: var(--color-border-light);
+  }
+  .message-section-header .material-icons {
+    font-size: 18px;
+    color: var(--color-text-muted);
+    transition: transform 0.2s;
+  }
+  .message-section-collapsible:not(.open) .message-section-header .material-icons {
+    transform: rotate(-90deg);
+  }
+  .message-section-content {
+    display: none;
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    color: var(--color-text);
+    background: var(--color-surface);
+  }
+  .message-section-collapsible.open .message-section-content {
+    display: block;
+  }
+  .message-section-content p {
+    margin: 0 0 var(--space-sm) 0;
+  }
+  .message-section-content p:last-child {
+    margin-bottom: 0;
+  }
+  .message-section-content ul {
+    margin: 0;
+    padding-left: var(--space-lg);
+  }
+  .message-section-content li {
+    margin-bottom: var(--space-xs);
+  }
+  .message-section-content li:last-child {
+    margin-bottom: 0;
+  }
 
   /* Tools View */
   .tools-layout { padding: var(--space-md); }
@@ -3271,8 +3665,7 @@ var COMMS = (function() {
     document.getElementById('eventsView').classList.toggle('active', view === 'events');
     document.getElementById('coverageView').classList.toggle('active', view === 'coverage');
     document.getElementById('calendarView').classList.toggle('active', view === 'calendar');
-    document.getElementById('prioritiesView').classList.toggle('active', view === 'priorities');
-    document.getElementById('messagesView').classList.toggle('active', view === 'messages');
+    document.getElementById('messagingView').classList.toggle('active', view === 'messaging');
     document.getElementById('toolsView').classList.toggle('active', view === 'tools');
 
     // Show pipeline stats only on pipeline view
@@ -3298,25 +3691,35 @@ var COMMS = (function() {
       loadEvents();
     }
 
-    if (view === 'priorities') {
+    if (view === 'messaging') {
       renderPrioritiesView();
-    }
-
-    if (view === 'messages') {
+      loadBlurbs();
       renderMessagesView();
     }
   }
 
-  function renderPrioritiesView() {
-    var priorityConfig = {
-      partnerships: { name: 'Partnerships & Decision Support', id: 'Partnerships' },
-      citizens: { name: 'Benefits to American Citizens', id: 'Citizens' },
-      ai_innovation: { name: 'AI Leadership & Tech Innovation', id: 'AiInnovation' },
-      science_integrity: { name: 'Gold Standard Science & Research Integrity', id: 'ScienceIntegrity' },
-      efficiency: { name: 'Government Efficiency', id: 'Efficiency' }
-    };
+  // Priority data cache
+  var priorityData = {
+    partnerships: [],
+    citizens: [],
+    ai_innovation: [],
+    science_integrity: [],
+    efficiency: [],
+    untagged: []
+  };
 
-    var priorityCounts = {
+  var priorityConfig = {
+    partnerships: { name: 'Partnerships & Decision Support', icon: 'group', id: 'Partnerships' },
+    citizens: { name: 'Benefits to American Citizens', icon: 'home', id: 'Citizens' },
+    ai_innovation: { name: 'AI Leadership & Tech Innovation', icon: 'memory', id: 'AiInnovation' },
+    science_integrity: { name: 'Gold Standard Science & Research Integrity', icon: 'emoji_events', id: 'ScienceIntegrity' },
+    efficiency: { name: 'Government Efficiency', icon: 'flash_on', id: 'Efficiency' },
+    untagged: { name: 'Not Yet Aligned', icon: 'error', id: 'Untagged' }
+  };
+
+  function renderPrioritiesView() {
+    // Reset counts
+    priorityData = {
       partnerships: [],
       citizens: [],
       ai_innovation: [],
@@ -3330,72 +3733,342 @@ var COMMS = (function() {
       var priorities = story.admin_priorities ? story.admin_priorities.split(',').map(function(p) { return p.trim().toLowerCase(); }) : [];
 
       if (priorities.length === 0) {
-        priorityCounts.untagged.push(story);
+        priorityData.untagged.push(story);
       } else {
         var matchedAny = false;
         priorities.forEach(function(p) {
-          if (priorityCounts[p]) {
-            priorityCounts[p].push(story);
+          if (priorityData[p]) {
+            priorityData[p].push(story);
             matchedAny = true;
           }
         });
-        // If priorities were set but none matched known keys, add to untagged
         if (!matchedAny) {
-          priorityCounts.untagged.push(story);
+          priorityData.untagged.push(story);
         }
       }
     });
 
-    // Render each priority card
+    // Update chip counts
     Object.keys(priorityConfig).forEach(function(key) {
-      var config = priorityConfig[key];
-      var stories = priorityCounts[key];
-
-      document.getElementById('priorityCount' + config.id).textContent = stories.length;
-
-      var container = document.getElementById('priorityStories' + config.id);
-      if (stories.length === 0) {
-        container.innerHTML = '<div class="empty-state">No stories tagged</div>';
-      } else {
-        container.innerHTML = stories.map(function(story) {
-          return '<div class="priority-story-item" onclick="COMMS.showStoryDetail(\'' + escapeAttr(story.story_id) + '\')">' +
-            '<div class="priority-story-title">' + escapeHtml(story.title) + '</div>' +
-            '<div class="priority-story-meta">' + escapeHtml(story.solution_id || 'No solutions') + ' • ' + capitalizeFirst(story.status) + '</div>' +
-            '</div>';
-        }).join('');
+      var countEl = document.getElementById('priorityCount' + priorityConfig[key].id);
+      if (countEl) {
+        countEl.textContent = priorityData[key].length;
       }
     });
+  }
 
-    // Render untagged
-    document.getElementById('priorityCountUntagged').textContent = priorityCounts.untagged.length;
-    var untaggedContainer = document.getElementById('priorityStoriesUntagged');
-    if (priorityCounts.untagged.length === 0) {
-      untaggedContainer.innerHTML = '<div class="empty-state">All stories tagged!</div>';
+  function togglePriorityDetail(priorityKey) {
+    var panel = document.getElementById('priorityDetailPanel');
+    var chips = document.querySelectorAll('.priority-chip');
+
+    // If clicking the same chip that's active, close the panel
+    var clickedChip = document.querySelector('.priority-chip[data-priority="' + priorityKey + '"]');
+    if (clickedChip && clickedChip.classList.contains('active')) {
+      closePriorityDetail();
+      return;
+    }
+
+    // Remove active from all chips
+    chips.forEach(function(c) { c.classList.remove('active'); });
+
+    // Add active to clicked chip
+    if (clickedChip) clickedChip.classList.add('active');
+
+    // Get stories for this priority
+    var stories = priorityData[priorityKey] || [];
+    var config = priorityConfig[priorityKey];
+
+    // Update panel header
+    document.getElementById('priorityDetailIcon').textContent = config.icon;
+    document.getElementById('priorityDetailTitle').textContent = config.name + ' (' + stories.length + ' stories)';
+
+    // Render stories
+    var content = document.getElementById('priorityDetailContent');
+    if (stories.length === 0) {
+      content.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; padding: var(--space-lg);">' +
+        '<span class="material-icons">check_circle</span>' +
+        '<span>' + (priorityKey === 'untagged' ? 'All stories have priorities!' : 'No stories tagged with this priority') + '</span>' +
+        '</div>';
     } else {
-      untaggedContainer.innerHTML = priorityCounts.untagged.map(function(story) {
-        return '<div class="priority-story-item" onclick="COMMS.editStory(\'' + escapeAttr(story.story_id) + '\')">' +
+      content.innerHTML = stories.map(function(story) {
+        var onclick = priorityKey === 'untagged'
+          ? 'COMMS.editStory(\'' + escapeAttr(story.story_id) + '\')'
+          : 'COMMS.showStoryDetail(\'' + escapeAttr(story.story_id) + '\')';
+        return '<div class="priority-story-item" onclick="' + onclick + '">' +
           '<div class="priority-story-title">' + escapeHtml(story.title) + '</div>' +
-          '<div class="priority-story-meta">Click to add priorities</div>' +
+          '<div class="priority-story-meta">' + escapeHtml(story.solution_id || 'No solution') + ' • ' + capitalizeFirst(story.status || 'unknown') + '</div>' +
           '</div>';
       }).join('');
     }
 
-    // Render summary bars
-    var totalStories = state.stories.length || 1;
-    var barsHtml = '';
-    Object.keys(priorityConfig).forEach(function(key) {
-      var config = priorityConfig[key];
-      var count = priorityCounts[key].length;
-      var percent = Math.round((count / totalStories) * 100);
+    // Show panel
+    panel.style.display = 'block';
+  }
 
-      barsHtml += '<div class="priority-bar-item">' +
-        '<div class="priority-bar-label">' + config.name + '</div>' +
-        '<div class="priority-bar-track"><div class="priority-bar-fill" style="width: ' + percent + '%"></div></div>' +
-        '<div class="priority-bar-value">' + count + ' (' + percent + '%)</div>' +
-        '</div>';
+  function closePriorityDetail() {
+    document.getElementById('priorityDetailPanel').style.display = 'none';
+    document.querySelectorAll('.priority-chip').forEach(function(c) { c.classList.remove('active'); });
+  }
+
+  // ========== HIGHLIGHTER BLURBS (HQ REPORTING) ==========
+
+  var blurbsState = {
+    blurbs: [],
+    filteredBlurbs: [],
+    nextDeadline: null,
+    showAll: false,
+    view: 'table', // 'cards' or 'table' - default to table for readability
+    searchTerm: '',
+    statusFilter: ''
+  };
+
+  function loadBlurbs() {
+    var container = document.getElementById('blurbsContainer');
+    container.innerHTML = '<div class="loading-state" style="display: flex;"><span class="loading-spinner"></span><span>Loading blurbs...</span></div>';
+
+    // Get next deadline
+    google.script.run
+      .withSuccessHandler(function(deadline) {
+        blurbsState.nextDeadline = deadline;
+        var deadlineEl = document.getElementById('nextDeadlineDate');
+        if (deadlineEl && deadline) {
+          var d = new Date(deadline);
+          deadlineEl.textContent = d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+        }
+      })
+      .getNextBlurbDeadline();
+
+    // Load blurbs
+    google.script.run
+      .withSuccessHandler(function(blurbs) {
+        blurbsState.blurbs = blurbs || [];
+        renderBlurbs();
+      })
+      .withFailureHandler(function(err) {
+        container.innerHTML = '<div class="blurb-empty"><span class="material-icons">error</span><br>Failed to load blurbs</div>';
+        console.error('Failed to load blurbs:', err);
+      })
+      .getHighlighterBlurbs(20);
+  }
+
+  function renderBlurbs() {
+    var container = document.getElementById('blurbsContainer');
+    var allBlurbs = blurbsState.blurbs;
+
+    if (!allBlurbs || allBlurbs.length === 0) {
+      container.innerHTML = '<div class="blurb-empty"><span class="material-icons">description</span><br>No highlighter blurbs yet.<br>Add your first blurb to start tracking HQ reporting.</div>';
+      return;
+    }
+
+    // Apply filters
+    var blurbs = allBlurbs.filter(function(b) {
+      // Status filter
+      if (blurbsState.statusFilter && b.status !== blurbsState.statusFilter) {
+        return false;
+      }
+      // Search filter
+      if (blurbsState.searchTerm) {
+        var term = blurbsState.searchTerm.toLowerCase();
+        var searchable = [
+          b.title || '',
+          b.solution_id || '',
+          b.blurb_content || '',
+          b.background_info || '',
+          b.notes || ''
+        ].join(' ').toLowerCase();
+        if (!searchable.includes(term)) {
+          return false;
+        }
+      }
+      return true;
     });
-    document.getElementById('priorityBars').innerHTML = barsHtml;
-}
+
+    blurbsState.filteredBlurbs = blurbs;
+
+    if (blurbs.length === 0) {
+      container.innerHTML = '<div class="blurb-empty"><span class="material-icons">search_off</span><br>No blurbs match your search.</div>';
+      return;
+    }
+
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Calculate days until next Tuesday
+    var dayOfWeek = today.getDay();
+    var daysUntilTuesday = (2 - dayOfWeek + 7) % 7;
+    if (daysUntilTuesday === 0) daysUntilTuesday = 7;
+    var nextTuesday = new Date(today);
+    nextTuesday.setDate(today.getDate() + daysUntilTuesday);
+
+    var displayBlurbs = blurbsState.showAll ? blurbs : blurbs.slice(0, 10);
+
+    if (blurbsState.view === 'table') {
+      container.innerHTML = renderBlurbsTable(displayBlurbs, nextTuesday, blurbs.length);
+    } else {
+      container.innerHTML = renderBlurbsCards(displayBlurbs, nextTuesday, blurbs.length);
+    }
+  }
+
+  function filterBlurbs() {
+    blurbsState.searchTerm = document.getElementById('blurbSearchInput').value;
+    blurbsState.statusFilter = document.getElementById('blurbStatusFilter').value;
+    blurbsState.showAll = false; // Reset pagination when filtering
+    renderBlurbs();
+  }
+
+  function renderBlurbsTable(blurbs, nextTuesday, totalCount) {
+    var html = '<table class="blurb-table">' +
+      '<thead><tr>' +
+        '<th style="width:30px;"></th>' +
+        '<th>Title</th>' +
+        '<th>Solution</th>' +
+        '<th>Target</th>' +
+        '<th>Status</th>' +
+        '<th style="width:60px;"></th>' +
+      '</tr></thead><tbody>';
+
+    html += blurbs.map(function(blurb) {
+      var targetDate = blurb.target_date ? new Date(blurb.target_date) : null;
+      var isDueSoon = targetDate && targetDate <= nextTuesday && blurb.status !== 'published';
+      var isSubmitted = blurb.status === 'published' || blurb.hq_submission_date;
+
+      var rowClass = '';
+      if (isDueSoon) rowClass = 'blurb-row-due';
+      if (isSubmitted) rowClass = 'blurb-row-submitted';
+
+      var dotClass = 'blurb-status-dot dot-' + (blurb.status || 'idea');
+      if (isDueSoon && blurb.status !== 'published') dotClass = 'blurb-status-dot dot-due';
+
+      var dateDisplay = targetDate ? targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-';
+
+      var statusLabel = blurb.status === 'published' ? 'Submitted to HQ' :
+        (blurb.status ? blurb.status.charAt(0).toUpperCase() + blurb.status.slice(1) : 'Idea');
+
+      return '<tr class="' + rowClass + '" onclick="COMMS.showStoryDetail(\'' + blurb.story_id + '\')">' +
+        '<td><span class="' + dotClass + '"></span></td>' +
+        '<td class="blurb-title-cell">' + escapeHtml(blurb.title || 'Untitled') + '</td>' +
+        '<td class="blurb-solution-cell">' + escapeHtml(blurb.solution_id || '-') + '</td>' +
+        '<td class="blurb-date-cell">' + dateDisplay + '</td>' +
+        '<td><span class="blurb-status status-' + (blurb.status || 'idea') + '">' + statusLabel + '</span></td>' +
+        '<td class="blurb-actions-cell">' +
+          '<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); COMMS.editStory(\'' + blurb.story_id + '\')" title="Edit">' +
+            '<span class="material-icons" style="font-size:14px;">edit</span>' +
+          '</button>' +
+        '</td>' +
+      '</tr>';
+    }).join('');
+
+    html += '</tbody></table>';
+
+    if (totalCount > 10 && !blurbsState.showAll) {
+      html += '<div class="blurbs-show-more"><button class="btn btn-secondary btn-sm" onclick="COMMS.showAllBlurbs()">Show All (' + totalCount + ')</button></div>';
+    }
+
+    return html;
+  }
+
+  function renderBlurbsCards(blurbs, nextTuesday, totalCount) {
+    var html = blurbs.map(function(blurb) {
+      var targetDate = blurb.target_date ? new Date(blurb.target_date) : null;
+      var isDueSoon = targetDate && targetDate <= nextTuesday && blurb.status !== 'published';
+      var isSubmitted = blurb.status === 'published';
+
+      var cardClass = 'blurb-card';
+      if (isDueSoon) cardClass += ' blurb-due-soon';
+      if (isSubmitted) cardClass += ' blurb-submitted';
+
+      var dateDisplay = targetDate ? targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+
+      var blurbText = blurb.blurb_content || blurb.notes || '';
+      if (blurbText.length > 150) {
+        blurbText = blurbText.substring(0, 150) + '...';
+      }
+
+      var statusLabel = blurb.status === 'published' ? 'Submitted to HQ' :
+        (blurb.status ? blurb.status.charAt(0).toUpperCase() + blurb.status.slice(1) : 'Idea');
+
+      return '<div class="' + cardClass + '" onclick="COMMS.showStoryDetail(\'' + blurb.story_id + '\')">' +
+        '<div class="blurb-content">' +
+          '<div class="blurb-title">' + escapeHtml(blurb.title || 'Untitled Blurb') + '</div>' +
+          (blurb.solution_id ? '<div class="blurb-solution">' + escapeHtml(blurb.solution_id) + '</div>' : '') +
+          (blurbText ? '<div class="blurb-text">' + escapeHtml(blurbText) + '</div>' : '') +
+        '</div>' +
+        '<div class="blurb-meta">' +
+          (dateDisplay ? '<span class="blurb-date">' + dateDisplay + '</span>' : '') +
+          '<span class="blurb-status status-' + (blurb.status || 'idea') + '">' + statusLabel + '</span>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    if (totalCount > 10 && !blurbsState.showAll) {
+      html += '<div class="blurbs-show-more"><button class="btn btn-secondary btn-sm" onclick="COMMS.showAllBlurbs()">Show All (' + totalCount + ')</button></div>';
+    }
+
+    return html;
+  }
+
+  function setBlurbView(view) {
+    blurbsState.view = view;
+    // Update toggle buttons
+    document.getElementById('blurbViewCards').classList.toggle('active', view === 'cards');
+    document.getElementById('blurbViewTable').classList.toggle('active', view === 'table');
+    renderBlurbs();
+  }
+
+  function showAllBlurbs() {
+    blurbsState.showAll = true;
+    renderBlurbs();
+  }
+
+  /**
+   * Toggle visibility of Highlighter Blurb specific fields
+   */
+  function toggleBlurbFields() {
+    var contentType = document.getElementById('storyContentType').value;
+    var blurbFields = document.getElementById('blurbFields');
+    if (blurbFields) {
+      blurbFields.style.display = contentType === 'highlighter_blurb' ? 'block' : 'none';
+    }
+  }
+
+  function showNewBlurbModal() {
+    // Open the story modal pre-configured for highlighter blurb
+    document.getElementById('editStoryModalTitle').textContent = 'New Highlighter Blurb';
+    document.getElementById('editStoryId').value = '';
+    document.getElementById('storyTitle').value = '';
+    document.getElementById('storyContentType').value = 'highlighter_blurb';
+    document.getElementById('storyStatus').value = 'idea';
+    document.getElementById('storyChannel').value = 'web';
+    document.getElementById('storyOutlet').value = '';
+    document.getElementById('storyAuthor').value = '';
+    document.getElementById('storyPriority').value = 'medium';
+    document.getElementById('storySolution').value = '';
+    document.getElementById('storyNotes').value = '';
+
+    // Clear Highlighter Blurb specific fields
+    document.getElementById('storyBackgroundInfo').value = '';
+    document.getElementById('storyBlurbContent').value = '';
+    document.getElementById('storyHqSubmissionDate').value = '';
+
+    // Set target date to next Tuesday by default
+    var today = new Date();
+    var dayOfWeek = today.getDay();
+    var daysUntilTuesday = (2 - dayOfWeek + 7) % 7;
+    if (daysUntilTuesday === 0) daysUntilTuesday = 7;
+    var nextTuesday = new Date(today);
+    nextTuesday.setDate(today.getDate() + daysUntilTuesday);
+    document.getElementById('storyTargetDate').value = nextTuesday.toISOString().split('T')[0];
+
+    // Clear admin priorities
+    document.querySelectorAll('.admin-priority-checkbox').forEach(function(cb) {
+      cb.checked = false;
+    });
+
+    // Show blurb-specific fields
+    toggleBlurbFields();
+
+    document.getElementById('editStoryModal').classList.add('active');
+  }
 
   // Key Messages state
   var messagesState = {
@@ -3438,12 +4111,28 @@ var COMMS = (function() {
 
     if (!solutions || solutions.length === 0) {
       grid.innerHTML = '<div class="empty-state"><span class="material-icons">chat</span><span>No solutions have key messages yet</span></div>';
-return;
+      return;
     }
 
     var html = solutions.map(function(sol) {
       var focusBadge = sol.comms_focus_type ?
         '<span class="focus-badge focus-' + sol.comms_focus_type.toLowerCase().replace(/\s+/g, '-') + '">' + escapeHtml(sol.comms_focus_type) + '</span>' : '';
+
+      // Build collapsible sections
+      var sections = '';
+
+      if (sol.comms_key_messages) {
+        sections += buildMessageSection('Key Messages', sol.comms_key_messages, false);
+      }
+      if (sol.comms_science) {
+        sections += buildMessageSection('Scientific Advancement', sol.comms_science, false);
+      }
+      if (sol.comms_agency_impact) {
+        sections += buildMessageSection('Agency Use & Impact', sol.comms_agency_impact, false);
+      }
+      if (sol.comms_industry) {
+        sections += buildMessageSection('Industry Connections', sol.comms_industry, false);
+      }
 
       return '<div class="message-card">' +
         '<div class="message-card-header">' +
@@ -3451,20 +4140,91 @@ return;
           focusBadge +
         '</div>' +
         '<div class="message-card-body">' +
-          '<div class="message-section">' +
-            '<h4>Key Messages</h4>' +
-            '<p>' + escapeHtml(sol.comms_key_messages || 'No key messages defined') + '</p>' +
-          '</div>' +
-          (sol.comms_science ? '<div class="message-section"><h4>Scientific Advancement</h4><p>' + escapeHtml(sol.comms_science) + '</p></div>' : '') +
-          (sol.comms_agency_impact ? '<div class="message-section"><h4>Agency Use & Impact</h4><p>' + escapeHtml(sol.comms_agency_impact) + '</p></div>' : '') +
-          (sol.comms_industry ? '<div class="message-section"><h4>Industry Connections</h4><p>' + escapeHtml(sol.comms_industry) + '</p></div>' : '') +
+          sections +
         '</div>' +
         (sol.comms_public_links ? '<div class="message-card-footer"><a href="' + escapeAttr(sol.comms_public_links) + '" target="_blank" class="message-link"><span class="material-icons">open_in_new</span> View Public Page</a></div>' : '') +
       '</div>';
     }).join('');
 
     grid.innerHTML = html;
-}
+  }
+
+  /**
+   * Build a collapsible message section with formatted text
+   */
+  function buildMessageSection(title, content, openByDefault) {
+    var formattedContent = formatMessageText(content);
+    var openClass = openByDefault ? ' open' : '';
+
+    return '<div class="message-section-collapsible' + openClass + '">' +
+      '<div class="message-section-header" onclick="COMMS.toggleMessageSection(this)">' +
+        '<span class="material-icons">expand_more</span>' +
+        '<span>' + escapeHtml(title) + '</span>' +
+      '</div>' +
+      '<div class="message-section-content">' + formattedContent + '</div>' +
+    '</div>';
+  }
+
+  /**
+   * Format message text - convert bullet characters to proper HTML lists
+   */
+  function formatMessageText(text) {
+    if (!text) return '';
+
+    // Escape HTML first
+    var escaped = escapeHtml(text);
+
+    // Split by common bullet patterns and newlines
+    var lines = escaped.split(/[\n\r]+/);
+
+    // Check if content has bullets
+    var bulletPattern = /^[\s]*[•●○◦\-\*►▸]\s*/;
+    var hasBullets = lines.some(function(line) { return bulletPattern.test(line); });
+
+    if (hasBullets) {
+      var inList = false;
+      var result = '';
+
+      lines.forEach(function(line) {
+        var trimmed = line.trim();
+        if (!trimmed) return;
+
+        if (bulletPattern.test(trimmed)) {
+          // This is a bullet item
+          var itemText = trimmed.replace(bulletPattern, '');
+          if (!inList) {
+            result += '<ul>';
+            inList = true;
+          }
+          result += '<li>' + itemText + '</li>';
+        } else {
+          // Regular text
+          if (inList) {
+            result += '</ul>';
+            inList = false;
+          }
+          result += '<p>' + trimmed + '</p>';
+        }
+      });
+
+      if (inList) {
+        result += '</ul>';
+      }
+
+      return result || '<p>' + escaped + '</p>';
+    } else {
+      // No bullets - just wrap in paragraph, preserving line breaks
+      return '<p>' + lines.filter(function(l) { return l.trim(); }).join('<br>') + '</p>';
+    }
+  }
+
+  /**
+   * Toggle message section open/closed
+   */
+  function toggleMessageSection(header) {
+    var section = header.closest('.message-section-collapsible');
+    section.classList.toggle('open');
+  }
 
   function searchMessages() {
     var query = document.getElementById('messagesSearchInput').value.toLowerCase().trim();
@@ -3492,7 +4252,12 @@ return;
   }
 
   function showStoryDetail(storyId) {
+    // Check stories cache first
     var story = state.stories.find(function(s) { return s.story_id === storyId; });
+    // Also check blurbs cache
+    if (!story && blurbsState.blurbs) {
+      story = blurbsState.blurbs.find(function(b) { return b.story_id === storyId; });
+    }
     if (!story) {
       // Fallback to server if not in cache
       google.script.run
@@ -3518,15 +4283,17 @@ return;
       'social_media': 'Social Media',
       'external_mention': 'External Mention',
       'nugget': 'Nugget Slide',
-      'key_date': 'Key Date'
+      'key_date': 'Key Date',
+      'highlighter_blurb': 'Highlighter Blurb'
     };
 
+    var isBlurb = story.content_type === 'highlighter_blurb';
     var statusInfo = {
       'idea': { name: 'Idea', color: '#9E9E9E' },
       'researching': { name: 'Researching', color: '#2196F3' },
       'drafting': { name: 'Drafting', color: '#FF9800' },
       'review': { name: 'Review', color: '#9C27B0' },
-      'published': { name: 'Published', color: '#4CAF50' },
+      'published': { name: isBlurb ? 'Submitted to HQ' : 'Published', color: '#4CAF50' },
       'archived': { name: 'Archived', color: '#607D8B' }
     };
 
@@ -3626,6 +4393,12 @@ return;
       html += '<div style="font-size: var(--font-size-sm);">' + formatDate(story.last_updated) + '</div></div>';
     }
 
+    // HQ Submission date for blurbs
+    if (isBlurb && story.hq_submission_date) {
+      html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">SUBMITTED TO HQ</div>';
+      html += '<div style="font-size: var(--font-size-sm); color: var(--color-success);">' + formatDate(story.hq_submission_date) + '</div></div>';
+    }
+
     html += '</div>';
 
     // Links
@@ -3639,6 +4412,21 @@ return;
         html += '<a href="' + escapeHtml(story.pitch_doc_url) + '" target="_blank" class="btn btn-secondary">';
         html += '<span class="material-icons">description</span> View Draft</a>';
       }
+      html += '</div>';
+    }
+
+    // Blurb-specific content sections
+    if (isBlurb && story.background_info) {
+      html += '<div style="background: var(--color-surface-alt); padding: var(--space-md); border-radius: var(--radius-sm); margin-bottom: var(--space-md);">';
+      html += '<div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: var(--space-xs);">BACKGROUND INFORMATION</div>';
+      html += '<div style="font-size: var(--font-size-sm); white-space: pre-wrap;">' + escapeHtml(story.background_info) + '</div>';
+      html += '</div>';
+    }
+
+    if (isBlurb && story.blurb_content) {
+      html += '<div style="background: var(--color-surface-alt); padding: var(--space-md); border-radius: var(--radius-sm); margin-bottom: var(--space-md); border-left: 3px solid var(--color-comms);">';
+      html += '<div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: var(--space-xs);">BLURB CONTENT</div>';
+      html += '<div style="font-size: var(--font-size-sm); white-space: pre-wrap;">' + escapeHtml(story.blurb_content) + '</div>';
       html += '</div>';
     }
 
@@ -3656,7 +4444,8 @@ return;
     if (story.status !== 'published') {
       var nextStatus = getNextStatus(story.status);
       if (nextStatus) {
-        html += '<button class="btn btn-secondary" id="advanceStatusBtn" onclick="COMMS.advanceStatus(\'' + escapeAttr(story.story_id) + '\', \'' + nextStatus + '\')"><span class="material-icons">arrow_forward</span> Move to ' + capitalizeFirst(nextStatus) + '</button>';
+        var nextLabel = (isBlurb && nextStatus === 'published') ? 'Submit to HQ' : ('Move to ' + capitalizeFirst(nextStatus));
+        html += '<button class="btn btn-secondary" id="advanceStatusBtn" onclick="COMMS.advanceStatus(\'' + escapeAttr(story.story_id) + '\', \'' + nextStatus + '\')"><span class="material-icons">arrow_forward</span> ' + nextLabel + '</button>';
       }
     }
     html += '<button class="btn btn-danger" id="deleteStoryBtn" style="margin-left: auto;" onclick="COMMS.deleteStory(\'' + escapeAttr(story.story_id) + '\')" aria-label="Delete story"><span class="material-icons" aria-hidden="true">delete</span></button>';
@@ -3716,11 +4505,17 @@ return;
     // Clear admin priority checkboxes
     var checkboxes = document.querySelectorAll('#storyAdminPriorities input[type="checkbox"]');
     checkboxes.forEach(function(cb) { cb.checked = false; });
+    // Hide blurb-specific fields (default content type is 'story')
+    toggleBlurbFields();
     document.getElementById('editStoryModal').classList.add('active');
   }
 
   function editStory(storyId) {
     var story = state.stories.find(function(s) { return s.story_id === storyId; });
+    // Also check blurbs cache
+    if (!story && blurbsState.blurbs) {
+      story = blurbsState.blurbs.find(function(b) { return b.story_id === storyId; });
+    }
     if (!story) {
       // Fallback to server if not in cache
       google.script.run
@@ -3755,12 +4550,20 @@ return;
     document.getElementById('storyPublishedLink').value = story.published_url || '';
     document.getElementById('storyNotes').value = story.notes || '';
 
+    // Highlighter Blurb fields
+    document.getElementById('storyBackgroundInfo').value = story.background_info || '';
+    document.getElementById('storyBlurbContent').value = story.blurb_content || '';
+    document.getElementById('storyHqSubmissionDate').value = story.hq_submission_date ? story.hq_submission_date.split('T')[0] : '';
+
     // Populate admin priorities checkboxes
     var priorities = story.admin_priorities ? story.admin_priorities.split(',').map(function(p) { return p.trim(); }) : [];
     var checkboxes = document.querySelectorAll('#storyAdminPriorities input[type="checkbox"]');
     checkboxes.forEach(function(cb) {
-      cb.checked = priorities.indexOf(cb.value) !== -1;
+      cb.checked = priorities.includes(cb.value);
     });
+
+    // Toggle blurb fields visibility based on content type
+    toggleBlurbFields();
 
     closeModal('storyModal');
     document.getElementById('editStoryModal').classList.add('active');
@@ -3800,7 +4603,11 @@ return;
       publish_date: document.getElementById('storyPublishDate').value,
       pitch_doc_url: document.getElementById('storyPitchUrl').value,
       published_url: document.getElementById('storyPublishedLink').value,
-      notes: document.getElementById('storyNotes').value
+      notes: document.getElementById('storyNotes').value,
+      // Highlighter Blurb fields
+      background_info: document.getElementById('storyBackgroundInfo').value,
+      blurb_content: document.getElementById('storyBlurbContent').value,
+      hq_submission_date: document.getElementById('storyHqSubmissionDate').value
     };
 
     // Show loading state
@@ -5623,8 +6430,18 @@ return;
     updateEventStatus: updateEventStatus,
     showAddEventModal: showAddEventModal,
     submitNewEvent: submitNewEvent,
-    // Key Messages functions
+    // Messaging view functions
     searchMessages: searchMessages,
+    togglePriorityDetail: togglePriorityDetail,
+    closePriorityDetail: closePriorityDetail,
+    // Highlighter Blurbs functions
+    showNewBlurbModal: showNewBlurbModal,
+    showAllBlurbs: showAllBlurbs,
+    toggleBlurbFields: toggleBlurbFields,
+    setBlurbView: setBlurbView,
+    filterBlurbs: filterBlurbs,
+    // Key Messages section toggle
+    toggleMessageSection: toggleMessageSection,
     // Guest List & Prep Report functions
     switchEventTab: switchEventTab,
     searchContactsForGuest: searchContactsForGuest,
