@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.0] - 2026-02-02
+
+### Added
+- **Presentation Builder** - Generate customized Google Slides presentations from Comms > Tools
+  - Select any solution and audience type (Internal/External)
+  - Slides automatically filtered based on speaker notes metadata (Audience, solution, agency)
+  - Placeholders (`{{field_name}}`) replaced with solution-specific data
+  - Presentation saved to user's Google Drive root folder with link to open
+  - New config key: `BOILERPLATE_SLIDES_ID` (template presentation ID)
+  - No-code maintenance: edit template speaker notes to change slide filtering
+  - Documentation: `docs/PRESENTATION_SLIDE_MAPPING.md`
+- **Tools View** in Comms-NSITE - New view for team-curated tools and generators
+  - Presentation Builder is the first tool in this view
+  - Designed to expand with additional comms tools over time
+- **White-Label Branding System** - Platform now supports full customization for other teams
+  - **Application Name** - Configurable via `APP_NAME`, `ORG_NAME`, `APP_TAGLINE` config keys
+  - **Page Names** - Primary tabs configurable via `PAGE_1_NAME`, `PAGE_2_NAME`, `PAGE_3_NAME`
+  - **Page Icons** - Tab icons configurable via `PAGE_1_ICON`, `PAGE_2_ICON`, `PAGE_3_ICON` (Material Icons)
+  - **Color Themes** - Full color customization via `COLOR_PRIMARY`, `COLOR_ACCENT`, `COLOR_PAGE_*`
+  - Sensible defaults allow app to work without any branding configuration
+  - Example configurations documented for NSITE MO and ESDIS deployments
+
+### Changed
+- **Navigation Component** - Now uses server-side templating for dynamic tab names
+- **Header/Footer** - Application name injected from config instead of hardcoded
+- **CSS Variables** - Brand colors dynamically injected at page load
+
+### Technical
+- Added `getBrandingConfig()` to library/config-helpers.gs
+- Added `includeWithData()` helper for template-aware HTML includes
+- Updated doGet() to pass branding config to page template
+- Documented deployment checklist for new team deployments
+
+---
+
 ## [2.2.0] - 2026-01-29
 
 ### Added

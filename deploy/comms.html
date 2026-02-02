@@ -30,6 +30,10 @@
           <span class="material-icons">chat</span>
           <span>Messages</span>
         </button>
+        <button class="view-btn" data-view="tools" onclick="COMMS.setView('tools')">
+          <span class="material-icons">build</span>
+          <span>Tools</span>
+        </button>
       </div>
       <button class="btn btn-primary" onclick="COMMS.showCreateStoryModal()">
         <span class="material-icons">add</span>
@@ -439,6 +443,51 @@
           <div class="loading-state">
             <span class="loading-spinner"></span>
             <span>Loading key messages...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tools View -->
+    <div class="view-panel" id="toolsView">
+      <div class="tools-layout">
+        <div class="tools-header">
+          <h2>Comms Tools</h2>
+          <p class="tools-subtitle">Resources and generators for the team</p>
+        </div>
+
+        <!-- Tools Grid -->
+        <div class="tools-grid">
+          <!-- Presentation Builder Tool -->
+          <div class="tool-card">
+            <div class="tool-card-icon">
+              <span class="material-icons">slideshow</span>
+            </div>
+            <div class="tool-card-content">
+              <h3>Presentation Builder</h3>
+              <p>Generate customized Google Slides presentations for any solution. Select audience type to automatically filter slides and replace placeholders with solution data.</p>
+              <div class="tool-card-meta">
+                <span class="tool-tag">Google Slides</span>
+                <span class="tool-tag">Automated</span>
+              </div>
+            </div>
+            <div class="tool-card-actions">
+              <button class="btn btn-primary" onclick="COMMS.showPresentationBuilder()">
+                <span class="material-icons">play_arrow</span>
+                Launch Tool
+              </button>
+            </div>
+          </div>
+
+          <!-- Placeholder for future tools -->
+          <div class="tool-card tool-card-placeholder">
+            <div class="tool-card-icon">
+              <span class="material-icons">add_circle_outline</span>
+            </div>
+            <div class="tool-card-content">
+              <h3>More Tools Coming</h3>
+              <p>Additional Comms tools will be added here. Ideas? Talk to the team!</p>
+            </div>
           </div>
         </div>
       </div>
@@ -937,6 +986,88 @@
           <button type="submit" class="btn btn-primary">Add Contact</button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Presentation Builder Modal -->
+<div class="modal-overlay" id="presentationBuilderModal" onclick="COMMS.closeModal('presentationBuilderModal', event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Presentation Builder</h2>
+      <button class="modal-close" onclick="COMMS.closeModal('presentationBuilderModal')" aria-label="Close dialog">&times;</button>
+    </div>
+    <div class="modal-body">
+      <!-- Initial Form -->
+      <div id="presentationForm">
+        <div class="form-group">
+          <label>Solution *</label>
+          <select id="presentationSolution" required>
+            <option value="">-- Loading Solutions --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Audience Type *</label>
+          <div class="radio-group">
+            <label class="radio-item">
+              <input type="radio" name="presentationAudience" value="internal" checked>
+              <span>Internal</span>
+              <small>NASA/agency stakeholders, includes SEP, onboarding, and assessment details</small>
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="presentationAudience" value="external">
+              <span>External</span>
+              <small>Public and partners, focuses on impact and engagement</small>
+            </label>
+          </div>
+        </div>
+        <div class="form-info" style="display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm); background: var(--color-surface-alt); border-radius: var(--radius-sm); margin-bottom: var(--space-md);">
+          <span class="material-icons" style="color: var(--color-text-muted);">info</span>
+          <span style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">The presentation will be saved to your Google Drive</span>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="COMMS.closeModal('presentationBuilderModal')">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="COMMS.generatePresentation()" id="generatePresentationBtn">
+            <span class="material-icons">slideshow</span>
+            Generate Presentation
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="presentationLoading" class="loading-state" style="display: none;">
+        <span class="loading-spinner"></span>
+        <p>Generating presentation...</p>
+      </div>
+
+      <!-- Success State -->
+      <div id="presentationSuccess" style="display: none; text-align: center; padding: var(--space-xl);">
+        <span class="material-icons" style="font-size: 64px; color: var(--color-success);">check_circle</span>
+        <h3 style="margin: var(--space-md) 0;">Presentation Created!</h3>
+        <p id="presentationSuccessName" style="color: var(--color-text-secondary);"></p>
+        <p id="presentationModeNote" style="display: none; color: var(--color-warning); font-size: var(--font-sm); margin-top: var(--space-sm);"></p>
+        <div style="margin-top: var(--space-lg); display: flex; gap: var(--space-md); justify-content: center;">
+          <a id="presentationOpenLink" href="#" target="_blank" class="btn btn-primary">
+            <span class="material-icons">open_in_new</span>
+            Open Presentation
+          </a>
+          <button type="button" class="btn btn-secondary" onclick="COMMS.resetPresentationBuilder()">
+            Generate Another
+          </button>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div id="presentationError" style="display: none; text-align: center; padding: var(--space-xl);">
+        <span class="material-icons" style="font-size: 64px; color: var(--color-error);">error</span>
+        <h3 style="margin: var(--space-md) 0;">Generation Failed</h3>
+        <p id="presentationErrorMessage" style="color: var(--color-text-secondary);"></p>
+        <div style="margin-top: var(--space-lg);">
+          <button type="button" class="btn btn-secondary" onclick="COMMS.resetPresentationBuilder()">
+            Try Again
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1917,6 +2048,47 @@
   }
   .checkbox-item span { flex: 1; }
 
+  /* Radio Group (for Presentation Builder) */
+  .radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  .radio-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all var(--transition-fast);
+  }
+  .radio-item:hover {
+    background: var(--color-surface);
+    border-color: var(--color-border);
+  }
+  .radio-item:has(input:checked) {
+    background: rgba(123, 31, 162, 0.08);
+    border-color: var(--color-comms);
+  }
+  .radio-item input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .radio-item span {
+    font-weight: 600;
+    font-size: var(--font-size-md);
+  }
+  .radio-item small {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-weight: normal;
+  }
+
   /* Priorities View */
   .priorities-layout { padding: var(--space-md); }
   .priorities-header {
@@ -2172,6 +2344,95 @@
   }
   .message-link:hover { text-decoration: underline; }
   .message-link svg { width: 14px; height: 14px; }
+
+  /* Tools View */
+  .tools-layout { padding: var(--space-md); }
+  .tools-header {
+    margin-bottom: var(--space-lg);
+  }
+  .tools-header h2 {
+    margin: 0 0 var(--space-xs) 0;
+    font-size: var(--font-size-xl);
+  }
+  .tools-subtitle {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    margin: 0;
+  }
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--space-lg);
+  }
+  .tool-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+  .tool-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-border);
+  }
+  .tool-card-icon {
+    width: 56px;
+    height: 56px;
+    background: rgba(123, 31, 162, 0.1);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tool-card-icon .material-icons {
+    font-size: 28px;
+    color: var(--color-comms);
+  }
+  .tool-card-content h3 {
+    margin: 0 0 var(--space-sm) 0;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+  }
+  .tool-card-content p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+  .tool-card-meta {
+    display: flex;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+    margin-top: var(--space-sm);
+  }
+  .tool-tag {
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+  }
+  .tool-card-actions {
+    margin-top: auto;
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-border-light);
+  }
+  .tool-card-placeholder {
+    border-style: dashed;
+    background: var(--color-surface-alt);
+  }
+  .tool-card-placeholder .tool-card-icon {
+    background: var(--color-border-light);
+  }
+  .tool-card-placeholder .tool-card-icon .material-icons {
+    color: var(--color-text-muted);
+  }
+  .tool-card-placeholder h3 {
+    color: var(--color-text-muted);
+  }
 
   /* Modal Tabs */
   .modal-tabs {
@@ -3012,6 +3273,7 @@ var COMMS = (function() {
     document.getElementById('calendarView').classList.toggle('active', view === 'calendar');
     document.getElementById('prioritiesView').classList.toggle('active', view === 'priorities');
     document.getElementById('messagesView').classList.toggle('active', view === 'messages');
+    document.getElementById('toolsView').classList.toggle('active', view === 'tools');
 
     // Show pipeline stats only on pipeline view
     var pipelineStats = document.getElementById('pipelineStatsRow');
@@ -5198,6 +5460,144 @@ return;
     }
   }
 
+  // ============================================
+  // Presentation Builder Functions
+  // ============================================
+
+  var presentationState = {
+    solutions: [],
+    isGenerating: false
+  };
+
+  function showPresentationBuilder() {
+    // Reset to form state
+    resetPresentationBuilder();
+
+    // Load solutions if not already loaded
+    if (presentationState.solutions.length === 0) {
+      loadSolutionsForPresentation();
+    }
+
+    // Show modal
+    var modal = document.getElementById('presentationBuilderModal');
+    if (modal) {
+      modal.classList.add('active');
+    }
+  }
+
+  function loadSolutionsForPresentation() {
+    var select = document.getElementById('presentationSolution');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Loading...</option>';
+
+    google.script.run
+      .withSuccessHandler(function(solutions) {
+        presentationState.solutions = solutions || [];
+
+        // Sort alphabetically by core_id
+        var sorted = solutions.slice().sort(function(a, b) {
+          var idA = (a.core_id || '').toLowerCase();
+          var idB = (b.core_id || '').toLowerCase();
+          return idA.localeCompare(idB);
+        });
+
+        var html = '<option value="">-- Select Solution --</option>';
+        sorted.forEach(function(sol) {
+          // Display core_id as readable acronym
+          html += '<option value="' + escapeAttr(sol.core_id) + '">' + escapeHtml(sol.core_id) + '</option>';
+        });
+        select.innerHTML = html;
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load solutions:', error);
+        select.innerHTML = '<option value="">-- Error loading solutions --</option>';
+      })
+      .getAllSolutions();
+  }
+
+  function generatePresentation() {
+    // Validate inputs
+    var solutionId = document.getElementById('presentationSolution').value;
+    var audienceRadio = document.querySelector('input[name="presentationAudience"]:checked');
+
+    if (!solutionId) {
+      showToast('Please select a solution.', 'error');
+      return;
+    }
+    if (!audienceRadio) {
+      showToast('Please select an audience type.', 'error');
+      return;
+    }
+
+    if (presentationState.isGenerating) return;
+    presentationState.isGenerating = true;
+
+    var audienceType = audienceRadio.value;
+
+    // Show loading state (use 'flex' to preserve centering styles)
+    document.getElementById('presentationForm').style.display = 'none';
+    document.getElementById('presentationLoading').style.display = 'flex';
+    document.getElementById('presentationSuccess').style.display = 'none';
+    document.getElementById('presentationError').style.display = 'none';
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        presentationState.isGenerating = false;
+        document.getElementById('presentationLoading').style.display = 'none';
+
+        if (result && result.success) {
+          // Show success state
+          document.getElementById('presentationSuccessName').textContent = result.data.name;
+          document.getElementById('presentationOpenLink').href = result.data.url;
+
+          // Show mode note if basic mode (no slide filtering/placeholder replacement)
+          var modeNote = document.getElementById('presentationModeNote');
+          if (result.data.mode === 'basic') {
+            modeNote.textContent = 'Note: Template was copied without slide filtering or placeholder replacement (presentations scope not authorized).';
+            modeNote.style.display = 'block';
+          } else {
+            modeNote.style.display = 'none';
+          }
+
+          document.getElementById('presentationSuccess').style.display = 'block';
+        } else {
+          // Show error state
+          var errorMsg = (result && result.error) ? result.error : 'Unknown error occurred';
+          document.getElementById('presentationErrorMessage').textContent = errorMsg;
+          document.getElementById('presentationError').style.display = 'block';
+        }
+      })
+      .withFailureHandler(function(error) {
+        presentationState.isGenerating = false;
+        document.getElementById('presentationLoading').style.display = 'none';
+        document.getElementById('presentationErrorMessage').textContent = error.message || 'An unexpected error occurred';
+        document.getElementById('presentationError').style.display = 'block';
+      })
+      .generatePresentation(solutionId, audienceType, null);
+  }
+
+  function resetPresentationBuilder() {
+    // Reset form values
+    var solutionSelect = document.getElementById('presentationSolution');
+    if (solutionSelect) solutionSelect.value = '';
+
+    var internalRadio = document.querySelector('input[name="presentationAudience"][value="internal"]');
+    if (internalRadio) internalRadio.checked = true;
+
+    presentationState.isGenerating = false;
+
+    // Show form, hide other states
+    document.getElementById('presentationForm').style.display = 'block';
+    document.getElementById('presentationLoading').style.display = 'none';
+    document.getElementById('presentationSuccess').style.display = 'none';
+    document.getElementById('presentationError').style.display = 'none';
+
+    // Hide mode note
+    var modeNote = document.getElementById('presentationModeNote');
+    if (modeNote) modeNote.style.display = 'none';
+  }
+
   return {
     init: init,
     setView: setView,
@@ -5250,7 +5650,11 @@ return;
     // Search bar
     toggleSearchBar: toggleSearchBar,
     filterStories: filterStories,
-    clearFilters: clearFilters
+    clearFilters: clearFilters,
+    // Presentation Builder functions
+    showPresentationBuilder: showPresentationBuilder,
+    generatePresentation: generatePresentation,
+    resetPresentationBuilder: resetPresentationBuilder
   };
 })();
 

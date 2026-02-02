@@ -18,6 +18,7 @@
     <a href="javascript:void(0)" onclick="document.getElementById('databases').scrollIntoView({behavior:'smooth'})">Databases</a>
     <a href="javascript:void(0)" onclick="document.getElementById('pages').scrollIntoView({behavior:'smooth'})">Page Documentation</a>
     <a href="javascript:void(0)" onclick="document.getElementById('security').scrollIntoView({behavior:'smooth'})">Security</a>
+    <a href="javascript:void(0)" onclick="document.getElementById('deployment').scrollIntoView({behavior:'smooth'})">Deployment</a>
     <a href="javascript:void(0)" onclick="document.getElementById('version').scrollIntoView({behavior:'smooth'})">Version</a>
   </nav>
 
@@ -28,7 +29,7 @@
       <h3>Platform Overview</h3>
     </div>
     <div class="about-content">
-      <p>NSITE MO Viewer is a unified dashboard for the NSITE Management Office that consolidates solution tracking, stakeholder engagement, and action management into a single interface.</p>
+      <p>NSITE MO Viewer is a unified dashboard for the NSITE Management Office that consolidates solution tracking, stakeholder engagement, and action management into a single interface. The platform is <strong>fully configurable</strong> for deployment by other teams with custom branding, terminology, and color themes.</p>
 
       <div class="architecture-diagram">
         <pre>
@@ -222,6 +223,23 @@
           <div class="tutorial-tip">
             <span class="material-icons">lightbulb</span>
             <span>For analytical reports, use Reports page - exports go to Google Sheets with methodology documentation.</span>
+          </div>
+        </div>
+
+        <!-- Scenario 9: Generate presentation -->
+        <div class="tutorial-card">
+          <div class="tutorial-icon"><span class="material-icons">slideshow</span></div>
+          <h4>"I need a presentation about OPERA for an external meeting"</h4>
+          <ol class="tutorial-steps">
+            <li>Go to <strong>Comms-NSITE > Tools</strong></li>
+            <li>Click <strong>Generate Presentation</strong> on the Presentation Builder card</li>
+            <li>Select <strong>OPERA</strong> from the solution dropdown</li>
+            <li>Choose <strong>External</strong> audience type</li>
+            <li>Click <strong>Generate</strong> - presentation opens in new tab</li>
+          </ol>
+          <div class="tutorial-tip">
+            <span class="material-icons">lightbulb</span>
+            <span>Internal presentations include process slides (SEP, onboarding). External presentations focus on impact and value. Slides are filtered automatically based on template metadata.</span>
           </div>
         </div>
       </div>
@@ -667,7 +685,7 @@
             </div>
             <div class="detail-group">
               <span class="detail-label">Views:</span>
-              <span>Pipeline, Events, Coverage, Calendar, Priorities, Messages</span>
+              <span>Pipeline, Events, Coverage, Calendar, Priorities, Messages, Tools</span>
             </div>
             <div class="detail-group">
               <span class="detail-label">Features:</span>
@@ -689,6 +707,10 @@
               <li><strong>Calendar Alerts:</strong> Sidebar shows solutions needing comms attention (>90 days without coverage)</li>
               <li><strong>Event Cards:</strong> Redesigned with status badges, hover effects, cleaner visual hierarchy</li>
               <li><strong>Story CRUD:</strong> Solution dropdown validation, schema v2 column alignment</li>
+            </ul>
+            <span class="next-label" style="margin-top: var(--space-md); display: block;">Tools View:</span>
+            <ul>
+              <li><strong>Presentation Builder:</strong> Generate customized Google Slides presentations for any solution. Select audience type (internal/external) to automatically filter slides based on speaker notes metadata. Supports filtering by audience, solution, and agency. Placeholders in template (e.g., <code>{{core_official_name}}</code>) are replaced with solution-specific data. Presentations saved to user's Google Drive. See <code>docs/PRESENTATION_SLIDE_MAPPING.md</code> for template configuration.</li>
             </ul>
           </div>
         </div>
@@ -863,6 +885,137 @@
     </div>
   </section>
 
+  <!-- Deployment & Customization -->
+  <section class="about-section about-deployment" id="deployment">
+    <div class="section-header">
+      <span class="material-icons">tune</span>
+      <h3>Deployment & White-Labeling</h3>
+    </div>
+    <div class="about-content">
+      <p>This platform supports <strong>white-label deployment</strong> for other teams. All branding, terminology, and colors are configurable through the MO-DB_Config sheet — no code changes required.</p>
+
+      <h4>Configurable Elements</h4>
+      <div class="config-grid">
+        <div class="config-card">
+          <span class="material-icons">badge</span>
+          <strong>Application Name</strong>
+          <span>Header, footer, page titles</span>
+        </div>
+        <div class="config-card">
+          <span class="material-icons">tab</span>
+          <strong>Page Names</strong>
+          <span>Primary tab labels & icons</span>
+        </div>
+        <div class="config-card">
+          <span class="material-icons">palette</span>
+          <strong>Color Theme</strong>
+          <span>Primary, accent, page colors</span>
+        </div>
+        <div class="config-card">
+          <span class="material-icons">storage</span>
+          <strong>Databases</strong>
+          <span>Point to your own Google Sheets</span>
+        </div>
+      </div>
+
+      <h4>Branding Configuration Keys</h4>
+      <p>Add these keys to your MO-DB_Config sheet:</p>
+      <div class="admin-note">
+        <p><strong>Application:</strong></p>
+        <ul>
+          <li><code>APP_NAME</code> — Application name in header (e.g., "ESDIS Viewer")</li>
+          <li><code>ORG_NAME</code> — Organization name in page title</li>
+          <li><code>APP_TAGLINE</code> — Optional tagline in header</li>
+        </ul>
+        <p style="margin-top: var(--space-md);"><strong>Page Names (Primary Tabs):</strong></p>
+        <ul>
+          <li><code>PAGE_1_NAME</code>, <code>PAGE_2_NAME</code>, <code>PAGE_3_NAME</code> — Tab labels</li>
+          <li><code>PAGE_1_ICON</code>, <code>PAGE_2_ICON</code>, <code>PAGE_3_ICON</code> — Material Icon names</li>
+          <li><code>PAGE_1_KEY</code>, <code>PAGE_2_KEY</code>, <code>PAGE_3_KEY</code> — URL keys (optional)</li>
+        </ul>
+        <p style="margin-top: var(--space-md);"><strong>Colors:</strong></p>
+        <ul>
+          <li><code>COLOR_PRIMARY</code> — Main brand color (header background)</li>
+          <li><code>COLOR_PRIMARY_LIGHT</code>, <code>COLOR_PRIMARY_DARK</code> — Light/dark variants</li>
+          <li><code>COLOR_ACCENT</code> — Accent color</li>
+          <li><code>COLOR_PAGE_1</code>, <code>COLOR_PAGE_2</code>, <code>COLOR_PAGE_3</code> — Page-specific accent colors</li>
+        </ul>
+        <p style="margin-top: var(--space-md);"><strong>Presentation Builder:</strong></p>
+        <ul>
+          <li><code>BOILERPLATE_SLIDES_ID</code> — Google Slides template ID for presentation generation</li>
+        </ul>
+      </div>
+
+      <h4>Presentation Builder: Speaker Notes Metadata</h4>
+      <p>Slide filtering is controlled by metadata in each slide's <strong>speaker notes</strong>. Add these lines to speaker notes:</p>
+      <div class="admin-note">
+        <pre style="background: var(--color-surface); padding: var(--space-sm); border-radius: var(--radius-sm); font-size: var(--font-size-sm); overflow-x: auto;">Slide: [section], [title]
+Audience: internal, external
+solution: all
+agency: all</pre>
+        <table style="width: 100%; font-size: var(--font-size-sm); border-collapse: collapse; margin-top: var(--space-md);">
+          <thead>
+            <tr style="background: var(--color-surface-alt);">
+              <th style="padding: 8px; text-align: left; border-bottom: 1px solid var(--color-border);">Field</th>
+              <th style="padding: 8px; text-align: left; border-bottom: 1px solid var(--color-border);">Values</th>
+              <th style="padding: 8px; text-align: left; border-bottom: 1px solid var(--color-border);">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 8px;"><code>Audience:</code></td>
+              <td style="padding: 8px;"><code>internal</code>, <code>external</code>, or both</td>
+              <td style="padding: 8px;">Who sees this slide</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px;"><code>solution:</code></td>
+              <td style="padding: 8px;"><code>all</code> or solution IDs</td>
+              <td style="padding: 8px;">Which solutions (comma-separated)</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px;"><code>agency:</code></td>
+              <td style="padding: 8px;"><code>all</code> or agency names</td>
+              <td style="padding: 8px;">Which agencies (comma-separated)</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="margin-top: var(--space-md);"><strong>Default:</strong> Slides without metadata are included for all audiences/solutions/agencies.</p>
+        <p style="margin-top: var(--space-sm);"><strong>Tip:</strong> Changes to speaker notes take effect immediately (no deployment needed).</p>
+      </div>
+
+      <h4>Deployment Checklist for New Teams</h4>
+      <ol>
+        <li><strong>Copy Google Sheets databases</strong> — Solutions, Contacts, Updates, etc.</li>
+        <li><strong>Create your MO-DB_Config</strong> — Add sheet IDs and branding keys</li>
+        <li><strong>Copy Apps Script projects</strong> — MO-APIs Library + Web App</li>
+        <li><strong>Set Script Properties</strong> — Point <code>CONFIG_SHEET_ID</code> to your config sheet</li>
+        <li><strong>Set up MO-DB_Access</strong> — Add your team's email whitelist</li>
+        <li><strong>Deploy</strong> — Deploy library first, then web app</li>
+        <li><strong>Test</strong> — Verify branding appears correctly</li>
+      </ol>
+
+      <h4>Example Configurations</h4>
+      <div class="example-configs">
+        <div class="example-config">
+          <h5>NSITE MO (Current)</h5>
+          <pre>APP_NAME = NSITE MO Viewer
+PAGE_1_NAME = Implementation-NSITE
+PAGE_2_NAME = SEP-NSITE
+PAGE_3_NAME = Comms-NSITE
+COLOR_PRIMARY = #0B3D91</pre>
+        </div>
+        <div class="example-config">
+          <h5>ESDIS (Example)</h5>
+          <pre>APP_NAME = ESDIS Viewer
+PAGE_1_NAME = Projects
+PAGE_2_NAME = Stakeholders
+PAGE_3_NAME = Outreach
+COLOR_PRIMARY = #1A5F2A</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Version Info -->
   <section class="about-section about-version" id="version">
     <div class="section-header">
@@ -872,11 +1025,11 @@
     <div class="version-info">
       <div class="version-item">
         <span class="version-label">Version</span>
-        <span class="version-value">2.2.12</span>
+        <span class="version-value">2.3.0</span>
       </div>
       <div class="version-item">
         <span class="version-label">Updated</span>
-        <span class="version-value">January 30, 2026</span>
+        <span class="version-value">February 2, 2026</span>
       </div>
       <div class="version-item">
         <span class="version-label">Repository</span>
@@ -1541,6 +1694,73 @@
 
   .back-to-top .material-icons {
     font-size: 24px;
+  }
+
+  /* Deployment Section */
+  .config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+
+  .config-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+  }
+
+  .config-card .material-icons {
+    font-size: 32px;
+    color: var(--primary-color);
+    margin-bottom: var(--space-sm);
+  }
+
+  .config-card strong {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+  }
+
+  .config-card span {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  .example-configs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-md);
+    margin-top: var(--space-md);
+  }
+
+  .example-config {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+  }
+
+  .example-config h5 {
+    margin: 0;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--primary-color);
+    color: white;
+    font-size: 0.85rem;
+  }
+
+  .example-config pre {
+    margin: 0;
+    padding: var(--space-md);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
   }
 </style>
 
