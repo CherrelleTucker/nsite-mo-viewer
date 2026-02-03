@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.2] - 2026-02-03
+
+### Added
+- **SessionStorage Caching** - API responses cached in browser for faster page navigation
+  - `DataCache` utility with TTL-based expiration (configurable per data type)
+  - `CachedAPI` helper wraps common API calls with automatic caching
+  - Solutions, contacts, agencies cached for 60 minutes
+  - SEP init data, comms overview cached for 15 minutes
+  - Cache stats available via `DataCache.getStats()` in browser console
+- **Refresh Button** - New button in navigation bar to force-refresh all cached data
+  - Spinning animation during refresh
+  - Clears all caches and reloads current page content
+- **Navigation Guards** - Abandoned page loads no longer process stale data
+  - Each page tracks navigation ID at init
+  - Async callbacks check if navigation is still current before processing
+  - Prevents UI glitches when rapidly switching pages
+
+### Changed
+- **Page Load Performance** - Subsequent visits to pages load ~50x faster (from cache)
+  - First visit: 2-3 seconds (server fetch)
+  - Return visit: ~50ms (cache hit)
+- **All viewer pages** updated to use caching and navigation guards:
+  - Implementation, SEP, Contacts, Comms, Team, Reports, Schedule, TopSheet, Quick Update
+
+### Technical
+- `Platform.navigationId` increments on each SPA navigation
+- `getNavigationId()` and `isNavigationCurrent(navId)` helpers for page scripts
+- `CachedAPI.invalidate.engagements()` called after engagement saves to ensure fresh data
+
+---
+
 ## [2.3.1] - 2026-02-03
 
 ### Added

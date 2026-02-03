@@ -1,29 +1,29 @@
 <!-- MO-Viewer Navigation Component -->
 <nav class="nav-bar">
-  <!-- Primary Viewer Tabs (NSITE = "in sight") -->
+  <!-- Primary Viewer Tabs -->
   <div class="nav-primary">
-    <button type="button" class="nav-tab <?= activePage === 'implementation' ? 'active' : '' ?>"
-            data-page="implementation"
-            onclick="navigateTo('implementation')"
-            title="Implementation is in sight">
-      <span class="material-icons">folder</span>
-      <span class="nav-label">Implementation-NSITE</span>
+    <button type="button" class="nav-tab <?= activePage === branding.pages.page1.key ? 'active' : '' ?>"
+            data-page="<?= branding.pages.page1.key ?>"
+            onclick="navigateTo('<?= branding.pages.page1.key ?>')"
+            title="<?= branding.pages.page1.name ?>">
+      <span class="material-icons"><?= branding.pages.page1.icon ?></span>
+      <span class="nav-label"><?= branding.pages.page1.name ?></span>
     </button>
 
-    <button type="button" class="nav-tab <?= activePage === 'sep' ? 'active' : '' ?>"
-            data-page="sep"
-            onclick="navigateTo('sep')"
-            title="SEP is in sight">
-      <span class="material-icons">group</span>
-      <span class="nav-label">SEP-NSITE</span>
+    <button type="button" class="nav-tab <?= activePage === branding.pages.page2.key ? 'active' : '' ?>"
+            data-page="<?= branding.pages.page2.key ?>"
+            onclick="navigateTo('<?= branding.pages.page2.key ?>')"
+            title="<?= branding.pages.page2.name ?>">
+      <span class="material-icons"><?= branding.pages.page2.icon ?></span>
+      <span class="nav-label"><?= branding.pages.page2.name ?></span>
     </button>
 
-    <button type="button" class="nav-tab <?= activePage === 'comms' ? 'active' : '' ?>"
-            data-page="comms"
-            onclick="navigateTo('comms')"
-            title="Comms is in sight">
-      <span class="material-icons">chat</span>
-      <span class="nav-label">Comms-NSITE</span>
+    <button type="button" class="nav-tab <?= activePage === branding.pages.page3.key ? 'active' : '' ?>"
+            data-page="<?= branding.pages.page3.key ?>"
+            onclick="navigateTo('<?= branding.pages.page3.key ?>')"
+            title="<?= branding.pages.page3.name ?>">
+      <span class="material-icons"><?= branding.pages.page3.icon ?></span>
+      <span class="nav-label"><?= branding.pages.page3.name ?></span>
     </button>
   </div>
 
@@ -83,6 +83,11 @@
 
   <!-- Right side actions -->
   <div class="nav-actions">
+    <button type="button" class="nav-icon-btn" id="refreshDataBtn"
+            onclick="refreshAllData()"
+            title="Refresh all data (clear cache)">
+      <span class="material-icons">refresh</span>
+    </button>
     <button type="button" class="nav-icon-btn <?= activePage === 'about' ? 'active' : '' ?>"
             data-page="about"
             onclick="navigateTo('about')"
@@ -91,3 +96,46 @@
     </button>
   </div>
 </nav>
+
+<script>
+  /**
+   * Refresh all cached data and reload current page
+   */
+  function refreshAllData() {
+    var btn = document.getElementById('refreshDataBtn');
+    var icon = btn.querySelector('.material-icons');
+
+    // Animate the refresh icon
+    icon.style.animation = 'spin 1s linear infinite';
+    btn.disabled = true;
+
+    // Clear all caches
+    if (typeof DataCache !== 'undefined') {
+      DataCache.clearAll();
+    }
+
+    // Reload current page content
+    var currentPage = Platform.activePage || 'implementation';
+
+    google.script.run
+      .withSuccessHandler(function(html) {
+        setInnerHTMLWithScripts(document.getElementById('contentArea'), html);
+        icon.style.animation = '';
+        btn.disabled = false;
+        showToast('Data refreshed', 'success', 2000);
+      })
+      .withFailureHandler(function(error) {
+        icon.style.animation = '';
+        btn.disabled = false;
+        showToast('Refresh failed: ' + error.message, 'error');
+      })
+      .getPageHTML(currentPage);
+  }
+</script>
+
+<style>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>

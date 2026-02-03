@@ -239,16 +239,29 @@
   var AgendaViewer = {
     urls: null,
     currentAgenda: 'internal',
+    navId: null,  // Navigation ID for abandoning stale loads
 
     init: function() {
+      // Capture navigation ID to detect if user navigates away during load
+      this.navId = getNavigationId();
       this.loadUrls();
       this.bindEvents();
+    },
+
+    // Check if this page load is still current
+    isCurrentNavigation: function() {
+      return isNavigationCurrent(this.navId);
     },
 
     loadUrls: function() {
       var self = this;
       google.script.run
         .withSuccessHandler(function(urls) {
+          // Abandon if user navigated away
+          if (!self.isCurrentNavigation()) {
+            console.log('[QuickUpdate] Abandoning load - user navigated away');
+            return;
+          }
           self.urls = urls;
           // Update monthly tab label if we have a title
           if (urls.monthlyTitle) {
@@ -263,6 +276,7 @@
           self.loadAgenda('internal');
         })
         .withFailureHandler(function(err) {
+          if (!self.isCurrentNavigation()) return;
           console.error('Failed to load agenda URLs:', err);
           self.showError();
         })

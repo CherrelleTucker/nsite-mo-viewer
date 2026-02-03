@@ -633,7 +633,13 @@ var TopSheet = (function() {
     { key: 'sep_5', label: 'WS5/TP8', type: 'sep', wsKey: 'sep_ws5_date', tpKey: 'sep_tp8_date' }
   ];
 
+  // Navigation ID for abandoning stale loads
+  var topsheetNavId = null;
+
   function init() {
+    // Capture navigation ID to detect if user navigates away during load
+    topsheetNavId = getNavigationId();
+
     // Restore toggle states from localStorage
     if (localStorage.getItem('topsheet_showSEP') === 'true') {
       state.showSEP = true;
@@ -665,10 +671,18 @@ var TopSheet = (function() {
   }
 
   function loadSolutions() {
+    var navId = topsheetNavId;
     showLoading(true);
 
-    google.script.run
-      .withSuccessHandler(function(solutions) {
+    // Use CachedAPI for solutions (60 min TTL, shared across pages)
+    CachedAPI.getSolutions()
+      .then(function(solutions) {
+        // Abandon if user navigated away
+        if (!isNavigationCurrent(navId)) {
+          console.log('[TopSheet] Abandoning load - user navigated away');
+          return;
+        }
+
         state.solutions = solutions || [];
         state.filteredSolutions = state.solutions.slice();
         state.loaded = true;
@@ -692,12 +706,12 @@ var TopSheet = (function() {
         applyFilters();
         showLoading(false);
       })
-      .withFailureHandler(function(err) {
+      .catch(function(err) {
+        if (!isNavigationCurrent(navId)) return;
         console.error('Failed to load solutions:', err);
         showLoading(false);
         showError('Failed to load solutions');
-      })
-      .getAllSolutions();
+      });
   }
 
   function showLoading(show) {

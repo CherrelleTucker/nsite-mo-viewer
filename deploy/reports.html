@@ -1429,9 +1429,13 @@
     var alignmentSelectedSolutions = {};
     var alignmentPickerLoaded = false;
 
+    // Navigation ID for abandoning stale loads
+    var reportsNavId = null;
+
     // Load solutions for alignment picker
     function loadAlignmentSolutions(callback) {
       var label = document.getElementById('alignmentPickerLabel');
+      var navId = reportsNavId;
 
       // If already loaded, just populate DOM (if it exists) and run callback
       if (alignmentPickerLoaded && alignmentSolutions.length > 0) {
@@ -1442,19 +1446,25 @@
 
       if (label) label.textContent = 'Loading...';
 
-      google.script.run
-        .withSuccessHandler(function(solutions) {
+      // Use CachedAPI for solutions (60 min TTL, shared across pages)
+      CachedAPI.getSolutions()
+        .then(function(solutions) {
+          // Abandon if user navigated away
+          if (navId && !isNavigationCurrent(navId)) {
+            console.log('[Reports] Abandoning solutions load - user navigated away');
+            return;
+          }
           alignmentSolutions = solutions || [];
           alignmentPickerLoaded = true;
           // Populate picker (handles DOM check and default selection internally)
           populateAlignmentPicker();
           if (callback) callback();
         })
-        .withFailureHandler(function(err) {
+        .catch(function(err) {
+          if (navId && !isNavigationCurrent(navId)) return;
           console.error('Failed to load solutions for alignment picker:', err);
           if (label) label.textContent = 'Error loading';
-        })
-        .getAllSolutions();
+        });
     }
 
     // Pre-select defaults in memory
@@ -1475,6 +1485,8 @@
 
     // Called by SPA when navigating to Reports page
     function init() {
+      // Capture navigation ID to detect if user navigates away during load
+      reportsNavId = getNavigationId();
       loadAlignmentSolutions();
     }
 

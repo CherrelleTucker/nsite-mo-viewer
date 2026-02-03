@@ -578,7 +578,8 @@
       baseUrl: '<?= ScriptApp.getService().getUrl() ?>',
       config: null,
       user: null,
-      sessionToken: null  // Will be populated from URL on load
+      sessionToken: null,  // Will be populated from URL on load
+      navigationId: 0      // Increments on each navigation, used to abandon stale loads
     };
 
     // Extract session token from URL on initial load
@@ -627,15 +628,15 @@
      * Navigate to a page using SPA pattern (no full page reload)
      */
     function navigateTo(page) {
-      // Prevent double-clicks and multiple navigations
-      if (isNavigating) {
+      // Don't navigate to current page (but allow if currently navigating - user changed mind)
+      if (page === Platform.activePage && !isNavigating) {
         return;
       }
 
-      // Don't navigate to current page
-      if (page === Platform.activePage) {
-        return;
-      }
+      // Increment navigation ID to invalidate any in-flight loads from previous page
+      Platform.navigationId++;
+      console.log('[Navigation] Starting navigation #' + Platform.navigationId + ' to ' + page);
+
       isNavigating = true;
 
       // Show loading state
@@ -651,6 +652,25 @@
 
       // Load page content dynamically
       loadPageContent(page);
+    }
+
+    /**
+     * Check if a navigation is still current (hasn't been superseded)
+     * Pages should call this before processing async results
+     * @param {number} navId - The navigation ID captured when the load started
+     * @returns {boolean} True if this navigation is still current
+     */
+    function isNavigationCurrent(navId) {
+      return navId === Platform.navigationId;
+    }
+
+    /**
+     * Get the current navigation ID
+     * Pages should capture this at init() and check it in async callbacks
+     * @returns {number}
+     */
+    function getNavigationId() {
+      return Platform.navigationId;
     }
 
     /**

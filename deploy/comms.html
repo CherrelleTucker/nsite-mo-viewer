@@ -3322,7 +3322,13 @@ var COMMS = (function() {
     isSubmittingNewEvent: false
   };
 
+  // Navigation ID for abandoning stale loads
+  var commsNavId = null;
+
   function init() {
+    // Capture navigation ID to detect if user navigates away during load
+    commsNavId = getNavigationId();
+
     // Initialize rich text fields
     initRichTextField('storyNotes', 'Additional notes...');
     initRichTextField('newEventNotes', 'Any additional details...');
@@ -3334,24 +3340,38 @@ var COMMS = (function() {
   }
 
   function loadOverview() {
-    google.script.run
-      .withSuccessHandler(function(overview) {
+    var navId = commsNavId;
+    // Use CachedAPI for comms overview (15 min TTL)
+    CachedAPI.getCommsOverview()
+      .then(function(overview) {
+        // Abandon if user navigated away
+        if (!isNavigationCurrent(navId)) {
+          console.log('[Comms] Abandoning overview load - user navigated away');
+          return;
+        }
         state.overview = overview;
         renderStats(overview);
       })
-      .withFailureHandler(function(error) {
+      .catch(function(error) {
+        if (!isNavigationCurrent(navId)) return;
         console.error('Failed to load overview:', error);
-      })
-      .getCommsOverview();
+      });
   }
 
   function loadStories() {
+    var navId = commsNavId;
     google.script.run
       .withSuccessHandler(function(stories) {
+        // Abandon if user navigated away
+        if (!isNavigationCurrent(navId)) {
+          console.log('[Comms] Abandoning stories load - user navigated away');
+          return;
+        }
         state.stories = stories || [];
         renderPipeline();
       })
       .withFailureHandler(function(error) {
+        if (!isNavigationCurrent(navId)) return;
         console.error('Failed to load stories:', error);
         showPipelineError('Failed to load stories');
       })
@@ -3359,12 +3379,19 @@ var COMMS = (function() {
   }
 
   function loadOpportunities() {
+    var navId = commsNavId;
     google.script.run
       .withSuccessHandler(function(opportunities) {
+        // Abandon if user navigated away
+        if (!isNavigationCurrent(navId)) {
+          console.log('[Comms] Abandoning opportunities load - user navigated away');
+          return;
+        }
         state.opportunities = opportunities;
         renderOpportunities();
       })
       .withFailureHandler(function(error) {
+        if (!isNavigationCurrent(navId)) return;
         console.error('Failed to load opportunities:', error);
         document.getElementById('opportunitiesPanel').innerHTML =
           '<div class="empty-state"><p>Could not load opportunities</p></div>';
@@ -3373,13 +3400,20 @@ var COMMS = (function() {
   }
 
   function loadCoverage() {
+    var navId = commsNavId;
     google.script.run
       .withSuccessHandler(function(coverage) {
+        // Abandon if user navigated away
+        if (!isNavigationCurrent(navId)) {
+          console.log('[Comms] Abandoning coverage load - user navigated away');
+          return;
+        }
         state.coverage = coverage;
         renderCoverageGaps();
         renderCoverageView();
       })
       .withFailureHandler(function(error) {
+        if (!isNavigationCurrent(navId)) return;
         console.error('Failed to load coverage:', error);
         var panel = document.getElementById('coverageGapsPanel');
         if (panel) {

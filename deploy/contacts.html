@@ -896,13 +896,22 @@ var Contacts = (function() {
   };
 
   function init() {
-    loadContacts();
-    loadStats();
+    // Capture navigation ID to detect if user navigates away during load
+    var navId = getNavigationId();
+    loadContacts(navId);
+    loadStats(navId);
   }
 
-  function loadContacts() {
-    google.script.run
-      .withSuccessHandler(function(contacts) {
+  function loadContacts(navId) {
+    // Use CachedAPI for contacts (60 min TTL, shared across pages)
+    CachedAPI.getContacts()
+      .then(function(contacts) {
+        // Abandon if user navigated away
+        if (navId && !isNavigationCurrent(navId)) {
+          console.log('[Contacts] Abandoning load - user navigated away');
+          return;
+        }
+
         // Normalize emails to lowercase for consistent comparison
         state.allContacts = (contacts || []).map(function(c) {
           if (c.email) c.email = c.email.toLowerCase().trim();
@@ -928,16 +937,19 @@ var Contacts = (function() {
         applyFilters();
         updateMultiSolutionStat();
       })
-      .withFailureHandler(function(error) {
+      .catch(function(error) {
+        if (navId && !isNavigationCurrent(navId)) return;
         console.error('Failed to load contacts:', error);
         showError('Failed to load contacts');
-      })
-      .getUniqueContacts();
+      });
   }
 
-  function loadStats() {
+  function loadStats(navId) {
     google.script.run
       .withSuccessHandler(function(stats) {
+        // Abandon if user navigated away
+        if (navId && !isNavigationCurrent(navId)) return;
+
         if (stats) {
           document.getElementById('statTotalContacts').textContent = stats.unique_contacts || 0;
           document.getElementById('statDepartments').textContent = stats.departments_count || 0;
@@ -945,6 +957,7 @@ var Contacts = (function() {
         }
       })
       .withFailureHandler(function(error) {
+        if (navId && !isNavigationCurrent(navId)) return;
         console.error('Failed to load stats:', error);
       })
       .getContactStats();

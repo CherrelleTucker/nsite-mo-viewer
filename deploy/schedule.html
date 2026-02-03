@@ -363,7 +363,12 @@ var Schedule = (function() {
     operations: '#3b82f6'      // Blue - ORR to Closeout
   };
 
+  // Navigation ID for abandoning stale loads
+  var scheduleNavId = null;
+
   function init() {
+    // Capture navigation ID to detect if user navigates away during load
+    scheduleNavId = getNavigationId();
     loadGoogleCharts();
     loadSolutions();
   }
@@ -372,6 +377,8 @@ var Schedule = (function() {
     if (typeof google !== 'undefined' && google.charts) {
       google.charts.load('current', { packages: ['gantt'] });
       google.charts.setOnLoadCallback(function() {
+        // Abandon if user navigated away
+        if (!isNavigationCurrent(scheduleNavId)) return;
         state.chartsLoaded = true;
         if (state.currentView === 'gantt' && state.solutions.length > 0) {
           renderGantt();
@@ -381,18 +388,25 @@ var Schedule = (function() {
   }
 
   function loadSolutions() {
-    google.script.run
-      .withSuccessHandler(function(solutions) {
+    var navId = scheduleNavId;
+    // Use CachedAPI for solutions (60 min TTL, shared across pages)
+    CachedAPI.getSolutions()
+      .then(function(solutions) {
+        // Abandon if user navigated away
+        if (!isNavigationCurrent(navId)) {
+          console.log('[Schedule] Abandoning load - user navigated away');
+          return;
+        }
         state.solutions = solutions || [];
         buildMilestoneList();
         updateStats();
         applyFilters();
       })
-      .withFailureHandler(function(error) {
+      .catch(function(error) {
+        if (!isNavigationCurrent(navId)) return;
         console.error('Failed to load solutions:', error);
         showError('Failed to load schedule data.');
-      })
-      .getSolutions();
+      });
   }
 
   function buildMilestoneList() {

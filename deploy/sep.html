@@ -2583,15 +2583,25 @@ var SEP = (function() {
   var allEngagementsCache = [];
 
   function init() {
+    // Capture navigation ID to detect if user navigates away during load
+    var navId = getNavigationId();
+
     setDefaultDate();
 
     // Initialize rich text fields
     initRichTextField('engSummary', 'Brief summary of the engagement');
     initRichTextField('engSupplementaryNotes', 'Additional context or notes from other sources');
 
-    // Load most init data in a single combined call (reduces 9 calls to 2)
-    google.script.run
-      .withSuccessHandler(function(data) {
+    // Load init data via CachedAPI (data persists across SPA navigations)
+    // On cache hit: instant load. On cache miss: fetches from server.
+    CachedAPI.getSEPInitData()
+      .then(function(data) {
+        // Abandon if user navigated away
+        if (!isNavigationCurrent(navId)) {
+          console.log('[SEP] Abandoning load - user navigated away');
+          return;
+        }
+
         if (!data) {
           console.error('SEP init returned null');
           return;
@@ -2630,7 +2640,10 @@ var SEP = (function() {
         renderRecentEngagements();
         if (state.solutions && state.solutions.length > 0) { renderOverviewTable(); }
       })
-      .withFailureHandler(function(error) {
+      .catch(function(error) {
+        // Abandon if user navigated away
+        if (!isNavigationCurrent(navId)) return;
+
         console.error('Failed to load SEP init data:', error);
         // Fall back to individual calls if combined fails
         loadDashboardStats();
@@ -2639,11 +2652,10 @@ var SEP = (function() {
         loadNeedsOutreach();
         loadAgencies();
         loadRecentEngagements();
-      })
-      .getSEPInitData();
+      });
 
-    // Contacts still loaded separately (large dataset, may already be cached)
-    loadAllContacts();
+    // Contacts loaded via CachedAPI (60 min TTL, shared with other pages)
+    loadAllContacts(navId);
   }
 
   // Helper to update dashboard stats UI (extracted from loadDashboardStats success handler)
@@ -2679,16 +2691,22 @@ var SEP = (function() {
     }
   }
 
-  function loadAllContacts() {
-    google.script.run
-      .withSuccessHandler(function(contacts) {
+  function loadAllContacts(navId) {
+    // Use CachedAPI for contacts (60 min TTL, shared across pages)
+    CachedAPI.getContacts()
+      .then(function(contacts) {
+        // Abandon if user navigated away
+        if (navId && !isNavigationCurrent(navId)) {
+          console.log('[SEP] Abandoning contacts load - user navigated away');
+          return;
+        }
         state.allContacts = contacts || [];
       })
-      .withFailureHandler(function(error) {
+      .catch(function(error) {
+        if (navId && !isNavigationCurrent(navId)) return;
         console.error('Failed to load contacts:', error);
         state.allContacts = [];
-      })
-      .getAllContacts();
+      });
   }
 
   // Contact picker functions
@@ -5264,6 +5282,9 @@ return;
         }
       }
 
+      // Invalidate cache so next page load gets fresh engagement data
+      CachedAPI.invalidate.engagements();
+
       state.editingEngagementId = null;
       state.editingOriginalParticipants = null;
       closeModal('engagementModal');
@@ -6102,6 +6123,9 @@ return;
           return;
         }
 
+        // Invalidate cache so next page load gets fresh engagement data
+        CachedAPI.invalidate.engagements();
+
         state.editingOriginalParticipants = null;
         closeModal('engagementDetailModal');
         loadRecentEngagements();
@@ -6488,6 +6512,8 @@ return;
         btn.innerHTML = originalHtml;
 
         if (result && result.success && result.data) {
+          // Invalidate cache so next page load gets fresh engagement data
+          CachedAPI.invalidate.engagements();
           showSuccess('Email logged as engagement successfully!');
           closeModal('emailTemplateModal');
           loadRecentEngagements();

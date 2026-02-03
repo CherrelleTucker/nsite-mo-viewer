@@ -1588,12 +1588,21 @@ var Implementation = (function() {
   }
 
   function init() {
-    loadSolutions();
+    // Capture navigation ID to detect if user navigates away during load
+    var navId = getNavigationId();
+    loadSolutions(navId);
   }
 
-  function loadSolutions() {
-    google.script.run
-      .withSuccessHandler(function(solutions) {
+  function loadSolutions(navId) {
+    // Use CachedAPI for solutions (60 min TTL, shared across pages)
+    CachedAPI.getSolutions()
+      .then(function(solutions) {
+        // Abandon if user navigated away
+        if (navId && !isNavigationCurrent(navId)) {
+          console.log('[Implementation] Abandoning load - user navigated away');
+          return;
+        }
+
         state.solutions = solutions || [];
         extractFilters();
         updateStats();
@@ -1614,11 +1623,11 @@ var Implementation = (function() {
           }
         }
       })
-      .withFailureHandler(function(error) {
+      .catch(function(error) {
+        if (navId && !isNavigationCurrent(navId)) return;
         console.error('FAILURE: Failed to load solutions:', error);
         showError('Failed to load solutions. Please try again.');
-      })
-      .getSolutions();
+      });
   }
 
   function extractFilters() {

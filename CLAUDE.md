@@ -1,6 +1,6 @@
 # Claude Code Instructions for MO-Viewer
 
-**Version:** 2.2.14 | **Updated:** 2026-01-30 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
+**Version:** 2.3.2 | **Updated:** 2026-02-03 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
 
 ---
 
@@ -28,6 +28,7 @@ When beginning a new session:
   - View-then-edit modal patterns
 - Shared styling and component library
 - Access control with passphrase + whitelist authentication
+- **White-label branding system** - Configurable app name, page names, colors via MO-DB_Config
 
 **In Progress:**
 1. **Database population** - Backfilling historical data from meeting notes
@@ -72,6 +73,87 @@ Design notes for improving the Reports > Historical Updates feature:
 2. **Link date to source** - The date should be a clickable link to the source document (source_url field)
 3. **Increase character limit** - Current 500 char truncation cuts off URLs. Increase to ~1000 chars or implement smarter truncation that preserves complete URLs
 4. **Render bullet points** - Update text often contains bullet characters (•, ○, ■). Render these as proper HTML bulleted lists (`<ul><li>`) instead of plain text
+
+---
+
+## Client-Side Caching (v2.3.2+)
+
+The app uses **SessionStorage-based caching** to dramatically improve page navigation speed.
+
+### How It Works
+
+1. **First visit** to a page: Data fetched from server (2-3s), cached in sessionStorage
+2. **Return visit**: Data served from cache (~50ms)
+3. **Cache TTL**: Varies by data type (see below)
+4. **Session ends**: Cache cleared when browser closes
+
+### Cache Configuration
+
+| Data Type | TTL | Used By |
+|-----------|-----|---------|
+| `solutions` | 60 min | Implementation, SEP, Reports, Schedule, TopSheet |
+| `contacts` | 60 min | SEP, Contacts |
+| `agencies` | 60 min | SEP |
+| `sepInit` | 15 min | SEP (combined init data) |
+| `commsOverview` | 15 min | Comms |
+| `teamMembers` | 30 min | Team |
+| `meetings` | 30 min | Team |
+
+### Key Components (index.html)
+
+```javascript
+// Core caching utility
+DataCache.get(key, fetchFn, ttlMinutes)  // Get from cache or fetch
+DataCache.clear(key)                      // Clear specific cache
+DataCache.clearAll()                      // Clear all caches
+DataCache.getStats()                      // Debug info
+
+// Pre-wrapped API calls
+CachedAPI.getSolutions()       // Returns Promise
+CachedAPI.getContacts()
+CachedAPI.getSEPInitData()
+CachedAPI.getCommsOverview()
+CachedAPI.getTeamMembers()
+CachedAPI.getMeetings()
+
+// Cache invalidation after saves
+CachedAPI.invalidate.solutions()     // Clears solutions + sepInit
+CachedAPI.invalidate.contacts()      // Clears contacts + sepInit
+CachedAPI.invalidate.engagements()   // Clears sepInit
+CachedAPI.invalidate.all()           // Clears everything
+```
+
+### Navigation Guards
+
+Pages capture `navigationId` at init and check it in async callbacks:
+
+```javascript
+function init() {
+  var navId = getNavigationId();  // Capture current navigation
+
+  CachedAPI.getSolutions()
+    .then(function(data) {
+      // Abandon if user navigated away
+      if (!isNavigationCurrent(navId)) return;
+      // Process data...
+    });
+}
+```
+
+This prevents stale data from rendering if user clicks away before load completes.
+
+### Refresh Button
+
+Users can click the refresh icon in the navigation bar to:
+1. Clear all cached data (`DataCache.clearAll()`)
+2. Reload the current page content
+
+### When to Invalidate Cache
+
+**Always call `CachedAPI.invalidate.*()` after save operations:**
+- After creating/updating an engagement → `CachedAPI.invalidate.engagements()`
+- After updating a solution → `CachedAPI.invalidate.solutions()`
+- After updating a contact → `CachedAPI.invalidate.contacts()`
 
 ---
 
@@ -625,6 +707,80 @@ MO-Viewer uses **passphrase + whitelist authentication**.
 | `SITE_PASSPHRASE` | Shared team passphrase |
 | `ACCESS_SHEET_ID` | ID of MO-DB_Access spreadsheet |
 | `ADMIN_EMAIL` | Email for access request notifications |
+
+---
+
+## White-Label Branding Configuration
+
+The platform supports white-labeling through configuration keys in MO-DB_Config. This allows teams to customize the app name, colors, and page terminology without code changes.
+
+### Branding Config Keys
+
+Add these key-value pairs to MO-DB_Config to customize branding:
+
+| Key | Description | Default | Example |
+|-----|-------------|---------|---------|
+| **Application** | | | |
+| `APP_NAME` | Application name in header/footer | `Viewer` | `ESDIS Viewer` |
+| `ORG_NAME` | Organization name (shown in page title) | *(empty)* | `NSITE MO` |
+| `APP_TAGLINE` | Optional tagline in header | *(empty)* | `Unified Dashboard` |
+| **Page 1 (Primary)** | | | |
+| `PAGE_1_KEY` | URL key for page 1 | `implementation` | `projects` |
+| `PAGE_1_NAME` | Display name for page 1 tab | `Implementation` | `Projects` |
+| `PAGE_1_ICON` | Material icon name for tab | `folder` | `work` |
+| **Page 2 (Primary)** | | | |
+| `PAGE_2_KEY` | URL key for page 2 | `sep` | `people` |
+| `PAGE_2_NAME` | Display name for page 2 tab | `SEP` | `People` |
+| `PAGE_2_ICON` | Material icon name for tab | `group` | `groups` |
+| **Page 3 (Primary)** | | | |
+| `PAGE_3_KEY` | URL key for page 3 | `comms` | `promos` |
+| `PAGE_3_NAME` | Display name for page 3 tab | `Comms` | `Promos` |
+| `PAGE_3_ICON` | Material icon name for tab | `chat` | `campaign` |
+| **Colors** | | | |
+| `COLOR_PRIMARY` | Main brand color (header) | `#0B3D91` | `#1A5F2A` |
+| `COLOR_PRIMARY_LIGHT` | Light variant | `#1E5BB8` | `#2E7D32` |
+| `COLOR_PRIMARY_DARK` | Dark variant | `#082B66` | `#145A1E` |
+| `COLOR_ACCENT` | Accent color | `#0095D9` | `#FFB300` |
+| `COLOR_PAGE_1` | Page 1 accent color | `#2E7D32` | `#0277BD` |
+| `COLOR_PAGE_2` | Page 2 accent color | `#1565C0` | `#7B1FA2` |
+| `COLOR_PAGE_3` | Page 3 accent color | `#7B1FA2` | `#C62828` |
+
+### Example: NSITE MO Configuration
+
+```
+APP_NAME        = NSITE MO Viewer
+ORG_NAME        = NSITE MO
+APP_TAGLINE     =
+PAGE_1_NAME     = Implementation-NSITE
+PAGE_2_NAME     = SEP-NSITE
+PAGE_3_NAME     = Comms-NSITE
+COLOR_PRIMARY   = #0B3D91
+```
+
+### Example: ESDIS Configuration
+
+```
+APP_NAME        = ESDIS Viewer
+ORG_NAME        = ESDIS
+PAGE_1_NAME     = Projects
+PAGE_1_ICON     = work
+PAGE_2_NAME     = Stakeholders
+PAGE_2_ICON     = groups
+PAGE_3_NAME     = Outreach
+PAGE_3_ICON     = campaign
+COLOR_PRIMARY   = #1A5F2A
+COLOR_PAGE_1    = #0277BD
+```
+
+### Deployment Checklist for New Teams
+
+1. **Copy Google Sheets databases** (Solutions, Contacts, Updates, etc.)
+2. **Create MO-DB_Config** with your sheet IDs and branding keys
+3. **Copy Apps Script projects** (MO-APIs Library + Web App)
+4. **Update Script Properties** - Set `CONFIG_SHEET_ID` to your config sheet
+5. **Set up MO-DB_Access** with your team's email whitelist
+6. **Deploy** the web app and library
+7. **Test** - Verify branding appears correctly
 
 ---
 

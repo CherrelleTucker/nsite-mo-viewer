@@ -19,6 +19,7 @@
     <a href="javascript:void(0)" onclick="document.getElementById('pages').scrollIntoView({behavior:'smooth'})">Page Documentation</a>
     <a href="javascript:void(0)" onclick="document.getElementById('security').scrollIntoView({behavior:'smooth'})">Security</a>
     <a href="javascript:void(0)" onclick="document.getElementById('deployment').scrollIntoView({behavior:'smooth'})">Deployment</a>
+    <a href="javascript:void(0)" onclick="document.getElementById('performance').scrollIntoView({behavior:'smooth'})">Performance</a>
     <a href="javascript:void(0)" onclick="document.getElementById('version').scrollIntoView({behavior:'smooth'})">Version</a>
   </nav>
 
@@ -1017,6 +1018,25 @@ COLOR_PRIMARY = #1A5F2A</pre>
     </div>
   </section>
 
+  <!-- Performance -->
+  <section class="about-section" id="performance">
+    <div class="section-header">
+      <span class="material-icons">speed</span>
+      <h3>Performance</h3>
+    </div>
+    <p>The platform uses <strong>browser caching</strong> to speed up navigation between pages.</p>
+    <ul>
+      <li><strong>First visit</strong> to a page loads data from the server (2-3 seconds)</li>
+      <li><strong>Return visits</strong> load from cache (nearly instant)</li>
+      <li><strong>Refresh button</strong> <span class="material-icons" style="font-size: 16px; vertical-align: middle;">refresh</span> in the navigation bar clears the cache and reloads fresh data</li>
+      <li><strong>Cache clears automatically</strong> when you close the browser</li>
+    </ul>
+    <p style="margin-top: var(--space-md); color: var(--text-secondary); font-size: 14px;">
+      <span class="material-icons" style="font-size: 14px; vertical-align: middle;">info</span>
+      Data is cached for 15-60 minutes depending on type. After saving changes (like logging an engagement), the relevant cache is automatically cleared so you see fresh data.
+    </p>
+  </section>
+
   <!-- Version Info -->
   <section class="about-section about-version" id="version">
     <div class="section-header">
@@ -1026,11 +1046,11 @@ COLOR_PRIMARY = #1A5F2A</pre>
     <div class="version-info">
       <div class="version-item">
         <span class="version-label">Version</span>
-        <span class="version-value">2.3.0</span>
+        <span class="version-value">2.3.2</span>
       </div>
       <div class="version-item">
         <span class="version-label">Updated</span>
-        <span class="version-value">February 2, 2026</span>
+        <span class="version-value">February 3, 2026</span>
       </div>
       <div class="version-item">
         <span class="version-label">Repository</span>

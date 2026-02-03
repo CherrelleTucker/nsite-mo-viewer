@@ -3366,8 +3366,11 @@
     currentAction: null,
     editingActionId: null,
     collapsedAssignees: {},
+    navId: null,  // Navigation ID for abandoning stale loads
 
     init: function() {
+      // Capture navigation ID to detect if user navigates away during load
+      this.navId = getNavigationId();
       this.loadData();
       this.setupKudosForm();
       this.loadCurrentUser();
@@ -3375,9 +3378,16 @@
       initRichTextField('add-task', 'Describe the action item...');
     },
 
+    // Check if this page load is still current
+    isCurrentNavigation: function() {
+      return isNavigationCurrent(this.navId);
+    },
+
     loadCurrentUser: function() {
+      var self = this;
       google.script.run
         .withSuccessHandler(function(user) {
+          if (!self.isCurrentNavigation()) return;
           window.currentUserName = user.name || 'Anonymous';
           // If user has a name, we can personalize the kudos form
           if (user.name) {
@@ -3388,6 +3398,7 @@
           }
         })
         .withFailureHandler(function(error) {
+          if (!self.isCurrentNavigation()) return;
           console.error('Could not load user info:', error);
           window.currentUserName = 'Anonymous';
         })
@@ -3396,6 +3407,7 @@
       // Check if Slack is configured
       google.script.run
         .withSuccessHandler(function(isConfigured) {
+          if (!self.isCurrentNavigation()) return;
           if (isConfigured) {
             var slackGroup = document.getElementById('slackOptionGroup');
             if (slackGroup) slackGroup.style.display = '';
@@ -3408,45 +3420,67 @@
     },
 
     loadData: function() {
-      // Load team members with profiles
-      google.script.run
-        .withSuccessHandler(function(data) {
+      var self = this;
+
+      // Load team members with profiles using CachedAPI
+      CachedAPI.getTeamMembers()
+        .then(function(data) {
+          if (!self.isCurrentNavigation()) {
+            console.log('[Team] Abandoning members load - user navigated away');
+            return;
+          }
           Team.members = data || [];
           Team.renderTeamProfiles();
           Team.updateStats();
           Team.populatePersonSelect();
         })
-        .withFailureHandler(handleError)
-        .getInternalTeamWithProfiles();
+        .catch(function(error) {
+          if (!self.isCurrentNavigation()) return;
+          handleError(error);
+        });
 
-      // Load meetings
-      google.script.run
-        .withSuccessHandler(function(data) {
+      // Load meetings using CachedAPI
+      CachedAPI.getMeetings()
+        .then(function(data) {
+          if (!self.isCurrentNavigation()) {
+            console.log('[Team] Abandoning meetings load - user navigated away');
+            return;
+          }
           Team.meetings = data || [];
           Team.renderMeetings();
           Team.updateStats();
         })
-        .withFailureHandler(handleError)
-        .getAllMeetings();
+        .catch(function(error) {
+          if (!self.isCurrentNavigation()) return;
+          handleError(error);
+        });
 
       // Load availability
       google.script.run
         .withSuccessHandler(function(data) {
+          if (!self.isCurrentNavigation()) return;
           Team.availability = data || [];
           Team.renderAvailability();
           Team.updateStats();
         })
-        .withFailureHandler(handleError)
+        .withFailureHandler(function(error) {
+          if (!self.isCurrentNavigation()) return;
+          handleError(error);
+        })
         .getAvailability();
 
       // Load directing documents
       google.script.run
         .withSuccessHandler(function(data) {
+          if (!self.isCurrentNavigation()) return;
           Team.documents = data || [];
           Team.renderDocuments();
           Team.updateStats();
         })
-        .withFailureHandler(handleError)
+        .withFailureHandler(function(error) {
+          if (!self.isCurrentNavigation()) return;
+          handleError(error);
+        })
         .getDirectingDocuments();
 
       // Load kudos
@@ -3454,23 +3488,32 @@
     },
 
     loadKudos: function() {
+      var self = this;
       // Load recent kudos
       google.script.run
         .withSuccessHandler(function(data) {
+          if (!self.isCurrentNavigation()) return;
           Team.kudos = data || [];
           Team.renderKudosFeed();
           Team.updateStats();
         })
-        .withFailureHandler(handleError)
+        .withFailureHandler(function(error) {
+          if (!self.isCurrentNavigation()) return;
+          handleError(error);
+        })
         .getAllKudos({ days: 30, limit: 50 });
 
       // Load kudos stats
       google.script.run
         .withSuccessHandler(function(data) {
+          if (!self.isCurrentNavigation()) return;
           Team.kudosStats = data;
           Team.renderKudosStats();
         })
-        .withFailureHandler(handleError)
+        .withFailureHandler(function(error) {
+          if (!self.isCurrentNavigation()) return;
+          handleError(error);
+        })
         .getKudosStats(90);
     },
 
