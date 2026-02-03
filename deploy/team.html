@@ -977,7 +977,7 @@
       <form id="add-action-form" onsubmit="return Team.submitAction(event)">
         <div class="form-group">
           <label for="add-task">Task *</label>
-          <textarea id="add-task" rows="3" required maxlength="1000" placeholder="Describe the action item..."></textarea>
+          <div id="add-task" class="rich-text-field" contenteditable="true" data-placeholder="Describe the action item..."></div>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -3371,6 +3371,8 @@
       this.loadData();
       this.setupKudosForm();
       this.loadCurrentUser();
+      // Initialize rich text fields
+      initRichTextField('add-task', 'Describe the action item...');
     },
 
     loadCurrentUser: function() {
@@ -4941,7 +4943,7 @@
       priorityBadge.textContent = Team.formatPLPriority(item.priority);
 
       // Description
-      document.getElementById('plDetailDescription').textContent = item.description || 'No description provided.';
+      document.getElementById('plDetailDescription').innerHTML = formatTextWithLinks(item.description || 'No description provided.');
 
       // Meta info
       document.getElementById('plDetailSubmitter').textContent = item.submitted_by || 'Unknown';
@@ -4978,7 +4980,7 @@
       var notesSection = document.getElementById('plDetailNotesSection');
       if (item.notes) {
         notesSection.style.display = '';
-        document.getElementById('plDetailNotes').textContent = item.notes;
+        document.getElementById('plDetailNotes').innerHTML = formatTextWithLinks(item.notes);
       } else {
         notesSection.style.display = 'none';
       }
@@ -5052,17 +5054,29 @@
       var note = document.getElementById('plDetailNoteInput').value.trim();
       if (!note) return;
 
+      // Show loading state
+      var btn = document.querySelector('.pl-note-input .btn');
+      var originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-icons spin">sync</span>';
+
       google.script.run
         .withSuccessHandler(function(updatedItem) {
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
           if (updatedItem) {
             Team.currentPLItem = updatedItem;
             document.getElementById('plDetailNotesSection').style.display = '';
-            document.getElementById('plDetailNotes').textContent = updatedItem.notes;
+            document.getElementById('plDetailNotes').innerHTML = formatTextWithLinks(updatedItem.notes);
             document.getElementById('plDetailNoteInput').value = '';
             Team.loadParkingLot();
           }
         })
-        .withFailureHandler(handleError)
+        .withFailureHandler(function(err) {
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+          handleError(err);
+        })
         .addNoteToParkingLotItem(Team.currentPLItem.item_id, note);
     },
 
@@ -5258,7 +5272,7 @@
             Team.showActionDetail(action.action_id);
           };
 
-          row.innerHTML = '<div class="action-task">' + escapeHtml(action.task || '') + '</div>' +
+          row.innerHTML = '<div class="action-task">' + displayRichContent(action.task || '') + '</div>' +
             '<div class="action-row-meta">' +
             '<span class="action-status"><span class="status-dot ' + status.replace('_', '-') + '"></span>' +
             '<span class="status-text">' + Team.formatActionStatus(status) + '</span></span>' +
@@ -5302,7 +5316,7 @@
           var card = document.createElement('div');
           card.className = 'kanban-card';
           card.onclick = function() { Team.showActionDetail(action.action_id); };
-          card.innerHTML = '<div class="task">' + escapeHtml(action.task || '') + '</div>' +
+          card.innerHTML = '<div class="task">' + displayRichContent(action.task || '') + '</div>' +
             '<div class="meta">' +
             '<span class="owner">' + escapeHtml(action.assigned_to || 'Unassigned') + '</span>' +
             '<span class="action-solution' + (isSolution ? ' is-solution' : '') + '" style="font-size:10px;padding:2px 6px;">' + escapeHtml(solution) + '</span>' +
@@ -5325,7 +5339,7 @@
       // Task
       var taskField = document.createElement('div');
       taskField.className = 'detail-field';
-      taskField.innerHTML = '<label>Task</label><div class="value">' + escapeHtml(action.task || '-') + '</div>';
+      taskField.innerHTML = '<label>Task</label><div class="value" style="white-space:pre-wrap;">' + displayRichContent(action.task || '-') + '</div>';
       container.appendChild(taskField);
 
       // Assigned To
@@ -5392,7 +5406,7 @@
       if (action.notes) {
         var notesField = document.createElement('div');
         notesField.className = 'detail-field';
-        notesField.innerHTML = '<label>Notes</label><div class="value" style="white-space:pre-wrap;">' + escapeHtml(action.notes) + '</div>';
+        notesField.innerHTML = '<label>Notes</label><div class="value" style="white-space:pre-wrap;">' + formatTextWithLinks(action.notes) + '</div>';
         container.appendChild(notesField);
       }
 
@@ -5477,7 +5491,7 @@
 
       // Populate the add modal with existing data
       document.getElementById('addActionModal').querySelector('.modal-header h3').textContent = 'Edit Action';
-      document.getElementById('add-task').value = action.task || '';
+      setRichTextContent('add-task', action.task || '');
       document.getElementById('add-category').value = action.category || 'MO';
       document.getElementById('add-assigned').value = action.assigned_to || '';
       document.getElementById('add-due').value = action.due_date || '';
@@ -5497,16 +5511,32 @@
         return;
       }
 
+      // Show loading state on delete button
+      var deleteBtn = document.querySelector('#action-drawer .btn-danger');
+      var originalHtml = deleteBtn ? deleteBtn.innerHTML : '';
+      if (deleteBtn) {
+        deleteBtn.disabled = true;
+        deleteBtn.innerHTML = '<span class="material-icons spin">sync</span> Deleting...';
+      }
+
       google.script.run
         .withSuccessHandler(function(result) {
           if (result && result.success) {
             Team.closeActionDrawer();
             Team.loadActions();
           } else {
+            if (deleteBtn) {
+              deleteBtn.disabled = false;
+              deleteBtn.innerHTML = originalHtml;
+            }
             showError('Failed to delete: ' + (result && result.error ? result.error : 'Unknown error'));
           }
         })
         .withFailureHandler(function(err) {
+          if (deleteBtn) {
+            deleteBtn.disabled = false;
+            deleteBtn.innerHTML = originalHtml;
+          }
           showError('Failed to delete action: ' + err);
         })
         .deleteAction(actionId);
@@ -5569,6 +5599,7 @@
     showAddActionModal: function() {
       Team.editingActionId = null;
       document.getElementById('add-action-form').reset();
+      setRichTextContent('add-task', ''); // Clear rich text field (form.reset doesn't work for contenteditable)
       document.getElementById('addActionModal').querySelector('.modal-header h3').textContent = 'Add Action';
       document.getElementById('add-submit-btn').innerHTML = '<span class="material-icons">add</span> Add Action';
       document.getElementById('addActionModal').classList.add('show');
@@ -5578,7 +5609,7 @@
     submitAction: function(e) {
       if (e) e.preventDefault();
 
-      var task = document.getElementById('add-task').value.trim();
+      var task = getRichTextContent('add-task').trim();
       var assigned = document.getElementById('add-assigned').value.trim();
       var category = document.getElementById('add-category').value;
       var solution = document.getElementById('add-solution').value.trim();

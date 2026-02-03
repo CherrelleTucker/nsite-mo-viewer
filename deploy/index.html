@@ -17,6 +17,19 @@
   <!-- Platform Styles (inline for Apps Script) -->
   <?!= include('styles'); ?>
   <?!= include('shared-page-styles'); ?>
+
+  <!-- Dynamic Branding Colors (overrides defaults from styles.html) -->
+  <style>
+    :root {
+      --color-primary: <?= branding.colors.primary ?>;
+      --color-primary-light: <?= branding.colors.primaryLight ?>;
+      --color-primary-dark: <?= branding.colors.primaryDark ?>;
+      --color-accent: <?= branding.colors.accent ?>;
+      --color-implementation: <?= branding.colors.page1 ?>;
+      --color-sep: <?= branding.colors.page2 ?>;
+      --color-comms: <?= branding.colors.page3 ?>;
+    }
+  </style>
 </head>
 <body>
   <!-- Skip to main content link for keyboard users -->
@@ -27,8 +40,11 @@
     <div class="header-left">
       <h1 class="logo">
         <span class="material-icons">grid_view</span>
-        NSITE MO Viewer
+        <?= branding.appName ?>
       </h1>
+      <? if (branding.tagline) { ?>
+        <span class="subtitle"><?= branding.tagline ?></span>
+      <? } ?>
     </div>
     <div class="header-right">
       <button class="btn-icon search-trigger" onclick="openGlobalSearch()" title="Search (Ctrl+K)">
@@ -60,7 +76,7 @@
   </div>
 
   <!-- Navigation -->
-  <?!= include('navigation'); ?>
+  <?!= includeWithData('navigation', {activePage: activePage, branding: branding}); ?>
 
   <!-- Main Content Area -->
   <main class="main-content" id="main-content">
@@ -102,7 +118,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <span>NSITE MO Viewer</span>
+    <span><?= branding.appName ?></span>
     <span class="separator">|</span>
     <a href="#" onclick="openFeedbackModal(); return false;" class="footer-link">
       <span class="material-icons" style="font-size: 14px; vertical-align: middle;">feedback</span>
@@ -547,13 +563,26 @@
      */
     function formatDateForInput(dateStr) {
       if (!dateStr) return '';
-      var dateOnly = String(dateStr).split('T')[0];
+
+      // Handle string dates
+      var str = String(dateStr);
+
+      // If it's already YYYY-MM-DD format, return it directly
+      var dateOnly = str.split('T')[0];
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
         return dateOnly;
       }
+
+      // Try parsing as date and extract local date components
+      // This avoids timezone conversion issues with toISOString()
       try {
         var d = new Date(dateStr);
-        return d.toISOString().split('T')[0];
+        if (isNaN(d.getTime())) return '';
+
+        var year = d.getFullYear();
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
       } catch (e) {
         return '';
       }
@@ -890,7 +919,7 @@
 
           if (result && result.success) {
             closeFeedbackModal();
-            showToast('Feedback sent! Thank you for helping improve MO-Viewer.', 'success');
+            showToast('Feedback sent! Thank you for helping improve the platform.', 'success');
           } else {
             showToast('Failed to send feedback. Please try again.', 'error');
           }
@@ -933,6 +962,199 @@
         .replace(/'/g, '&#039;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
+    }
+
+    /**
+     * Global URL linkification function - available to all pages
+     * Converts URLs in pre-escaped HTML text to clickable links
+     * Call AFTER escapeHtml() since this adds HTML anchor tags
+     */
+    function linkifyUrls(text) {
+      if (!text) return '';
+      // Match URLs (http, https, or www) - note: text is already HTML-escaped
+      // so & appears as &amp; in query strings
+      var urlPattern = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
+      return text.replace(urlPattern, function(url) {
+        var href = url;
+        // Add protocol if www. link
+        if (url.indexOf('www.') === 0) {
+          href = 'https://' + url;
+        }
+        return '<a href="' + href + '" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary); word-break: break-all;">' + url + '</a>';
+      });
+    }
+
+    /**
+     * Global text formatter that handles markdown links and plain URLs
+     * Use this instead of escapeHtml() when displaying user content that may contain links
+     * Handles: [link text](url) markdown syntax and plain http/https/www URLs
+     */
+    function formatTextWithLinks(text) {
+      if (!text) return '';
+
+      // Step 1: Extract markdown links [text](url) before escaping
+      var links = [];
+      var placeholder = '\u0000LINK';
+      var processed = String(text).replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, linkText, url) {
+        var index = links.length;
+        links.push({ text: linkText, url: url });
+        return placeholder + index + '\u0000';
+      });
+
+      // Step 2: Escape HTML for security
+      processed = escapeHtml(processed);
+
+      // Step 3: Linkify plain URLs (http, https, www)
+      processed = linkifyUrls(processed);
+
+      // Step 4: Restore markdown links as HTML anchor tags
+      links.forEach(function(link, index) {
+        var safeUrl = escapeHtml(link.url);
+        var safeText = escapeHtml(link.text);
+        var anchor = '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">' + safeText + '</a>';
+        processed = processed.replace(placeholder + index + '\u0000', anchor);
+      });
+
+      return processed;
+    }
+
+    /**
+     * Sanitize HTML to allow only safe formatting elements
+     * Used for rich text fields that accept pasted formatted content
+     */
+    function sanitizeHtml(html) {
+      if (!html) return '';
+      // Strip HTML comments (e.g., <!--StartFragment-->)
+      html = html.replace(/<!--[\s\S]*?-->/g, '');
+      var div = document.createElement('div');
+      div.innerHTML = html;
+
+      // Remove script tags and event handlers
+      var scripts = div.querySelectorAll('script, style');
+      scripts.forEach(function(el) { el.remove(); });
+
+      // Walk through all elements and clean them
+      var allElements = div.querySelectorAll('*');
+      allElements.forEach(function(el) {
+        // Remove unsafe/unnecessary attributes (keep only href, target, rel for links)
+        var safeAttrs = ['href', 'target', 'rel'];
+        Array.from(el.attributes).forEach(function(attr) {
+          if (!safeAttrs.includes(attr.name)) {
+            el.removeAttribute(attr.name);
+          }
+        });
+
+        // Only allow safe tags
+        var safeTags = ['A', 'B', 'STRONG', 'I', 'EM', 'U', 'UL', 'OL', 'LI', 'BR', 'P', 'DIV', 'SPAN'];
+        if (!safeTags.includes(el.tagName)) {
+          // Replace with text content or children
+          var parent = el.parentNode;
+          while (el.firstChild) {
+            parent.insertBefore(el.firstChild, el);
+          }
+          parent.removeChild(el);
+        }
+
+        // For links, ensure they open in new tab and have safe attributes
+        if (el.tagName === 'A') {
+          var href = el.getAttribute('href') || '';
+          // Only allow http, https, mailto links
+          if (!href.match(/^(https?:|mailto:)/i)) {
+            el.removeAttribute('href');
+          }
+          el.setAttribute('target', '_blank');
+          el.setAttribute('rel', 'noopener noreferrer');
+        }
+      });
+
+      return div.innerHTML;
+    }
+
+    /**
+     * Initialize a rich text field (contenteditable div)
+     * Handles paste sanitization and placeholder behavior
+     */
+    function initRichTextField(fieldId, placeholderText) {
+      var field = document.getElementById(fieldId);
+      if (!field) return;
+
+      // Set placeholder via data attribute
+      field.setAttribute('data-placeholder', placeholderText || 'Enter text...');
+
+      // Handle paste - sanitize HTML
+      field.addEventListener('paste', function(e) {
+        e.preventDefault();
+        var html = e.clipboardData.getData('text/html');
+        var text = e.clipboardData.getData('text/plain');
+
+        if (html) {
+          // Paste as sanitized HTML
+          var clean = sanitizeHtml(html);
+          document.execCommand('insertHTML', false, clean);
+        } else {
+          // Paste as plain text
+          document.execCommand('insertText', false, text);
+        }
+      });
+
+      // Handle placeholder visibility
+      field.addEventListener('focus', function() {
+        if (field.textContent.trim() === '') {
+          field.classList.add('has-focus');
+        }
+      });
+
+      field.addEventListener('blur', function() {
+        field.classList.remove('has-focus');
+      });
+
+      field.addEventListener('input', function() {
+        if (field.textContent.trim() === '') {
+          field.classList.remove('has-content');
+        } else {
+          field.classList.add('has-content');
+        }
+      });
+    }
+
+    /**
+     * Get content from a rich text field
+     */
+    function getRichTextContent(fieldId) {
+      var field = document.getElementById(fieldId);
+      if (!field) return '';
+      // Check if field is effectively empty (just whitespace or <br> tags)
+      if (!field.textContent.trim()) return '';
+      return sanitizeHtml(field.innerHTML);
+    }
+
+    /**
+     * Set content in a rich text field
+     */
+    function setRichTextContent(fieldId, html) {
+      var field = document.getElementById(fieldId);
+      if (!field) return;
+      field.innerHTML = sanitizeHtml(html || '');
+      if (html && html.trim()) {
+        field.classList.add('has-content');
+      } else {
+        field.classList.remove('has-content');
+      }
+    }
+
+    /**
+     * Display rich content - handles both HTML (new) and plain text (legacy) data
+     * If content contains HTML tags, sanitizes and displays as HTML
+     * If content is plain text, uses formatTextWithLinks for URL detection
+     */
+    function displayRichContent(content) {
+      if (!content) return '';
+      // Check if content appears to be HTML (contains tags)
+      if (/<[a-z][\s\S]*>/i.test(content)) {
+        return sanitizeHtml(content);
+      }
+      // Plain text - use formatTextWithLinks for URL/markdown detection
+      return formatTextWithLinks(content);
     }
 
     /**

@@ -118,6 +118,11 @@ function validateEngagementData_(data) {
     errors.push('Activity type is required');
   }
 
+  // Primary solution is required
+  if (!data.solution_id || !String(data.solution_id).trim()) {
+    errors.push('Primary solution is required');
+  }
+
   // Valid activity type
   if (data.activity_type && !ENGAGEMENT_ACTIVITY_TYPES.includes(data.activity_type)) {
     errors.push('Invalid activity type: ' + data.activity_type + '. Valid types: ' + ENGAGEMENT_ACTIVITY_TYPES.join(', '));
@@ -277,15 +282,28 @@ function getEngagementsByAgency(agencyId) {
 
 /**
  * Get engagements for a specific solution
+ * Searches across primary (solution_id), secondary (secondary_solution_id),
+ * and additional (additional_solution_ids) solution fields
  * @param {string} solutionId - Solution ID or name
  * @returns {Array} Engagements involving this solution
  */
 function getEngagementsBySolution(solutionId) {
   var engagements = loadAllEngagements_();
   var results = engagements.filter(function(e) {
-    if (e.solution_id) {
-      var ids = e.solution_id.split(',').map(function(id) { return id.trim(); });
-      return ids.includes(solutionId);
+    // Check primary solution
+    if (e.solution_id === solutionId) {
+      return true;
+    }
+    // Check secondary solution
+    if (e.secondary_solution_id === solutionId) {
+      return true;
+    }
+    // Check additional solutions (comma-separated)
+    if (e.additional_solution_ids) {
+      var additionalIds = e.additional_solution_ids.split(',').map(function(id) { return id.trim(); });
+      if (additionalIds.includes(solutionId)) {
+        return true;
+      }
     }
     return false;
   });
@@ -511,11 +529,20 @@ function getSEPDashboardStats() {
     }
   });
 
-  // Count unique solutions this month (from solution_id field)
+  // Count unique solutions this month (from primary, secondary, and additional solution fields)
   var uniqueSolutions = {};
   thisMonthEngagements.forEach(function(e) {
     if (e.solution_id) {
       uniqueSolutions[e.solution_id] = true;
+    }
+    if (e.secondary_solution_id) {
+      uniqueSolutions[e.secondary_solution_id] = true;
+    }
+    if (e.additional_solution_ids) {
+      e.additional_solution_ids.split(',').forEach(function(id) {
+        var trimmed = id.trim();
+        if (trimmed) uniqueSolutions[trimmed] = true;
+      });
     }
   });
 
@@ -647,7 +674,7 @@ function logQuickEngagement(params) {
     contact_ids: params.contact_ids || '',
     agency_id: params.agency_id || '',
     summary: params.summary || '',
-    logged_by: params.logged_by || Session.getEffectiveUser().getEmail()
+    logged_by: params.logged_by || 'manual'
   });
 }
 

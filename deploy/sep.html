@@ -310,15 +310,55 @@
           <input type="hidden" id="engParticipants">
         </div>
         <div class="form-group">
-          <label>Solution</label>
-          <select id="engSolution">
-            <option value="">-- Select Solution --</option>
+          <label>Agency <span style="color: var(--color-text-muted); font-weight: normal;">(optional)</span></label>
+          <select id="engAgency">
+            <option value="">-- Select Agency --</option>
+            <!-- Populated dynamically from state.agencyHierarchy -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Primary Solution <span style="color: var(--color-error);">*</span></label>
+          <select id="engPrimarySolution" required>
+            <option value="">-- Select Primary Solution --</option>
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Secondary Solution <span style="color: var(--color-text-muted); font-weight: normal;">(optional)</span></label>
+          <select id="engSecondarySolution">
+            <option value="">-- None --</option>
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Additional Solutions <span style="color: var(--color-text-muted); font-weight: normal;">(optional)</span></label>
+          <div class="solution-tags" id="additionalSolutionTags"></div>
+          <select id="addAdditionalSolution" onchange="SEP.addAdditionalSolution(this.value); this.value='';">
+            <option value="">+ Add solution...</option>
             <!-- Populated dynamically -->
           </select>
         </div>
         <div class="form-group">
           <label>Summary</label>
-          <textarea id="engSummary" rows="3" maxlength="2000" placeholder="Brief summary of the engagement"></textarea>
+          <div id="engSummary" class="rich-text-field" contenteditable="true" data-placeholder="Brief summary of the engagement"></div>
+        </div>
+        <div class="form-group">
+          <label>Related Engagements <span style="color: var(--color-text-muted); font-weight: normal;">(optional)</span></label>
+          <div class="related-engagements-picker" id="relatedEngagementsPicker">
+            <div class="selected-related" id="selectedRelatedEngagements"></div>
+            <input type="text" id="relatedEngagementSearch" class="contact-search"
+                   placeholder="Search engagements by subject..."
+                   autocomplete="off"
+                   oninput="SEP.searchRelatedEngagements(this.value)"
+                   onfocus="SEP.showRelatedEngagementResults()"
+                   onblur="SEP.hideRelatedEngagementResults()">
+            <div class="contact-results" id="relatedEngagementResults"></div>
+          </div>
+          <input type="hidden" id="engRelatedIds">
+        </div>
+        <div class="form-group">
+          <label>Supplementary Notes <span style="color: var(--color-text-muted); font-weight: normal;">(optional)</span></label>
+          <div id="engSupplementaryNotes" class="rich-text-field" contenteditable="true" data-placeholder="Additional context or notes from other sources"></div>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -470,6 +510,50 @@
           <span class="material-icons">person_add</span> Create New Contact
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Add Contact Modal (from engagement form) -->
+<div class="modal-overlay" id="quickAddContactModal" onclick="SEP.closeModal('quickAddContactModal', event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Add New Contact</h2>
+      <button class="modal-close" onclick="SEP.closeModal('quickAddContactModal')" aria-label="Close dialog">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="quickAddContactForm" onsubmit="SEP.submitQuickAddContact(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="quickContactFirst" placeholder="First name">
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" id="quickContactLast" placeholder="Last name">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email <span style="color: var(--color-error);">*</span></label>
+          <input type="email" id="quickContactEmail" placeholder="email@example.gov" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Department/Agency</label>
+            <input type="text" id="quickContactAgency" placeholder="e.g., USGS, NOAA">
+          </div>
+          <div class="form-group">
+            <label>Organization</label>
+            <input type="text" id="quickContactOrg" placeholder="e.g., Earth Resources">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="SEP.closeModal('quickAddContactModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="quickAddContactBtn">
+            <span class="material-icons">person_add</span> Add Contact
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -800,6 +884,33 @@
     font-size: var(--font-size-sm);
     line-height: 1.5;
     white-space: pre-wrap;
+  }
+
+  /* Related Engagements */
+  .related-engagements-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+  .related-engagement-chip {
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: var(--font-size-sm);
+    border-left: 3px solid var(--color-sep);
+    transition: background 0.15s;
+  }
+  .related-engagement-chip:hover {
+    background: var(--color-sep-light, rgba(21, 101, 192, 0.1));
+  }
+  .related-engagements-picker {
+    position: relative;
+  }
+  .selected-related {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-xs);
   }
 
   /* Recent Engagements */
@@ -2355,6 +2466,51 @@
     color: var(--color-text-muted);
     font-size: var(--font-size-sm);
   }
+  .contact-add-new {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    color: var(--color-sep);
+    border-top: 1px solid var(--color-border-light);
+    background: var(--color-surface-alt);
+  }
+  .contact-add-new:hover { background: var(--color-surface-hover); }
+  .contact-add-new .material-icons { font-size: 18px; }
+
+  /* Solution Tags */
+  .solution-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+    min-height: 28px;
+  }
+  .solution-tags:empty { margin-bottom: 0; min-height: 0; }
+  .solution-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--color-sep);
+    color: white;
+    padding: 4px 8px 4px 10px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+  }
+  .solution-tag-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .solution-tag-remove {
+    cursor: pointer;
+    opacity: 0.7;
+    font-size: 14px;
+    line-height: 1;
+  }
+  .solution-tag-remove:hover { opacity: 1; }
 </style>
 
 <!-- SEP JavaScript -->
@@ -2403,6 +2559,10 @@ var SEP = (function() {
     // Contact picker
     allContacts: [],
     selectedContacts: [],
+    // Additional solutions (for multi-solution tagging)
+    additionalSolutions: [],
+    // Last contact search query (for "Add new contact" feature)
+    lastContactSearchQuery: '',
     // Network graph
     currentAgencyContacts: [],
     agencyNetwork: null,
@@ -2412,6 +2572,8 @@ var SEP = (function() {
     currentEngagementDetail: null,
     editingEngagementId: null,
     editingOriginalParticipants: null,
+    // Related engagements picker
+    selectedRelatedEngagements: [],
     // Save guards to prevent double-submit
     isSubmittingEngagement: false,
     isSavingEngagementDetail: false
@@ -2422,6 +2584,10 @@ var SEP = (function() {
 
   function init() {
     setDefaultDate();
+
+    // Initialize rich text fields
+    initRichTextField('engSummary', 'Brief summary of the engagement');
+    initRichTextField('engSupplementaryNotes', 'Additional context or notes from other sources');
 
     // Load most init data in a single combined call (reduces 9 calls to 2)
     google.script.run
@@ -2530,6 +2696,9 @@ var SEP = (function() {
     var resultsEl = document.getElementById('contactResults');
     if (!resultsEl) return;
 
+    // Store query for "Add new contact" feature
+    state.lastContactSearchQuery = query;
+
     query = (query || '').toLowerCase().trim();
     if (query.length < 2) {
       resultsEl.classList.remove('active');
@@ -2547,10 +2716,10 @@ var SEP = (function() {
       return name.indexOf(query) !== -1 || email.indexOf(query) !== -1 || agency.indexOf(query) !== -1;
     }).slice(0, 10);
 
+    var html = '';
     if (filtered.length === 0) {
-      resultsEl.innerHTML = '<div class="contact-no-results">No contacts found</div>';
+      html = '<div class="contact-no-results">No contacts found</div>';
     } else {
-      var html = '';
       filtered.forEach(function(c) {
         var name = ((c.first_name || '') + ' ' + (c.last_name || '')).trim() || c.email;
         html += '<div class="contact-result-item" onmousedown="SEP.selectContact(\'' + escapeAttr(c.email) + '\')">';
@@ -2559,8 +2728,13 @@ var SEP = (function() {
         if (c.agency) html += '<div class="contact-result-agency">' + escapeHtml(c.agency) + '</div>';
         html += '</div>';
       });
-      resultsEl.innerHTML = html;
     }
+    // Always show "Add new contact" option at the bottom
+    html += '<div class="contact-add-new" onmousedown="SEP.showAddContactFromEngagement()">';
+    html += '<span class="material-icons">person_add</span>';
+    html += '<span>Add new contact...</span>';
+    html += '</div>';
+    resultsEl.innerHTML = html;
     resultsEl.classList.add('active');
   }
 
@@ -2579,11 +2753,16 @@ var SEP = (function() {
   }
 
   function selectContact(email) {
-    var contact = state.allContacts.find(function(c) { return c.email === email; });
+    var emailLower = email.toLowerCase();
+    var contact = state.allContacts.find(function(c) {
+      return c.email && c.email.toLowerCase() === emailLower;
+    });
     if (!contact) return;
 
-    // Check if already selected
-    if (state.selectedContacts.some(function(c) { return c.email === email; })) return;
+    // Check if already selected (case-insensitive)
+    if (state.selectedContacts.some(function(c) {
+      return c.email && c.email.toLowerCase() === emailLower;
+    })) return;
 
     state.selectedContacts.push(contact);
     renderSelectedContacts();
@@ -2595,7 +2774,10 @@ var SEP = (function() {
   }
 
   function removeContact(email) {
-    state.selectedContacts = state.selectedContacts.filter(function(c) { return c.email !== email; });
+    var emailLower = email.toLowerCase();
+    state.selectedContacts = state.selectedContacts.filter(function(c) {
+      return !c.email || c.email.toLowerCase() !== emailLower;
+    });
     renderSelectedContacts();
     updateParticipantsField();
   }
@@ -2630,6 +2812,196 @@ var SEP = (function() {
     renderSelectedContacts();
     updateParticipantsField();
     document.getElementById('contactSearchInput').value = '';
+  }
+
+  // ========================================================================
+  // RELATED ENGAGEMENTS PICKER
+  // ========================================================================
+
+  function searchRelatedEngagements(query) {
+    var resultsEl = document.getElementById('relatedEngagementResults');
+    if (!query || query.length < 2) {
+      resultsEl.classList.remove('active');
+      return;
+    }
+
+    var queryLower = query.toLowerCase();
+    var results = (state.engagements || []).filter(function(e) {
+      // Don't show already selected engagements
+      if (state.selectedRelatedEngagements.some(function(sel) { return sel.engagement_id === e.engagement_id; })) {
+        return false;
+      }
+      // Don't show the engagement being edited
+      if (state.editingEngagementId && e.engagement_id === state.editingEngagementId) {
+        return false;
+      }
+      return (e.subject && e.subject.toLowerCase().includes(queryLower)) ||
+             (e.summary && e.summary.toLowerCase().includes(queryLower));
+    }).slice(0, 10);
+
+    if (results.length === 0) {
+      resultsEl.innerHTML = '<div class="contact-result-item" style="color: var(--color-text-muted);">No engagements found</div>';
+    } else {
+      var html = results.map(function(e) {
+        var dateStr = e.date ? formatDate(e.date) : '';
+        return '<div class="contact-result-item" onmousedown="SEP.selectRelatedEngagement(\'' + escapeAttr(e.engagement_id) + '\')">' +
+          '<div class="contact-result-name">' + escapeHtml(e.subject || 'No subject') + '</div>' +
+          '<div class="contact-result-details">' + dateStr + ' - ' + escapeHtml(e.activity_type || '') + '</div>' +
+        '</div>';
+      }).join('');
+      resultsEl.innerHTML = html;
+    }
+    resultsEl.classList.add('active');
+  }
+
+  function showRelatedEngagementResults() {
+    var query = document.getElementById('relatedEngagementSearch').value;
+    if (query && query.length >= 2) {
+      searchRelatedEngagements(query);
+    }
+  }
+
+  function hideRelatedEngagementResults() {
+    setTimeout(function() {
+      var resultsEl = document.getElementById('relatedEngagementResults');
+      if (resultsEl) resultsEl.classList.remove('active');
+    }, 200);
+  }
+
+  function selectRelatedEngagement(engagementId) {
+    var engagement = (state.engagements || []).find(function(e) { return e.engagement_id === engagementId; });
+    if (!engagement) return;
+
+    // Don't add if already selected
+    if (state.selectedRelatedEngagements.some(function(e) { return e.engagement_id === engagementId; })) {
+      return;
+    }
+
+    state.selectedRelatedEngagements.push(engagement);
+    renderSelectedRelatedEngagements();
+    document.getElementById('relatedEngagementSearch').value = '';
+    document.getElementById('relatedEngagementResults').classList.remove('active');
+  }
+
+  function removeRelatedEngagement(engagementId) {
+    state.selectedRelatedEngagements = state.selectedRelatedEngagements.filter(function(e) {
+      return e.engagement_id !== engagementId;
+    });
+    renderSelectedRelatedEngagements();
+  }
+
+  function renderSelectedRelatedEngagements() {
+    var container = document.getElementById('selectedRelatedEngagements');
+    if (!container) return;
+
+    if (state.selectedRelatedEngagements.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    var html = state.selectedRelatedEngagements.map(function(e) {
+      var dateStr = e.date ? formatShortDate(new Date(e.date)) : '';
+      return '<span class="selected-contact-chip">' +
+        escapeHtml(e.subject || 'No subject') + ' (' + dateStr + ')' +
+        '<button type="button" class="remove-chip" onclick="SEP.removeRelatedEngagement(\'' + escapeAttr(e.engagement_id) + '\')" aria-label="Remove">&times;</button>' +
+      '</span>';
+    }).join('');
+    container.innerHTML = html;
+  }
+
+  function clearSelectedRelatedEngagements() {
+    state.selectedRelatedEngagements = [];
+    renderSelectedRelatedEngagements();
+    var searchInput = document.getElementById('relatedEngagementSearch');
+    if (searchInput) searchInput.value = '';
+  }
+
+  // Quick Add Contact from Engagement form
+  function showAddContactFromEngagement() {
+    // Hide contact search results
+    var resultsEl = document.getElementById('contactResults');
+    if (resultsEl) resultsEl.classList.remove('active');
+
+    // Pre-fill email if search query looks like an email
+    var searchQuery = state.lastContactSearchQuery || '';
+    var emailInput = document.getElementById('quickContactEmail');
+    if (searchQuery.includes('@')) {
+      emailInput.value = searchQuery;
+    } else {
+      emailInput.value = '';
+    }
+
+    // Clear other fields
+    document.getElementById('quickContactFirst').value = '';
+    document.getElementById('quickContactLast').value = '';
+    document.getElementById('quickContactAgency').value = '';
+    document.getElementById('quickContactOrg').value = '';
+
+    // Show the modal
+    document.getElementById('quickAddContactModal').classList.add('active');
+  }
+
+  function submitQuickAddContact(event) {
+    event.preventDefault();
+
+    var email = document.getElementById('quickContactEmail').value.trim();
+    if (!email) {
+      showError('Email is required');
+      return;
+    }
+
+    // Check if contact already exists
+    var existingContact = state.allContacts.find(function(c) {
+      return c.email && c.email.toLowerCase() === email.toLowerCase();
+    });
+    if (existingContact) {
+      showError('A contact with this email already exists');
+      return;
+    }
+
+    var contactData = {
+      first_name: document.getElementById('quickContactFirst').value.trim(),
+      last_name: document.getElementById('quickContactLast').value.trim(),
+      email: email,
+      agency: document.getElementById('quickContactAgency').value.trim(),
+      organization: document.getElementById('quickContactOrg').value.trim()
+    };
+
+    var submitBtn = document.getElementById('quickAddContactBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="material-icons" style="font-size: 16px; animation: spin 1s linear infinite;">refresh</span> Adding...';
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="material-icons">person_add</span> Add Contact';
+
+        if (!result || !result.success) {
+          showError(result && result.error ? result.error : 'Failed to create contact');
+          return;
+        }
+
+        // Add to local contacts cache
+        var newContact = result.data || contactData;
+        newContact.email = email; // Ensure email is set
+        state.allContacts.push(newContact);
+
+        // Select the new contact
+        state.selectedContacts.push(newContact);
+        renderSelectedContacts();
+        updateParticipantsField();
+
+        // Close modal and clear search
+        closeModal('quickAddContactModal');
+        document.getElementById('contactSearchInput').value = '';
+        showSuccess('Contact added and selected!');
+      })
+      .withFailureHandler(function(error) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="material-icons">person_add</span> Add Contact';
+        showError('Failed to create contact: ' + error);
+      })
+      .createContact(contactData);
   }
 
   function loadDashboardStats() {
@@ -2703,21 +3075,98 @@ var SEP = (function() {
   }
 
   function populateSolutionDropdown() {
-    var select = document.getElementById('engSolution');
-    if (!select) return;
-
-    select.innerHTML = '<option value="">-- Select Solution --</option>';
-
+    // Sort solutions for all dropdowns
     var sorted = state.solutions.slice().sort(function(a, b) {
       return (a.core_id || '').localeCompare(b.core_id || '');
     });
 
-    sorted.forEach(function(sol) {
-      var opt = document.createElement('option');
-      opt.value = sol.core_id;
-      opt.textContent = sol.core_id.toUpperCase() + ' - ' + (sol.core_official_name || '');
-      select.appendChild(opt);
+    // Primary solution dropdown (required)
+    var primarySelect = document.getElementById('engPrimarySolution');
+    if (primarySelect) {
+      primarySelect.innerHTML = '<option value="">-- Select Primary Solution --</option>';
+      sorted.forEach(function(sol) {
+        var opt = document.createElement('option');
+        opt.value = sol.core_id;
+        opt.textContent = sol.core_id.toUpperCase() + ' - ' + (sol.core_official_name || '');
+        primarySelect.appendChild(opt);
+      });
+    }
+
+    // Secondary solution dropdown (optional)
+    var secondarySelect = document.getElementById('engSecondarySolution');
+    if (secondarySelect) {
+      secondarySelect.innerHTML = '<option value="">-- None --</option>';
+      sorted.forEach(function(sol) {
+        var opt = document.createElement('option');
+        opt.value = sol.core_id;
+        opt.textContent = sol.core_id.toUpperCase() + ' - ' + (sol.core_official_name || '');
+        secondarySelect.appendChild(opt);
+      });
+    }
+
+    // Additional solutions dropdown
+    var additionalSelect = document.getElementById('addAdditionalSolution');
+    if (additionalSelect) {
+      additionalSelect.innerHTML = '<option value="">+ Add solution...</option>';
+      sorted.forEach(function(sol) {
+        var opt = document.createElement('option');
+        opt.value = sol.core_id;
+        opt.textContent = sol.core_id.toUpperCase() + ' - ' + (sol.core_official_name || '');
+        additionalSelect.appendChild(opt);
+      });
+    }
+  }
+
+  function addAdditionalSolution(solutionId) {
+    if (!solutionId) return;
+
+    // Check if already selected as primary, secondary, or additional
+    var primaryVal = document.getElementById('engPrimarySolution').value;
+    var secondaryVal = document.getElementById('engSecondarySolution').value;
+
+    if (solutionId === primaryVal || solutionId === secondaryVal) {
+      showError('Solution is already selected as primary or secondary');
+      return;
+    }
+    if (state.additionalSolutions.includes(solutionId)) {
+      return; // Already in additional
+    }
+
+    state.additionalSolutions.push(solutionId);
+    renderAdditionalSolutionTags();
+  }
+
+  function removeAdditionalSolution(solutionId) {
+    state.additionalSolutions = state.additionalSolutions.filter(function(id) {
+      return id !== solutionId;
     });
+    renderAdditionalSolutionTags();
+  }
+
+  function renderAdditionalSolutionTags() {
+    var container = document.getElementById('additionalSolutionTags');
+    if (!container) return;
+
+    if (state.additionalSolutions.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    var html = '';
+    state.additionalSolutions.forEach(function(solutionId) {
+      var sol = state.solutions.find(function(s) { return s.core_id === solutionId; });
+      var name = sol ? (sol.core_id.toUpperCase() + ' - ' + (sol.core_official_name || '')) : solutionId;
+      html += '<span class="solution-tag">';
+      html += '<span class="solution-tag-name">' + escapeHtml(name) + '</span>';
+      html += '<span class="solution-tag-remove material-icons" onclick="SEP.removeAdditionalSolution(\'' + escapeAttr(solutionId) + '\')">close</span>';
+      html += '</span>';
+    });
+    container.innerHTML = html;
+  }
+
+  function clearAdditionalSolutions() {
+    state.additionalSolutions = [];
+    renderAdditionalSolutionTags();
   }
 
   function setDefaultDate() {
@@ -3680,7 +4129,10 @@ var SEP = (function() {
   }
 
   function formatDateForInput(dateStr) {
-    return window.formatDateForInput(dateStr);
+    console.log('formatDateForInput input:', dateStr, 'type:', typeof dateStr);
+    var result = window.formatDateForInput(dateStr);
+    console.log('formatDateForInput output:', result);
+    return result;
   }
 
   function updateMilestoneDate(solutionId, milestoneId, date) {
@@ -4179,7 +4631,8 @@ return;
   function showLogEngagementModalForAgency(agencyId) {
     // Pre-fill engagement modal for this agency
     showLogEngagementModal();
-    // Could set agency context here if needed
+    // Pre-select the agency
+    populateAgencyDropdown('engAgency', agencyId);
   }
 
   function saveAgencyNotes(agencyId) {
@@ -4699,11 +5152,47 @@ return;
   function showLogEngagementModal() {
     state.editingEngagementId = null;
     state.editingOriginalParticipants = null;
+    state.selectedRelatedEngagements = [];
     document.getElementById('engagementForm').reset();
+    setRichTextContent('engSummary', ''); // Clear rich text fields (form.reset doesn't work)
+    setRichTextContent('engSupplementaryNotes', '');
     setDefaultDate();
     clearSelectedContacts();
+    clearAdditionalSolutions();
+    clearSelectedRelatedEngagements();
+    populateAgencyDropdown('engAgency', '');
     document.getElementById('engSubmitBtn').textContent = 'Log Engagement';
     document.getElementById('engagementModal').classList.add('active');
+  }
+
+  // Populate agency dropdown from hierarchy
+  function populateAgencyDropdown(selectId, selectedValue) {
+    var select = document.getElementById(selectId);
+    if (!select) return;
+
+    var html = '<option value="">-- Select Agency --</option>';
+
+    // Flatten hierarchy into options with indentation
+    function addAgencyOptions(agencies, level) {
+      agencies.forEach(function(agency) {
+        var indent = '\u00A0\u00A0'.repeat(level);
+        var selected = (agency.agency_id === selectedValue) ? ' selected' : '';
+        var label = agency.abbreviation || agency.name || agency.agency_id;
+        if (agency.full_name && agency.full_name !== label) {
+          label += ' - ' + agency.full_name;
+        }
+        html += '<option value="' + escapeAttr(agency.agency_id) + '"' + selected + '>' + indent + escapeHtml(label) + '</option>';
+        if (agency.children && agency.children.length > 0) {
+          addAgencyOptions(agency.children, level + 1);
+        }
+      });
+    }
+
+    if (state.agencyHierarchy && state.agencyHierarchy.length > 0) {
+      addAgencyOptions(state.agencyHierarchy, 0);
+    }
+
+    select.innerHTML = html;
   }
 
   function logEngagementFor(email) {
@@ -4737,8 +5226,13 @@ return;
       direction: document.getElementById('engDirection').value,
       subject: document.getElementById('engSubject').value,
       participants: document.getElementById('engParticipants').value,
-      solution_id: document.getElementById('engSolution').value,
-      summary: document.getElementById('engSummary').value,
+      agency_id: document.getElementById('engAgency').value || '',
+      solution_id: document.getElementById('engPrimarySolution').value,
+      secondary_solution_id: document.getElementById('engSecondarySolution').value || '',
+      additional_solution_ids: state.additionalSolutions.join(','),
+      summary: getRichTextContent('engSummary'),
+      related_engagement_ids: (state.selectedRelatedEngagements || []).map(function(e) { return e.engagement_id; }).join(','),
+      supplementary_notes: getRichTextContent('engSupplementaryNotes'),
       follow_up_date: document.getElementById('engFollowUp').value
     };
 
@@ -4851,6 +5345,80 @@ return;
 
   function formatDate(dateStr) {
     return window.formatDateShort(dateStr);
+  }
+
+  /**
+   * Convert simple markdown to HTML for display
+   * Supports: **bold**, line breaks, bullet points (-, •, ○, ■)
+   */
+  function simpleMarkdownToHtml(text) {
+    if (!text) return '';
+
+    // Step 1: Extract markdown links [text](url) before escaping
+    var links = [];
+    var placeholder = '\u0000LINK';
+    var html = String(text).replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, linkText, url) {
+      var index = links.length;
+      links.push({ text: linkText, url: url });
+      return placeholder + index + '\u0000';
+    });
+
+    // Step 2: Escape HTML to prevent XSS
+    html = escapeHtml(html);
+
+    // Step 3: Convert **bold** to <strong>
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+    // Step 4: Convert bullet points to list items
+    var lines = html.split('\n');
+    var inList = false;
+    var result = [];
+
+    lines.forEach(function(line) {
+      var trimmed = line.trim();
+      // Check for bullet points: -, •, ○, ■, or numbered (1., 2., etc)
+      var bulletMatch = trimmed.match(/^[-•○■]\s*(.*)$/);
+      var numberedMatch = trimmed.match(/^\d+\.\s*(.*)$/);
+
+      if (bulletMatch || numberedMatch) {
+        if (!inList) {
+          result.push('<ul style="margin: 4px 0; padding-left: 20px;">');
+          inList = true;
+        }
+        var content = bulletMatch ? bulletMatch[1] : numberedMatch[1];
+        result.push('<li>' + content + '</li>');
+      } else {
+        if (inList) {
+          result.push('</ul>');
+          inList = false;
+        }
+        if (trimmed) {
+          result.push(line);
+        } else if (result.length > 0) {
+          result.push('<br>');
+        }
+      }
+    });
+
+    if (inList) {
+      result.push('</ul>');
+    }
+
+    // Join and clean up multiple <br> tags
+    html = result.join('\n').replace(/(<br>\s*){3,}/g, '<br><br>');
+
+    // Step 5: Linkify plain URLs
+    html = linkifyUrls(html);
+
+    // Step 6: Restore markdown links as HTML anchor tags
+    links.forEach(function(link, index) {
+      var safeUrl = escapeHtml(link.url);
+      var safeText = escapeHtml(link.text);
+      var anchor = '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">' + safeText + '</a>';
+      html = html.replace(placeholder + index + '\u0000', anchor);
+    });
+
+    return html;
   }
 
   // escapeHtml() and escapeAttr() - use globals from index.html
@@ -5224,25 +5792,62 @@ return;
     html += '<div style="flex: 1;"><div style="font-size: 16px; font-weight: 600;">' + escapeHtml(e.subject || 'No subject') + '</div>';
     html += '<div style="color: var(--color-text-secondary); font-size: 13px;">' + escapeHtml(e.activity_type || 'Unknown') + '</div></div>';
     html += '<div class="engagement-detail-actions">';
-    html += '<button class="btn btn-sm btn-secondary" onclick="SEP.showEngagementEditForm()" aria-label="Edit engagement"><span class="material-icons" aria-hidden="true">edit</span></button>';
+    html += '<button class="btn btn-sm btn-secondary" onclick="SEP.editEngagement()" aria-label="Edit engagement"><span class="material-icons" aria-hidden="true">edit</span></button>';
     html += '<button class="btn btn-sm btn-danger" onclick="SEP.deleteEngagement()" aria-label="Delete engagement"><span class="material-icons" aria-hidden="true">delete</span></button>';
     html += '</div>';
     html += '</div>';
 
-    // Look up solution name (solutions use core_id and core_official_name)
-    var solutionName = '--';
-    if (e.solution_id && state.solutions) {
-      var sol = state.solutions.find(function(s) { return s.core_id === e.solution_id; });
-      solutionName = sol ? (sol.core_official_name || e.solution_id) : e.solution_id;
-    } else if (e.solution_id) {
-      solutionName = e.solution_id;
+    // Helper function to look up solution name
+    function getSolutionName(solutionId) {
+      if (!solutionId || !state.solutions) return null;
+      var sol = state.solutions.find(function(s) { return s.core_id === solutionId; });
+      return sol ? (sol.core_official_name || solutionId) : solutionId;
     }
+
+    // Build solution display (primary, secondary, additional)
+    var solutionParts = [];
+    if (e.solution_id) {
+      solutionParts.push('<strong>' + escapeHtml(getSolutionName(e.solution_id) || e.solution_id) + '</strong>');
+    }
+    if (e.secondary_solution_id) {
+      solutionParts.push(escapeHtml(getSolutionName(e.secondary_solution_id) || e.secondary_solution_id));
+    }
+    if (e.additional_solution_ids) {
+      e.additional_solution_ids.split(',').forEach(function(id) {
+        var trimmed = id.trim();
+        if (trimmed) {
+          solutionParts.push(escapeHtml(getSolutionName(trimmed) || trimmed));
+        }
+      });
+    }
+    var solutionDisplay = solutionParts.length > 0 ? solutionParts.join(', ') : '--';
+
+    // Helper function to look up agency name
+    function getAgencyName(agencyId) {
+      if (!agencyId || !state.agencyHierarchy) return null;
+      function findAgency(agencies) {
+        for (var i = 0; i < agencies.length; i++) {
+          if (agencies[i].agency_id === agencyId) {
+            return agencies[i].abbreviation || agencies[i].name || agencyId;
+          }
+          if (agencies[i].children) {
+            var found = findAgency(agencies[i].children);
+            if (found) return found;
+          }
+        }
+        return null;
+      }
+      return findAgency(state.agencyHierarchy);
+    }
+
+    var agencyDisplay = e.agency_id ? (getAgencyName(e.agency_id) || e.agency_id) : '--';
 
     html += '<div class="engagement-detail-grid">';
     html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Date</div><div class="engagement-detail-value">' + (e.date ? formatDate(e.date) : '--') + '</div></div>';
     html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Direction</div><div class="engagement-detail-value">' + escapeHtml(e.direction || '--') + '</div></div>';
     html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Follow-up</div><div class="engagement-detail-value">' + (e.follow_up_date ? formatDate(e.follow_up_date) : '--') + '</div></div>';
-    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Solution</div><div class="engagement-detail-value">' + escapeHtml(solutionName) + '</div></div>';
+    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Agency</div><div class="engagement-detail-value">' + escapeHtml(agencyDisplay) + '</div></div>';
+    html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Solutions</div><div class="engagement-detail-value">' + solutionDisplay + '</div></div>';
     // Format participants - show first 5, then expandable "... see more"
     var participantsHtml = '--';
     if (e.participants) {
@@ -5260,7 +5865,33 @@ return;
     html += '</div>';
 
     html += '<div class="engagement-detail-label" style="margin-bottom: 4px; margin-top: var(--space-sm);">Summary</div>';
-    html += '<div class="engagement-summary-box">' + escapeHtml(e.summary || 'No summary provided') + '</div>';
+    html += '<div class="engagement-summary-box">' + displayRichContent(e.summary || 'No summary provided') + '</div>';
+
+    // Related Engagements
+    if (e.related_engagement_ids) {
+      var relatedIds = e.related_engagement_ids.split(',').map(function(id) { return id.trim(); }).filter(Boolean);
+      if (relatedIds.length > 0) {
+        html += '<div class="engagement-detail-label" style="margin-bottom: 4px; margin-top: var(--space-sm);">Related Engagements</div>';
+        html += '<div class="related-engagements-list">';
+        relatedIds.forEach(function(relId) {
+          var relEng = (state.engagements || []).find(function(eng) { return eng.engagement_id === relId; });
+          if (relEng) {
+            var relDate = relEng.date ? formatShortDate(new Date(relEng.date)) : '';
+            html += '<div class="related-engagement-chip" onclick="SEP.showEngagementDetailData(SEP.getEngagementById(\'' + escapeAttr(relId) + '\'))" style="cursor: pointer;">';
+            html += '<span class="material-icons" style="font-size: 14px; vertical-align: middle;">link</span> ';
+            html += escapeHtml(relEng.subject || 'No subject') + ' <span style="color: var(--color-text-muted);">(' + relDate + ')</span>';
+            html += '</div>';
+          }
+        });
+        html += '</div>';
+      }
+    }
+
+    // Supplementary Notes
+    if (e.supplementary_notes) {
+      html += '<div class="engagement-detail-label" style="margin-bottom: 4px; margin-top: var(--space-sm);">Supplementary Notes</div>';
+      html += '<div class="engagement-summary-box" style="background: var(--color-warning-light); border-left: 3px solid var(--color-warning);">' + displayRichContent(e.supplementary_notes) + '</div>';
+    }
 
     document.getElementById('engagementDetailContent').innerHTML = html;
     document.getElementById('engagementDetailModal').classList.add('active');
@@ -5315,6 +5946,34 @@ return;
     html += '<input type="text" id="detailParticipants" value="' + escapeAttr(e.participants || '') + '" placeholder="email1@example.com, email2@example.com">';
     html += '</div>';
 
+    // Agency dropdown
+    html += '<div class="form-group" style="margin-bottom: var(--space-sm);">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Agency</label>';
+    html += '<select id="detailAgency">';
+    html += '<option value="">-- Select Agency --</option>';
+    // Flatten hierarchy for options
+    function addAgencyOptionsForEdit(agencies, level) {
+      var optHtml = '';
+      agencies.forEach(function(agency) {
+        var indent = '\u00A0\u00A0'.repeat(level);
+        var selected = (agency.agency_id === e.agency_id) ? ' selected' : '';
+        var label = agency.abbreviation || agency.name || agency.agency_id;
+        if (agency.full_name && agency.full_name !== label) {
+          label += ' - ' + agency.full_name;
+        }
+        optHtml += '<option value="' + escapeAttr(agency.agency_id) + '"' + selected + '>' + indent + escapeHtml(label) + '</option>';
+        if (agency.children && agency.children.length > 0) {
+          optHtml += addAgencyOptionsForEdit(agency.children, level + 1);
+        }
+      });
+      return optHtml;
+    }
+    if (state.agencyHierarchy && state.agencyHierarchy.length > 0) {
+      html += addAgencyOptionsForEdit(state.agencyHierarchy, 0);
+    }
+    html += '</select>';
+    html += '</div>';
+
     // Solution and Follow-up row
     html += '<div class="form-row" style="margin-bottom: var(--space-sm);">';
     html += '<div class="form-group" style="flex: 2;">';
@@ -5333,14 +5992,27 @@ return;
     html += '</div>';
     html += '<div class="form-group" style="flex: 1;">';
     html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Follow-up Date</label>';
-    html += '<input type="date" id="detailFollowUp" value="' + formatDateForInput(e.follow_up_date) + '">';
+    html += '<input type="date" id="detailFollowUp" value="' + escapeAttr(formatDateForInput(e.follow_up_date)) + '">';
     html += '</div>';
     html += '</div>';
 
     // Summary
-    html += '<div class="form-group" style="margin-bottom: var(--space-md);">';
+    html += '<div class="form-group" style="margin-bottom: var(--space-sm);">';
     html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Summary</label>';
     html += '<textarea id="detailSummary" rows="3" maxlength="2000" placeholder="Brief summary of the engagement">' + escapeHtml(e.summary || '') + '</textarea>';
+    html += '</div>';
+
+    // Related Engagements (display as chips with remove, simplified for edit form)
+    html += '<div class="form-group" style="margin-bottom: var(--space-sm);">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Related Engagements</label>';
+    html += '<input type="text" id="detailRelatedIds" value="' + escapeAttr(e.related_engagement_ids || '') + '" placeholder="Enter engagement IDs, comma-separated (e.g., ENG_123, ENG_456)">';
+    html += '<div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">Tip: Find engagement IDs from the All Engagements list</div>';
+    html += '</div>';
+
+    // Supplementary Notes
+    html += '<div class="form-group" style="margin-bottom: var(--space-md);">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Supplementary Notes</label>';
+    html += '<textarea id="detailSupplementaryNotes" rows="2" maxlength="2000" placeholder="Additional context from other sources">' + escapeHtml(e.supplementary_notes || '') + '</textarea>';
     html += '</div>';
 
     // Action buttons
@@ -5356,6 +6028,10 @@ return;
 
   function getCurrentEngagement() {
     return state.currentEngagementDetail;
+  }
+
+  function getEngagementById(engagementId) {
+    return (state.engagements || []).find(function(e) { return e.engagement_id === engagementId; });
   }
 
   function updateDetailIcon() {
@@ -5385,8 +6061,11 @@ return;
       direction: document.getElementById('detailDirection').value,
       subject: document.getElementById('detailSubject').value,
       participants: document.getElementById('detailParticipants').value,
+      agency_id: document.getElementById('detailAgency').value || '',
       solution_id: document.getElementById('detailSolution').value,
       summary: document.getElementById('detailSummary').value,
+      related_engagement_ids: document.getElementById('detailRelatedIds').value || '',
+      supplementary_notes: document.getElementById('detailSupplementaryNotes').value || '',
       follow_up_date: document.getElementById('detailFollowUp').value
     };
 
@@ -5448,28 +6127,52 @@ return;
     showLogEngagementModal();
 
     // Populate form with existing values
-    document.getElementById('engDate').value = e.date || '';
+    document.getElementById('engDate').value = formatDateForInput(e.date) || '';
     document.getElementById('engActivityType').value = e.activity_type || '';
     document.getElementById('engDirection').value = e.direction || '';
     document.getElementById('engSubject').value = e.subject || '';
-    document.getElementById('engSolution').value = e.solution_id || '';
-    document.getElementById('engSummary').value = e.summary || '';
-    document.getElementById('engFollowUp').value = e.follow_up_date || '';
+    document.getElementById('engPrimarySolution').value = e.solution_id || '';
+    document.getElementById('engSecondarySolution').value = e.secondary_solution_id || '';
+    setRichTextContent('engSummary', e.summary || '');
+    setRichTextContent('engSupplementaryNotes', e.supplementary_notes || '');
+    document.getElementById('engFollowUp').value = formatDateForInput(e.follow_up_date) || '';
+
+    // Populate additional solutions
+    state.additionalSolutions = [];
+    if (e.additional_solution_ids) {
+      state.additionalSolutions = e.additional_solution_ids.split(',').map(function(id) {
+        return id.trim();
+      }).filter(function(id) { return id; });
+    }
+    renderAdditionalSolutionTags();
 
     // Populate contact picker with existing participants
-    var participants = (e.participants || '').split(',').map(function(p) { return p.trim(); }).filter(function(p) { return p; });
+    var participants = (e.participants || '').split(',').map(function(p) { return p.trim().toLowerCase(); }).filter(function(p) { return p; });
     state.selectedContacts = [];
+    var unmatchedEmails = [];
     participants.forEach(function(email) {
-      var contact = state.allContacts.find(function(c) { return c.email === email; });
+      var contact = state.allContacts.find(function(c) {
+        return c.email && c.email.toLowerCase() === email;
+      });
       if (contact) {
         state.selectedContacts.push(contact);
+      } else {
+        // Store unmatched emails to add to hidden field
+        unmatchedEmails.push(email);
       }
     });
     renderSelectedContacts();
     updateParticipantsField();
-    // For any emails not found in contacts, add them to the hidden field
-    if (state.selectedContacts.length === 0 && e.participants) {
-      document.getElementById('engParticipants').value = e.participants;
+    // Add unmatched emails to the hidden field so they're not lost
+    if (unmatchedEmails.length > 0) {
+      var currentVal = document.getElementById('engParticipants').value;
+      var allEmails = currentVal ? currentVal.split(',').map(function(e) { return e.trim(); }) : [];
+      unmatchedEmails.forEach(function(email) {
+        if (allEmails.indexOf(email) === -1) {
+          allEmails.push(email);
+        }
+      });
+      document.getElementById('engParticipants').value = allEmails.join(', ');
     }
 
     // Store the engagement ID and original participants for update
@@ -6007,6 +6710,19 @@ return;
     hideContactResults: hideContactResults,
     selectContact: selectContact,
     removeContact: removeContact,
+    // Related engagements picker
+    searchRelatedEngagements: searchRelatedEngagements,
+    showRelatedEngagementResults: showRelatedEngagementResults,
+    hideRelatedEngagementResults: hideRelatedEngagementResults,
+    selectRelatedEngagement: selectRelatedEngagement,
+    removeRelatedEngagement: removeRelatedEngagement,
+    getEngagementById: getEngagementById,
+    // Multi-solution selection
+    addAdditionalSolution: addAdditionalSolution,
+    removeAdditionalSolution: removeAdditionalSolution,
+    // Quick add contact
+    showAddContactFromEngagement: showAddContactFromEngagement,
+    submitQuickAddContact: submitQuickAddContact,
     // Email templates
     showEmailTemplateModal: showEmailTemplateModal,
     applyEmailTemplate: applyEmailTemplate,

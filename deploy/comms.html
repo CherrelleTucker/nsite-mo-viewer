@@ -785,7 +785,7 @@
         </div>
         <div class="form-group">
           <label>Notes</label>
-          <textarea id="storyNotes" rows="3" maxlength="2000" placeholder="Additional notes..."></textarea>
+          <div id="storyNotes" class="rich-text-field" contenteditable="true" data-placeholder="Additional notes..."></div>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" onclick="COMMS.closeModal('editStoryModal')">Cancel</button>
@@ -862,7 +862,7 @@
         </div>
         <div class="form-group">
           <label>Notes</label>
-          <textarea id="newEventNotes" rows="3" maxlength="2000" placeholder="Any additional details..."></textarea>
+          <div id="newEventNotes" class="rich-text-field" contenteditable="true" data-placeholder="Any additional details..."></div>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" onclick="COMMS.closeModal('addEventModal')">Cancel</button>
@@ -3323,6 +3323,10 @@ var COMMS = (function() {
   };
 
   function init() {
+    // Initialize rich text fields
+    initRichTextField('storyNotes', 'Additional notes...');
+    initRichTextField('newEventNotes', 'Any additional details...');
+
     loadOverview();
     loadStories();
     loadOpportunities();
@@ -3502,7 +3506,7 @@ var COMMS = (function() {
       html += '<div class="opportunity-icon milestone"><span class="material-icons">flag</span></div>';
       html += '<div class="opportunity-info">';
       html += '<div class="opportunity-title">' + escapeHtml(m.solution_name) + ' - ' + escapeHtml(m.type) + '</div>';
-      html += '<div class="opportunity-desc">' + escapeHtml(m.description) + '</div>';
+      html += '<div class="opportunity-desc">' + formatTextWithLinks(m.description) + '</div>';
       html += '</div></div>';
     });
 
@@ -4043,7 +4047,7 @@ var COMMS = (function() {
     document.getElementById('storyAuthor').value = '';
     document.getElementById('storyPriority').value = 'medium';
     document.getElementById('storySolution').value = '';
-    document.getElementById('storyNotes').value = '';
+    setRichTextContent('storyNotes', '');
 
     // Clear Highlighter Blurb specific fields
     document.getElementById('storyBackgroundInfo').value = '';
@@ -4434,7 +4438,7 @@ var COMMS = (function() {
     if (story.notes) {
       html += '<div style="background: var(--color-surface-alt); padding: var(--space-md); border-radius: var(--radius-sm); margin-bottom: var(--space-md);">';
       html += '<div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: var(--space-xs);">NOTES</div>';
-      html += '<div style="font-size: var(--font-size-sm); white-space: pre-wrap;">' + escapeHtml(story.notes) + '</div>';
+      html += '<div style="font-size: var(--font-size-sm); white-space: pre-wrap;">' + formatTextWithLinks(story.notes) + '</div>';
       html += '</div>';
     }
 
@@ -4548,7 +4552,7 @@ var COMMS = (function() {
     document.getElementById('storyPublishDate').value = story.publish_date ? story.publish_date.split('T')[0] : '';
     document.getElementById('storyPitchUrl').value = story.pitch_doc_url || '';
     document.getElementById('storyPublishedLink').value = story.published_url || '';
-    document.getElementById('storyNotes').value = story.notes || '';
+    setRichTextContent('storyNotes', story.notes || '');
 
     // Highlighter Blurb fields
     document.getElementById('storyBackgroundInfo').value = story.background_info || '';
@@ -4603,7 +4607,7 @@ var COMMS = (function() {
       publish_date: document.getElementById('storyPublishDate').value,
       pitch_doc_url: document.getElementById('storyPitchUrl').value,
       published_url: document.getElementById('storyPublishedLink').value,
-      notes: document.getElementById('storyNotes').value,
+      notes: getRichTextContent('storyNotes'),
       // Highlighter Blurb fields
       background_info: document.getElementById('storyBackgroundInfo').value,
       blurb_content: document.getElementById('storyBlurbContent').value,
@@ -5225,7 +5229,7 @@ var COMMS = (function() {
     if (event.notes) {
       html += '<div style="background: var(--color-surface-alt); padding: var(--space-md); border-radius: var(--radius-sm); margin-bottom: var(--space-md);">';
       html += '<div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: var(--space-xs);">NOTES</div>';
-      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(event.notes) + '</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + formatTextWithLinks(event.notes) + '</div>';
       html += '</div>';
     }
 
@@ -5530,6 +5534,7 @@ var COMMS = (function() {
 
   function showAddEventModal() {
     document.getElementById('addEventForm').reset();
+    setRichTextContent('newEventNotes', ''); // Clear rich text field
     document.getElementById('addEventModal').classList.add('active');
   }
 
@@ -5567,7 +5572,7 @@ var COMMS = (function() {
       end_date: endDate,
       priority_sector: document.getElementById('newEventSector').value || null,
       event_url: document.getElementById('newEventUrl').value.trim() || null,
-      notes: document.getElementById('newEventNotes').value.trim() || null,
+      notes: getRichTextContent('newEventNotes') || null,
       source: 'manual_entry'
     };
 

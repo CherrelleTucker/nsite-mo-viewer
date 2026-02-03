@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.1] - 2026-02-03
+
+### Added
+- **Rich Text Paste Support** - Paste formatted content (from Slack, Docs, etc.) and preserve formatting
+  - Links appear as clickable blue links in the input field
+  - Bullets, bold, and other formatting preserved
+  - Applied to: Action Task, Engagement Summary/Notes, Story Notes, Event Notes
+  - New global functions: `sanitizeHtml()`, `initRichTextField()`, `getRichTextContent()`, `setRichTextContent()`, `displayRichContent()`
+- **Clickable Links in Detail Views** - URLs and markdown links render as clickable links
+  - Supports plain URLs: `https://example.com` and `www.example.com`
+  - Supports markdown syntax: `[link text](https://example.com)`
+  - Backward compatible with existing plain text data
+
+### Fixed
+- **SEP Engagement Date Persistence** - Date field now correctly persists when editing existing engagements (was resetting to today's date)
+- **SEP Engagement Supplementary Notes** - Notes now persist when editing (was being cleared)
+- **Toast Notifications Z-Index** - Toast messages now appear above modal overlays instead of behind them
+- **Action Creation Permission Error** - Removed `Session.getEffectiveUser()` call that required unavailable OAuth scope
+- **Action Delete Loading State** - Button now shows spinner while deleting
+- **Parking Lot Add Note Loading State** - Button now shows spinner while saving note
+- **HTML Comments in Pasted Content** - `<!--StartFragment-->` and similar comments now stripped
+
+---
+
 ## [2.3.0] - 2026-02-02
 
 ### Added

@@ -309,7 +309,7 @@ function createAction(actionData) {
         case 'updated_at':
           return timestamp;
         case 'created_by':
-          return actionData.created_by || Session.getEffectiveUser().getEmail() || 'manual';
+          return actionData.created_by || 'manual';
         default:
           return '';
       }

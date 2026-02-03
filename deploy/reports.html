@@ -2674,6 +2674,9 @@
         processed = processed.replace(placeholder + index + '\u0000', anchor);
       });
 
+      // Also linkify any plain URLs that aren't in markdown format
+      processed = linkifyUrls(processed);
+
       return processed;
     }
 

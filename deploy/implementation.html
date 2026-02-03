@@ -906,6 +906,167 @@
     text-decoration: underline;
   }
 
+  /* Recent Activity Styles */
+  .activity-summary {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+    font-size: var(--font-size-sm);
+  }
+
+  .activity-count {
+    color: var(--color-text-secondary);
+    font-weight: 500;
+  }
+
+  .activity-sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+
+  .activity-source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    background: var(--color-surface-alt);
+    color: var(--color-text-secondary);
+  }
+
+  .activity-source-badge .material-icons {
+    font-size: 12px;
+  }
+
+  .activity-source-updates { background: #e3f2fd; color: #1565c0; }
+  .activity-source-engagements { background: #e8f5e9; color: #2e7d32; }
+  .activity-source-actions { background: #fff3e0; color: #e65100; }
+  .activity-source-stories { background: #f3e5f5; color: #7b1fa2; }
+  .activity-source-milestones { background: #fce4ec; color: #c2185b; }
+
+  .activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .activity-item {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .activity-type-update { border-left-color: #1565c0; }
+  .activity-type-engagement { border-left-color: #2e7d32; }
+  .activity-type-action { border-left-color: #e65100; }
+  .activity-type-story { border-left-color: #7b1fa2; }
+  .activity-type-milestone { border-left-color: #c2185b; }
+
+  .activity-icon {
+    display: flex;
+    align-items: flex-start;
+    padding-top: 2px;
+  }
+
+  .activity-icon .material-icons {
+    font-size: 18px;
+    opacity: 0.7;
+  }
+
+  .activity-type-update .activity-icon .material-icons { color: #1565c0; }
+  .activity-type-engagement .activity-icon .material-icons { color: #2e7d32; }
+  .activity-type-action .activity-icon .material-icons { color: #e65100; }
+  .activity-type-story .activity-icon .material-icons { color: #7b1fa2; }
+  .activity-type-milestone .activity-icon .material-icons { color: #c2185b; }
+
+  .activity-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .activity-date {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .activity-title {
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+
+  .activity-description {
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+    font-size: var(--font-size-xs);
+  }
+
+  .activity-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-top: 4px;
+  }
+
+  .activity-meta .material-icons {
+    font-size: 12px;
+  }
+
+  .activity-status-done {
+    color: var(--color-success);
+  }
+
+  .activity-status-open {
+    color: var(--color-warning);
+  }
+
+  .activity-more-note {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+  }
+
+  .activity-more-note .material-icons {
+    font-size: 14px;
+    opacity: 0.7;
+  }
+
+  .activity-more-note a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  .activity-more-note a:hover {
+    text-decoration: underline;
+  }
+
+  .empty-activity {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-style: italic;
+    padding: var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    text-align: center;
+  }
+
   /* Status Summary Collapsible Styles */
   .status-summary-wrapper {
     position: relative;
@@ -1989,12 +2150,12 @@ return;
     var milestoneData = buildMilestoneData(sol);
 
     // Track loading state for parallel requests
-    var loadState = { stakeholders: null, updates: null, loaded: 0 };
+    var loadState = { stakeholders: null, activity: null, loaded: 0 };
 
     function checkAndRender() {
       loadState.loaded++;
       if (loadState.loaded === 2) {
-        renderDetailModal(sol, loadState.stakeholders, milestoneData, loadState.updates);
+        renderDetailModal(sol, loadState.stakeholders, milestoneData, loadState.activity);
       }
     }
 
@@ -2011,18 +2172,18 @@ return;
       })
       .getSolutionStakeholderSummary(sol.core_id || sol.core_official_name);
 
-    // Load updates data
+    // Load recent activity (aggregated from Updates, Engagements, Actions, Stories, Milestones)
     google.script.run
-      .withSuccessHandler(function(updates) {
-        loadState.updates = updates;
+      .withSuccessHandler(function(activity) {
+        loadState.activity = activity;
         checkAndRender();
       })
       .withFailureHandler(function(error) {
-        console.error('Failed to load updates:', error);
-        loadState.updates = null;
+        console.error('Failed to load activity:', error);
+        loadState.activity = null;
         checkAndRender();
       })
-      .getUpdatesForSolutionCard(sol.core_id || sol.core_official_name);
+      .getSolutionRecentActivity(sol.core_id, 30);
   }
 
   function buildMilestoneData(sol) {
@@ -2074,7 +2235,7 @@ return;
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
-  function renderDetailModal(sol, stakeholders, milestones, updates) {
+  function renderDetailModal(sol, stakeholders, milestones, activity) {
     var html = '<div class="detail-grid">';
 
     // Left column - Identity & Status
@@ -2116,7 +2277,7 @@ return;
 
     html += '<div class="detail-section">';
     html += '<div class="detail-section-title">Purpose</div>';
-    html += '<div class="detail-text">' + escapeHtml(sol.earthdata_purpose || 'No description available.') + '</div>';
+    html += '<div class="detail-text">' + formatTextWithLinks(sol.earthdata_purpose || 'No description available.') + '</div>';
     html += '</div>';
 
     html += '<div class="detail-section">';
@@ -2131,15 +2292,15 @@ return;
         truncatedStatus = truncatedStatus.substring(0, lastSpace);
       }
       html += '<div class="status-summary-wrapper">';
-      html += '<div class="detail-text status-truncated" id="statusTruncated">' + escapeHtml(truncatedStatus) + '...</div>';
-      html += '<div class="detail-text status-full collapsed" id="statusFull">' + escapeHtml(statusText) + '</div>';
+      html += '<div class="detail-text status-truncated" id="statusTruncated">' + formatTextWithLinks(truncatedStatus) + '...</div>';
+      html += '<div class="detail-text status-full collapsed" id="statusFull">' + formatTextWithLinks(statusText) + '</div>';
       html += '<button class="status-see-more-btn" onclick="Implementation.toggleStatusSummary()">';
       html += '<span class="material-icons">expand_more</span>';
       html += 'See more';
       html += '</button>';
       html += '</div>';
     } else {
-      html += '<div class="detail-text">' + escapeHtml(statusText) + '</div>';
+      html += '<div class="detail-text">' + formatTextWithLinks(statusText) + '</div>';
     }
     html += '</div>';
 
@@ -2263,54 +2424,51 @@ return;
     }
     html += '</div>';
 
-    // Updates section
+    // Recent Activity section (aggregated from multiple sources)
     html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
-    html += '<div class="detail-section-title">Recent Updates</div>';
+    html += '<div class="detail-section-title">Recent Activity</div>';
 
-    if (updates && (updates.recent.length > 0 || updates.extended.length > 0)) {
-      // Show total count
-      html += '<div class="updates-summary">';
-      html += '<span class="updates-count">' + updates.totalCount + ' total updates</span>';
-      if (updates.recent.length > 0) {
-        html += '<span class="updates-recent-badge">' + updates.recent.length + ' in last 30 days</span>';
-      }
+    if (activity && activity.activities && activity.activities.length > 0) {
+      // Show summary with source breakdown
+      html += '<div class="activity-summary">';
+      html += '<span class="activity-count">' + activity.totalCount + ' activities in last ' + activity.days + ' days</span>';
+      // Source badges
+      var sourceLabels = {
+        updates: { label: 'Updates', icon: 'update' },
+        engagements: { label: 'Engagements', icon: 'groups' },
+        actions: { label: 'Actions', icon: 'task_alt' },
+        stories: { label: 'Stories', icon: 'article' },
+        milestones: { label: 'Milestones', icon: 'flag' }
+      };
+      html += '<div class="activity-sources">';
+      Object.keys(activity.sources).forEach(function(source) {
+        if (activity.sources[source] > 0) {
+          var info = sourceLabels[source] || { label: source, icon: 'info' };
+          html += '<span class="activity-source-badge activity-source-' + source + '">';
+          html += '<span class="material-icons">' + info.icon + '</span>';
+          html += activity.sources[source] + ' ' + info.label;
+          html += '</span>';
+        }
+      });
+      html += '</div>';
       html += '</div>';
 
-      // Recent updates (shown by default)
-      if (updates.recent.length > 0) {
-        html += '<div class="updates-list" id="recentUpdates">';
-        updates.recent.forEach(function(update) {
-          html += renderUpdateItem(update);
-        });
-        html += '</div>';
-      } else {
-        html += '<div class="updates-empty-recent">No updates in the last 30 days.</div>';
-      }
+      // Activity list
+      html += '<div class="activity-list">';
+      activity.activities.forEach(function(item) {
+        html += renderActivityItem(item);
+      });
+      html += '</div>';
 
-      // Extended updates (hidden by default, shown on "see more")
-      if (updates.hasMore) {
-        html += '<div class="updates-extended-section">';
-        html += '<button class="updates-see-more-btn" onclick="Implementation.toggleExtendedUpdates()">';
-        html += '<span class="material-icons">expand_more</span>';
-        html += 'See more (' + updates.extended.length + ' updates from past 6 months)';
-        html += '</button>';
-        html += '<div class="updates-list updates-extended collapsed" id="extendedUpdates">';
-        updates.extended.forEach(function(update) {
-          html += renderUpdateItem(update);
-        });
-        html += '</div>';
-        html += '</div>';
-      }
-
-      // Historical note
-      if (updates.hasHistorical) {
-        html += '<div class="updates-historical-note">';
-        html += '<span class="material-icons">archive</span>';
-        html += 'Full historical updates available in the <a href="' + Platform.baseUrl + '?page=reports">Historical Updates Report</a>.';
+      // More indicator
+      if (activity.hasMore) {
+        html += '<div class="activity-more-note">';
+        html += '<span class="material-icons">info</span>';
+        html += 'Showing first 50 activities. Full history available in <a href="' + Platform.baseUrl + '?page=reports">Reports</a>.';
         html += '</div>';
       }
     } else {
-      html += '<div class="empty-updates">No updates recorded for this solution.</div>';
+      html += '<div class="empty-activity">No recent activity recorded for this solution.</div>';
     }
     html += '</div>';
 
@@ -2367,6 +2525,65 @@ return;
       }
       html += '</div>';
     }
+    html += '</div>';
+    return html;
+  }
+
+  function renderActivityItem(item) {
+    var html = '<div class="activity-item activity-type-' + (item.type || 'unknown') + '">';
+
+    // Icon and type indicator
+    html += '<div class="activity-icon">';
+    html += '<span class="material-icons">' + escapeHtml(item.icon || 'info') + '</span>';
+    html += '</div>';
+
+    // Main content
+    html += '<div class="activity-content">';
+
+    // Date
+    html += '<div class="activity-date">';
+    if (item.date) {
+      var d = new Date(item.date);
+      html += d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    html += '</div>';
+
+    // Title
+    html += '<div class="activity-title">' + escapeHtml(item.title || '') + '</div>';
+
+    // Description (truncated if long)
+    if (item.description) {
+      var desc = item.description;
+      if (desc.length > 200) {
+        desc = desc.substring(0, 200) + '...';
+      }
+      html += '<div class="activity-description">' + renderUpdateText(desc) + '</div>';
+    }
+
+    // Type-specific metadata
+    if (item.type === 'engagement' && item.participants) {
+      html += '<div class="activity-meta"><span class="material-icons">person</span>' + escapeHtml(item.participants) + '</div>';
+    }
+    if (item.type === 'action') {
+      if (item.status) {
+        var statusClass = item.status === 'done' ? 'activity-status-done' : 'activity-status-open';
+        html += '<div class="activity-meta ' + statusClass + '"><span class="material-icons">check_circle</span>' + escapeHtml(item.status) + '</div>';
+      }
+      if (item.assignee) {
+        html += '<div class="activity-meta"><span class="material-icons">person</span>' + escapeHtml(item.assignee) + '</div>';
+      }
+    }
+    if (item.type === 'story' && item.status) {
+      html += '<div class="activity-meta"><span class="material-icons">label</span>' + escapeHtml(item.status) + '</div>';
+    }
+    if (item.type === 'milestone' && item.phase) {
+      html += '<div class="activity-meta"><span class="material-icons">trending_up</span>' + escapeHtml(item.phase) + '</div>';
+    }
+    if (item.type === 'update' && item.source) {
+      html += '<div class="activity-meta"><span class="material-icons">source</span>' + escapeHtml(item.source) + '</div>';
+    }
+
+    html += '</div>';
     html += '</div>';
     return html;
   }
