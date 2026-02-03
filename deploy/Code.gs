@@ -259,8 +259,18 @@ function doGet(e) {
     template.pageConfig = PAGES[page];
     template.allPages = PAGES;
 
+    // Add branding configuration for white-labeling
+    var branding = MoApi.getBrandingConfig();
+    template.branding = branding;
+
+    // Build page title from branding
+    var pageTitle = branding.appName;
+    if (branding.orgName) {
+      pageTitle += ' | ' + branding.orgName;
+    }
+
     return template.evaluate()
-      .setTitle('MO-Viewer | NSITE MO Dashboard')
+      .setTitle(pageTitle)
       .setFaviconUrl(faviconUrl)
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT);
   } catch (error) {
@@ -335,6 +345,26 @@ function validateUserAccess(email, sheetId) {
  */
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+/**
+ * Include HTML file with template processing
+ * Use this for includes that need access to template variables like branding
+ * @param {string} filename - HTML file name (without .html extension)
+ * @param {Object} data - Data to pass to the template
+ * @returns {string} Processed HTML content
+ */
+function includeWithData(filename, data) {
+  var template = HtmlService.createTemplateFromFile(filename);
+
+  // Copy all data properties to template
+  if (data) {
+    Object.keys(data).forEach(function(key) {
+      template[key] = data[key];
+    });
+  }
+
+  return template.evaluate().getContent();
 }
 
 /**
@@ -682,6 +712,16 @@ function getPlatformConfig() {
       actionsDb: !!config[CONFIG_KEYS.ACTIONS_SHEET_ID]
     }
   };
+}
+
+/**
+ * Get branding configuration for white-labeling
+ * Wrapper for MoApi.getBrandingConfig()
+ *
+ * @returns {Object} Branding configuration (appName, orgName, pages, colors)
+ */
+function getBrandingConfig() {
+  return MoApi.getBrandingConfig();
 }
 
 // ============================================================================

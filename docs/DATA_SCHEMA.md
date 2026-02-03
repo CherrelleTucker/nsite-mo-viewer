@@ -549,12 +549,20 @@ Tracks all stakeholder interactions: emails, calls, meetings, webinars, conferen
 | `summary` | STRING | No | Detailed summary of the engagement (max 2000 chars) |
 | `touchpoint_reference` | STRING | No | SEP touchpoint reference (T4, W1, W2, T5, T6, T7, T8) |
 | `follow_up_date` | DATE | No | Scheduled follow-up date (YYYY-MM-DD) |
+| `related_engagement_ids` | STRING | No | Comma-separated engagement IDs for linked engagements |
+| `supplementary_notes` | STRING | No | Additional context from other sources (max 2000 chars) |
 | `logged_by` | STRING | No | Email of user who logged the engagement |
 | `created_at` | DATETIME | Yes | Record creation timestamp |
 
 **Indexes:**
 - Primary: `engagement_id`
 - Secondary: `date`, `solution_id`, `participants`, `agency_id`
+
+**Engagement Linking:**
+Engagements can reference other related engagements through the `related_engagement_ids` field. This enables:
+- Tracking follow-up conversations
+- Linking related discussions across different dates/contacts
+- Building an engagement thread for complex stakeholder relationships
 
 **Multi-Solution Support:**
 Engagements can be tagged with multiple solutions:
@@ -581,6 +589,8 @@ When searching for engagements by solution (e.g., in the SEP dashboard), all thr
   "summary": "Discussed cross-solution data integration opportunities between HLS and OPERA products.",
   "touchpoint_reference": "T5",
   "follow_up_date": "2026-02-15",
+  "related_engagement_ids": "ENG_1705900000000",
+  "supplementary_notes": "Team member mentioned USGS is also interested in NISAR products per hallway conversation.",
   "logged_by": "user@nasa.gov",
   "created_at": "2026-01-30T14:30:00Z"
 }

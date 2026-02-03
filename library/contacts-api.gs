@@ -36,6 +36,16 @@ function clearContactsCache_() {
   clearSheetDataCache(CONTACTS_CACHE_KEY);
 }
 
+/**
+ * Get contacts sheet for write operations
+ * Uses shared getSheetForWrite_() from config-helpers.gs
+ * @returns {Sheet} The contacts sheet
+ */
+function getContactsSheet_() {
+  var sheetInfo = getSheetForWrite_(CONTACTS_CONFIG_KEY);
+  return sheetInfo.sheet;
+}
+
 // ============================================================================
 // CORE QUERY FUNCTIONS (Using shared filterByProperty)
 // ============================================================================
@@ -779,7 +789,7 @@ function updateContactField_(email, fieldName, value) {
   }
 
   if (updated) {
-    _contactsCache = null; // Clear cache
+    clearContactsCache_(); // Clear cache
   }
 
   return updated;
@@ -847,12 +857,7 @@ function createContact(contactData) {
     if (!contactData.email) {
       return { success: false, error: 'Email is required' };
     }
-    if (!contactData.first_name) {
-      return { success: false, error: 'First name is required' };
-    }
-    if (!contactData.last_name) {
-      return { success: false, error: 'Last name is required' };
-    }
+    // First name and last name are optional for quick add
 
     var sheet = getContactsSheet_();
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
@@ -888,10 +893,11 @@ function createContact(contactData) {
     });
 
     sheet.appendRow(newRow);
-    _contactsCache = null; // Clear cache
+    clearContactsCache_(); // Clear cache
 
     return {
       success: true,
+      data: contactData,
       contact_id: contactId,
       message: 'Contact created successfully'
     };
@@ -938,7 +944,7 @@ function createContactForAgency(contactData) {
     });
 
     sheet.appendRow(newRow);
-    _contactsCache = null; // Clear cache
+    clearContactsCache_(); // Clear cache
 
     return { success: true, contact_id: contactId };
   } catch (e) {

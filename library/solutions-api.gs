@@ -935,3 +935,174 @@ function getSectorSummary() {
     return b.solution_count - a.solution_count;
   });
 }
+
+// ============================================================================
+// SOLUTION RECENT ACTIVITY (AGGREGATED)
+// ============================================================================
+
+/**
+ * Get recent activity for a solution from multiple data sources
+ * Aggregates Updates, Engagements, Actions, Stories, and Milestones
+ *
+ * @param {string} solutionId - Solution ID (core_id)
+ * @param {number} days - Number of days to look back (default 30)
+ * @returns {Object} { activities: [], totalCount: number, sources: {} }
+ */
+function getSolutionRecentActivity(solutionId, days) {
+  days = days || 30;
+  var cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+
+  var activities = [];
+  var sources = {
+    updates: 0,
+    engagements: 0,
+    actions: 0,
+    stories: 0,
+    milestones: 0
+  };
+
+  // 1. Get Updates
+  try {
+    var updates = getUpdatesForSolutionCard ? getUpdatesForSolutionCard(solutionId) : null;
+    if (updates) {
+      // Combine recent and extended updates
+      var allUpdates = (updates.recent || []).concat(updates.extended || []);
+      allUpdates.forEach(function(u) {
+        var actDate = u.meeting_date ? new Date(u.meeting_date) : null;
+        if (actDate && actDate >= cutoffDate) {
+          activities.push({
+            date: u.meeting_date,
+            type: 'update',
+            title: 'Update from ' + (u.source_document || 'Meeting'),
+            description: u.update_text || '',
+            icon: 'update',
+            source: u.source_document || '',
+            source_url: u.source_url || ''
+          });
+          sources.updates++;
+        }
+      });
+    }
+  } catch (e) {
+    Logger.log('getSolutionRecentActivity - Updates error: ' + e.message);
+  }
+
+  // 2. Get Engagements
+  try {
+    var engagements = getEngagementsBySolution ? getEngagementsBySolution(solutionId) : [];
+    engagements.forEach(function(e) {
+      var actDate = e.date ? new Date(e.date) : null;
+      if (actDate && actDate >= cutoffDate) {
+        var participantNames = (e.participants || '').split(',').slice(0, 3).join(', ');
+        activities.push({
+          date: e.date,
+          type: 'engagement',
+          title: e.type || 'Engagement',
+          description: e.summary || e.notes || '',
+          icon: 'groups',
+          participants: participantNames,
+          engagement_id: e.engagement_id
+        });
+        sources.engagements++;
+      }
+    });
+  } catch (e) {
+    Logger.log('getSolutionRecentActivity - Engagements error: ' + e.message);
+  }
+
+  // 3. Get Actions
+  try {
+    var actions = getAllActions ? getAllActions() : [];
+    var solutionActions = actions.filter(function(a) {
+      return a.solution_id && a.solution_id.toLowerCase() === solutionId.toLowerCase();
+    });
+    solutionActions.forEach(function(a) {
+      // Use created_at or due_date for the activity date
+      var actDateStr = a.created_at || a.due_date;
+      var actDate = actDateStr ? new Date(actDateStr) : null;
+      if (actDate && actDate >= cutoffDate) {
+        activities.push({
+          date: actDateStr,
+          type: 'action',
+          title: a.title || 'Action Item',
+          description: a.description || '',
+          icon: 'task_alt',
+          status: a.status || 'open',
+          assignee: a.assigned_to || '',
+          action_id: a.action_id
+        });
+        sources.actions++;
+      }
+    });
+  } catch (e) {
+    Logger.log('getSolutionRecentActivity - Actions error: ' + e.message);
+  }
+
+  // 4. Get Stories
+  try {
+    var stories = getStoriesBySolution ? getStoriesBySolution(solutionId) : [];
+    stories.forEach(function(s) {
+      // Use publish_date, idea_date, or created_date
+      var actDateStr = s.publish_date || s.idea_date || s.created_date;
+      var actDate = actDateStr ? new Date(actDateStr) : null;
+      if (actDate && actDate >= cutoffDate) {
+        activities.push({
+          date: actDateStr,
+          type: 'story',
+          title: s.title || s.headline || 'Story',
+          description: s.summary || s.description || '',
+          icon: 'article',
+          status: s.status || '',
+          content_type: s.content_type || 'story',
+          story_id: s.story_id
+        });
+        sources.stories++;
+      }
+    });
+  } catch (e) {
+    Logger.log('getSolutionRecentActivity - Stories error: ' + e.message);
+  }
+
+  // 5. Get Milestones (completed within the date range)
+  try {
+    var milestones = getMilestonesBySolution ? getMilestonesBySolution(solutionId) : [];
+    milestones.forEach(function(m) {
+      // Use target_date for milestones
+      var actDateStr = m.target_date;
+      var actDate = actDateStr ? new Date(actDateStr) : null;
+      if (actDate && actDate >= cutoffDate && m.status === 'completed') {
+        activities.push({
+          date: actDateStr,
+          type: 'milestone',
+          title: m.type || 'Milestone',
+          description: m.notes || 'Milestone completed',
+          icon: 'flag',
+          phase: m.phase || '',
+          milestone_id: m.milestone_id
+        });
+        sources.milestones++;
+      }
+    });
+  } catch (e) {
+    Logger.log('getSolutionRecentActivity - Milestones error: ' + e.message);
+  }
+
+  // Sort all activities by date descending
+  activities.sort(function(a, b) {
+    var dateA = a.date ? new Date(a.date) : new Date(0);
+    var dateB = b.date ? new Date(b.date) : new Date(0);
+    return dateB - dateA;
+  });
+
+  // Limit to reasonable size to avoid response size issues
+  var limitedActivities = activities.slice(0, 50);
+
+  return {
+    activities: limitedActivities,
+    totalCount: activities.length,
+    sources: sources,
+    days: days,
+    hasMore: activities.length > 50
+  };
+}

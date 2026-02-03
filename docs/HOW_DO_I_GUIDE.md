@@ -91,7 +91,7 @@ Most pages have an **Export** button (download icon) that creates a CSV file:
 Look for **view toggle buttons** near the top of each page. For example:
 
 - **SEP:** Dashboard | Solutions | Agencies
-- **Comms:** Pipeline | Events | Coverage | Calendar | Priorities | Messages | Tools
+- **Comms:** Pipeline | Events | Coverage | Calendar | Messaging | Tools
 - **Team:** Overview | Actions | Kudos | Meetings | Documents | Parking Lot
 
 Click the button for the view you want.

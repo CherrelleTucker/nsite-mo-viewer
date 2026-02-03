@@ -139,3 +139,8 @@ function getSurveysBySector(sector) {
 function getSectorSummary() {
   return MoApi.getSectorSummary();
 }
+
+// Recent Activity (Aggregated)
+function getSolutionRecentActivity(solutionId, days) {
+  return MoApi.getSolutionRecentActivity(solutionId, days);
+}

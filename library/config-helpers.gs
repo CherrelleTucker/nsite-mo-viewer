@@ -596,3 +596,86 @@ function deduplicateByField(array, fieldName, caseInsensitive) {
     return true;
   });
 }
+
+// ============================================================================
+// BRANDING CONFIGURATION
+// ============================================================================
+
+/**
+ * Default branding values - used when config keys are not set
+ * This allows the app to work without any branding config
+ */
+var DEFAULT_BRANDING = {
+  appName: 'Viewer',
+  orgName: '',
+  tagline: '',
+  pages: {
+    page1: { key: 'implementation', name: 'Implementation', icon: 'folder' },
+    page2: { key: 'sep', name: 'SEP', icon: 'group' },
+    page3: { key: 'comms', name: 'Comms', icon: 'chat' }
+  },
+  colors: {
+    primary: '#0B3D91',
+    primaryLight: '#1E5BB8',
+    primaryDark: '#082B66',
+    accent: '#0095D9',
+    page1: '#2E7D32',
+    page2: '#1565C0',
+    page3: '#7B1FA2'
+  }
+};
+
+/**
+ * Get branding configuration for white-labeling the application
+ * Reads from MO-DB_Config sheet, with sensible defaults for missing values
+ *
+ * Config keys:
+ * - APP_NAME: Application name displayed in header (e.g., "ESDIS Viewer")
+ * - ORG_NAME: Organization name/suffix (e.g., "NSITE MO")
+ * - APP_TAGLINE: Optional tagline shown in header
+ * - PAGE_1_NAME, PAGE_2_NAME, PAGE_3_NAME: Names for the 3 main viewer tabs
+ * - PAGE_1_KEY, PAGE_2_KEY, PAGE_3_KEY: URL keys for pages (default: implementation, sep, comms)
+ * - PAGE_1_ICON, PAGE_2_ICON, PAGE_3_ICON: Material icon names for tabs
+ * - COLOR_PRIMARY, COLOR_PRIMARY_LIGHT, COLOR_PRIMARY_DARK: Main brand colors
+ * - COLOR_ACCENT: Accent color
+ * - COLOR_PAGE_1, COLOR_PAGE_2, COLOR_PAGE_3: Page-specific accent colors
+ *
+ * @returns {Object} Branding configuration object
+ */
+function getBrandingConfig() {
+  var config = loadConfigFromSheet();
+
+  return {
+    appName: config['APP_NAME'] || DEFAULT_BRANDING.appName,
+    orgName: config['ORG_NAME'] || DEFAULT_BRANDING.orgName,
+    tagline: config['APP_TAGLINE'] || DEFAULT_BRANDING.tagline,
+
+    pages: {
+      page1: {
+        key: config['PAGE_1_KEY'] || DEFAULT_BRANDING.pages.page1.key,
+        name: config['PAGE_1_NAME'] || DEFAULT_BRANDING.pages.page1.name,
+        icon: config['PAGE_1_ICON'] || DEFAULT_BRANDING.pages.page1.icon
+      },
+      page2: {
+        key: config['PAGE_2_KEY'] || DEFAULT_BRANDING.pages.page2.key,
+        name: config['PAGE_2_NAME'] || DEFAULT_BRANDING.pages.page2.name,
+        icon: config['PAGE_2_ICON'] || DEFAULT_BRANDING.pages.page2.icon
+      },
+      page3: {
+        key: config['PAGE_3_KEY'] || DEFAULT_BRANDING.pages.page3.key,
+        name: config['PAGE_3_NAME'] || DEFAULT_BRANDING.pages.page3.name,
+        icon: config['PAGE_3_ICON'] || DEFAULT_BRANDING.pages.page3.icon
+      }
+    },
+
+    colors: {
+      primary: config['COLOR_PRIMARY'] || DEFAULT_BRANDING.colors.primary,
+      primaryLight: config['COLOR_PRIMARY_LIGHT'] || DEFAULT_BRANDING.colors.primaryLight,
+      primaryDark: config['COLOR_PRIMARY_DARK'] || DEFAULT_BRANDING.colors.primaryDark,
+      accent: config['COLOR_ACCENT'] || DEFAULT_BRANDING.colors.accent,
+      page1: config['COLOR_PAGE_1'] || DEFAULT_BRANDING.colors.page1,
+      page2: config['COLOR_PAGE_2'] || DEFAULT_BRANDING.colors.page2,
+      page3: config['COLOR_PAGE_3'] || DEFAULT_BRANDING.colors.page3
+    }
+  };
+}
