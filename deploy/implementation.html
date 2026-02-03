@@ -1257,6 +1257,77 @@
     to { transform: rotate(360deg); }
   }
 
+  /* Section Loading (for incremental loading in modals) */
+  .section-loading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+  }
+
+  .loading-spinner-sm {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+  }
+
+  /* Progress Tracker for Modal Loading */
+  .loading-progress-tracker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs) var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-md);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+  }
+
+  .progress-step {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--color-text-secondary);
+    transition: color 0.2s ease;
+  }
+
+  .progress-step .material-icons {
+    font-size: 16px;
+  }
+
+  .progress-step.loading .material-icons {
+    color: var(--color-primary);
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  .progress-step.complete {
+    color: var(--color-success);
+  }
+
+  .progress-step.complete .material-icons {
+    color: var(--color-success);
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .loading-progress-tracker.all-complete {
+    background: rgba(46, 125, 50, 0.08);
+    animation: fadeOut 0.5s ease-in-out 1s forwards;
+  }
+
+  @keyframes fadeOut {
+    to { opacity: 0; height: 0; padding: 0; margin: 0; overflow: hidden; }
+  }
+
   /* Upload Modal Styles */
   .upload-modal-content {
     max-width: 520px;
@@ -2162,48 +2233,156 @@ return;
 
     document.getElementById('modalTitle').textContent = (sol.core_id || '').toUpperCase();
 
-    // Show loading state with animated spinner
-    document.getElementById('modalBody').innerHTML = '<div class="modal-loading-simple"><div class="loading-spinner"></div><p>Loading solution details...</p></div>';
-    document.getElementById('solutionModal').classList.add('active');
-
-    // Build milestone data from solution fields
+    // Build milestone data from solution fields (instant - no API call)
     var milestoneData = buildMilestoneData(sol);
 
-    // Track loading state for parallel requests
-    var loadState = { stakeholders: null, activity: null, loaded: 0 };
+    // Render immediately with solution data we already have
+    // Stakeholders and Activity sections show loading placeholders
+    renderDetailModalIncremental(sol, milestoneData);
+    document.getElementById('solutionModal').classList.add('active');
 
-    function checkAndRender() {
-      loadState.loaded++;
-      if (loadState.loaded === 2) {
-        renderDetailModal(sol, loadState.stakeholders, milestoneData, loadState.activity);
-      }
-    }
-
-    // Load stakeholder data
+    // Load stakeholder data (updates section when complete)
     google.script.run
       .withSuccessHandler(function(stakeholders) {
-        loadState.stakeholders = stakeholders;
-        checkAndRender();
+        updateStakeholdersSection(stakeholders);
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load stakeholders:', error);
-        loadState.stakeholders = null;
-        checkAndRender();
+        updateStakeholdersSection(null);
       })
       .getSolutionStakeholderSummary(sol.core_id || sol.core_official_name);
 
-    // Load recent activity (aggregated from Updates, Engagements, Actions, Stories, Milestones)
+    // Load recent activity (updates section when complete)
     google.script.run
       .withSuccessHandler(function(activity) {
-        loadState.activity = activity;
-        checkAndRender();
+        updateActivitySection(activity);
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load activity:', error);
-        loadState.activity = null;
-        checkAndRender();
+        updateActivitySection(null);
       })
       .getSolutionRecentActivity(sol.core_id, 30);
+  }
+
+  // Update stakeholders section when data arrives
+  function updateStakeholdersSection(stakeholders) {
+    var container = document.getElementById('stakeholdersContent');
+    if (!container) return;
+
+    // Mark progress step as complete
+    markProgressStepComplete('step-stakeholders', 'Stakeholders');
+
+    var html = '';
+    if (stakeholders && stakeholders.total_contacts > 0) {
+      html += '<div class="stakeholder-summary">';
+      html += '<div class="stakeholder-stat"><span class="stat-number">' + stakeholders.total_contacts + '</span><span class="stat-label">Total Contacts</span></div>';
+
+      // Role breakdown
+      if (stakeholders.by_role) {
+        var roles = Object.keys(stakeholders.by_role);
+        roles.forEach(function(role) {
+          html += '<div class="stakeholder-stat"><span class="stat-number">' + stakeholders.by_role[role] + '</span><span class="stat-label">' + role + '</span></div>';
+        });
+      }
+      html += '</div>';
+
+      // Primary SMEs
+      if (stakeholders.primary_smes && stakeholders.primary_smes.length > 0) {
+        html += '<div class="sme-list">';
+        html += '<strong>Primary SMEs:</strong> ';
+        var smeNames = stakeholders.primary_smes.map(function(sme) {
+          return '<a href="mailto:' + escapeHtml(sme.email) + '" class="sme-link">' + escapeHtml(sme.name) + '</a>';
+        });
+        html += smeNames.join(', ');
+        html += '</div>';
+      }
+
+      // Departments
+      if (stakeholders.departments && stakeholders.departments.length > 0) {
+        html += '<div class="dept-list">';
+        html += '<strong>Agencies:</strong> ' + stakeholders.departments.slice(0, 5).map(escapeHtml).join(', ');
+        if (stakeholders.departments.length > 5) {
+          html += ' <span style="opacity:0.7">+' + (stakeholders.departments.length - 5) + ' more</span>';
+        }
+        html += '</div>';
+      }
+    } else {
+      html += '<div class="empty-stakeholders">No stakeholder data available for this solution.</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  // Update activity section when data arrives
+  function updateActivitySection(activity) {
+    var container = document.getElementById('activityContent');
+    if (!container) return;
+
+    // Mark progress step as complete
+    markProgressStepComplete('step-activity', 'Activity');
+
+    var html = '';
+    if (activity && activity.activities && activity.activities.length > 0) {
+      // Show summary with source breakdown
+      html += '<div class="activity-summary">';
+      html += '<span class="activity-count">' + activity.totalCount + ' activities in last ' + activity.days + ' days</span>';
+      // Source badges
+      var sourceLabels = {
+        updates: { label: 'Updates', icon: 'update' },
+        engagements: { label: 'Engagements', icon: 'groups' },
+        actions: { label: 'Actions', icon: 'task_alt' },
+        stories: { label: 'Stories', icon: 'article' },
+        milestones: { label: 'Milestones', icon: 'flag' }
+      };
+      html += '<div class="activity-sources">';
+      Object.keys(activity.sources).forEach(function(source) {
+        if (activity.sources[source] > 0) {
+          var info = sourceLabels[source] || { label: source, icon: 'info' };
+          html += '<span class="activity-source-badge activity-source-' + source + '">';
+          html += '<span class="material-icons">' + info.icon + '</span>';
+          html += activity.sources[source] + ' ' + info.label;
+          html += '</span>';
+        }
+      });
+      html += '</div>';
+      html += '</div>';
+
+      // Activity list
+      html += '<div class="activity-list">';
+      activity.activities.forEach(function(item) {
+        html += renderActivityItem(item);
+      });
+      html += '</div>';
+
+      // More indicator
+      if (activity.hasMore) {
+        html += '<div class="activity-more-note">';
+        html += '<span class="material-icons">info</span>';
+        html += 'Showing first 50 activities. Full history available in <a href="' + Platform.baseUrl + '?page=reports">Reports</a>.';
+        html += '</div>';
+      }
+    } else {
+      html += '<div class="empty-activity">No recent activity recorded for this solution.</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  // Mark a progress step as complete and check if all steps are done
+  function markProgressStepComplete(stepId, label) {
+    var step = document.getElementById(stepId);
+    if (step) {
+      step.classList.remove('loading');
+      step.classList.add('complete');
+      step.innerHTML = '<span class="material-icons">check_circle</span>' + label;
+    }
+
+    // Check if all steps are now complete
+    var tracker = document.getElementById('loadingProgressTracker');
+    if (tracker) {
+      var loadingSteps = tracker.querySelectorAll('.progress-step.loading');
+      if (loadingSteps.length === 0) {
+        tracker.classList.add('all-complete');
+      }
+    }
   }
 
   function buildMilestoneData(sol) {
@@ -2255,10 +2434,20 @@ return;
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
-  function renderDetailModal(sol, stakeholders, milestones, activity) {
-    var html = '<div class="detail-grid">';
+  // Render modal incrementally - show available data immediately, loading placeholders for async sections
+  function renderDetailModalIncremental(sol, milestones) {
+    // Progress tracker at top showing loading status
+    var html = '<div class="loading-progress-tracker" id="loadingProgressTracker">';
+    html += '<div class="progress-step complete" id="step-info"><span class="material-icons">check_circle</span>Solution Info</div>';
+    html += '<div class="progress-step complete" id="step-docs"><span class="material-icons">check_circle</span>Documents</div>';
+    html += '<div class="progress-step complete" id="step-milestones"><span class="material-icons">check_circle</span>Milestones</div>';
+    html += '<div class="progress-step loading" id="step-stakeholders"><span class="material-icons">sync</span>Stakeholders...</div>';
+    html += '<div class="progress-step loading" id="step-activity"><span class="material-icons">sync</span>Activity...</div>';
+    html += '</div>';
 
-    // Left column - Identity & Status
+    html += '<div class="detail-grid">';
+
+    // Left column - Identity & Status (INSTANT - from solution data)
     html += '<div>';
 
     html += '<div class="detail-section">';
@@ -2285,7 +2474,7 @@ return;
 
     html += '</div>';
 
-    // Right column - Team & Content
+    // Right column - Team & Content (INSTANT - from solution data)
     html += '<div>';
 
     html += '<div class="detail-section">';
@@ -2327,7 +2516,7 @@ return;
     html += '</div>';
     html += '</div>';
 
-    // Documents section (full width)
+    // Documents section - INSTANT (from solution data)
     html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
     html += '<div class="detail-section-title">Documentation Links</div>';
     html += '<div style="display: flex; flex-wrap: wrap; gap: var(--space-sm);">';
@@ -2345,7 +2534,7 @@ return;
     }
     html += '</div></div>';
 
-    // Document Status section
+    // Document Status section - INSTANT (from solution data)
     html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
     html += '<div class="detail-section-title">Document Status</div>';
     html += '<div class="doc-status-grid">';
@@ -2360,7 +2549,7 @@ return;
     html += renderDocStatusRow('Closeout Memo', sol.milestone_closeout_memo_url);
     html += '</div></div>';
 
-    // Milestones section
+    // Milestones section - INSTANT (calculated from solution data)
     html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
     html += '<div class="detail-section-title">Milestones</div>';
 
@@ -2402,98 +2591,30 @@ return;
     }
     html += '</div>';
 
-    // Stakeholders section
+    // Stakeholders section - ASYNC (shows loading, updated when data arrives)
     html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
-    html += '<div class="detail-section-title">Stakeholders</div>';
-
-    if (stakeholders && stakeholders.total_contacts > 0) {
-      html += '<div class="stakeholder-summary">';
-      html += '<div class="stakeholder-stat"><span class="stat-number">' + stakeholders.total_contacts + '</span><span class="stat-label">Total Contacts</span></div>';
-
-      // Role breakdown
-      if (stakeholders.by_role) {
-        var roles = Object.keys(stakeholders.by_role);
-        roles.forEach(function(role) {
-          html += '<div class="stakeholder-stat"><span class="stat-number">' + stakeholders.by_role[role] + '</span><span class="stat-label">' + role + '</span></div>';
-        });
-      }
-      html += '</div>';
-
-      // Primary SMEs
-      if (stakeholders.primary_smes && stakeholders.primary_smes.length > 0) {
-        html += '<div class="sme-list">';
-        html += '<strong>Primary SMEs:</strong> ';
-        var smeNames = stakeholders.primary_smes.map(function(sme) {
-          return '<a href="mailto:' + escapeHtml(sme.email) + '" class="sme-link">' + escapeHtml(sme.name) + '</a>';
-        });
-        html += smeNames.join(', ');
-        html += '</div>';
-      }
-
-      // Departments
-      if (stakeholders.departments && stakeholders.departments.length > 0) {
-        html += '<div class="dept-list">';
-        html += '<strong>Agencies:</strong> ' + stakeholders.departments.slice(0, 5).map(escapeHtml).join(', ');
-        if (stakeholders.departments.length > 5) {
-          html += ' <span style="opacity:0.7">+' + (stakeholders.departments.length - 5) + ' more</span>';
-        }
-        html += '</div>';
-      }
-    } else {
-      html += '<div class="empty-stakeholders">No stakeholder data available for this solution.</div>';
-    }
+    html += '<div class="detail-section-title">';
+    html += '<span class="material-icons" style="font-size: 18px; margin-right: 6px;">groups</span>';
+    html += 'Stakeholders';
+    html += '</div>';
+    html += '<div id="stakeholdersContent">';
+    html += '<div class="section-loading"><span class="loading-spinner-sm"></span> Loading stakeholders...</div>';
+    html += '</div>';
     html += '</div>';
 
-    // Recent Activity section (aggregated from multiple sources)
+    // Recent Activity section - ASYNC (shows loading, updated when data arrives)
     html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
-    html += '<div class="detail-section-title">Recent Activity</div>';
-
-    if (activity && activity.activities && activity.activities.length > 0) {
-      // Show summary with source breakdown
-      html += '<div class="activity-summary">';
-      html += '<span class="activity-count">' + activity.totalCount + ' activities in last ' + activity.days + ' days</span>';
-      // Source badges
-      var sourceLabels = {
-        updates: { label: 'Updates', icon: 'update' },
-        engagements: { label: 'Engagements', icon: 'groups' },
-        actions: { label: 'Actions', icon: 'task_alt' },
-        stories: { label: 'Stories', icon: 'article' },
-        milestones: { label: 'Milestones', icon: 'flag' }
-      };
-      html += '<div class="activity-sources">';
-      Object.keys(activity.sources).forEach(function(source) {
-        if (activity.sources[source] > 0) {
-          var info = sourceLabels[source] || { label: source, icon: 'info' };
-          html += '<span class="activity-source-badge activity-source-' + source + '">';
-          html += '<span class="material-icons">' + info.icon + '</span>';
-          html += activity.sources[source] + ' ' + info.label;
-          html += '</span>';
-        }
-      });
-      html += '</div>';
-      html += '</div>';
-
-      // Activity list
-      html += '<div class="activity-list">';
-      activity.activities.forEach(function(item) {
-        html += renderActivityItem(item);
-      });
-      html += '</div>';
-
-      // More indicator
-      if (activity.hasMore) {
-        html += '<div class="activity-more-note">';
-        html += '<span class="material-icons">info</span>';
-        html += 'Showing first 50 activities. Full history available in <a href="' + Platform.baseUrl + '?page=reports">Reports</a>.';
-        html += '</div>';
-      }
-    } else {
-      html += '<div class="empty-activity">No recent activity recorded for this solution.</div>';
-    }
+    html += '<div class="detail-section-title">';
+    html += '<span class="material-icons" style="font-size: 18px; margin-right: 6px;">history</span>';
+    html += 'Recent Activity';
+    html += '</div>';
+    html += '<div id="activityContent">';
+    html += '<div class="section-loading"><span class="loading-spinner-sm"></span> Loading activity...</div>';
+    html += '</div>';
     html += '</div>';
 
     document.getElementById('modalBody').innerHTML = html;
-}
+  }
 
   // Safely render text with markdown links
   // Extracts links first, escapes remaining text, then reinserts links

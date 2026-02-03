@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Each page tracks navigation ID at init
   - Async callbacks check if navigation is still current before processing
   - Prevents UI glitches when rapidly switching pages
+- **Solution Detail Progress Tracker** - Visual loading progress in solution detail modal
+  - Shows step-by-step loading status: Solution Info, Documents, Milestones, Stakeholders, Activity
+  - Instant sections show green checkmarks immediately
+  - Async sections show spinning icon while loading, update to checkmark when complete
+  - Progress bar fades out once all sections loaded
 
 ### Changed
 - **Page Load Performance** - Subsequent visits to pages load ~50x faster (from cache)
