@@ -1010,6 +1010,17 @@
     font-size: var(--font-size-xs);
   }
 
+  .see-more-link {
+    color: var(--color-implementation);
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .see-more-link:hover {
+    text-decoration: underline;
+  }
+
   .activity-meta {
     display: inline-flex;
     align-items: center;
@@ -2551,13 +2562,27 @@ return;
     // Title
     html += '<div class="activity-title">' + escapeHtml(item.title || '') + '</div>';
 
-    // Description (truncated if long)
+    // Description (truncated if long, with "see more" link)
     if (item.description) {
       var desc = item.description;
-      if (desc.length > 200) {
-        desc = desc.substring(0, 200) + '...';
+      var charLimit = 200;
+      if (desc.length > charLimit) {
+        var truncated = desc.substring(0, charLimit);
+        // Don't cut mid-word
+        var lastSpace = truncated.lastIndexOf(' ');
+        if (lastSpace > charLimit - 50) {
+          truncated = truncated.substring(0, lastSpace);
+        }
+        var itemId = 'activity-desc-' + Math.random().toString(36).substr(2, 9);
+        html += '<div class="activity-description">';
+        html += '<span id="' + itemId + '-short">' + renderUpdateText(truncated) + '... ';
+        html += '<a href="#" class="see-more-link" onclick="Implementation.toggleActivityDesc(\'' + itemId + '\'); return false;">see more</a></span>';
+        html += '<span id="' + itemId + '-full" style="display:none;">' + renderUpdateText(desc) + ' ';
+        html += '<a href="#" class="see-more-link" onclick="Implementation.toggleActivityDesc(\'' + itemId + '\'); return false;">see less</a></span>';
+        html += '</div>';
+      } else {
+        html += '<div class="activity-description">' + renderUpdateText(desc) + '</div>';
       }
-      html += '<div class="activity-description">' + renderUpdateText(desc) + '</div>';
     }
 
     // Type-specific metadata
@@ -2929,6 +2954,20 @@ return;
     }
   });
 
+  function toggleActivityDesc(itemId) {
+    var shortEl = document.getElementById(itemId + '-short');
+    var fullEl = document.getElementById(itemId + '-full');
+    if (shortEl && fullEl) {
+      if (shortEl.style.display === 'none') {
+        shortEl.style.display = '';
+        fullEl.style.display = 'none';
+      } else {
+        shortEl.style.display = 'none';
+        fullEl.style.display = '';
+      }
+    }
+  }
+
   return {
     init: init,
     loadSolutions: loadSolutions,
@@ -2945,6 +2984,7 @@ return;
     clearSolutionSelection: clearSolutionSelection,
     toggleExtendedUpdates: toggleExtendedUpdates,
     toggleStatusSummary: toggleStatusSummary,
+    toggleActivityDesc: toggleActivityDesc,
     viewSolutionContacts: viewSolutionContacts,
     // Team folder upload
     openUploadModal: openUploadModal,

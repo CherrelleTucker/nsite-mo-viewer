@@ -180,9 +180,12 @@ function loadAllAvailability_() {
       var obj = {};
       headers.forEach(function(h, j) {
         var val = row[j];
-        // Format dates
+        // Format dates - add 12 hours to prevent timezone-related day shift
+        // When Sheets stores a date, it may interpret it as UTC midnight
+        // Adding 12 hours ensures the date stays in the correct calendar day
         if ((h === 'start_date' || h === 'end_date') && val instanceof Date) {
-          val = Utilities.formatDate(val, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+          var adjusted = new Date(val.getTime() + 12 * 60 * 60 * 1000);
+          val = Utilities.formatDate(adjusted, Session.getScriptTimeZone(), 'yyyy-MM-dd');
         }
         obj[h] = val;
       });

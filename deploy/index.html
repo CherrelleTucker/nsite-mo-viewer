@@ -187,6 +187,389 @@
   <!-- Platform JavaScript -->
   <script>
     // ========================================================================
+    // DATA CACHE - SessionStorage-based caching for API responses
+    // ========================================================================
+
+    /**
+     * DataCache provides transparent caching for API calls using sessionStorage.
+     * Data persists across SPA page navigations but clears when browser closes.
+     *
+     * Usage:
+     *   DataCache.get('solutions', fetchSolutionsFn, 60)
+     *     .then(function(data) { ... });
+     *
+     * Cache invalidation:
+     *   DataCache.clear('solutions');  // After saving a solution
+     *   DataCache.clearAll();          // Force full refresh
+     */
+    var DataCache = (function() {
+      var CACHE_PREFIX = 'mo_cache_';
+      var stats = { hits: 0, misses: 0 };
+
+      /**
+       * Get data from cache or fetch fresh
+       * @param {string} key - Cache key (e.g., 'solutions', 'contacts')
+       * @param {function} fetchFn - Function that returns a Promise with fresh data
+       * @param {number} ttlMinutes - Time-to-live in minutes (default: 60)
+       * @returns {Promise} Resolves with cached or fresh data
+       */
+      function get(key, fetchFn, ttlMinutes) {
+        ttlMinutes = ttlMinutes || 60;
+        var ttlMs = ttlMinutes * 60 * 1000;
+        var cacheKey = CACHE_PREFIX + key;
+
+        return new Promise(function(resolve, reject) {
+          // Try to get from cache
+          try {
+            var cached = sessionStorage.getItem(cacheKey);
+            if (cached) {
+              var parsed = JSON.parse(cached);
+              var age = Date.now() - parsed.timestamp;
+
+              // Check if still valid
+              if (age < ttlMs) {
+                stats.hits++;
+                console.log('[DataCache] HIT: ' + key + ' (age: ' + Math.round(age/1000) + 's)');
+                resolve(parsed.data);
+                return;
+              } else {
+                console.log('[DataCache] EXPIRED: ' + key + ' (age: ' + Math.round(age/1000) + 's)');
+              }
+            }
+          } catch (e) {
+            console.warn('[DataCache] Error reading cache:', e);
+          }
+
+          // Cache miss or expired - fetch fresh data
+          stats.misses++;
+          console.log('[DataCache] MISS: ' + key + ' - fetching fresh data');
+
+          fetchFn()
+            .then(function(data) {
+              // Store in cache
+              try {
+                var cacheEntry = {
+                  data: data,
+                  timestamp: Date.now(),
+                  ttl: ttlMs
+                };
+                sessionStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
+                console.log('[DataCache] STORED: ' + key);
+              } catch (e) {
+                // sessionStorage full or unavailable - continue without caching
+                console.warn('[DataCache] Could not store:', e);
+              }
+              resolve(data);
+            })
+            .catch(function(error) {
+              reject(error);
+            });
+        });
+      }
+
+      /**
+       * Clear a specific cache entry
+       * Call this after saving/updating data to ensure fresh fetch next time
+       * @param {string} key - Cache key to clear
+       */
+      function clear(key) {
+        var cacheKey = CACHE_PREFIX + key;
+        sessionStorage.removeItem(cacheKey);
+        console.log('[DataCache] CLEARED: ' + key);
+      }
+
+      /**
+       * Clear all cache entries
+       * Call this for "Refresh All" button or after bulk operations
+       */
+      function clearAll() {
+        var keys = Object.keys(sessionStorage);
+        var cleared = 0;
+        keys.forEach(function(key) {
+          if (key.indexOf(CACHE_PREFIX) === 0) {
+            sessionStorage.removeItem(key);
+            cleared++;
+          }
+        });
+        stats.hits = 0;
+        stats.misses = 0;
+        console.log('[DataCache] CLEARED ALL: ' + cleared + ' entries');
+      }
+
+      /**
+       * Get cache statistics for debugging
+       * @returns {object} {hits, misses, hitRate, entries}
+       */
+      function getStats() {
+        var entries = [];
+        var keys = Object.keys(sessionStorage);
+        keys.forEach(function(key) {
+          if (key.indexOf(CACHE_PREFIX) === 0) {
+            try {
+              var parsed = JSON.parse(sessionStorage.getItem(key));
+              var age = Date.now() - parsed.timestamp;
+              entries.push({
+                key: key.replace(CACHE_PREFIX, ''),
+                age: Math.round(age / 1000) + 's',
+                ttl: Math.round(parsed.ttl / 60000) + 'min',
+                expired: age >= parsed.ttl,
+                sizeKB: Math.round(sessionStorage.getItem(key).length / 1024)
+              });
+            } catch (e) {}
+          }
+        });
+
+        var total = stats.hits + stats.misses;
+        return {
+          hits: stats.hits,
+          misses: stats.misses,
+          hitRate: total > 0 ? Math.round((stats.hits / total) * 100) + '%' : 'N/A',
+          entries: entries
+        };
+      }
+
+      /**
+       * Check if a key exists in cache and is not expired
+       * @param {string} key - Cache key
+       * @returns {boolean}
+       */
+      function has(key) {
+        var cacheKey = CACHE_PREFIX + key;
+        try {
+          var cached = sessionStorage.getItem(cacheKey);
+          if (cached) {
+            var parsed = JSON.parse(cached);
+            return (Date.now() - parsed.timestamp) < parsed.ttl;
+          }
+        } catch (e) {}
+        return false;
+      }
+
+      /**
+       * Preload multiple cache entries in parallel
+       * Useful for warming cache on app startup
+       * @param {Array} configs - [{key, fetchFn, ttl}, ...]
+       * @returns {Promise} Resolves when all entries are cached
+       */
+      function preload(configs) {
+        var promises = configs.map(function(config) {
+          return get(config.key, config.fetchFn, config.ttl);
+        });
+        return Promise.all(promises);
+      }
+
+      // Public API
+      return {
+        get: get,
+        clear: clear,
+        clearAll: clearAll,
+        getStats: getStats,
+        has: has,
+        preload: preload
+      };
+    })();
+
+    // Expose for debugging in browser console
+    window.DataCache = DataCache;
+
+    // ========================================================================
+    // CACHED API HELPERS - Wrapper functions for common API calls with caching
+    // ========================================================================
+
+    /**
+     * CachedAPI provides Promise-wrapped versions of google.script.run calls
+     * that integrate with DataCache for transparent caching.
+     *
+     * Usage (in page scripts):
+     *   CachedAPI.getSolutions().then(function(data) { ... });
+     *   CachedAPI.getContacts().then(function(data) { ... });
+     *
+     * Force fresh fetch (bypass cache):
+     *   CachedAPI.getSolutions(true).then(function(data) { ... });
+     */
+    var CachedAPI = {
+      // Cache TTL configuration (in minutes)
+      TTL: {
+        solutions: 60,      // Solutions rarely change mid-session
+        contacts: 60,       // Contacts are relatively stable
+        agencies: 60,       // Agency hierarchy rarely changes
+        sepInit: 15,        // SEP data includes recent engagements
+        commsOverview: 15,  // Stories/events may update
+        teamMembers: 30,    // Team info moderately stable
+        meetings: 30        // Meeting schedule
+      },
+
+      /**
+       * Get all solutions (cached)
+       * @param {boolean} forceRefresh - Skip cache and fetch fresh
+       * @returns {Promise<Array>}
+       */
+      getSolutions: function(forceRefresh) {
+        if (forceRefresh) DataCache.clear('solutions');
+        return DataCache.get('solutions', function() {
+          return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getSolutions();
+          });
+        }, this.TTL.solutions);
+      },
+
+      /**
+       * Get all unique contacts (cached)
+       * @param {boolean} forceRefresh - Skip cache and fetch fresh
+       * @returns {Promise<Array>}
+       */
+      getContacts: function(forceRefresh) {
+        if (forceRefresh) DataCache.clear('contacts');
+        return DataCache.get('contacts', function() {
+          return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getUniqueContacts();
+          });
+        }, this.TTL.contacts);
+      },
+
+      /**
+       * Get all contacts (alias for getContacts for compatibility)
+       */
+      getAllContacts: function(forceRefresh) {
+        return this.getContacts(forceRefresh);
+      },
+
+      /**
+       * Get agency hierarchy (cached)
+       * @param {boolean} forceRefresh - Skip cache and fetch fresh
+       * @returns {Promise<Array>}
+       */
+      getAgencies: function(forceRefresh) {
+        if (forceRefresh) DataCache.clear('agencies');
+        return DataCache.get('agencies', function() {
+          return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getAgencyHierarchy();
+          });
+        }, this.TTL.agencies);
+      },
+
+      /**
+       * Get SEP init data bundle (cached)
+       * @param {boolean} forceRefresh - Skip cache and fetch fresh
+       * @returns {Promise<Object>}
+       */
+      getSEPInitData: function(forceRefresh) {
+        if (forceRefresh) DataCache.clear('sepInit');
+        return DataCache.get('sepInit', function() {
+          return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getSEPInitData();
+          });
+        }, this.TTL.sepInit);
+      },
+
+      /**
+       * Get comms overview data (cached)
+       * @param {boolean} forceRefresh - Skip cache and fetch fresh
+       * @returns {Promise<Object>}
+       */
+      getCommsOverview: function(forceRefresh) {
+        if (forceRefresh) DataCache.clear('commsOverview');
+        return DataCache.get('commsOverview', function() {
+          return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getCommsOverview();
+          });
+        }, this.TTL.commsOverview);
+      },
+
+      /**
+       * Get team members (cached)
+       * @param {boolean} forceRefresh - Skip cache and fetch fresh
+       * @returns {Promise<Array>}
+       */
+      getTeamMembers: function(forceRefresh) {
+        if (forceRefresh) DataCache.clear('teamMembers');
+        return DataCache.get('teamMembers', function() {
+          return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getInternalTeamWithProfiles();
+          });
+        }, this.TTL.teamMembers);
+      },
+
+      /**
+       * Get all meetings (cached)
+       * @param {boolean} forceRefresh - Skip cache and fetch fresh
+       * @returns {Promise<Array>}
+       */
+      getMeetings: function(forceRefresh) {
+        if (forceRefresh) DataCache.clear('meetings');
+        return DataCache.get('meetings', function() {
+          return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getAllMeetings();
+          });
+        }, this.TTL.meetings);
+      },
+
+      /**
+       * Invalidate caches related to a specific data type
+       * Call after save/update operations
+       */
+      invalidate: {
+        solutions: function() {
+          DataCache.clear('solutions');
+          DataCache.clear('sepInit');  // SEP init includes solutions
+        },
+        contacts: function() {
+          DataCache.clear('contacts');
+          DataCache.clear('sepInit');  // SEP init may include contact counts
+        },
+        engagements: function() {
+          DataCache.clear('sepInit');  // SEP init includes recent engagements
+        },
+        all: function() {
+          DataCache.clearAll();
+        }
+      },
+
+      /**
+       * Preload commonly used data for faster page switches
+       * Call this on app startup or after long idle
+       */
+      preloadCommon: function() {
+        return DataCache.preload([
+          { key: 'solutions', fetchFn: function() {
+            return new Promise(function(resolve, reject) {
+              google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).getSolutions();
+            });
+          }, ttl: CachedAPI.TTL.solutions },
+          { key: 'contacts', fetchFn: function() {
+            return new Promise(function(resolve, reject) {
+              google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).getUniqueContacts();
+            });
+          }, ttl: CachedAPI.TTL.contacts }
+        ]);
+      }
+    };
+
+    // Expose for page scripts
+    window.CachedAPI = CachedAPI;
+
+    // ========================================================================
     // PLATFORM CONFIGURATION
     // ========================================================================
 

@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Supports markdown syntax: `[link text](https://example.com)`
   - Backward compatible with existing plain text data
 
+### Changed
+- **SEP Overview Collapsed by Default** - SEP Overview section starts collapsed for cleaner page load
+- **Implementation Activity "See More"** - Long activity descriptions now truncated with "see more/see less" toggle
+
 ### Fixed
 - **SEP Engagement Date Persistence** - Date field now correctly persists when editing existing engagements (was resetting to today's date)
 - **SEP Engagement Supplementary Notes** - Notes now persist when editing (was being cleared)
@@ -28,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Action Delete Loading State** - Button now shows spinner while deleting
 - **Parking Lot Add Note Loading State** - Button now shows spinner while saving note
 - **HTML Comments in Pasted Content** - `<!--StartFragment-->` and similar comments now stripped
+- **Office Availability Date Timezone** - Fixed dates shifting by one day due to timezone conversion when reading from Google Sheets
 
 ---
 
