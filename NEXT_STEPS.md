@@ -1,7 +1,7 @@
 # Next Development Steps
 
-**Last Updated:** 2026-01-26
-**Current Version:** 2.1.5
+**Last Updated:** 2026-02-03
+**Current Version:** 2.3.2
 
 ---
 
@@ -15,6 +15,72 @@ V2 is feature-complete with:
 - All P0 bugs resolved
 
 **V3** will focus on feature enhancements based on stakeholder feedback.
+
+---
+
+## 📋 USER FEEDBACK: Comms-NSITE Vision (2026-02-03)
+
+### Demo Feedback Summary
+
+**Current Reality:** Comms work is highly custom - each outreach, story, or event requires manual combination of resources and information. The tool should reduce mental load on the backend so the team can quickly gather resources needed to produce custom output.
+
+**Comms-NSITE Should Be:**
+> "A one-stop shop for external-facing content to ensure the NSITE MO team is communicating on-brand and on-message. A place to find information quickly and communicate outwards to others."
+
+### Design Philosophy
+
+| Principle | Description |
+|-----------|-------------|
+| **Reactive, not prescriptive** | Dashboard for manual actions, not workflow management |
+| **Information at the drop of a hat** | Reduce time to find the right content |
+| **On-brand, on-message** | Ensure consistent team communication |
+| **Resource aggregator** | Combine info from multiple sources for custom output |
+
+### Current Features (Aligned)
+- ✓ Stories pipeline - track what's being communicated
+- ✓ Events calendar - know what's coming up
+- ✓ Event prep reports - quick guest/stakeholder briefings
+- ✓ Key messages by solution - on-brand talking points
+- ✓ Highlighter blurbs - ready-to-use content snippets
+
+### Enhancement Ideas (V3 Candidates)
+
+**Quick Access & Copy**
+- [ ] One-click copy buttons for blurbs, key messages, talking points
+- [ ] "Quick grab" panel - most frequently accessed content
+- [ ] Recent/favorites section for frequently used resources
+
+**Search-First Interface**
+- [ ] "What do I say about X?" - instant answer search
+- [ ] Cross-content search (blurbs + messages + stories)
+- [ ] Smart suggestions based on context (solution, audience, channel)
+
+**Communication Templates**
+- [ ] Email templates for common scenarios
+- [ ] Social media post templates
+- [ ] Briefing document formats
+- [ ] Presentation slide snippets
+
+**Export & Integration**
+- [ ] Export to clipboard (formatted)
+- [ ] Direct email composition with pre-filled content
+- [ ] Export to Google Docs (formatted)
+
+### Backend Data Capture (To Explore)
+
+The goal is reducing mental load - what information does the team need at their fingertips?
+
+- **Solution talking points** - What to say about each solution (already have key_messages)
+- **Audience-specific messaging** - Different angles for different stakeholders
+- **Recent activity summary** - "What's new with X?" quick answers
+- **Channel-appropriate content** - Same message, formatted for Twitter vs email vs presentation
+- **Contact context** - Quick background before meetings (prep report does this for events)
+
+### Questions to Explore
+1. What information do team members most often need to look up?
+2. What's the typical workflow when preparing external communication?
+3. What content gets reused most frequently?
+4. Where do team members currently go to find on-brand messaging?
 
 ---
 

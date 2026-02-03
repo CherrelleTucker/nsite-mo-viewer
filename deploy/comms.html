@@ -511,9 +511,9 @@
           </div>
           <div class="events-actions">
             <select id="eventYearFilter" onchange="COMMS.filterEvents()">
-              <option value="">All Years</option>
+              <option value="" selected>All Years</option>
               <option value="2025">2025</option>
-              <option value="2026" selected>2026</option>
+              <option value="2026">2026</option>
               <option value="2027">2027</option>
             </select>
             <select id="eventStatusFilter" onchange="COMMS.filterEvents()">
@@ -3313,7 +3313,7 @@ var COMMS = (function() {
     events: [],
     eventsOverview: null,
     eventFilters: {
-      year: '2026',
+      year: '',  // Empty = show all years (user can filter via dropdown)
       status: ''
     },
     // Save guards to prevent double-submit
