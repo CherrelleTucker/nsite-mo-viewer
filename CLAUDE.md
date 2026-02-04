@@ -1,6 +1,6 @@
 # Claude Code Instructions for MO-Viewer
 
-**Version:** 2.4.0 | **Updated:** 2026-02-03 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
+**Version:** 2.4.1 | **Updated:** 2026-02-04 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
 
 ---
 
@@ -901,7 +901,138 @@ Files updated:
 ### Deferred
 - [ ] Add automated tests (see docs/TESTING_STRATEGY.md)
 - [ ] SEP Pipeline toolbar cleanup
-- [ ] Systematic SPA navigation null checks (SEP-029, SEP-030, SEP-031)
+- [ ] **State Management Navigation Guards** - Some pages have incomplete coverage:
+  - Actions page: No guards (HIGH priority)
+  - SEP: ~60% coverage (MEDIUM)
+  - Reports: ~70% coverage (MEDIUM)
+  - Contacts: ~80% coverage (LOW)
+  - Implementation: ~80% coverage (LOW)
+  - Impact: UI glitches if user navigates away during async operations (not data corruption)
+
+---
+
+## Full Review Suite Procedure
+
+**Trigger phrases:** "run full testing suite", "run all reviews", "comprehensive review"
+
+---
+### ⛔ STOP - READ THIS BEFORE EVERY REVIEW ⛔
+
+**DO NOT CUT CORNERS. DO NOT RUSH. DO NOT DO SURFACE-LEVEL SCANS.**
+
+This is a PRODUCTION-READY product. The user's job security depends on quality.
+
+**Every time you want to say "passed" or "looks good":**
+1. STOP
+2. Ask yourself: "Did I actually READ the code or just count grep matches?"
+3. If you just counted matches, GO BACK and investigate properly
+4. A review is NOT complete until you've traced data flows and verified fixes
+
+**If you catch yourself rushing:** STOP. Slow down. Quality over speed. ALWAYS.
+
+---
+
+When the user requests a full review suite, follow this procedure exactly:
+
+### Step 1: Create Review Tasks
+
+Create a task for EACH of the 13 reviews using TaskCreate:
+```
+Review 1: Security Audit
+Review 2: Error Handling
+Review 3: Performance
+Review 4: DRY Audit
+Review 5: API Consistency
+Review 6: State Management
+Review 7: Accessibility
+Review 8: Mobile/Responsive
+Review 9: Loading States
+Review 10: Schema Validation
+Review 11: Data Flow
+Review 12: Code Comments
+Review 13: About Page Accuracy
+```
+
+### Step 2: Execute Each Review Systematically
+
+For EACH review (in order):
+1. Mark task as `in_progress`
+2. Run the specific scans/checks listed in the checklist below
+3. **READ THE CODE** - Don't just count grep matches. Actually examine:
+   - How values are used (innerHTML? className? function parameters?)
+   - Whether validation exists for user inputs
+   - How data flows through the system
+   - Edge cases and error paths
+4. Document ALL findings with file:line references
+5. **Fix immediately:** CRITICAL (P0) and HIGH (P1) issues
+6. **Log to BUG_TRACKER.md:** MEDIUM (P2) and LOW (P3) issues
+7. Mark task as `completed` only when review is fully done
+8. Move to next review
+
+**What "thorough" means:**
+- Don't declare "passed" after a grep count - investigate what the matches mean
+- Trace user input from API → database → UI to find XSS/injection paths
+- Check that enum values used in innerHTML/className are validated at the backend
+- Verify async callbacks check element existence before DOM manipulation
+- Actually read 5-10 code samples from grep results, not just the first one
+
+### Step 3: Provide Summary
+
+After ALL 13 reviews complete:
+1. Summary of issues found per review
+2. List of files modified
+3. List of items logged to BUG_TRACKER.md
+4. Smoke tests for user to verify fixes
+
+### Review-Specific Scan Commands
+
+| Review | What to Scan |
+|--------|--------------|
+| 1. Security | `innerHTML` without escapeHtml, `eval`, hardcoded IDs, missing input validation |
+| 2. Error Handling | `google.script.run` without `withFailureHandler`, inconsistent return formats |
+| 3. Performance | Redundant API calls, large response functions, missing caching |
+| 4. DRY | Duplicate functions, `JSON.parse(JSON.stringify)`, repeated patterns |
+| 5. API Consistency | `indexOf !== -1`, boolean returns on write functions, naming conventions |
+| 6. State Management | Async callbacks without navigation guards, missing `isSaving` guards |
+| 7. Accessibility | Missing `aria-label`, no keyboard handlers, missing focus states |
+| 8. Mobile/Responsive | Fixed widths, missing breakpoints, overflow issues |
+| 9. Loading States | Missing spinners, empty states, error states |
+| 10. Schema Validation | Column names in code vs database headers, required field checks |
+| 11. Data Flow | Trace one entity end-to-end, verify transformations |
+| 12. Code Comments | Complex functions without explanations |
+| 13. About Page | Version number, feature list, database list accuracy |
+
+### Important Rules
+
+- **DO NOT skip reviews** - complete all 13 in order
+- **DO NOT mark complete prematurely** - only after all scans run and issues addressed
+- **DO NOT forget to log deferred items** - everything P2+ goes to BUG_TRACKER.md
+- **DO NOT do surface-level grep scans** - this is a PRODUCTION product, not a hobby project
+- **DO investigate matches** - grep finds patterns, you must investigate what they mean
+- **DO trace data flows** - user input → API → database → UI rendering = XSS check
+- **ALWAYS provide smoke tests** after fixes before moving to next review
+- **STAY ON TASK** until user confirms all reviews complete
+
+### Example: XSS Review (What Thorough Looks Like)
+
+**Bad (surface scan):**
+```
+Grep for innerHTML → found 56 matches
+Grep for escapeHtml → found 366 uses
+"Looks like escapeHtml is used. Review passed."
+```
+
+**Good (thorough review):**
+```
+1. Grep for innerHTML → 56 matches
+2. For each match, check: Is the value escaped?
+3. Found: `capitalizeFirst(event.event_type)` in innerHTML - NOT escaped
+4. Trace: Where does event_type come from?
+5. Check API: Does createEvent validate event_type?
+6. Found: NO validation! User could inject "<script>alert(1)</script>"
+7. Fix: Add backend validation in outreach-api.gs
+8. Verify: Now invalid event_type returns error
+```
 
 ---
 
@@ -910,14 +1041,14 @@ Files updated:
 Work through these reviews systematically to ensure webapp quality.
 
 ### Code Quality
-- [x] **1. Security Audit** - XSS vulnerabilities, input validation, data sanitization, access control gaps (completed 2026-01-29)
+- [x] **1. Security Audit** - XSS vulnerabilities, input validation, data sanitization, access control gaps (completed 2026-01-29; re-run 2026-02-04: XSS fixes in 5 HTML files, auth guards added to 45+ API wrappers, backend enum validation in 4 API files)
 - [x] **2. Error Handling Review** - Consistent patterns, user-friendly messages, logging, graceful failures (completed 2026-01-29, fixes deployed 2026-01-30: added withFailureHandler to 4 comms.html calls, fixed createAction return type consistency, fixed invisible toast text)
 - [x] **3. Performance Audit** - API response sizes, redundant calls, caching opportunities, render optimization (completed 2026-01-30: global search early termination, SEP page 9→2 API calls via getSEPInitData, response size monitoring added to high-risk endpoints)
 
 ### Architecture
-- [x] **4. DRY Audit** - Duplicate code across pages, opportunities for shared utilities (completed 2026-01-30: Team.escapeHtml security fix, global closeModal/showToast utilities, date formatting consolidation)
+- [x] **4. DRY Audit** - Duplicate code across pages, opportunities for shared utilities (completed 2026-01-30: Team.escapeHtml security fix, global closeModal/showToast utilities, date formatting consolidation; 2026-02-04: added shared validation utilities to config-helpers.gs)
 - [x] **5. API Consistency** - Naming conventions, return formats, parameter patterns across all APIs (completed 2026-01-30: standardized write returns to {success, data, error}, cache functions to private suffix)
-- [x] **6. State Management** - How each page handles state, potential race conditions, stale data (completed 2026-01-30: element existence checks in async handlers, isSaving guards to prevent double-submit)
+- [x] **6. State Management** - How each page handles state, potential race conditions, stale data (completed 2026-01-30: element existence checks in async handlers, isSaving guards to prevent double-submit; 2026-02-04: documented remaining gaps as known issues - see Deferred section)
 
 ### User Experience
 - [x] **7. Accessibility Audit** - Keyboard navigation, screen reader support, color contrast, focus states (completed 2026-01-30: skip link, focus-visible styles, aria-labels on 26 modal close buttons and icon buttons, Escape key closes modals, toast aria-live)
@@ -925,12 +1056,12 @@ Work through these reviews systematically to ensure webapp quality.
 - [x] **9. Loading States** - Spinners, skeletons, empty states, error states across all views (completed 2026-01-30: consolidated 8 duplicate .empty-state definitions into shared style)
 
 ### Data Integrity
-- [x] **10. Schema Validation** - Column names match between code and databases, required fields enforced (completed 2026-01-30: added backend validation to 8 write functions across 6 API files)
+- [x] **10. Schema Validation** - Column names match between code and databases, required fields enforced (completed 2026-01-30: added backend validation to 8 write functions across 6 API files; 2026-02-04: added enum validation to 4 more API files)
 - [x] **11. Data Flow Audit** - Trace data from source docs → sync scripts → databases → APIs → UI (completed 2026-01-30: fixed solution/solution_id column inconsistency, renamed extractSolutionName_ to extractSolutionId_, added MoApi fallback, replaced indexOf with includes)
 
 ### Documentation
 - [x] **12. Code Comments** - Missing explanations for complex logic (completed 2026-01-30: added comments to 10 complex areas in sync-common.gs, actions-api.gs, outreach-api.gs)
-- [x] **13. About Page Accuracy** - Does documentation match current functionality? (completed 2026-01-30: updated version 2.2.0→2.2.12, database count 15→17, architecture diagram includes Top Sheet, Team views includes Parking Lot)
+- [x] **13. About Page Accuracy** - Does documentation match current functionality? (completed 2026-01-30: updated version 2.2.0→2.2.12, database count 15→17, architecture diagram includes Top Sheet, Team views includes Parking Lot; 2026-02-04: verified 2.4.1 accurate)
 
 ---
 

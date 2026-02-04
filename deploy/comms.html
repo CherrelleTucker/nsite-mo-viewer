@@ -5030,7 +5030,12 @@ var COMMS = (function() {
       // Optional: track usage if asset ID provided
       var assetId = button ? button.dataset.assetId : null;
       if (assetId) {
-        google.script.run.recordCommsAssetUsage(assetId);
+        google.script.run
+          .withFailureHandler(function(err) {
+            // Silent fail for analytics - don't interrupt user flow
+            console.log('Failed to record asset usage:', err);
+          })
+          .recordCommsAssetUsage(assetId);
       }
     }).catch(function(err) {
       console.error('Failed to copy:', err);
@@ -5391,8 +5396,8 @@ var COMMS = (function() {
       if (filters.channel && s.channel !== filters.channel) return false;
       if (filters.search) {
         var searchLower = filters.search.toLowerCase();
-        var titleMatch = s.title && s.title.toLowerCase().indexOf(searchLower) !== -1;
-        var solMatch = s.solution_id && s.solution_id.toLowerCase().indexOf(searchLower) !== -1;
+        var titleMatch = s.title && s.title.toLowerCase().includes(searchLower);
+        var solMatch = s.solution_id && s.solution_id.toLowerCase().includes(searchLower);
         if (!titleMatch && !solMatch) return false;
       }
       return true;
@@ -5887,7 +5892,12 @@ var COMMS = (function() {
       }
 
       // Track usage
-      google.script.run.recordCommsAssetUsage(assetId);
+      google.script.run
+        .withFailureHandler(function(err) {
+          // Silent fail for analytics
+          console.log('Failed to record asset usage:', err);
+        })
+        .recordCommsAssetUsage(assetId);
     }).catch(function() {
       showToast('Failed to copy', 'error');
     });
@@ -6106,7 +6116,7 @@ var COMMS = (function() {
         var fileTypes = ['image', 'presentation', 'pdf', 'video', 'document', 'graphic'];
         var fileAssets = (data || []).filter(function(a) {
           // Has a file-type asset_type
-          if (fileTypes.indexOf(a.asset_type) !== -1) return true;
+          if (fileTypes.includes(a.asset_type)) return true;
           // Has asset_url filled in
           if (a.asset_url && String(a.asset_url).trim()) return true;
           // Has source_url that looks like a file (Drive, image, etc.)
@@ -6363,7 +6373,12 @@ var COMMS = (function() {
 
     navigator.clipboard.writeText(text).then(function() {
       showToast('Link copied to clipboard');
-      google.script.run.recordCommsAssetUsage(assetId);
+      google.script.run
+        .withFailureHandler(function(err) {
+          // Silent fail for analytics
+          console.log('Failed to record asset usage:', err);
+        })
+        .recordCommsAssetUsage(assetId);
     }).catch(function() {
       showToast('Failed to copy', 'error');
     });
@@ -6886,17 +6901,17 @@ var COMMS = (function() {
       var blurbContent = blurb.blurb_content || blurb.content || blurb.notes || '';
       var escapedContent = blurbContent.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
-      return '<tr class="' + rowClass + '" onclick="COMMS.showStoryDetail(\'' + blurb.story_id + '\')">' +
+      return '<tr class="' + rowClass + '" onclick="COMMS.showStoryDetail(\'' + escapeAttr(blurb.story_id) + '\')">' +
         '<td><span class="' + dotClass + '"></span></td>' +
         '<td class="blurb-title-cell">' + escapeHtml(blurb.title || 'Untitled') + '</td>' +
         '<td class="blurb-solution-cell">' + escapeHtml(blurb.solution_id || '-') + '</td>' +
         '<td class="blurb-date-cell">' + dateDisplay + '</td>' +
-        '<td><span class="blurb-status status-' + (blurb.status || 'idea') + '">' + statusLabel + '</span></td>' +
+        '<td><span class="blurb-status status-' + escapeAttr(blurb.status || 'idea') + '">' + statusLabel + '</span></td>' +
         '<td class="blurb-actions-cell">' +
           '<button class="copy-btn" onclick="event.stopPropagation(); COMMS.copyMessageContent(this, \'' + escapedContent + '\')" title="Copy blurb">' +
             '<span class="material-icons" style="font-size:14px;">content_copy</span>' +
           '</button>' +
-          '<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); COMMS.editStory(\'' + blurb.story_id + '\')" title="Edit">' +
+          '<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); COMMS.editStory(\'' + escapeAttr(blurb.story_id) + '\')" title="Edit">' +
             '<span class="material-icons" style="font-size:14px;">edit</span>' +
           '</button>' +
         '</td>' +
@@ -7760,7 +7775,7 @@ var COMMS = (function() {
         sol.comms_industry,
         sol.comms_focus_type
       ].join(' ').toLowerCase();
-      return searchText.indexOf(query) !== -1;
+      return searchText.includes(query);
     });
 
     renderMessagesGrid(filtered);
@@ -8162,6 +8177,11 @@ var COMMS = (function() {
       google.script.run
         .withSuccessHandler(function(result) {
           resetButton();
+          // Check result object for success status
+          if (!result || !result.success) {
+            showError('Failed to create story: ' + (result ? result.error : 'Unknown error'));
+            return;
+          }
           closeModal('editStoryModal');
           loadStories();
           loadOverview();
@@ -9002,10 +9022,10 @@ var COMMS = (function() {
     var buttons = document.querySelectorAll('#eventModal .btn, .event-card-actions .btn');
     buttons.forEach(function(btn) {
       btn.disabled = true;
-      if (btn.textContent.indexOf('Confirm') !== -1 ||
-          btn.textContent.indexOf('Decline') !== -1 ||
-          btn.textContent.indexOf('Cancel') !== -1 ||
-          btn.textContent.indexOf('Attended') !== -1) {
+      if (btn.textContent.includes('Confirm') ||
+          btn.textContent.includes('Decline') ||
+          btn.textContent.includes('Cancel') ||
+          btn.textContent.includes('Attended')) {
         btn.dataset.originalText = btn.textContent;
         btn.textContent = 'Updating...';
       }

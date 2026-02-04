@@ -15,14 +15,26 @@ function getStoryById(storyId) {
 }
 
 function createStory(storyData) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.createStory(storyData);
 }
 
 function updateStory(storyId, updates) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateStory(storyId, updates);
 }
 
 function deleteStory(storyId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.deleteStory(storyId);
 }
 
@@ -105,6 +117,10 @@ function getPriorityOptions() {
 }
 
 function updateStoryStatus(storyId, newStatus) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateStoryStatus(storyId, newStatus);
 }
 

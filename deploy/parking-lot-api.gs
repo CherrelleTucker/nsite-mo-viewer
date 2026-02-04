@@ -15,18 +15,34 @@ function getParkingLotItemById(itemId) {
 }
 
 function createParkingLotItem(itemData) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.createParkingLotItem(itemData);
 }
 
 function updateParkingLotItem(itemId, updates) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateParkingLotItem(itemId, updates);
 }
 
 function deleteParkingLotItem(itemId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.deleteParkingLotItem(itemId);
 }
 
 function archiveParkingLotItem(itemId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.archiveParkingLotItem(itemId);
 }
 
@@ -83,14 +99,26 @@ function getParkingLotPriorityOptions() {
 }
 
 function assignParkingLotItem(itemId, assignee) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.assignParkingLotItem(itemId, assignee);
 }
 
 function updateParkingLotItemStatus(itemId, newStatus) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateParkingLotItemStatus(itemId, newStatus);
 }
 
 function addNoteToParkingLotItem(itemId, note) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.addNoteToParkingLotItem(itemId, note);
 }
 

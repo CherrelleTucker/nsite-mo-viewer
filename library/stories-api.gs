@@ -168,7 +168,7 @@ function getStoryById(storyId) {
 /**
  * Create a new story
  * @param {Object} storyData - Story data
- * @returns {Object} Created story with ID
+ * @returns {Object} {success: boolean, data?: Object, error?: string}
  */
 function createStory(storyData) {
   try {
@@ -208,6 +208,32 @@ function createStory(storyData) {
     storyData.content_type = storyData.content_type || 'story';
     storyData.priority = storyData.priority || 'medium';
 
+    // Security: Validate status (used in innerHTML via capitalizeFirst)
+    var allowedStatuses = ['idea', 'researching', 'drafting', 'review', 'published', 'archived'];
+    if (!allowedStatuses.includes(storyData.status)) {
+      return { success: false, error: 'Invalid status. Must be one of: ' + allowedStatuses.join(', ') };
+    }
+
+    // Security: Validate content_type (used in className)
+    var allowedContentTypes = ['story', 'web_content', 'social_media', 'external_mention', 'nugget', 'key_date', 'highlighter_blurb'];
+    if (!allowedContentTypes.includes(storyData.content_type)) {
+      return { success: false, error: 'Invalid content type. Must be one of: ' + allowedContentTypes.join(', ') };
+    }
+
+    // Security: Validate priority (used in className/innerHTML)
+    var allowedPriorities = ['low', 'medium', 'high'];
+    if (!allowedPriorities.includes(storyData.priority)) {
+      return { success: false, error: 'Invalid priority. Must be one of: ' + allowedPriorities.join(', ') };
+    }
+
+    // Security: Validate channel if provided (used in innerHTML via capitalizeFirst)
+    if (storyData.channel) {
+      var allowedChannels = ['web', 'social', 'slide', 'external', 'newsletter'];
+      if (!allowedChannels.includes(storyData.channel)) {
+        return { success: false, error: 'Invalid channel. Must be one of: ' + allowedChannels.join(', ') };
+      }
+    }
+
     if (!storyData.idea_date) {
       storyData.idea_date = new Date().toISOString().split('T')[0];
     }
@@ -224,10 +250,10 @@ function createStory(storyData) {
     clearStoriesCache_();
 
     Logger.log('Story created successfully: ' + storyData.story_id);
-    return storyData;
+    return { success: true, data: storyData };
   } catch (e) {
     Logger.log('Error in createStory: ' + e.message);
-    throw new Error('Failed to create story: ' + e.message);
+    return { success: false, error: 'Failed to create story: ' + e.message };
   }
 }
 
@@ -269,6 +295,38 @@ function updateStory(storyId, updates) {
 
     Logger.log('Found story at row: ' + (rowIndex + 1));
 
+    // Security: Validate status if being updated (used in innerHTML)
+    if (updates.status) {
+      var allowedStatuses = ['idea', 'researching', 'drafting', 'review', 'published', 'archived'];
+      if (!allowedStatuses.includes(updates.status)) {
+        throw new Error('Invalid status. Must be one of: ' + allowedStatuses.join(', '));
+      }
+    }
+
+    // Security: Validate content_type if being updated (used in className)
+    if (updates.content_type) {
+      var allowedContentTypes = ['story', 'web_content', 'social_media', 'external_mention', 'nugget', 'key_date', 'highlighter_blurb'];
+      if (!allowedContentTypes.includes(updates.content_type)) {
+        throw new Error('Invalid content type. Must be one of: ' + allowedContentTypes.join(', '));
+      }
+    }
+
+    // Security: Validate priority if being updated (used in className/innerHTML)
+    if (updates.priority) {
+      var allowedPriorities = ['low', 'medium', 'high'];
+      if (!allowedPriorities.includes(updates.priority)) {
+        throw new Error('Invalid priority. Must be one of: ' + allowedPriorities.join(', '));
+      }
+    }
+
+    // Security: Validate channel if being updated (used in innerHTML)
+    if (updates.channel) {
+      var allowedChannels = ['web', 'social', 'slide', 'external', 'newsletter'];
+      if (!allowedChannels.includes(updates.channel)) {
+        throw new Error('Invalid channel. Must be one of: ' + allowedChannels.join(', '));
+      }
+    }
+
     // Update last_updated automatically (matches column name in MO-DB_Stories)
     updates.last_updated = new Date().toISOString().split('T')[0];
 
@@ -296,27 +354,32 @@ function updateStory(storyId, updates) {
 /**
  * Delete a story
  * @param {string} storyId - Story ID to delete
- * @returns {boolean} Success status
+ * @returns {Object} Result with success status
  */
 function deleteStory(storyId) {
-  var sheet = getStoriesSheet_();
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0];
+  try {
+    var sheet = getStoriesSheet_();
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
 
-  var idColIndex = headers.indexOf('story_id');
-  if (idColIndex === -1) {
-    return false;
-  }
-
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][idColIndex] === storyId) {
-      sheet.deleteRow(i + 1);
-      clearStoriesCache_();
-      return true;
+    var idColIndex = headers.indexOf('story_id');
+    if (idColIndex === -1) {
+      return { success: false, error: 'story_id column not found' };
     }
-  }
 
-  return false;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][idColIndex] === storyId) {
+        sheet.deleteRow(i + 1);
+        clearStoriesCache_();
+        return { success: true };
+      }
+    }
+
+    return { success: false, error: 'Story not found' };
+  } catch (e) {
+    Logger.log('Error in deleteStory: ' + e.message);
+    return { success: false, error: e.message };
+  }
 }
 
 // ============================================================================

@@ -1870,9 +1870,9 @@ var Implementation = (function() {
 
     state.filteredSolutions.forEach(function(sol) {
       var phase = (sol.admin_lifecycle_phase || '').toLowerCase();
-      if (phase.indexOf('operational') !== -1 || phase.indexOf('production') !== -1) operational++;
-      else if (phase.indexOf('implementation') !== -1) implementation++;
-      else if (phase.indexOf('formulation') !== -1) formulation++;
+      if (phase.includes('operational') || phase.includes('production')) operational++;
+      else if (phase.includes('implementation')) implementation++;
+      else if (phase.includes('formulation')) formulation++;
     });
 
     statTotal.textContent = total;
@@ -2190,9 +2190,9 @@ return;
     // Tracking tags
     html += '<div class="solution-tracking">';
     if (sol.product_assigned_daac) html += '<span class="tracking-tag tag-daac"><span class="material-icons">storage</span>' + escapeHtml(sol.product_assigned_daac) + '</span>';
-    if (sol.admin_lifecycle_phase && sol.admin_lifecycle_phase.toLowerCase().indexOf('operational') !== -1) {
+    if (sol.admin_lifecycle_phase && sol.admin_lifecycle_phase.toLowerCase().includes('operational')) {
       html += '<span class="tracking-tag tag-milestone"><span class="material-icons">check_circle</span>OPS</span>';
-    } else if (sol.admin_lifecycle_phase && sol.admin_lifecycle_phase.toLowerCase().indexOf('implementation') !== -1) {
+    } else if (sol.admin_lifecycle_phase && sol.admin_lifecycle_phase.toLowerCase().includes('implementation')) {
       html += '<span class="tracking-tag tag-milestone"><span class="material-icons">play_circle</span>F2I</span>';
     }
     html += '</div>';
@@ -2793,11 +2793,11 @@ return;
   function getPhaseClass(phase) {
     if (!phase) return 'phase-unknown';
     var p = phase.toLowerCase();
-    if (p.indexOf('pre-formulation') !== -1) return 'phase-pre-formulation';
-    if (p.indexOf('formulation') !== -1) return 'phase-formulation';
-    if (p.indexOf('implementation') !== -1) return 'phase-implementation';
-    if (p.indexOf('operational') !== -1 || p.indexOf('production') !== -1) return 'phase-operational';
-    if (p.indexOf('complete') !== -1) return 'phase-completed';
+    if (p.includes('pre-formulation')) return 'phase-pre-formulation';
+    if (p.includes('formulation')) return 'phase-formulation';
+    if (p.includes('implementation')) return 'phase-implementation';
+    if (p.includes('operational') || p.includes('production')) return 'phase-operational';
+    if (p.includes('complete')) return 'phase-completed';
     return 'phase-unknown';
   }
 
@@ -2830,7 +2830,7 @@ return;
 
   function showError(message) {
     var container = document.getElementById('solutionsContainer');
-    container.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>' + message + '</p></div>';
+    container.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>' + escapeHtml(message) + '</p></div>';
   }
 
   // ============================================================================

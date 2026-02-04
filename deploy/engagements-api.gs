@@ -15,14 +15,26 @@ function getEngagementById(engagementId) {
 }
 
 function createEngagement(engagementData) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.createEngagement(engagementData);
 }
 
 function updateEngagement(engagementId, updates) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateEngagement(engagementId, updates);
 }
 
 function deleteEngagement(engagementId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.deleteEngagement(engagementId);
 }
 

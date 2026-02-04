@@ -754,7 +754,7 @@ var Schedule = (function() {
 
   function showError(message) {
     var container = document.getElementById('scheduleTimeline');
-    container.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>' + message + '</p></div>';
+    container.innerHTML = '<div class="empty-state"><span class="material-icons">error</span><p>' + escapeHtml(message) + '</p></div>';
   }
 
   function exportToCSV(data, columns, filename) {

@@ -112,6 +112,10 @@ function getSEPPipelineStats() {
 }
 
 function updateSolutionSEPMilestone(solutionId, milestoneId, date) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateSolutionSEPMilestone(solutionId, milestoneId, date);
 }
 

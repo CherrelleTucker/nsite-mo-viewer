@@ -61,20 +61,36 @@ function getActionsOverview() {
   return MoApi.getActionsOverview();
 }
 
-// Create/Update Operations
+// Create/Update Operations (Auth Required)
 function createAction(actionData) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.createAction(actionData);
 }
 
 function updateAction(actionId, updates) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateAction(actionId, updates);
 }
 
 function updateActionStatus(actionId, newStatus) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateActionStatus(actionId, newStatus);
 }
 
 function deleteAction(actionId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.deleteAction(actionId);
 }
 

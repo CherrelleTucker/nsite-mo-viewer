@@ -15,18 +15,34 @@ function getEventById(eventId) {
 }
 
 function updateEvent(eventId, updates) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateEvent(eventId, updates);
 }
 
 function updateEventStatus(eventId, newStatus) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateEventStatus(eventId, newStatus);
 }
 
 function deleteEvent(eventId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.deleteEvent(eventId);
 }
 
 function createEvent(eventData) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.createEvent(eventData);
 }
 
@@ -73,6 +89,10 @@ function discoverEvents(topic, maxResults) {
 }
 
 function addDiscoveredEvent(eventData) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.addDiscoveredEvent(eventData);
 }
 
@@ -116,10 +136,18 @@ function eventExists(eventName) {
 
 // Guest List Management
 function addGuestToEvent(eventId, contactEmail) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.addGuestToEvent(eventId, contactEmail);
 }
 
 function removeGuestFromEvent(eventId, contactEmail) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.removeGuestFromEvent(eventId, contactEmail);
 }
 

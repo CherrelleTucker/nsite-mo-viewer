@@ -169,48 +169,75 @@ function getParkingLotItemById(itemId) {
 /**
  * Create a new parking lot item
  * @param {Object} itemData - Item data
- * @returns {Object} Created item with ID
+ * @returns {Object} {success: boolean, data?: Object, error?: string}
  */
 function createParkingLotItem(itemData) {
-  // Validate required fields
-  if (!itemData.title || !String(itemData.title).trim()) {
-    return { success: false, error: 'Title is required' };
+  try {
+    // Validate required fields
+    if (!itemData.title || !String(itemData.title).trim()) {
+      return { success: false, error: 'Title is required' };
+    }
+    if (!itemData.item_type || !String(itemData.item_type).trim()) {
+      return { success: false, error: 'Item type is required' };
+    }
+
+    // Security: Validate item_type is one of allowed values (prevents XSS via innerHTML)
+    var allowedTypes = ['idea', 'discussion_topic', 'stakeholder_connection', 'process_suggestion', 'follow_up', 'random_info'];
+    if (!allowedTypes.includes(itemData.item_type)) {
+      return { success: false, error: 'Invalid item type. Must be one of: ' + allowedTypes.join(', ') };
+    }
+
+    // Security: Validate status if provided (used in className)
+    if (itemData.status) {
+      var allowedStatuses = ['new', 'discussed', 'assigned', 'in_progress', 'on_hold', 'resolved', 'archived'];
+      if (!allowedStatuses.includes(itemData.status)) {
+        return { success: false, error: 'Invalid status. Must be one of: ' + allowedStatuses.join(', ') };
+      }
+    }
+
+    // Security: Validate priority if provided (used in className)
+    if (itemData.priority) {
+      var allowedPriorities = ['low', 'medium', 'high'];
+      if (!allowedPriorities.includes(itemData.priority)) {
+        return { success: false, error: 'Invalid priority. Must be one of: ' + allowedPriorities.join(', ') };
+      }
+    }
+
+    var sheet = getParkingLotSheet_();
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+    // Generate item_id
+    var timestamp = new Date().getTime();
+    var typePrefix = {
+      'idea': 'IDEA',
+      'discussion_topic': 'DISC',
+      'stakeholder_connection': 'CONN',
+      'process_suggestion': 'PROC',
+      'follow_up': 'FLUP',
+      'random_info': 'INFO'
+    }[itemData.item_type] || 'ITEM';
+    itemData.item_id = typePrefix + '_' + timestamp;
+
+    // Set defaults
+    itemData.created_at = new Date().toISOString();
+    itemData.updated_at = new Date().toISOString();
+    itemData.status = itemData.status || 'new';
+    itemData.priority = itemData.priority || 'medium';
+    itemData.item_type = itemData.item_type || 'random_info';
+
+    // Build row from headers
+    var newRow = headers.map(function(header) {
+      return itemData[header] !== undefined ? itemData[header] : '';
+    });
+
+    sheet.appendRow(newRow);
+    clearParkingLotCache_();
+
+    return { success: true, data: itemData };
+  } catch (e) {
+    Logger.log('Error in createParkingLotItem: ' + e.message);
+    return { success: false, error: 'Failed to create item: ' + e.message };
   }
-  if (!itemData.item_type || !String(itemData.item_type).trim()) {
-    return { success: false, error: 'Item type is required' };
-  }
-
-  var sheet = getParkingLotSheet_();
-  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-
-  // Generate item_id
-  var timestamp = new Date().getTime();
-  var typePrefix = {
-    'idea': 'IDEA',
-    'discussion_topic': 'DISC',
-    'stakeholder_connection': 'CONN',
-    'process_suggestion': 'PROC',
-    'follow_up': 'FLUP',
-    'random_info': 'INFO'
-  }[itemData.item_type] || 'ITEM';
-  itemData.item_id = typePrefix + '_' + timestamp;
-
-  // Set defaults
-  itemData.created_at = new Date().toISOString();
-  itemData.updated_at = new Date().toISOString();
-  itemData.status = itemData.status || 'new';
-  itemData.priority = itemData.priority || 'medium';
-  itemData.item_type = itemData.item_type || 'random_info';
-
-  // Build row from headers
-  var newRow = headers.map(function(header) {
-    return itemData[header] !== undefined ? itemData[header] : '';
-  });
-
-  sheet.appendRow(newRow);
-  clearParkingLotCache_();
-
-  return itemData;
 }
 
 /**
@@ -242,6 +269,30 @@ function updateParkingLotItem(itemId, updates) {
     return null;
   }
 
+  // Security: Validate item_type if being updated (prevents XSS via innerHTML)
+  if (updates.item_type) {
+    var allowedTypes = ['idea', 'discussion_topic', 'stakeholder_connection', 'process_suggestion', 'follow_up', 'random_info'];
+    if (!allowedTypes.includes(updates.item_type)) {
+      throw new Error('Invalid item type. Must be one of: ' + allowedTypes.join(', '));
+    }
+  }
+
+  // Security: Validate status if being updated
+  if (updates.status) {
+    var allowedStatuses = ['new', 'discussed', 'assigned', 'in_progress', 'on_hold', 'resolved', 'archived'];
+    if (!allowedStatuses.includes(updates.status)) {
+      throw new Error('Invalid status. Must be one of: ' + allowedStatuses.join(', '));
+    }
+  }
+
+  // Security: Validate priority if being updated
+  if (updates.priority) {
+    var allowedPriorities = ['low', 'medium', 'high'];
+    if (!allowedPriorities.includes(updates.priority)) {
+      throw new Error('Invalid priority. Must be one of: ' + allowedPriorities.join(', '));
+    }
+  }
+
   // Update updated_at automatically
   updates.updated_at = new Date().toISOString();
 
@@ -260,27 +311,32 @@ function updateParkingLotItem(itemId, updates) {
 /**
  * Delete a parking lot item
  * @param {string} itemId - Item ID to delete
- * @returns {boolean} Success status
+ * @returns {Object} Result with success status
  */
 function deleteParkingLotItem(itemId) {
-  var sheet = getParkingLotSheet_();
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0];
+  try {
+    var sheet = getParkingLotSheet_();
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
 
-  var idColIndex = headers.indexOf('item_id');
-  if (idColIndex === -1) {
-    return false;
-  }
-
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][idColIndex] === itemId) {
-      sheet.deleteRow(i + 1);
-      clearParkingLotCache_();
-      return true;
+    var idColIndex = headers.indexOf('item_id');
+    if (idColIndex === -1) {
+      return { success: false, error: 'item_id column not found' };
     }
-  }
 
-  return false;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][idColIndex] === itemId) {
+        sheet.deleteRow(i + 1);
+        clearParkingLotCache_();
+        return { success: true };
+      }
+    }
+
+    return { success: false, error: 'Item not found' };
+  } catch (e) {
+    Logger.log('Error in deleteParkingLotItem: ' + e.message);
+    return { success: false, error: e.message };
+  }
 }
 
 /**

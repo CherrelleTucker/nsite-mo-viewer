@@ -117,12 +117,28 @@ function createCommsAsset(assetData) {
     if (!assetData.asset_type) {
       return { success: false, error: 'Asset type is required' };
     }
+
+    // Security: Validate asset_type is one of allowed values (prevents XSS via innerHTML)
+    var allowedTextTypes = ['blurb', 'talking_point', 'quote', 'fact', 'soundbite', 'boilerplate', 'connection'];
+    var allowedFileTypes = ['image', 'presentation', 'pdf', 'video', 'document', 'graphic'];
+    var allAllowedTypes = allowedTextTypes.concat(allowedFileTypes);
+    if (!allAllowedTypes.includes(assetData.asset_type)) {
+      return { success: false, error: 'Invalid asset type. Must be one of: ' + allAllowedTypes.join(', ') };
+    }
+
+    // Security: Validate status if provided (used in className)
+    if (assetData.status) {
+      var allowedStatuses = ['draft', 'approved', 'needs_update', 'archived'];
+      if (!allowedStatuses.includes(assetData.status)) {
+        return { success: false, error: 'Invalid status. Must be one of: ' + allowedStatuses.join(', ') };
+      }
+    }
+
     if (!assetData.title || !String(assetData.title).trim()) {
       return { success: false, error: 'Title is required' };
     }
     // Content is required for text assets, but file assets can use asset_url instead
-    var fileTypes = ['image', 'presentation', 'pdf', 'video', 'document', 'graphic'];
-    var isFileType = fileTypes.indexOf(assetData.asset_type) !== -1 || (assetData.asset_url && String(assetData.asset_url).trim());
+    var isFileType = allowedFileTypes.includes(assetData.asset_type) || (assetData.asset_url && String(assetData.asset_url).trim());
     if (!isFileType && (!assetData.content || !String(assetData.content).trim())) {
       return { success: false, error: 'Content is required' };
     }
@@ -175,6 +191,24 @@ function createCommsAsset(assetData) {
  */
 function updateCommsAsset(assetId, updates) {
   try {
+    // Security: Validate asset_type if being updated (used in innerHTML)
+    if (updates.asset_type) {
+      var allowedTextTypes = ['blurb', 'talking_point', 'quote', 'fact', 'soundbite', 'boilerplate', 'connection'];
+      var allowedFileTypes = ['image', 'presentation', 'pdf', 'video', 'document', 'graphic'];
+      var allAllowedTypes = allowedTextTypes.concat(allowedFileTypes);
+      if (!allAllowedTypes.includes(updates.asset_type)) {
+        return { success: false, error: 'Invalid asset type. Must be one of: ' + allAllowedTypes.join(', ') };
+      }
+    }
+
+    // Security: Validate status if being updated (used in className)
+    if (updates.status) {
+      var allowedStatuses = ['draft', 'approved', 'needs_update', 'archived'];
+      if (!allowedStatuses.includes(updates.status)) {
+        return { success: false, error: 'Invalid status. Must be one of: ' + allowedStatuses.join(', ') };
+      }
+    }
+
     var sheet = getCommsAssetsSheet_();
     var data = sheet.getDataRange().getValues();
     var headers = data[0];

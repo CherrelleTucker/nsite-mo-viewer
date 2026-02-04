@@ -116,18 +116,34 @@ function getContactsOverdueFollowUp() {
 }
 
 function updateContactTouchpoint(email, touchpoint) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateContactTouchpoint(email, touchpoint);
 }
 
 function updateContactEngagement(email, level) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateContactEngagement(email, level);
 }
 
 function updateContactLastContactDate(email, date) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateContactLastContactDate(email, date);
 }
 
 function updateContactNextScheduledContact(email, date) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateContactNextScheduledContact(email, date);
 }
 
@@ -153,14 +169,26 @@ function searchContacts(query) {
 }
 
 function updateContactAgency(email, agencyId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateContactAgency(email, agencyId);
 }
 
-// Contact Creation
+// Contact Creation (Auth Required)
 function createContact(contactData) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.createContact(contactData);
 }
 
 function createContactForAgency(contactData) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.createContactForAgency(contactData);
 }

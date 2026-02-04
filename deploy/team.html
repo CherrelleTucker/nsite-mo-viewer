@@ -3888,7 +3888,7 @@
       var selectedType = typeSelect.value;
 
       var officeWideTypes = ['holiday', 'special_event'];
-      var isOfficeWide = officeWideTypes.indexOf(selectedType) !== -1;
+      var isOfficeWide = officeWideTypes.includes(selectedType);
       var isHoliday = selectedType === 'holiday';
 
       // Person select: hide for office-wide types
@@ -4054,7 +4054,7 @@
 
         // For office-wide events, show differently
         var officeWideTypes = ['holiday', 'special_event'];
-        var isOfficeWide = officeWideTypes.indexOf(item.type) !== -1;
+        var isOfficeWide = officeWideTypes.includes(item.type);
         var isHoliday = item.type === 'holiday';
         // Use holiday_name for holidays, notes for special events, contact_name for personal
         var nameDisplay = isHoliday
@@ -4423,7 +4423,7 @@
       if (item.partners) {
         var partners = item.partners.split(',').map(function(p) { return p.trim(); });
         document.querySelectorAll('#partnerCheckboxes input[type="checkbox"]').forEach(function(cb) {
-          cb.checked = partners.indexOf(cb.value) !== -1;
+          cb.checked = partners.includes(cb.value);
         });
       } else {
         document.querySelectorAll('#partnerCheckboxes input[type="checkbox"]').forEach(function(cb) {
@@ -4581,7 +4581,7 @@
 
       // Validate person for personal types
       var officeWideTypes = ['holiday', 'special_event'];
-      var isOfficeWide = officeWideTypes.indexOf(selectedType) !== -1;
+      var isOfficeWide = officeWideTypes.includes(selectedType);
       var isHoliday = selectedType === 'holiday';
 
       if (!isOfficeWide && !personSelect.value) {
@@ -4815,7 +4815,12 @@
       };
 
       google.script.run
-        .withSuccessHandler(function(newItem) {
+        .withSuccessHandler(function(result) {
+          if (!result || !result.success) {
+            showError('Failed to add item: ' + (result ? result.error : 'Unknown error'));
+            return;
+          }
+
           // Clear form
           document.getElementById('plTitle').value = '';
           document.getElementById('plDescription').value = '';
@@ -5752,9 +5757,10 @@
         'pending': 'Pending',
         'not_started': 'Not Started',
         'in_progress': 'In Progress',
-        'done': 'Done'
+        'done': 'Done',
+        'blocked': 'Blocked'
       };
-      return map[status] || status;
+      return map[status] || escapeHtml(status || 'Unknown');
     },
 
     showActionsEmpty: function(show) {

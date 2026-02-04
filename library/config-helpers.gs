@@ -260,6 +260,103 @@ function createResult(success, data, error) {
 }
 
 /**
+ * Validate that a value is one of the allowed enum values
+ * Used to prevent XSS via innerHTML by ensuring only safe values reach frontend
+ *
+ * @param {*} value - Value to validate
+ * @param {Array} allowedValues - Array of allowed values
+ * @param {string} fieldName - Name of field for error message
+ * @returns {Object} { valid: boolean, error: string|null }
+ *
+ * @example
+ * var result = validateEnumField(status, ['draft', 'approved', 'archived'], 'status');
+ * if (!result.valid) return { success: false, error: result.error };
+ */
+function validateEnumField(value, allowedValues, fieldName) {
+  if (value === null || value === undefined || value === '') {
+    return { valid: true, error: null }; // Empty is OK (optional field)
+  }
+  if (!allowedValues.includes(value)) {
+    return {
+      valid: false,
+      error: 'Invalid ' + fieldName + '. Must be one of: ' + allowedValues.join(', ')
+    };
+  }
+  return { valid: true, error: null };
+}
+
+/**
+ * Validate that a required enum field is present and valid
+ *
+ * @param {*} value - Value to validate
+ * @param {Array} allowedValues - Array of allowed values
+ * @param {string} fieldName - Name of field for error message
+ * @returns {Object} { valid: boolean, error: string|null }
+ */
+function validateRequiredEnumField(value, allowedValues, fieldName) {
+  if (value === null || value === undefined || value === '') {
+    return { valid: false, error: fieldName + ' is required' };
+  }
+  if (!allowedValues.includes(value)) {
+    return {
+      valid: false,
+      error: 'Invalid ' + fieldName + '. Must be one of: ' + allowedValues.join(', ')
+    };
+  }
+  return { valid: true, error: null };
+}
+
+/**
+ * Parse comma-delimited field into trimmed, non-empty array
+ * Handles null, undefined, empty strings gracefully
+ *
+ * @param {string} text - Comma-separated text
+ * @param {boolean} lowercase - Whether to lowercase values (default: false)
+ * @returns {Array} Array of trimmed values
+ *
+ * @example
+ * parseCommaDelimitedField('  foo, bar , baz ') // ['foo', 'bar', 'baz']
+ * parseCommaDelimitedField(null) // []
+ */
+function parseCommaDelimitedField(text, lowercase) {
+  if (!text || typeof text !== 'string') {
+    return [];
+  }
+  var values = text.split(',').map(function(s) {
+    return lowercase ? s.trim().toLowerCase() : s.trim();
+  }).filter(function(s) {
+    return s.length > 0;
+  });
+  return values;
+}
+
+/**
+ * Deduplicate objects by a key field (typically email)
+ * Returns first occurrence of each key value
+ *
+ * @param {Array} array - Array of objects
+ * @param {string} keyField - Field to deduplicate on
+ * @param {boolean} caseInsensitive - Whether key comparison is case-insensitive (default: true)
+ * @returns {Array} Deduplicated array
+ */
+function deduplicateByField(array, keyField, caseInsensitive) {
+  if (!array || !Array.isArray(array)) {
+    return [];
+  }
+  caseInsensitive = caseInsensitive !== false; // Default true
+
+  var seen = {};
+  return array.filter(function(item) {
+    var key = item[keyField];
+    if (!key) return false;
+    var normalizedKey = caseInsensitive ? String(key).toLowerCase() : String(key);
+    if (seen[normalizedKey]) return false;
+    seen[normalizedKey] = true;
+    return true;
+  });
+}
+
+/**
  * Filter an array by a single property value
  * Replaces repetitive filter functions across API files
  *

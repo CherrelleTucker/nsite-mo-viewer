@@ -17,6 +17,10 @@
  * @returns {Object} Created kudos record
  */
 function submitKudos(data) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.submitKudos(data);
 }
 
@@ -96,6 +100,10 @@ function getKudosCategoryOptions() {
  * @returns {boolean} Success
  */
 function deleteKudos(kudosId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.deleteKudos(kudosId);
 }
 

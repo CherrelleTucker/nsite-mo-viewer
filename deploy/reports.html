@@ -1673,7 +1673,7 @@
           showPreview('Quad Chart', html, meta, false);
         })
         .withFailureHandler(function(err) {
-          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate quad chart: ' + err.message + '</p>', '');
+          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate quad chart: ' + escapeHtml(err.message) + '</p>', '');
         })
         .getQuadChartReport(options);
     }
@@ -1769,7 +1769,7 @@
           showPreview('Detailed Milestone Report', html, meta);
         })
         .withFailureHandler(function(err) {
-          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + err.message + '</p>', '');
+          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + escapeHtml(err.message) + '</p>', '');
         })
         .generateDetailedMilestoneReport({});
     }
@@ -2043,7 +2043,7 @@
           showPreview('Need Alignment Report', html, meta);
         })
         .withFailureHandler(function(err) {
-          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + err.message + '</p>', '');
+          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + escapeHtml(err.message) + '</p>', '');
         })
         .getNeedAlignmentReport(options);
     }
@@ -2385,7 +2385,7 @@
           showPreview('Stakeholder Coverage Report', html, meta);
         })
         .withFailureHandler(function(err) {
-          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + err.message + '</p>', '');
+          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + escapeHtml(err.message) + '</p>', '');
         })
         .getStakeholderCoverageReport({});
     }
@@ -2449,7 +2449,7 @@
           showPreview('Engagement Funnel Report', html, meta);
         })
         .withFailureHandler(function(err) {
-          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + err.message + '</p>', '');
+          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + escapeHtml(err.message) + '</p>', '');
         })
         .getEngagementFunnelReport({});
     }
@@ -2513,7 +2513,7 @@
           showPreview('Department Reach Report', html, meta);
         })
         .withFailureHandler(function(err) {
-          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + err.message + '</p>', '');
+          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + escapeHtml(err.message) + '</p>', '');
         })
         .getDepartmentReachReport({});
     }

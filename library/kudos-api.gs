@@ -492,25 +492,32 @@ function getKudosCategoryOptions() {
 /**
  * Delete a kudos (admin function)
  * @param {string} kudosId - Kudos ID to delete
- * @returns {boolean} Success
+ * @returns {Object} Result with success status
  */
 function deleteKudos(kudosId) {
-  var sheet = getKudosSheet_();
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0];
-  var idCol = headers.indexOf('kudos_id');
+  try {
+    var sheet = getKudosSheet_();
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    var idCol = headers.indexOf('kudos_id');
 
-  if (idCol === -1) return false;
-
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][idCol] === kudosId) {
-      sheet.deleteRow(i + 1);
-      Logger.log('Deleted kudos: ' + kudosId);
-      return true;
+    if (idCol === -1) {
+      return { success: false, error: 'kudos_id column not found' };
     }
-  }
 
-  return false;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][idCol] === kudosId) {
+        sheet.deleteRow(i + 1);
+        Logger.log('Deleted kudos: ' + kudosId);
+        return { success: true };
+      }
+    }
+
+    return { success: false, error: 'Kudos not found' };
+  } catch (e) {
+    Logger.log('Error in deleteKudos: ' + e.message);
+    return { success: false, error: e.message };
+  }
 }
 
 /**

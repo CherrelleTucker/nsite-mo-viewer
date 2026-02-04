@@ -165,6 +165,18 @@ function createEvent(eventData) {
     eventData.status = eventData.status || 'potential';
     eventData.event_type = eventData.event_type || 'conference';
 
+    // Security: Validate event_type (used in innerHTML via capitalizeFirst)
+    var allowedEventTypes = ['conference', 'workshop', 'webinar', 'meeting', 'site_visit', 'presentation', 'training', 'other'];
+    if (!allowedEventTypes.includes(eventData.event_type)) {
+      return { success: false, error: 'Invalid event type. Must be one of: ' + allowedEventTypes.join(', ') };
+    }
+
+    // Security: Validate status (used in className)
+    var allowedStatuses = ['potential', 'considering', 'confirmed', 'submitted', 'attended', 'cancelled'];
+    if (!allowedStatuses.includes(eventData.status)) {
+      return { success: false, error: 'Invalid status. Must be one of: ' + allowedStatuses.join(', ') };
+    }
+
     var newRow = headers.map(function(header) {
       return eventData[header] !== undefined ? eventData[header] : '';
     });
@@ -206,6 +218,22 @@ function updateEvent(eventId, updates) {
 
     if (rowIndex === -1) {
       return { success: false, error: 'Event not found' };
+    }
+
+    // Security: Validate event_type if being updated (used in innerHTML)
+    if (updates.event_type) {
+      var allowedEventTypes = ['conference', 'workshop', 'webinar', 'meeting', 'site_visit', 'presentation', 'training', 'other'];
+      if (!allowedEventTypes.includes(updates.event_type)) {
+        return { success: false, error: 'Invalid event type. Must be one of: ' + allowedEventTypes.join(', ') };
+      }
+    }
+
+    // Security: Validate status if being updated (used in className)
+    if (updates.status) {
+      var allowedStatuses = ['potential', 'considering', 'confirmed', 'submitted', 'attended', 'cancelled'];
+      if (!allowedStatuses.includes(updates.status)) {
+        return { success: false, error: 'Invalid status. Must be one of: ' + allowedStatuses.join(', ') };
+      }
     }
 
     headers.forEach(function(header, colIndex) {
@@ -912,7 +940,7 @@ function getEventGuests(eventId) {
   allContacts.forEach(function(c) {
     var email = (c.email || '').toLowerCase();
     if (uniqueContacts[email] && c.solution_id) {
-      if (uniqueContacts[email].solutions.indexOf(c.solution_id) === -1) {
+      if (!uniqueContacts[email].solutions.includes(c.solution_id)) {
         uniqueContacts[email].solutions.push(c.solution_id);
       }
     }
@@ -1478,17 +1506,17 @@ function findPotentialGuestsFromEngagements_(linkedSolutions, existingGuestEmail
           pg.engagement_count++;
 
           // Track solutions they've engaged with
-          if (solutionId && pg.solutions.indexOf(solutionId) === -1) {
+          if (solutionId && !pg.solutions.includes(solutionId)) {
             pg.solutions.push(solutionId);
           }
 
           // Track engagement types
-          if (eng.activity_type && pg.engagements.indexOf(eng.activity_type) === -1) {
+          if (eng.activity_type && !pg.engagements.includes(eng.activity_type)) {
             pg.engagements.push(eng.activity_type);
           }
 
           // Track touchpoints
-          if (eng.touchpoint && pg.touchpoints.indexOf(eng.touchpoint) === -1) {
+          if (eng.touchpoint && !pg.touchpoints.includes(eng.touchpoint)) {
             pg.touchpoints.push(eng.touchpoint);
           }
 

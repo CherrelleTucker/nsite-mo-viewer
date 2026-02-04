@@ -15,14 +15,26 @@ function getCommsAssetById(assetId) {
 }
 
 function createCommsAsset(assetData) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.createCommsAsset(assetData);
 }
 
 function updateCommsAsset(assetId, updates) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateCommsAsset(assetId, updates);
 }
 
 function deleteCommsAsset(assetId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.deleteCommsAsset(assetId);
 }
 
@@ -83,14 +95,26 @@ function getFileAssets(filters) {
 }
 
 function uploadCommsAsset(fileBlob, metadata) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.uploadCommsAsset(fileBlob, metadata);
 }
 
 function uploadCommsAssetBase64(base64Data, fileName, mimeType) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.uploadCommsAssetBase64(base64Data, fileName, mimeType);
 }
 
 function uploadCommsAssetWithMetadata(base64Data, fileName, mimeType, metadata) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.uploadCommsAssetWithMetadata(base64Data, fileName, mimeType, metadata);
 }
 
@@ -98,8 +122,12 @@ function getAssetThumbnail(asset) {
   return MoApi.getAssetThumbnail(asset);
 }
 
-// Usage Tracking
+// Usage Tracking (Auth Required - modifies data)
 function recordCommsAssetUsage(assetId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.recordCommsAssetUsage(assetId);
 }
 

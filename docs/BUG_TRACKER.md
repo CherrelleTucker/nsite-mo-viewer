@@ -1,7 +1,7 @@
 # MO-Viewer Bug Tracker & UI Improvements
 
 **Created:** 2026-01-19
-**Last Updated:** 2026-01-28
+**Last Updated:** 2026-02-04
 
 This document tracks all known bugs, UI issues, and improvement opportunities across the MO-Viewer platform.
 
@@ -177,6 +177,7 @@ This document tracks all known bugs, UI issues, and improvement opportunities ac
 | SEP-029 | renderRecentEngagements - null element error during SPA navigation | P2 | [x] | **FIXED** - Added null guard |
 | SEP-030 | renderNeedsOutreach - null element error during SPA navigation | P2 | [x] | **FIXED** - Added null guard |
 | SEP-031 | renderAgencyTree - null element error during SPA navigation | P2 | [x] | **FIXED** - Added null guard |
+| SEP-032 | Agency notes section styling needs refinement | P3 | [ ] | View/edit mode works but visual design needs polish |
 
 ### Contact Detail
 | ID | Issue | Priority | Status | Notes |

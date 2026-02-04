@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.1] - 2026-02-04
+
+### Security (Full Review Suite Completed)
+- **Backend Enum Validation** - All write APIs now validate enum fields to prevent XSS
+  - `comms-assets-api.gs`: Validates asset_type (13 allowed values), status (4 allowed values)
+  - `parking-lot-api.gs`: Validates item_type (6 values), status (7 values), priority (3 values)
+  - `outreach-api.gs`: Validates event_type (8 values), status (6 values)
+  - `stories-api.gs`: Validates status (6 values), content_type (7 values), priority (3 values), channel (5 values)
+  - `kudos-api.gs`: Consistent return format for deleteKudos
+- **XSS Fixes** - Escaped user input in 5 HTML files
+  - `reports.html`: 5 instances of unescaped `err.message` in innerHTML
+  - `implementation.html`: 1 instance of unescaped `err.message`
+  - `schedule.html`: 1 instance of unescaped `err.message`
+  - `comms.html`: 2 instances of unescaped `story_id` in onclick attributes
+  - `team.html`: 1 instance of unescaped status fallback in `formatActionStatus()`
+- **Authentication Guards** - Added `checkAuthorization()` to 45+ API wrapper functions
+  - All write operations (create, update, delete) now require authentication
+  - Files updated: solutions-api.gs, contacts-api.gs, agencies-api.gs, engagements-api.gs, actions-api.gs, milestones-api.gs, outreach-api.gs, stories-api.gs, team-api.gs, parking-lot-api.gs, comms-assets-api.gs, kudos-api.gs
+- **Shared Validation Utilities** - New helpers in config-helpers.gs
+  - `validateEnumField()` - Validates optional enum field against allowed values
+  - `validateRequiredEnumField()` - Validates required enum field
+  - `parseCommaDelimitedField()` - Safe parsing of comma-separated values
+  - `deduplicateByField()` - Deduplicate arrays by key field (e.g., email)
+
+### Fixed
+- `deleteParkingLotItem()` now returns `{success, error}` format (was boolean)
+- `deleteStory()` now returns `{success, error}` format (was boolean)
+- `deleteKudos()` now returns `{success, error}` format (was boolean)
+- Parking lot status validation now includes 'discussed' and 'assigned' (matching frontend)
+
+### Known Issues (Documented)
+- **State Management (Navigation Guards)** - Some pages have incomplete navigation guard coverage
+  - Actions page: No guards (will try to render stale data if user navigates away during load)
+  - SEP, Reports, Contacts, Implementation: ~60-80% coverage
+  - Impact: UI glitches on rapid navigation, not data corruption
+  - See CLAUDE.md "Deferred" section for remediation plan
+
+---
+
 ## [2.4.0] - 2026-02-03
 
 ### Added

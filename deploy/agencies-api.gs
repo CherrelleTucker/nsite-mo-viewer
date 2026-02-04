@@ -15,14 +15,26 @@ function getAgencyById(agencyId) {
 }
 
 function createAgency(agencyData) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.createAgency(agencyData);
 }
 
 function updateAgency(agencyId, updates) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateAgency(agencyId, updates);
 }
 
 function deleteAgency(agencyId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.deleteAgency(agencyId);
 }
 

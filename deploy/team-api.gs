@@ -42,14 +42,26 @@ function getUpcomingAvailability(days) {
 }
 
 function addAvailability(data) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.addAvailability(data);
 }
 
 function updateAvailability(availabilityId, updates) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateAvailability(availabilityId, updates);
 }
 
 function deleteAvailability(availabilityId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.deleteAvailability(availabilityId);
 }
 
@@ -79,14 +91,26 @@ function getWeeklySchedule() {
 }
 
 function addMeeting(data) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.addMeeting(data);
 }
 
 function updateMeeting(meetingId, updates) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateMeeting(meetingId, updates);
 }
 
 function deleteMeeting(meetingId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.deleteMeeting(meetingId);
 }
 
@@ -108,14 +132,26 @@ function getGlossaryByCategory(category) {
 }
 
 function addGlossaryTerm(data) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.addGlossaryTerm(data);
 }
 
 function updateGlossaryTerm(termId, updates) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.updateGlossaryTerm(termId, updates);
 }
 
 function deleteGlossaryTerm(termId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.deleteGlossaryTerm(termId);
 }
 
