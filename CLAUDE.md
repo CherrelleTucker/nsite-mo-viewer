@@ -667,6 +667,7 @@ nsite-mo-viewer/
 | MO-DB_Meetings | MEETINGS_SHEET_ID | Recurring meetings |
 | MO-DB_Templates | TEMPLATES_SHEET_ID | Email/meeting templates for SEP & Comms |
 | MO-DB_Parking | PARKING_LOT_SHEET_ID | Ideas, topics, follow-ups capture |
+| MO-DB_CommsAssets | COMMS_ASSETS_SHEET_ID | Unified comms content (blurbs, quotes, facts, talking points) |
 | MO-DB_Access | ACCESS_SHEET_ID | Auth whitelist |
 | MO-DB_Config | (Script Property) | All configuration |
 

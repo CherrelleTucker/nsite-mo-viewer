@@ -959,11 +959,26 @@ function getPipelineStoriesForUI() {
 /**
  * Get highlighter blurbs for HQ reporting
  * Blurbs are short updates sent to NASA HQ weekly (typically Tuesdays)
+ *
+ * NOTE: Now sources from MO-DB_CommsAssets (preferred) with fallback to MO-DB_Stories
+ *
  * @param {number} limit - Optional max results (default: 20)
  * @returns {Array} Highlighter blurb records
  */
 function getHighlighterBlurbs(limit) {
   limit = limit || 20;
+
+  // Try new CommsAssets database first
+  try {
+    var commsAssetsConfigured = getConfigValue('COMMS_ASSETS_SHEET_ID');
+    if (commsAssetsConfigured) {
+      return getHighlighterBlurbsFromAssets(limit);
+    }
+  } catch (e) {
+    Logger.log('CommsAssets not available, falling back to Stories: ' + e.message);
+  }
+
+  // Fallback to legacy Stories database
   var stories = loadAllStories_();
 
   var blurbs = stories.filter(function(s) {

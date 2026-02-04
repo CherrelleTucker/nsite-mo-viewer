@@ -2624,11 +2624,49 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: var(--space-sm);
   }
   .message-solution-name {
     margin: 0;
     font-size: var(--font-size-md);
     font-weight: 600;
+    flex: 1;
+  }
+  /* Copy button styles */
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-xs);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .copy-btn:hover {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+  }
+  .copy-btn .material-icons {
+    font-size: 14px;
+  }
+  .copy-btn.copied {
+    background: var(--color-success);
+    border-color: var(--color-success);
+    color: white;
+  }
+  .message-section-header .copy-btn {
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .message-section-collapsible:hover .message-section-header .copy-btn {
+    opacity: 1;
   }
   .focus-badge {
     font-size: var(--font-size-xs);
@@ -3325,6 +3363,34 @@ var COMMS = (function() {
   // Navigation ID for abandoning stale loads
   var commsNavId = null;
 
+  /**
+   * Copy text to clipboard and show feedback
+   * @param {string} text - Text to copy
+   * @param {HTMLElement} button - Button element to show feedback on
+   */
+  function copyToClipboard(text, button) {
+    navigator.clipboard.writeText(text).then(function() {
+      // Show success feedback
+      if (button) {
+        var originalHtml = button.innerHTML;
+        button.classList.add('copied');
+        button.innerHTML = '<span class="material-icons">check</span>Copied!';
+        setTimeout(function() {
+          button.classList.remove('copied');
+          button.innerHTML = originalHtml;
+        }, 1500);
+      }
+      // Optional: track usage if asset ID provided
+      var assetId = button ? button.dataset.assetId : null;
+      if (assetId) {
+        google.script.run.recordCommsAssetUsage(assetId);
+      }
+    }).catch(function(err) {
+      console.error('Failed to copy:', err);
+      window.showError('Failed to copy to clipboard');
+    });
+  }
+
   function init() {
     // Capture navigation ID to detect if user navigates away during load
     commsNavId = getNavigationId();
@@ -3962,7 +4028,7 @@ var COMMS = (function() {
         '<th>Solution</th>' +
         '<th>Target</th>' +
         '<th>Status</th>' +
-        '<th style="width:60px;"></th>' +
+        '<th style="width:90px;"></th>' +
       '</tr></thead><tbody>';
 
     html += blurbs.map(function(blurb) {
@@ -3982,6 +4048,10 @@ var COMMS = (function() {
       var statusLabel = blurb.status === 'published' ? 'Submitted to HQ' :
         (blurb.status ? blurb.status.charAt(0).toUpperCase() + blurb.status.slice(1) : 'Idea');
 
+      // Get blurb content for copy
+      var blurbContent = blurb.blurb_content || blurb.content || blurb.notes || '';
+      var escapedContent = blurbContent.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
       return '<tr class="' + rowClass + '" onclick="COMMS.showStoryDetail(\'' + blurb.story_id + '\')">' +
         '<td><span class="' + dotClass + '"></span></td>' +
         '<td class="blurb-title-cell">' + escapeHtml(blurb.title || 'Untitled') + '</td>' +
@@ -3989,6 +4059,9 @@ var COMMS = (function() {
         '<td class="blurb-date-cell">' + dateDisplay + '</td>' +
         '<td><span class="blurb-status status-' + (blurb.status || 'idea') + '">' + statusLabel + '</span></td>' +
         '<td class="blurb-actions-cell">' +
+          '<button class="copy-btn" onclick="event.stopPropagation(); COMMS.copyMessageContent(this, \'' + escapedContent + '\')" title="Copy blurb">' +
+            '<span class="material-icons" style="font-size:14px;">content_copy</span>' +
+          '</button>' +
           '<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); COMMS.editStory(\'' + blurb.story_id + '\')" title="Edit">' +
             '<span class="material-icons" style="font-size:14px;">edit</span>' +
           '</button>' +
@@ -4193,11 +4266,16 @@ var COMMS = (function() {
   function buildMessageSection(title, content, openByDefault) {
     var formattedContent = formatMessageText(content);
     var openClass = openByDefault ? ' open' : '';
+    // Escape content for data attribute
+    var escapedContent = content.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
     return '<div class="message-section-collapsible' + openClass + '">' +
-      '<div class="message-section-header" onclick="COMMS.toggleMessageSection(this)">' +
-        '<span class="material-icons">expand_more</span>' +
-        '<span>' + escapeHtml(title) + '</span>' +
+      '<div class="message-section-header">' +
+        '<span class="material-icons" onclick="COMMS.toggleMessageSection(this.parentElement)">expand_more</span>' +
+        '<span onclick="COMMS.toggleMessageSection(this.parentElement)">' + escapeHtml(title) + '</span>' +
+        '<button class="copy-btn" onclick="event.stopPropagation(); COMMS.copyMessageContent(this, \'' + escapedContent + '\')" title="Copy to clipboard">' +
+          '<span class="material-icons">content_copy</span>Copy' +
+        '</button>' +
       '</div>' +
       '<div class="message-section-content">' + formattedContent + '</div>' +
     '</div>';
@@ -4262,6 +4340,17 @@ var COMMS = (function() {
   function toggleMessageSection(header) {
     var section = header.closest('.message-section-collapsible');
     section.classList.toggle('open');
+  }
+
+  function copyMessageContent(button, content) {
+    // Decode HTML entities and clean up the content
+    var text = content
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/\\'/g, "'");
+    copyToClipboard(text, button);
   }
 
   function searchMessages() {
@@ -6479,8 +6568,9 @@ var COMMS = (function() {
     toggleBlurbFields: toggleBlurbFields,
     setBlurbView: setBlurbView,
     filterBlurbs: filterBlurbs,
-    // Key Messages section toggle
+    // Key Messages section toggle and copy
     toggleMessageSection: toggleMessageSection,
+    copyMessageContent: copyMessageContent,
     // Guest List & Prep Report functions
     switchEventTab: switchEventTab,
     searchContactsForGuest: searchContactsForGuest,

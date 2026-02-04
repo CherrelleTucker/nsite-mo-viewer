@@ -1,7 +1,7 @@
 # MO-Viewer Data Schema
 
-**Version:** 2.5.0
-**Date:** 2026-02-02
+**Version:** 2.6.0
+**Date:** 2026-02-03
 **Reference:** [ARCHITECTURE.md](../ARCHITECTURE.md)
 
 ---
@@ -1065,6 +1065,96 @@ Stores stakeholder survey responses extracted from Solution Stakeholder Lists. T
 - `getAllNeeds()` - Load all needs
 - `getNeedsForSolution(solution)` - Filter by solution using `matchSolutionToNeeds_()`
 - `analyzeNeeds_(needs)` - Aggregate characteristics, satisfaction, and demographics
+
+---
+
+### 17. COMMS ASSETS (MO-DB_CommsAssets)
+
+**Status: NEW** - Unified communications content library
+
+Consolidates all reusable communications content: blurbs, quotes, facts, talking points, sound bites, boilerplate, and connections. Replaces scattered content from MO-DB_Solutions (comms_* columns) and MO-DB_Stories (highlighter_blurb content_type).
+
+**Asset Types:**
+| Type | Description | Use Case |
+|------|-------------|----------|
+| `blurb` | 2-3 sentence descriptions | HQ updates, newsletters |
+| `talking_point` | Key messages with supporting detail | Briefings, meetings |
+| `quote` | Stakeholder/leadership quotes | Presentations, press |
+| `fact` | Statistics, metrics, data points | Reports, infographics |
+| `soundbite` | Short punchy statements | Elevator pitches, social |
+| `boilerplate` | Standard program descriptions | Consistent messaging |
+| `connection` | Solution-agency relationships | Relationship context |
+
+#### Identity (4 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `asset_id` | STRING | Yes | Primary key (CA-001, CA-002, etc.) |
+| `asset_type` | ENUM | Yes | Type of asset (see Asset Types above) |
+| `title` | STRING | Yes | Short title for quick scanning |
+| `content` | TEXT | Yes | The actual content text |
+
+#### Source & Attribution (5 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `source_name` | STRING | No | Person, document, or event name |
+| `source_type` | ENUM | No | stakeholder, leadership, publication, event, internal |
+| `source_url` | STRING | No | Link to original source |
+| `attribution_text` | STRING | No | How to cite (e.g., "Dr. Jane Smith, USDA") |
+| `date_captured` | DATE | No | When content was captured |
+
+#### Context & Linking (4 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `solution_ids` | STRING | No | Comma-separated solution IDs |
+| `agency_ids` | STRING | No | Comma-separated agency IDs |
+| `contact_id` | STRING | No | Contact ID if quote from specific person |
+| `tags` | STRING | No | Comma-separated tags for searchability |
+
+#### Usage Guidance (4 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `audience` | ENUM | No | internal, external, leadership, public, technical, all |
+| `channels` | STRING | No | Comma-separated: email, social, presentation, report, flyer, all |
+| `tone` | ENUM | No | formal, casual, technical, inspirational |
+| `usage_notes` | TEXT | No | Any caveats or context needed |
+
+#### Status & Approval (4 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `status` | ENUM | Yes | draft, approved, needs_update, archived |
+| `approved_by` | STRING | No | Who approved the content |
+| `approved_date` | DATE | No | When content was approved |
+| `expiration_date` | DATE | No | When content should be reviewed |
+
+#### Metadata (5 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `created_by` | STRING | No | Who created the record |
+| `created_at` | DATE | Yes | Creation date |
+| `updated_at` | DATE | Yes | Last update date |
+| `use_count` | INTEGER | No | Track how often copied/used |
+| `last_used_date` | DATE | No | Last time content was copied |
+
+**Key Relationships:**
+- `solution_ids` → `MO-DB_Solutions.core_id` (many-to-many via comma-separated)
+- `agency_ids` → `MO-DB_Agencies.agency_id` (many-to-many via comma-separated)
+- `contact_id` → `MO-DB_Contacts.email` (many-to-one for quotes)
+
+**API Functions:**
+- `getAllCommsAssets(limit)` - Get all assets
+- `getCommsAssetById(assetId)` - Get single asset
+- `getCommsAssetsByType(type)` - Filter by asset type
+- `getCommsAssetsBySolution(solutionId)` - Get assets for a solution
+- `queryCommsAssets(filters)` - Multi-filter query
+- `searchCommsAssets(query)` - Full-text search
+- `searchWhatToSay(query)` - "What do I say about X?" search, returns grouped results
+- `createCommsAsset(data)` - Create new asset
+- `updateCommsAsset(assetId, updates)` - Update asset
+- `recordCommsAssetUsage(assetId)` - Track usage
+
+**Backward Compatibility:**
+- `getHighlighterBlurbs()` now checks CommsAssets first, falls back to Stories
+- `getKeyMessages()` now checks CommsAssets first, falls back to Solutions columns
 
 ---
 

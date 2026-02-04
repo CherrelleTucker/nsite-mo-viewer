@@ -665,10 +665,28 @@ function clearSolutionNameMapCache_() {
 /**
  * Get key messages for a specific solution
  *
+ * NOTE: Now sources from MO-DB_CommsAssets (preferred) with fallback to MO-DB_Solutions columns
+ *
  * @param {string} solutionId - Solution ID (core_id)
  * @returns {Object|null} Key messages data or null if not found
  */
 function getKeyMessages(solutionId) {
+  // Try new CommsAssets database first
+  try {
+    var commsAssetsConfigured = getConfigValue('COMMS_ASSETS_SHEET_ID');
+    if (commsAssetsConfigured) {
+      var assetMessages = getKeyMessagesFromAssets(solutionId);
+      if (assetMessages && (assetMessages.assets.talking_points.length > 0 ||
+          assetMessages.assets.facts.length > 0 ||
+          assetMessages.assets.quotes.length > 0)) {
+        return assetMessages;
+      }
+    }
+  } catch (e) {
+    Logger.log('CommsAssets not available for key messages, falling back to Solutions: ' + e.message);
+  }
+
+  // Fallback to legacy Solutions columns
   var solution = getSolution(solutionId);
   if (!solution) return null;
 
@@ -687,9 +705,25 @@ function getKeyMessages(solutionId) {
 /**
  * Get all solutions with key messages
  *
+ * NOTE: Now sources from MO-DB_CommsAssets (preferred) with fallback to MO-DB_Solutions columns
+ *
  * @returns {Array} Array of solutions that have comms_key_messages populated
  */
 function getSolutionsWithKeyMessages() {
+  // Try new CommsAssets database first
+  try {
+    var commsAssetsConfigured = getConfigValue('COMMS_ASSETS_SHEET_ID');
+    if (commsAssetsConfigured) {
+      var assetResults = getSolutionsWithKeyMessagesFromAssets();
+      if (assetResults && assetResults.length > 0) {
+        return assetResults;
+      }
+    }
+  } catch (e) {
+    Logger.log('CommsAssets not available, falling back to Solutions: ' + e.message);
+  }
+
+  // Fallback to legacy Solutions columns
   var solutions = getAllSolutions();
   return solutions.filter(function(sol) {
     return sol.comms_key_messages && sol.comms_key_messages.trim().length > 0;
@@ -736,12 +770,51 @@ function getKeyMessagesSummary() {
 /**
  * Search key messages by keyword
  *
+ * NOTE: Now searches MO-DB_CommsAssets (preferred) with fallback to MO-DB_Solutions columns
+ *
  * @param {string} query - Search query
  * @returns {Array} Matching solutions with key messages
  */
 function searchKeyMessages(query) {
   if (!query || query.trim().length < 2) return [];
 
+  // Try new CommsAssets search first
+  try {
+    var commsAssetsConfigured = getConfigValue('COMMS_ASSETS_SHEET_ID');
+    if (commsAssetsConfigured) {
+      var assetResults = searchCommsAssets(query);
+      if (assetResults && assetResults.length > 0) {
+        // Group by solution and return in legacy format
+        var bySolution = {};
+        assetResults.forEach(function(asset) {
+          if (asset.solution_ids) {
+            var ids = asset.solution_ids.split(',').map(function(s) { return s.trim(); });
+            ids.forEach(function(solId) {
+              if (!bySolution[solId]) {
+                bySolution[solId] = {
+                  core_id: solId,
+                  core_official_name: solId,
+                  comms_key_messages: '',
+                  comms_focus_type: '',
+                  assets: []
+                };
+              }
+              bySolution[solId].assets.push(asset);
+              if (asset.asset_type === 'talking_point') {
+                bySolution[solId].comms_key_messages += asset.content + '\n\n';
+              }
+            });
+          }
+        });
+        var results = Object.values(bySolution);
+        if (results.length > 0) return results;
+      }
+    }
+  } catch (e) {
+    Logger.log('CommsAssets search not available, falling back to Solutions: ' + e.message);
+  }
+
+  // Fallback to legacy Solutions search
   var solutions = getAllSolutions();
   var lowerQuery = query.toLowerCase();
 
