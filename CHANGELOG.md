@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.4.1] - 2026-02-04
 
+### Added
+- **Event/Workshop Tracking** - Track events within Engagements entity
+  - 9 new event fields: event_date, event_name, event_status, event_location, event_url, event_owner, event_planning_doc_url, event_attendee_ids, event_artifacts
+  - Event detection via presence of `event_date` field
+  - Artifact management: add, remove, promote to CommsAssets
+  - New API functions: getAllEvents, getEventsForSolution, getUpcomingEvents, getEventsForContact, addArtifact, removeArtifact, promoteArtifactToCommsAsset
+  - SEP page: Event Details section in engagement edit form, artifacts UI
+  - Contacts page: Events Participated section showing events contact attended
+- **Workshop Activity Type** - Added "Workshop" to engagement activity types
+- **Auth Auto-Redirect** - Sign-in now auto-redirects to dashboard (no click required)
+  - Falls back to manual click if browser blocks auto-redirect
+
+### Changed
+- Engagement edit form now shows Event Details section (optional fields for workshops/conferences)
+- Form textareas now have visible background and minimum height for better visibility
+
 ### Security (Full Review Suite Completed)
 - **Backend Enum Validation** - All write APIs now validate enum fields to prevent XSS
   - `comms-assets-api.gs`: Validates asset_type (13 allowed values), status (4 allowed values)
@@ -36,6 +52,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `deleteStory()` now returns `{success, error}` format (was boolean)
 - `deleteKudos()` now returns `{success, error}` format (was boolean)
 - Parking lot status validation now includes 'discussed' and 'assigned' (matching frontend)
+- **Engagement Detail Modal** - Now displays and edits all database fields:
+  - View mode: Added touchpoint reference badge, linked contacts display, audit trail footer (logged_by, created_at)
+  - Edit mode: Added secondary solution dropdown, additional solutions input, touchpoint dropdown
+  - Save: All fields now persist correctly to database
 
 ### Known Issues (Documented)
 - **State Management (Navigation Guards)** - Some pages have incomplete navigation guard coverage

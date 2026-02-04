@@ -277,6 +277,7 @@
               <option value="Phone">Phone</option>
               <option value="Meeting">Meeting</option>
               <option value="Webinar">Webinar</option>
+              <option value="Workshop">Workshop</option>
               <option value="Conference">Conference</option>
               <option value="Site Visit">Site Visit</option>
               <option value="Training">Training</option>
@@ -360,6 +361,50 @@
           <label>Supplementary Notes <span style="color: var(--color-text-muted); font-weight: normal;">(optional)</span></label>
           <div id="engSupplementaryNotes" class="rich-text-field" contenteditable="true" data-placeholder="Additional context or notes from other sources"></div>
         </div>
+
+        <!-- Event/Workshop Details (optional) -->
+        <div style="border-top: 1px solid var(--color-border); padding-top: var(--space-md); margin-top: var(--space-md);">
+          <div style="font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text-secondary); margin-bottom: var(--space-sm);">
+            <span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">event</span> Event Details
+            <span style="font-weight: normal; font-size: var(--font-size-xs); margin-left: 8px;">(optional - for workshops, conferences, etc.)</span>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex: 2;">
+              <label>Event Name</label>
+              <input type="text" id="engEventName" placeholder="e.g., HLS Data Workshop 2026">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>Event Date <span style="color: var(--color-text-muted); font-weight: normal;">(or TBD)</span></label>
+              <input type="date" id="engEventDate">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>Status</label>
+              <select id="engEventStatus">
+                <option value="">-- Select --</option>
+                <option value="Planning">Planning</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Completed">Completed</option>
+                <option value="Postponed">Postponed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label>Location</label>
+              <input type="text" id="engEventLocation" placeholder="Virtual - Teams, or Building/Room">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>Event URL</label>
+              <input type="url" id="engEventUrl" placeholder="Registration or event page link">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Planning Document URL</label>
+            <input type="url" id="engEventPlanningDocUrl" placeholder="Link to planning doc (Google Doc, etc.)">
+          </div>
+        </div>
+
         <div class="form-row">
           <div class="form-group">
             <label>Follow-up Date (optional)</label>
@@ -419,6 +464,7 @@
             <option value="Phone">Phone</option>
             <option value="Meeting">Meeting</option>
             <option value="Webinar">Webinar</option>
+            <option value="Workshop">Workshop</option>
             <option value="Conference">Conference</option>
             <option value="Site Visit">Site Visit</option>
             <option value="Training">Training</option>
@@ -620,6 +666,112 @@
   </div>
 </div>
 
+<!-- Add Artifact Modal -->
+<div class="modal-overlay" id="addArtifactModal" onclick="SEP.closeModal('addArtifactModal', event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Add Artifact</h2>
+      <button class="modal-close" onclick="SEP.closeModal('addArtifactModal')" aria-label="Close dialog">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="addArtifactForm" onsubmit="SEP.submitAddArtifact(event)">
+        <input type="hidden" id="artifactEngagementId">
+        <div class="form-group">
+          <label>Artifact Type <span style="color: var(--color-error);">*</span></label>
+          <select id="artifactType" required>
+            <option value="">-- Select Type --</option>
+            <option value="presentation">Presentation</option>
+            <option value="recording">Recording</option>
+            <option value="notes">Notes</option>
+            <option value="photos">Photos</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Name <span style="color: var(--color-error);">*</span></label>
+          <input type="text" id="artifactName" placeholder="e.g., HLS Workshop Presentation" required>
+        </div>
+        <div class="form-group">
+          <label>URL <span style="color: var(--color-error);">*</span></label>
+          <input type="url" id="artifactUrl" placeholder="https://..." required>
+          <div class="form-hint">Link to Google Drive, SharePoint, or other hosted file</div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="SEP.closeModal('addArtifactModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="addArtifactBtn">Add Artifact</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Promote Artifact Modal -->
+<div class="modal-overlay" id="promoteArtifactModal" onclick="SEP.closeModal('promoteArtifactModal', event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Promote to Comms Asset</h2>
+      <button class="modal-close" onclick="SEP.closeModal('promoteArtifactModal')" aria-label="Close dialog">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="promoteArtifactForm" onsubmit="SEP.submitPromoteArtifact(event)">
+        <input type="hidden" id="promoteEngagementId">
+        <input type="hidden" id="promoteArtifactIndex">
+
+        <div class="form-hint" style="margin-bottom: var(--space-md); padding: var(--space-sm); background: var(--color-surface-alt); border-radius: var(--radius-sm);">
+          <span class="material-icons" style="font-size: 14px; vertical-align: middle;">info</span>
+          This will create a new entry in the Comms Assets library that can be searched and reused.
+        </div>
+
+        <div class="form-group">
+          <label>Title <span style="color: var(--color-error);">*</span></label>
+          <input type="text" id="promoteTitle" placeholder="Asset title" required>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="promoteContent" rows="3" placeholder="Brief description of this asset..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Solutions</label>
+            <input type="text" id="promoteSolutions" placeholder="e.g., hls, opera">
+            <div class="form-hint">Comma-separated solution IDs</div>
+          </div>
+          <div class="form-group">
+            <label>Tags</label>
+            <input type="text" id="promoteTags" placeholder="e.g., workshop, training">
+            <div class="form-hint">Comma-separated tags</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Audience</label>
+            <select id="promoteAudience">
+              <option value="internal">Internal</option>
+              <option value="external">External</option>
+              <option value="public">Public</option>
+              <option value="all">All</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Usage Rights</label>
+            <select id="promoteRights">
+              <option value="internal-only">Internal Only</option>
+              <option value="nasa-media">NASA Media</option>
+              <option value="public-domain">Public Domain</option>
+              <option value="attribution-required">Attribution Required</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="SEP.closeModal('promoteArtifactModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="promoteArtifactBtn">
+            <span class="material-icons">publish</span> Promote
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- vis.js for Network Graph -->
 <script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
 
@@ -630,6 +782,36 @@
     --page-accent: var(--color-sep);
     max-width: 1600px;
     margin: 0 auto;
+  }
+
+  /* Event Status Badges */
+  .event-status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+  .event-status-badge.status-planning {
+    background: rgba(33, 150, 243, 0.15);
+    color: #1976D2;
+  }
+  .event-status-badge.status-confirmed {
+    background: rgba(76, 175, 80, 0.15);
+    color: #388E3C;
+  }
+  .event-status-badge.status-completed {
+    background: rgba(156, 39, 176, 0.15);
+    color: #7B1FA2;
+  }
+  .event-status-badge.status-postponed {
+    background: rgba(255, 152, 0, 0.15);
+    color: #F57C00;
+  }
+  .event-status-badge.status-cancelled {
+    background: rgba(244, 67, 54, 0.15);
+    color: #D32F2F;
   }
 
   /* Header filter (cycle dropdown in page header) */
@@ -1523,6 +1705,23 @@
     gap: var(--space-xs);
     margin-top: var(--space-sm);
   }
+  .notes-content {
+    padding: var(--space-sm);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    margin-bottom: var(--space-sm);
+    white-space: pre-wrap;
+  }
+  .notes-empty {
+    padding: var(--space-md);
+    text-align: center;
+    color: var(--color-text-muted);
+    font-style: italic;
+    margin-bottom: var(--space-sm);
+  }
 
   /* Network Graph */
   .network-container {
@@ -1640,6 +1839,33 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     font-family: inherit;
+    background: #fff;
+    box-sizing: border-box;
+  }
+  .form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+  .form-group .rich-text-field {
+    width: 100%;
+    min-height: 80px;
+    padding: var(--space-sm);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    background: #fff;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+  .form-group .rich-text-field:empty:before {
+    content: attr(data-placeholder);
+    color: var(--color-text-muted);
+    pointer-events: none;
+  }
+  .form-group .rich-text-field:focus {
+    outline: none;
+    border-color: var(--color-sep);
   }
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
     outline: none;
@@ -2731,7 +2957,7 @@ var SEP = (function() {
       var name = ((c.first_name || '') + ' ' + (c.last_name || '')).toLowerCase();
       var email = (c.email || '').toLowerCase();
       var agency = (c.agency || '').toLowerCase();
-      return name.indexOf(query) !== -1 || email.indexOf(query) !== -1 || agency.indexOf(query) !== -1;
+      return name.includes(query) || email.includes(query) || agency.includes(query);
     }).slice(0, 10);
 
     var html = '';
@@ -4585,14 +4811,29 @@ return;
     // Store timeline for engagement clicks
     state.currentAgencyTimeline = timeline;
 
-    // Tab: Notes
+    // Tab: Notes (view → edit pattern)
     html += '<div class="agency-tab-panel" id="agencyTab_notes">';
     html += '<div class="notes-section">';
-    html += '<textarea id="agencyNotes" placeholder="Add notes about this agency relationship, key contacts, or upcoming opportunities...">' + escapeHtml(agency.notes || '') + '</textarea>';
+
+    // View mode (default)
+    html += '<div id="agencyNotesView">';
+    if (agency.agency_notes && agency.agency_notes.trim()) {
+      html += '<div class="notes-content">' + escapeHtml(agency.agency_notes).replace(/\n/g, '<br>') + '</div>';
+    } else {
+      html += '<div class="notes-empty">No notes yet</div>';
+    }
+    html += '<button class="btn btn-secondary btn-sm" onclick="SEP.editAgencyNotes()"><span class="material-icons" style="font-size: 14px; margin-right: 4px;">edit</span>Edit</button>';
+    html += '</div>';
+
+    // Edit mode (hidden by default)
+    html += '<div id="agencyNotesEdit" style="display: none;">';
+    html += '<textarea id="agencyNotes" placeholder="Add notes about this agency relationship, key contacts, or upcoming opportunities...">' + escapeHtml(agency.agency_notes || '') + '</textarea>';
     html += '<div class="notes-actions">';
     html += '<button class="btn btn-secondary btn-sm" onclick="SEP.cancelAgencyNotes()">Cancel</button>';
-    html += '<button class="btn btn-primary btn-sm" onclick="SEP.saveAgencyNotes(\'' + escapeAttr(agency.agency_id) + '\')">Save Notes</button>';
+    html += '<button class="btn btn-primary btn-sm" onclick="SEP.saveAgencyNotes(\'' + escapeAttr(agency.agency_id) + '\')">Save</button>';
     html += '</div></div>';
+
+    html += '</div>';
     html += '</div>';
 
     // Tab: Network
@@ -4653,19 +4894,103 @@ return;
     populateAgencyDropdown('engAgency', agencyId);
   }
 
+  function editAgencyNotes() {
+    var viewEl = document.getElementById('agencyNotesView');
+    var editEl = document.getElementById('agencyNotesEdit');
+    if (viewEl) viewEl.style.display = 'none';
+    if (editEl) editEl.style.display = 'block';
+    // Focus the textarea
+    var textarea = document.getElementById('agencyNotes');
+    if (textarea) textarea.focus();
+  }
+
   function saveAgencyNotes(agencyId) {
-    var notes = document.getElementById('agencyNotes').value;
-    // TODO: Implement save to backend
-    showSuccess('Notes saved (backend integration pending)');
+    var notesEl = document.getElementById('agencyNotes');
+    if (!notesEl) return;
+
+    var notes = notesEl.value;
+    var saveBtn = document.querySelector('[onclick*="saveAgencyNotes"]');
+    var cancelBtn = document.querySelector('[onclick*="cancelAgencyNotes"]');
+
+    // Disable buttons while saving
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+    }
+    if (cancelBtn) cancelBtn.disabled = true;
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (!result || !result.success) {
+          // Re-enable on error
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save';
+          }
+          if (cancelBtn) cancelBtn.disabled = false;
+          showError('Failed to save notes: ' + (result ? result.error : 'Unknown error'));
+          return;
+        }
+
+        // Update local state
+        if (state.selectedAgencyData) {
+          state.selectedAgencyData.agency_notes = notes;
+        }
+
+        // Update view mode content
+        var viewEl = document.getElementById('agencyNotesView');
+        if (viewEl) {
+          var contentHtml = '';
+          if (notes && notes.trim()) {
+            contentHtml = '<div class="notes-content">' + escapeHtml(notes).replace(/\n/g, '<br>') + '</div>';
+          } else {
+            contentHtml = '<div class="notes-empty">No notes yet</div>';
+          }
+          contentHtml += '<button class="btn btn-secondary btn-sm" onclick="SEP.editAgencyNotes()"><span class="material-icons" style="font-size: 14px; margin-right: 4px;">edit</span>Edit</button>';
+          viewEl.innerHTML = contentHtml;
+        }
+
+        // Switch back to view mode
+        var editEl = document.getElementById('agencyNotesEdit');
+        if (viewEl) viewEl.style.display = 'block';
+        if (editEl) editEl.style.display = 'none';
+
+        // Reset button state
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save';
+        }
+        if (cancelBtn) cancelBtn.disabled = false;
+
+        showSuccess('Notes saved');
+      })
+      .withFailureHandler(function(error) {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save';
+        }
+        if (cancelBtn) cancelBtn.disabled = false;
+        showError('Failed to save notes: ' + error.message);
+      })
+      .updateAgency(agencyId, { agency_notes: notes });
   }
 
   function cancelAgencyNotes() {
-    // Reset to original value
-    if (state.selectedAgencyData && state.selectedAgencyData.notes) {
-      document.getElementById('agencyNotes').value = state.selectedAgencyData.notes;
-    } else {
-      document.getElementById('agencyNotes').value = '';
+    // Reset textarea to original value
+    var textarea = document.getElementById('agencyNotes');
+    if (textarea) {
+      if (state.selectedAgencyData && state.selectedAgencyData.agency_notes) {
+        textarea.value = state.selectedAgencyData.agency_notes;
+      } else {
+        textarea.value = '';
+      }
     }
+
+    // Switch back to view mode
+    var viewEl = document.getElementById('agencyNotesView');
+    var editEl = document.getElementById('agencyNotesEdit');
+    if (viewEl) viewEl.style.display = 'block';
+    if (editEl) editEl.style.display = 'none';
   }
 
   // ========================================================================
@@ -5062,7 +5387,7 @@ return;
     var items = document.querySelectorAll('#agencyTree .agency-item');
     items.forEach(function(item) {
       var name = item.querySelector('.agency-name').textContent.toLowerCase();
-      item.style.display = name.indexOf(query) !== -1 ? '' : 'none';
+      item.style.display = name.includes(query) ? '' : 'none';
     });
   }
 
@@ -5251,7 +5576,14 @@ return;
       summary: getRichTextContent('engSummary'),
       related_engagement_ids: (state.selectedRelatedEngagements || []).map(function(e) { return e.engagement_id; }).join(','),
       supplementary_notes: getRichTextContent('engSupplementaryNotes'),
-      follow_up_date: document.getElementById('engFollowUp').value
+      follow_up_date: document.getElementById('engFollowUp').value,
+      // Event fields
+      event_name: document.getElementById('engEventName').value || '',
+      event_date: document.getElementById('engEventDate').value || '',
+      event_status: document.getElementById('engEventStatus').value || '',
+      event_location: document.getElementById('engEventLocation').value || '',
+      event_url: document.getElementById('engEventUrl').value || '',
+      event_planning_doc_url: document.getElementById('engEventPlanningDocUrl').value || ''
     };
 
     var successHandler = function(result) {
@@ -5549,7 +5881,20 @@ return;
     }
 
     var runner = google.script.run
-      .withSuccessHandler(function() {
+      .withSuccessHandler(function(result) {
+        // Check result object for success status
+        if (!result || !result.success) {
+          if (indicator) {
+            indicator.textContent = '✗ Failed';
+            indicator.style.color = 'var(--color-error)';
+            setTimeout(function() {
+              indicator.classList.remove('visible');
+              indicator.style.color = '';
+            }, 3000);
+          }
+          console.error('Failed to update contact:', result ? result.error : 'Unknown error');
+          return;
+        }
         if (indicator) {
           indicator.textContent = '✓ Saved';
           setTimeout(function() { indicator.classList.remove('visible'); }, 2000);
@@ -5591,7 +5936,12 @@ return;
     var today = new Date().toISOString().split('T')[0];
 
     google.script.run
-      .withSuccessHandler(function() {
+      .withSuccessHandler(function(result) {
+        // Check result object for success status
+        if (!result || !result.success) {
+          showError('Failed to update: ' + (result ? result.error : 'Unknown error'));
+          return;
+        }
         // Update local state
         var contact = state.contacts.find(function(c) { return c.email === email; });
         if (contact) {
@@ -5868,6 +6218,10 @@ return;
     html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Direction</div><div class="engagement-detail-value">' + escapeHtml(e.direction || '--') + '</div></div>';
     html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Follow-up</div><div class="engagement-detail-value">' + (e.follow_up_date ? formatDate(e.follow_up_date) : '--') + '</div></div>';
     html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Agency</div><div class="engagement-detail-value">' + escapeHtml(agencyDisplay) + '</div></div>';
+    // Touchpoint reference (SEP workflow stage)
+    if (e.touchpoint_reference) {
+      html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Touchpoint</div><div class="engagement-detail-value"><span class="badge" style="background: rgba(21, 101, 192, 0.1); color: var(--color-sep);">' + escapeHtml(e.touchpoint_reference) + '</span></div></div>';
+    }
     html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Solutions</div><div class="engagement-detail-value">' + solutionDisplay + '</div></div>';
     // Format participants - show first 5, then expandable "... see more"
     var participantsHtml = '--';
@@ -5883,6 +6237,18 @@ return;
       }
     }
     html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Participants</div><div class="engagement-detail-value" style="font-weight: normal;">' + participantsHtml + '</div></div>';
+    // Contact IDs (linked contacts from database)
+    if (e.contact_ids) {
+      var contactIdList = e.contact_ids.split(',').map(function(id) { return id.trim(); }).filter(Boolean);
+      if (contactIdList.length > 0) {
+        var contactBadges = contactIdList.map(function(contactId) {
+          var contact = (state.contacts || []).find(function(c) { return c.contact_id === contactId || c.email === contactId; });
+          var name = contact ? ((contact.first_name || '') + ' ' + (contact.last_name || '')).trim() : contactId;
+          return '<span class="badge" style="background: rgba(21, 101, 192, 0.1); color: var(--color-sep);">' + escapeHtml(name || contactId) + '</span>';
+        }).join(' ');
+        html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Linked Contacts</div><div class="engagement-detail-value" style="display: flex; flex-wrap: wrap; gap: var(--space-xs);">' + contactBadges + '</div></div>';
+      }
+    }
     html += '</div>';
 
     html += '<div class="engagement-detail-label" style="margin-bottom: 4px; margin-top: var(--space-sm);">Summary</div>';
@@ -5914,6 +6280,115 @@ return;
       html += '<div class="engagement-summary-box" style="background: var(--color-warning-light); border-left: 3px solid var(--color-warning);">' + displayRichContent(e.supplementary_notes) + '</div>';
     }
 
+    // Audit trail footer (logged_by and created_at)
+    if (e.logged_by || e.created_at) {
+      var footerParts = [];
+      if (e.logged_by) {
+        footerParts.push('Logged by: ' + escapeHtml(e.logged_by));
+      }
+      if (e.created_at) {
+        var createdDate = new Date(e.created_at);
+        var formattedCreated = !isNaN(createdDate.getTime()) ? createdDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : e.created_at;
+        footerParts.push('on ' + formattedCreated);
+      }
+      html += '<div style="margin-top: var(--space-md); padding-top: var(--space-sm); border-top: 1px solid var(--color-border); font-size: var(--font-size-xs); color: var(--color-text-muted);">';
+      html += '<span class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">history</span>';
+      html += footerParts.join(' ');
+      html += '</div>';
+    }
+
+    // Event Details (if this is an event)
+    if (e.event_date) {
+      html += '<div class="event-details-section" style="margin-top: var(--space-md); padding: var(--space-md); background: var(--color-surface-alt); border-radius: var(--radius-md); border-left: 4px solid var(--color-sep);">';
+      html += '<div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm);"><span class="material-icons" style="color: var(--color-sep);">event</span><strong>Event Details</strong></div>';
+
+      html += '<div class="engagement-detail-grid">';
+      html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Event Date</div><div class="engagement-detail-value">' + formatDate(e.event_date) + '</div></div>';
+      html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Status</div><div class="engagement-detail-value"><span class="event-status-badge status-' + (e.event_status || 'planning').toLowerCase() + '">' + escapeHtml(e.event_status || 'Planning') + '</span></div></div>';
+      if (e.event_name) {
+        html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Event Name</div><div class="engagement-detail-value">' + escapeHtml(e.event_name) + '</div></div>';
+      }
+      if (e.event_location) {
+        html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Location</div><div class="engagement-detail-value">' + escapeHtml(e.event_location) + '</div></div>';
+      }
+      if (e.event_url) {
+        html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Event URL</div><div class="engagement-detail-value"><a href="' + escapeAttr(e.event_url) + '" target="_blank" rel="noopener">' + escapeHtml(e.event_url.substring(0, 40) + (e.event_url.length > 40 ? '...' : '')) + '</a></div></div>';
+      }
+      if (e.event_owner) {
+        var ownerName = e.event_owner;
+        // Try to look up owner name from contacts
+        var ownerContact = (state.contacts || []).find(function(c) { return c.contact_id === e.event_owner || c.email === e.event_owner; });
+        if (ownerContact) {
+          ownerName = (ownerContact.first_name || '') + ' ' + (ownerContact.last_name || '');
+        }
+        html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Event Owner</div><div class="engagement-detail-value">' + escapeHtml(ownerName.trim() || e.event_owner) + '</div></div>';
+      }
+      if (e.event_planning_doc_url) {
+        html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Planning Doc</div><div class="engagement-detail-value"><a href="' + escapeAttr(e.event_planning_doc_url) + '" target="_blank" rel="noopener"><span class="material-icons" style="font-size: 14px; vertical-align: middle;">description</span> View Document</a></div></div>';
+      }
+      html += '</div>';
+
+      // Event Attendees
+      if (e.event_attendee_ids) {
+        var attendeeIds = e.event_attendee_ids.split(',').map(function(id) { return id.trim(); }).filter(Boolean);
+        if (attendeeIds.length > 0) {
+          html += '<div class="engagement-detail-label" style="margin-top: var(--space-sm); margin-bottom: 4px;">Attendees (' + attendeeIds.length + ')</div>';
+          html += '<div style="display: flex; flex-wrap: wrap; gap: var(--space-xs);">';
+          attendeeIds.forEach(function(attendeeId) {
+            var contact = (state.contacts || []).find(function(c) { return c.contact_id === attendeeId || c.email === attendeeId; });
+            var name = contact ? ((contact.first_name || '') + ' ' + (contact.last_name || '')).trim() : attendeeId;
+            html += '<span class="badge" style="background: rgba(21, 101, 192, 0.1); color: var(--color-sep);">' + escapeHtml(name || attendeeId) + '</span>';
+          });
+          html += '</div>';
+        }
+      }
+
+      html += '</div>';
+
+      // Event Artifacts Section
+      html += '<div class="event-artifacts-section" style="margin-top: var(--space-md);">';
+      html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">';
+      html += '<div style="display: flex; align-items: center; gap: var(--space-sm);"><span class="material-icons" style="color: var(--color-sep);">attach_file</span><strong>Event Artifacts</strong></div>';
+      html += '<button class="btn btn-sm btn-secondary" onclick="SEP.showAddArtifactModal(\'' + escapeAttr(e.engagement_id) + '\')"><span class="material-icons">add</span> Add Artifact</button>';
+      html += '</div>';
+
+      var artifacts = [];
+      if (e.event_artifacts) {
+        try {
+          artifacts = JSON.parse(e.event_artifacts);
+        } catch (parseErr) {
+          console.error('Error parsing artifacts:', parseErr);
+        }
+      }
+
+      if (artifacts.length === 0) {
+        html += '<div class="empty-state" style="padding: var(--space-md); text-align: center; color: var(--color-text-muted);"><span class="material-icons">folder_open</span><p>No artifacts attached</p></div>';
+      } else {
+        html += '<div class="artifacts-grid" style="display: grid; gap: var(--space-sm);">';
+        artifacts.forEach(function(artifact, idx) {
+          var typeIcon = { 'presentation': 'slideshow', 'recording': 'videocam', 'notes': 'description', 'photos': 'photo_library' }[artifact.type] || 'insert_drive_file';
+          html += '<div class="artifact-card" style="display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm); background: var(--color-surface); border-radius: var(--radius-sm); border: 1px solid var(--color-border);">';
+          html += '<span class="material-icons" style="color: var(--color-sep);">' + typeIcon + '</span>';
+          html += '<div style="flex: 1; min-width: 0;">';
+          html += '<div style="font-weight: 500; font-size: var(--font-size-sm);">' + escapeHtml(artifact.name) + '</div>';
+          html += '<div style="font-size: var(--font-size-xs); color: var(--color-text-muted);">' + escapeHtml(artifact.type) + '</div>';
+          html += '</div>';
+          html += '<div style="display: flex; gap: var(--space-xs);">';
+          html += '<a href="' + escapeAttr(artifact.url) + '" target="_blank" rel="noopener" class="btn btn-sm btn-secondary" title="Open"><span class="material-icons">open_in_new</span></a>';
+          if (!artifact.comms_asset_id) {
+            html += '<button class="btn btn-sm btn-secondary" onclick="SEP.showPromoteArtifactModal(\'' + escapeAttr(e.engagement_id) + '\', ' + idx + ')" title="Promote to Comms Asset"><span class="material-icons">publish</span></button>';
+          } else {
+            html += '<span class="badge" style="background: rgba(46, 125, 50, 0.1); color: #2E7D32; font-size: var(--font-size-xs);"><span class="material-icons" style="font-size: 12px;">check</span> Promoted</span>';
+          }
+          html += '<button class="btn btn-sm btn-danger" onclick="SEP.removeArtifact(\'' + escapeAttr(e.engagement_id) + '\', ' + idx + ')" title="Remove"><span class="material-icons">delete</span></button>';
+          html += '</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+
     document.getElementById('engagementDetailContent').innerHTML = html;
     document.getElementById('engagementDetailModal').classList.add('active');
   }
@@ -5924,7 +6399,7 @@ return;
 
     state.editingOriginalParticipants = e.participants || '';
 
-    var typeIcons = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school' };
+    var typeIcons = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Workshop': 'handyman', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school' };
 
     var html = '<form id="engagementDetailForm" onsubmit="SEP.saveEngagementDetail(event)">';
 
@@ -5946,7 +6421,7 @@ return;
     html += '<div class="form-group" style="flex: 1;">';
     html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Activity Type</label>';
     html += '<select id="detailActivityType" onchange="SEP.updateDetailIcon()">';
-    ['Email', 'Phone', 'Meeting', 'Webinar', 'Conference', 'Site Visit', 'Training'].forEach(function(type) {
+    ['Email', 'Phone', 'Meeting', 'Webinar', 'Workshop', 'Conference', 'Site Visit', 'Training'].forEach(function(type) {
       html += '<option value="' + type + '"' + (e.activity_type === type ? ' selected' : '') + '>' + type + '</option>';
     });
     html += '</select>';
@@ -6017,6 +6492,41 @@ return;
     html += '</div>';
     html += '</div>';
 
+    // Secondary Solution and Touchpoint Reference row
+    html += '<div class="form-row" style="margin-bottom: var(--space-sm);">';
+    html += '<div class="form-group" style="flex: 2;">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Secondary Solution (optional)</label>';
+    html += '<select id="detailSecondarySolution">';
+    html += '<option value="">-- None --</option>';
+    if (state.solutions) {
+      state.solutions.slice().sort(function(a, b) {
+        return (a.core_id || '').localeCompare(b.core_id || '');
+      }).forEach(function(sol) {
+        var selected = (e.secondary_solution_id === sol.core_id) ? ' selected' : '';
+        html += '<option value="' + escapeAttr(sol.core_id) + '"' + selected + '>' + escapeHtml(sol.core_id.toUpperCase() + ' - ' + (sol.core_official_name || '')) + '</option>';
+      });
+    }
+    html += '</select>';
+    html += '</div>';
+    html += '<div class="form-group" style="flex: 1;">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Touchpoint</label>';
+    html += '<select id="detailTouchpoint">';
+    html += '<option value="">-- None --</option>';
+    ['T4', 'W1', 'W2', 'T5', 'T6', 'T7', 'T8'].forEach(function(tp) {
+      var selected = (e.touchpoint_reference === tp) ? ' selected' : '';
+      html += '<option value="' + tp + '"' + selected + '>' + tp + '</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+    html += '</div>';
+
+    // Additional Solutions (comma-separated)
+    html += '<div class="form-group" style="margin-bottom: var(--space-sm);">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Additional Solutions (optional)</label>';
+    html += '<input type="text" id="detailAdditionalSolutions" value="' + escapeAttr(e.additional_solution_ids || '') + '" placeholder="Comma-separated solution IDs (e.g., hls, nisar)">';
+    html += '<div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">For engagements involving 3+ solutions</div>';
+    html += '</div>';
+
     // Summary
     html += '<div class="form-group" style="margin-bottom: var(--space-sm);">';
     html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Summary</label>';
@@ -6035,6 +6545,61 @@ return;
     html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Supplementary Notes</label>';
     html += '<textarea id="detailSupplementaryNotes" rows="2" maxlength="2000" placeholder="Additional context from other sources">' + escapeHtml(e.supplementary_notes || '') + '</textarea>';
     html += '</div>';
+
+    // Event Details Section (for workshops, conferences, etc.)
+    html += '<div style="border-top: 1px solid var(--color-border); padding-top: var(--space-md); margin-top: var(--space-md);">';
+    html += '<div style="font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text-secondary); margin-bottom: var(--space-sm);">';
+    html += '<span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">event</span> Event Details';
+    html += '<span style="font-weight: normal; font-size: var(--font-size-xs); margin-left: 8px;">(optional - fill in if this is an event/workshop)</span>';
+    html += '</div>';
+
+    // Event Name and Date row
+    html += '<div class="form-row" style="margin-bottom: var(--space-sm);">';
+    html += '<div class="form-group" style="flex: 2;">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Event Name</label>';
+    html += '<input type="text" id="detailEventName" value="' + escapeAttr(e.event_name || '') + '" placeholder="e.g., HLS Data Workshop 2026">';
+    html += '</div>';
+    html += '<div class="form-group" style="flex: 1;">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Event Date</label>';
+    html += '<input type="date" id="detailEventDate" value="' + escapeAttr(formatDateForInput(e.event_date)) + '">';
+    html += '</div>';
+    html += '<div class="form-group" style="flex: 1;">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Status</label>';
+    html += '<select id="detailEventStatus">';
+    html += '<option value="">-- Select --</option>';
+    ['Planning', 'Confirmed', 'Completed', 'Postponed', 'Cancelled'].forEach(function(status) {
+      html += '<option value="' + status + '"' + (e.event_status === status ? ' selected' : '') + '>' + status + '</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+    html += '</div>';
+
+    // Location and URL row
+    html += '<div class="form-row" style="margin-bottom: var(--space-sm);">';
+    html += '<div class="form-group" style="flex: 1;">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Location</label>';
+    html += '<input type="text" id="detailEventLocation" value="' + escapeAttr(e.event_location || '') + '" placeholder="e.g., Virtual - Teams, or Building 32 Rm 101">';
+    html += '</div>';
+    html += '<div class="form-group" style="flex: 1;">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Event URL</label>';
+    html += '<input type="url" id="detailEventUrl" value="' + escapeAttr(e.event_url || '') + '" placeholder="Registration or event page link">';
+    html += '</div>';
+    html += '</div>';
+
+    // Planning Doc URL
+    html += '<div class="form-group" style="margin-bottom: var(--space-sm);">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Planning Document URL</label>';
+    html += '<input type="url" id="detailEventPlanningDocUrl" value="' + escapeAttr(e.event_planning_doc_url || '') + '" placeholder="Link to planning document (Google Doc, etc.)">';
+    html += '</div>';
+
+    // Attendee IDs (will add artifact management after save)
+    html += '<div class="form-group" style="margin-bottom: var(--space-sm);">';
+    html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Attendee Emails</label>';
+    html += '<input type="text" id="detailEventAttendeeIds" value="' + escapeAttr(e.event_attendee_ids || '') + '" placeholder="Comma-separated emails of attendees">';
+    html += '<div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">Note: Artifacts can be added after saving the event</div>';
+    html += '</div>';
+
+    html += '</div>'; // End event details section
 
     // Action buttons
     html += '<div class="form-actions" style="display: flex; justify-content: flex-end; gap: var(--space-sm);">';
@@ -6056,7 +6621,7 @@ return;
   }
 
   function updateDetailIcon() {
-    var typeIcons = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school' };
+    var typeIcons = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Workshop': 'handyman', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school' };
     var type = document.getElementById('detailActivityType').value;
     document.getElementById('detailTypeIcon').textContent = typeIcons[type] || 'event';
   }
@@ -6084,10 +6649,21 @@ return;
       participants: document.getElementById('detailParticipants').value,
       agency_id: document.getElementById('detailAgency').value || '',
       solution_id: document.getElementById('detailSolution').value,
+      secondary_solution_id: document.getElementById('detailSecondarySolution').value || '',
+      additional_solution_ids: document.getElementById('detailAdditionalSolutions').value || '',
+      touchpoint_reference: document.getElementById('detailTouchpoint').value || '',
       summary: document.getElementById('detailSummary').value,
       related_engagement_ids: document.getElementById('detailRelatedIds').value || '',
       supplementary_notes: document.getElementById('detailSupplementaryNotes').value || '',
-      follow_up_date: document.getElementById('detailFollowUp').value
+      follow_up_date: document.getElementById('detailFollowUp').value,
+      // Event fields
+      event_name: document.getElementById('detailEventName').value || '',
+      event_date: document.getElementById('detailEventDate').value || '',
+      event_status: document.getElementById('detailEventStatus').value || '',
+      event_location: document.getElementById('detailEventLocation').value || '',
+      event_url: document.getElementById('detailEventUrl').value || '',
+      event_planning_doc_url: document.getElementById('detailEventPlanningDocUrl').value || '',
+      event_attendee_ids: document.getElementById('detailEventAttendeeIds').value || ''
     };
 
     // Check for participants change
@@ -6202,6 +6778,14 @@ return;
     // Store the engagement ID and original participants for update
     state.editingEngagementId = e.engagement_id;
     state.editingOriginalParticipants = e.participants || '';
+
+    // Populate event fields
+    document.getElementById('engEventName').value = e.event_name || '';
+    document.getElementById('engEventDate').value = formatDateForInput(e.event_date) || '';
+    document.getElementById('engEventStatus').value = e.event_status || '';
+    document.getElementById('engEventLocation').value = e.event_location || '';
+    document.getElementById('engEventUrl').value = e.event_url || '';
+    document.getElementById('engEventPlanningDocUrl').value = e.event_planning_doc_url || '';
 
     // Change submit button text
     var submitBtn = document.getElementById('engSubmitBtn');
@@ -6672,6 +7256,173 @@ return;
     if (fullEl) fullEl.style.display = 'none';
   }
 
+  // ============================================================================
+  // EVENT ARTIFACT MANAGEMENT
+  // ============================================================================
+
+  function showAddArtifactModal(engagementId) {
+    document.getElementById('artifactEngagementId').value = engagementId;
+    document.getElementById('addArtifactForm').reset();
+    document.getElementById('addArtifactModal').classList.add('active');
+  }
+
+  function submitAddArtifact(event) {
+    event.preventDefault();
+
+    var engagementId = document.getElementById('artifactEngagementId').value;
+    var artifact = {
+      type: document.getElementById('artifactType').value,
+      name: document.getElementById('artifactName').value.trim(),
+      url: document.getElementById('artifactUrl').value.trim()
+    };
+
+    var btn = document.getElementById('addArtifactBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span> Adding...';
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        btn.disabled = false;
+        btn.textContent = 'Add Artifact';
+        if (result && result.success) {
+          closeModal('addArtifactModal');
+          showToast('Artifact added successfully', 'success');
+          // Refresh engagement detail
+          CachedAPI.invalidate.engagements();
+          var engagement = state.currentEngagementDetail;
+          if (engagement && engagement.engagement_id === engagementId) {
+            // Re-fetch to get updated artifacts
+            google.script.run
+              .withSuccessHandler(function(updated) {
+                if (updated) {
+                  state.currentEngagementDetail = updated;
+                  showEngagementDetailData(updated);
+                }
+              })
+              .getEngagementById(engagementId);
+          }
+        } else {
+          showToast(result ? result.error : 'Failed to add artifact', 'error');
+        }
+      })
+      .withFailureHandler(function(err) {
+        btn.disabled = false;
+        btn.textContent = 'Add Artifact';
+        showToast('Error adding artifact: ' + err.message, 'error');
+      })
+      .addArtifact(engagementId, artifact);
+  }
+
+  function removeArtifact(engagementId, artifactIndex) {
+    if (!confirm('Are you sure you want to remove this artifact?')) {
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result && result.success) {
+          showToast('Artifact removed', 'success');
+          CachedAPI.invalidate.engagements();
+          // Refresh engagement detail
+          google.script.run
+            .withSuccessHandler(function(updated) {
+              if (updated) {
+                state.currentEngagementDetail = updated;
+                showEngagementDetailData(updated);
+              }
+            })
+            .getEngagementById(engagementId);
+        } else {
+          showToast(result ? result.error : 'Failed to remove artifact', 'error');
+        }
+      })
+      .withFailureHandler(function(err) {
+        showToast('Error removing artifact: ' + err.message, 'error');
+      })
+      .removeArtifact(engagementId, artifactIndex);
+  }
+
+  function showPromoteArtifactModal(engagementId, artifactIndex) {
+    var engagement = state.currentEngagementDetail;
+    if (!engagement || !engagement.event_artifacts) {
+      showToast('No artifacts found', 'error');
+      return;
+    }
+
+    var artifacts = [];
+    try {
+      artifacts = JSON.parse(engagement.event_artifacts);
+    } catch (e) {
+      showToast('Error parsing artifacts', 'error');
+      return;
+    }
+
+    if (artifactIndex < 0 || artifactIndex >= artifacts.length) {
+      showToast('Invalid artifact', 'error');
+      return;
+    }
+
+    var artifact = artifacts[artifactIndex];
+
+    document.getElementById('promoteEngagementId').value = engagementId;
+    document.getElementById('promoteArtifactIndex').value = artifactIndex;
+    document.getElementById('promoteTitle').value = artifact.name || '';
+    document.getElementById('promoteContent').value = 'From event: ' + (engagement.event_name || engagement.subject || '');
+    document.getElementById('promoteSolutions').value = engagement.solution_id || '';
+    document.getElementById('promoteTags').value = artifact.type || '';
+
+    document.getElementById('promoteArtifactModal').classList.add('active');
+  }
+
+  function submitPromoteArtifact(event) {
+    event.preventDefault();
+
+    var engagementId = document.getElementById('promoteEngagementId').value;
+    var artifactIndex = parseInt(document.getElementById('promoteArtifactIndex').value, 10);
+
+    var assetData = {
+      title: document.getElementById('promoteTitle').value.trim(),
+      content: document.getElementById('promoteContent').value.trim(),
+      solution_ids: document.getElementById('promoteSolutions').value.trim(),
+      tags: document.getElementById('promoteTags').value.trim(),
+      audience: document.getElementById('promoteAudience').value,
+      usage_rights: document.getElementById('promoteRights').value
+    };
+
+    var btn = document.getElementById('promoteArtifactBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span> Promoting...';
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons">publish</span> Promote';
+        if (result && result.success) {
+          closeModal('promoteArtifactModal');
+          showToast('Artifact promoted to Comms Asset: ' + result.data.asset_id, 'success');
+          CachedAPI.invalidate.engagements();
+          CachedAPI.invalidate.commsAssets && CachedAPI.invalidate.commsAssets();
+          // Refresh engagement detail
+          google.script.run
+            .withSuccessHandler(function(updated) {
+              if (updated) {
+                state.currentEngagementDetail = updated;
+                showEngagementDetailData(updated);
+              }
+            })
+            .getEngagementById(engagementId);
+        } else {
+          showToast(result ? result.error : 'Failed to promote artifact', 'error');
+        }
+      })
+      .withFailureHandler(function(err) {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons">publish</span> Promote';
+        showToast('Error promoting artifact: ' + err.message, 'error');
+      })
+      .promoteArtifactToCommsAsset(engagementId, artifactIndex, assetData);
+  }
+
   return {
     init: init,
     setView: setView,
@@ -6712,6 +7463,7 @@ return;
     // Agency detail tabs and actions
     switchAgencyTab: switchAgencyTab,
     showLogEngagementModalForAgency: showLogEngagementModalForAgency,
+    editAgencyNotes: editAgencyNotes,
     saveAgencyNotes: saveAgencyNotes,
     cancelAgencyNotes: cancelAgencyNotes,
     removeContactFromAgency: removeContactFromAgency,
@@ -6720,6 +7472,12 @@ return;
     showAllEngagements: showAllEngagements,
     filterAllEngagements: filterAllEngagements,
     showEngagementDetailFromAll: showEngagementDetailFromAll,
+    // Event artifact management
+    showAddArtifactModal: showAddArtifactModal,
+    submitAddArtifact: submitAddArtifact,
+    removeArtifact: removeArtifact,
+    showPromoteArtifactModal: showPromoteArtifactModal,
+    submitPromoteArtifact: submitPromoteArtifact,
     // Drag and drop
     handleDragStart: handleDragStart,
     handleDragEnd: handleDragEnd,
