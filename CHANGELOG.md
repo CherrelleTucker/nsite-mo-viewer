@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.0] - 2026-02-03
+
+### Added
+- **Comms Page Reorganization** - Transformed from workflow tool to content library
+  - New 4-tab structure: Content, Assets, Events, Manage
+  - Content-first design with search as primary interface
+  - Workflow features preserved in Manage tab for Comms team
+- **Content Tab** (New Default)
+  - Search-first interface for finding approved content
+  - Solution dropdown to browse content by solution
+  - Quick access cards: Recent Blurbs, Most Used, By Type
+  - Grouped display: Key Messages, Facts, Quotes, Blurbs
+  - Copy buttons with usage tracking
+  - Back navigation arrows to reset view
+  - Client-side filtering with 200ms debounce for fast search
+- **Assets Tab** (New)
+  - Visual grid of images, presentations, documents
+  - Google Drive iframe previews in cards (no broken thumbnails)
+  - Filter by type (image, presentation, pdf, etc.) and solution
+  - Search across title, content, tags
+  - Upload dropzone with drag-and-drop support
+  - Metadata form before upload: title, solution, description, usage rights, tags
+  - Asset detail modal with full preview and metadata display
+  - Copy Link and Open in Drive buttons
+- **Manage Tab** - Consolidated workflow views
+  - Sub-tabs: Pipeline, Coverage, Calendar, Priorities
+  - All existing functionality preserved
+  - Stats bar hidden to maximize workspace
+- **MO-DB_CommsAssets Database** - Unified database for all communications content
+  - Text asset types: blurb, talking_point, quote, fact, soundbite, boilerplate, connection
+  - File asset types: image, presentation, pdf, video, document, graphic
+  - Multi-value affiliations: solution_ids, agency_ids, contact_ids (comma-separated)
+  - Usage tracking: use_count, last_used_date updated when content is copied
+  - Tags for thematic areas and searchability
+- **File Assets Support** - Upload and manage images, presentations, documents
+  - New schema fields: asset_url, asset_file_type, thumbnail_url, usage_rights, rights_holder
+  - Google Drive integration via COMMS_ASSETS_FOLDER_ID config
+  - Automatic file type detection from MIME type
+  - `uploadCommsAssetWithMetadata()` - single API call with all metadata
+- **Copy to Clipboard** - Copy buttons with visual feedback and usage tracking
+
+### Changed
+- Comms tabs reduced from 6 (Pipeline, Events, Coverage, Calendar, Messaging, Tools) to 4 (Content, Assets, Events, Manage)
+- Presentation Builder moved from Tools to Content tab (contextual action)
+- Schema column renamed: `contact_id` → `contact_ids` (now supports multiple contacts)
+
+### Technical
+- New library file: `library/comms-assets-api.gs` (full API implementation)
+- New wrapper file: `deploy/comms-assets-api.gs` (thin MoApi delegation)
+- New API functions: `getFileAssets()`, `uploadCommsAssetWithMetadata()`, `getAssetThumbnail()`, `getUsageRightsOptions()`
+- SessionStorage caching (CachedAPI) for Content/Assets data
+- Navigation guards prevent stale data on rapid tab switches
+- Updated: `docs/DATA_SCHEMA.md` section 17 with CommsAssets schema
+
+---
+
 ## [2.3.2] - 2026-02-03
 
 ### Added

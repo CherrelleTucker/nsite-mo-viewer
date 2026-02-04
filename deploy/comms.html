@@ -6,34 +6,26 @@
   <div class="page-header" style="justify-content: flex-end;">
     <div class="page-actions">
       <div class="view-toggle">
-        <button class="view-btn active" data-view="pipeline" onclick="COMMS.setView('pipeline')">
-          <span class="material-icons">view_column</span>
-          <span>Pipeline</span>
+        <button class="view-btn active" data-view="content" onclick="COMMS.setView('content')">
+          <span class="material-icons">library_books</span>
+          <span>Content</span>
+        </button>
+        <button class="view-btn" data-view="assets" onclick="COMMS.setView('assets')">
+          <span class="material-icons">perm_media</span>
+          <span>Assets</span>
         </button>
         <button class="view-btn" data-view="events" onclick="COMMS.setView('events')">
           <span class="material-icons">place</span>
           <span>Events</span>
         </button>
-        <button class="view-btn" data-view="coverage" onclick="COMMS.setView('coverage')">
-          <span class="material-icons">pie_chart</span>
-          <span>Coverage</span>
-        </button>
-        <button class="view-btn" data-view="calendar" onclick="COMMS.setView('calendar')">
-          <span class="material-icons">calendar_today</span>
-          <span>Calendar</span>
-        </button>
-        <button class="view-btn" data-view="messaging" onclick="COMMS.setView('messaging')">
-          <span class="material-icons">campaign</span>
-          <span>Messaging</span>
-        </button>
-        <button class="view-btn" data-view="tools" onclick="COMMS.setView('tools')">
-          <span class="material-icons">build</span>
-          <span>Tools</span>
+        <button class="view-btn" data-view="manage" onclick="COMMS.setView('manage')">
+          <span class="material-icons">settings</span>
+          <span>Manage</span>
         </button>
       </div>
-      <button class="btn btn-primary" onclick="COMMS.showCreateStoryModal()">
+      <button class="btn btn-primary" onclick="COMMS.showAddAssetModal()">
         <span class="material-icons">add</span>
-        New Story
+        Add Content
       </button>
     </div>
   </div>
@@ -72,8 +64,267 @@
 
   <!-- Main Content Area -->
   <div class="comms-content">
-    <!-- Pipeline View -->
-    <div class="view-panel active" id="pipelineView">
+    <!-- Content View (NEW DEFAULT) -->
+    <div class="view-panel active" id="contentView">
+      <div class="content-view-layout">
+        <!-- Search Header -->
+        <div class="content-search-header">
+          <div class="content-search-box">
+            <span class="material-icons">search</span>
+            <input type="text" id="contentSearchInput" placeholder="What do you need content about?" oninput="COMMS.searchContent(this.value)">
+          </div>
+          <div class="content-filters">
+            <label>Browse by Solution:</label>
+            <select id="contentSolutionSelect" onchange="COMMS.selectContentSolution(this.value)">
+              <option value="">All Solutions</option>
+            </select>
+            <button class="btn btn-secondary" onclick="COMMS.showAddAssetModal()">
+              <span class="material-icons">add</span>
+              New Asset
+            </button>
+          </div>
+        </div>
+
+        <!-- Content Results Area -->
+        <div id="contentResults" class="content-results">
+          <!-- Default: Quick Access Cards -->
+          <div class="content-quick-access" id="contentQuickAccess">
+            <div class="quick-access-grid">
+              <div class="quick-access-card" onclick="COMMS.showRecentBlurbs()">
+                <span class="material-icons">history</span>
+                <h4>Recent Blurbs</h4>
+                <p>Latest HQ updates and highlights</p>
+              </div>
+              <div class="quick-access-card" onclick="COMMS.showMostUsed()">
+                <span class="material-icons">trending_up</span>
+                <h4>Most Used</h4>
+                <p>Frequently copied content</p>
+              </div>
+              <div class="quick-access-card" onclick="COMMS.showByType()">
+                <span class="material-icons">category</span>
+                <h4>By Type</h4>
+                <p>Browse talking points, facts, quotes</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Solution Content (shown when solution selected) -->
+          <div class="solution-content-panel" id="solutionContentPanel" style="display: none;">
+            <div class="solution-content-header">
+              <button class="btn btn-icon" onclick="COMMS.resetContentView()" title="Back to Quick Access">
+                <span class="material-icons">arrow_back</span>
+              </button>
+              <h3 id="solutionContentTitle">Solution Name</h3>
+              <div class="solution-content-actions">
+                <button class="btn btn-secondary" onclick="COMMS.copyAllContent()">
+                  <span class="material-icons">content_copy</span>
+                  Copy All
+                </button>
+                <button class="btn btn-primary" onclick="COMMS.showPresentationBuilder()">
+                  <span class="material-icons">slideshow</span>
+                  Generate Presentation
+                </button>
+              </div>
+            </div>
+
+            <!-- Content grouped by type -->
+            <div class="content-type-sections" id="contentTypeSections">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Search Results (shown during search) -->
+          <div class="search-results-panel" id="searchResultsPanel" style="display: none;">
+            <div class="search-results-header">
+              <button class="btn btn-icon" onclick="COMMS.resetContentView()" title="Back to Quick Access">
+                <span class="material-icons">arrow_back</span>
+              </button>
+              <h3>Search Results: <span id="searchResultsQuery"></span></h3>
+              <span class="search-results-count" id="searchResultsCount"></span>
+            </div>
+            <div class="content-type-sections" id="searchResultsSections">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assets View (NEW) -->
+    <div class="view-panel" id="assetsView">
+      <div class="assets-view-layout">
+        <!-- Assets Header -->
+        <div class="assets-header">
+          <div class="assets-filters">
+            <select id="assetTypeFilter" onchange="COMMS.filterAssets()">
+              <option value="">All Types</option>
+              <option value="image">Images</option>
+              <option value="presentation">Presentations</option>
+              <option value="pdf">PDFs</option>
+              <option value="video">Videos</option>
+              <option value="document">Documents</option>
+              <option value="graphic">Graphics</option>
+            </select>
+            <select id="assetSolutionFilter" onchange="COMMS.filterAssets()">
+              <option value="">All Solutions</option>
+            </select>
+            <div class="assets-search-box">
+              <span class="material-icons">search</span>
+              <input type="text" id="assetsSearchInput" placeholder="Search assets..." oninput="COMMS.filterAssets()">
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="COMMS.toggleUploadDropzone()">
+            <span class="material-icons">upload</span>
+            Upload
+          </button>
+        </div>
+
+        <!-- Upload Dropzone (hidden by default) -->
+        <div class="upload-dropzone-container" id="uploadDropzoneContainer" style="display: none;">
+          <div class="upload-dropzone" id="uploadDropzone"
+               ondragover="COMMS.handleUploadDragOver(event)"
+               ondragleave="COMMS.handleUploadDragLeave(event)"
+               ondrop="COMMS.handleUploadDrop(event)">
+            <span class="material-icons">cloud_upload</span>
+            <p>Drag & drop files here</p>
+            <span class="dropzone-or">or</span>
+            <label class="btn btn-secondary">
+              <span class="material-icons">folder_open</span>
+              Browse Files
+              <input type="file" id="assetFileInput" multiple accept="image/*,.pdf,.pptx,.ppt,.docx,.doc,.mp4,.mov" onchange="COMMS.handleFileSelect(event)" style="display: none;">
+            </label>
+            <p class="dropzone-hint">Images, PDFs, Presentations, Documents, Videos</p>
+          </div>
+          <button class="btn btn-sm btn-secondary dropzone-close" onclick="COMMS.toggleUploadDropzone()">
+            <span class="material-icons">close</span>
+            Cancel
+          </button>
+        </div>
+
+        <!-- Upload Progress (shown during upload) -->
+        <div class="upload-progress-container" id="uploadProgressContainer" style="display: none;">
+          <div class="upload-progress-item" id="uploadProgressItem">
+            <span class="material-icons">insert_drive_file</span>
+            <div class="upload-progress-info">
+              <span class="upload-filename" id="uploadFilename">filename.jpg</span>
+              <div class="upload-progress-bar">
+                <div class="upload-progress-fill" id="uploadProgressFill"></div>
+              </div>
+            </div>
+            <span class="upload-status" id="uploadStatus">Uploading...</span>
+          </div>
+        </div>
+
+        <!-- Upload Metadata Form (shown after upload) -->
+        <div class="upload-metadata-form" id="uploadMetadataForm" style="display: none;">
+          <div class="metadata-form-header">
+            <h4>Add Details</h4>
+            <button class="btn btn-icon" onclick="COMMS.cancelUploadMetadata()">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+          <div class="metadata-form-content">
+            <div class="form-row">
+              <label>Title *</label>
+              <input type="text" id="uploadAssetTitle" placeholder="Asset title">
+            </div>
+            <div class="form-row">
+              <label>Solution</label>
+              <select id="uploadAssetSolution">
+                <option value="">Select solution...</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Description</label>
+              <textarea id="uploadAssetDescription" rows="2" placeholder="Brief description..."></textarea>
+            </div>
+            <div class="form-row">
+              <label>Usage Rights</label>
+              <select id="uploadAssetRights">
+                <option value="internal-only">Internal Only</option>
+                <option value="nasa-media">NASA Media</option>
+                <option value="public-domain">Public Domain</option>
+                <option value="attribution-required">Attribution Required</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Tags</label>
+              <input type="text" id="uploadAssetTags" placeholder="comma, separated, tags">
+            </div>
+          </div>
+          <div class="metadata-form-actions">
+            <button class="btn btn-secondary" onclick="COMMS.cancelUploadMetadata()">Cancel</button>
+            <button class="btn btn-primary" onclick="COMMS.saveUploadedAsset()">
+              <span class="material-icons">save</span>
+              Save Asset
+            </button>
+          </div>
+        </div>
+
+        <!-- Assets Grid -->
+        <div class="assets-grid" id="assetsGrid">
+          <div class="loading-state">
+            <span class="loading-spinner"></span>
+            <p>Loading assets...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Asset Detail Modal -->
+    <div class="modal-overlay" id="assetDetailModal" style="display: none;">
+      <div class="modal-content asset-detail-modal">
+        <div class="modal-header">
+          <h2 id="assetDetailTitle">Asset Preview</h2>
+          <button class="modal-close" onclick="COMMS.closeAssetDetailModal()" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body asset-detail-body">
+          <div class="asset-preview-container" id="assetPreviewContainer">
+            <!-- Preview iframe or image will be inserted here -->
+          </div>
+          <div class="asset-detail-info" id="assetDetailInfo">
+            <!-- Asset metadata will be inserted here -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="COMMS.copyAssetLink(document.getElementById('assetDetailModal').dataset.assetId)">
+            <span class="material-icons">link</span> Copy Link
+          </button>
+          <button class="btn btn-secondary" onclick="window.open(document.getElementById('assetDetailModal').dataset.assetUrl, '_blank')">
+            <span class="material-icons">open_in_new</span> Open in Drive
+          </button>
+          <button class="btn btn-primary" onclick="COMMS.closeAssetDetailModal()">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manage Subtabs Bar (shown when in Manage mode, before legacy views) -->
+    <div class="manage-subtabs-bar" id="manageSubtabsBar" style="display: none;">
+      <button class="manage-subtab active" data-subtab="pipeline" onclick="COMMS.setManageSubtab('pipeline')">
+        <span class="material-icons">view_column</span>
+        Pipeline
+      </button>
+      <button class="manage-subtab" data-subtab="coverage" onclick="COMMS.setManageSubtab('coverage')">
+        <span class="material-icons">pie_chart</span>
+        Coverage
+      </button>
+      <button class="manage-subtab" data-subtab="calendar" onclick="COMMS.setManageSubtab('calendar')">
+        <span class="material-icons">calendar_today</span>
+        Calendar
+      </button>
+      <button class="manage-subtab" data-subtab="priorities" onclick="COMMS.setManageSubtab('priorities')">
+        <span class="material-icons">flag</span>
+        Priorities
+      </button>
+      <div class="manage-subtab-spacer"></div>
+      <button class="btn btn-primary" onclick="COMMS.showCreateStoryModal()">
+        <span class="material-icons">add</span>
+        New Story
+      </button>
+    </div>
+
+    <!-- Pipeline View (now inside Manage) -->
+    <div class="view-panel" id="pipelineView">
       <div class="pipeline-layout">
         <!-- Collapsible Sidebar: Opportunities + Coverage Gaps -->
         <div class="insights-sidebar" id="insightsSidebar">
@@ -97,7 +348,7 @@
             <div class="sidebar-section">
               <div class="sidebar-section-header">
                 <h4>Coverage Gaps</h4>
-                <button class="btn btn-sm btn-icon" onclick="COMMS.setView('coverage')" title="Full View">
+                <button class="btn btn-sm btn-icon" onclick="COMMS.setView('manage'); COMMS.setManageSubtab('coverage')" title="Full View">
                   <span class="material-icons">fullscreen</span>
                 </button>
               </div>
@@ -480,6 +731,64 @@
             <div class="tool-card-content">
               <h3>More Tools Coming</h3>
               <p>Additional Comms tools will be added here. Ideas? Talk to the team!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manage View (NEW - consolidates Pipeline, Coverage, Calendar, Priorities) -->
+    <div class="view-panel" id="manageView">
+      <div class="manage-layout">
+        <!-- Manage Sub-tabs -->
+        <div class="manage-subtabs">
+          <button class="manage-subtab active" data-subtab="pipeline" onclick="COMMS.setManageSubtab('pipeline')">
+            <span class="material-icons">view_column</span>
+            Pipeline
+          </button>
+          <button class="manage-subtab" data-subtab="coverage" onclick="COMMS.setManageSubtab('coverage')">
+            <span class="material-icons">pie_chart</span>
+            Coverage
+          </button>
+          <button class="manage-subtab" data-subtab="calendar" onclick="COMMS.setManageSubtab('calendar')">
+            <span class="material-icons">calendar_today</span>
+            Calendar
+          </button>
+          <button class="manage-subtab" data-subtab="priorities" onclick="COMMS.setManageSubtab('priorities')">
+            <span class="material-icons">flag</span>
+            Priorities
+          </button>
+          <div class="manage-subtab-spacer"></div>
+          <button class="btn btn-primary" onclick="COMMS.showCreateStoryModal()">
+            <span class="material-icons">add</span>
+            New Story
+          </button>
+        </div>
+
+        <!-- Manage Content Panels (content is pulled from existing views via JS) -->
+        <div class="manage-content-area" id="manageContentArea">
+          <!-- The sub-tab content will be shown by toggling visibility of the existing view panels -->
+          <!-- Pipeline, Coverage, Calendar are shown/hidden by setManageSubtab() -->
+
+          <!-- Priorities Panel (extracted from Messaging view) -->
+          <div class="manage-panel" id="managePrioritiesPanel" style="display: none;">
+            <div class="priorities-content">
+              <!-- Priority Bar -->
+              <div class="priority-bar" id="managePriorityBar">
+                <div class="priority-chips" id="managePriorityChips">
+                  <div class="loading-state">
+                    <span class="loading-spinner"></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Priority Detail -->
+              <div class="priority-detail-panel" id="managePriorityDetail">
+                <div class="empty-state">
+                  <span class="material-icons">flag</span>
+                  <p>Select a priority to view related solutions</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1082,6 +1391,279 @@
   </div>
 </div>
 
+<!-- Add Comms Asset Modal -->
+<div class="modal-overlay" id="addAssetModal" onclick="COMMS.closeModal('addAssetModal', event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="addAssetModalTitle">Add Communications Asset</h2>
+      <button class="modal-close" onclick="COMMS.closeModal('addAssetModal')" aria-label="Close dialog">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="addAssetForm" onsubmit="COMMS.submitAsset(event)">
+        <input type="hidden" id="editAssetId">
+
+        <!-- Quick Add Fields (always visible) -->
+        <div class="form-row">
+          <div class="form-group" style="flex: 1;">
+            <label>Asset Type *</label>
+            <select id="assetType" required onchange="COMMS.onAssetTypeChange()">
+              <option value="">-- Select Type --</option>
+              <option value="blurb">Blurb (HQ Update)</option>
+              <option value="talking_point">Talking Point</option>
+              <option value="quote">Quote</option>
+              <option value="fact">Fact/Statistic</option>
+              <option value="soundbite">Sound Bite</option>
+              <option value="boilerplate">Boilerplate</option>
+              <option value="connection">Connection</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>Status</label>
+            <select id="assetStatus">
+              <option value="approved" selected>Approved (Ready to Use)</option>
+              <option value="draft">Draft</option>
+              <option value="needs_update">Needs Update</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Title *</label>
+          <input type="text" id="assetTitle" required placeholder="Brief descriptive title">
+        </div>
+
+        <div class="form-group">
+          <label>Content *</label>
+          <textarea id="assetContent" required rows="4" placeholder="The actual text content of the asset..."></textarea>
+          <div class="form-hint" id="assetContentHint">2-3 sentences recommended for blurbs</div>
+        </div>
+
+        <!-- Affiliation Section -->
+        <div class="form-section">
+          <div class="form-section-header" onclick="COMMS.toggleAssetSection('affiliations')">
+            <span class="material-icons section-toggle-icon" id="affiliationsToggleIcon">expand_more</span>
+            <span>Affiliations</span>
+            <span class="form-section-badge" id="affiliationsBadge">0</span>
+          </div>
+          <div class="form-section-content" id="affiliationsSection">
+            <!-- Primary Solution -->
+            <div class="form-group">
+              <label>Primary Solution</label>
+              <select id="assetPrimarySolution" onchange="COMMS.onPrimarySolutionChange()">
+                <option value="">-- Select Solution --</option>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <!-- Additional Solutions -->
+            <div class="form-group">
+              <label>Additional Solutions <span style="color: var(--color-text-muted); font-weight: normal;">(optional)</span></label>
+              <div class="asset-solution-tags" id="assetSolutionTags"></div>
+              <select id="addAssetSolution" onchange="COMMS.addAssetSolution(this.value); this.value='';">
+                <option value="">+ Add solution...</option>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <!-- Contacts Picker -->
+            <div class="form-group">
+              <label>Contacts <span style="color: var(--color-text-muted); font-weight: normal;">(optional)</span></label>
+              <div class="asset-contact-picker" id="assetContactPicker">
+                <div class="asset-selected-contacts" id="assetSelectedContacts"></div>
+                <input type="text" id="assetContactSearchInput" class="asset-contact-search"
+                       placeholder="Search contacts by name or email..."
+                       autocomplete="off"
+                       oninput="COMMS.searchAssetContacts(this.value)"
+                       onfocus="COMMS.showAssetContactResults()"
+                       onblur="COMMS.hideAssetContactResults()">
+                <div class="asset-contact-results" id="assetContactResults"></div>
+              </div>
+              <button type="button" class="btn btn-sm btn-text" onclick="COMMS.showAddContactForAsset()" style="margin-top: 4px;">
+                <span class="material-icons">person_add</span> Add New Contact
+              </button>
+            </div>
+
+            <!-- Agency -->
+            <div class="form-group">
+              <label>Agency <span style="color: var(--color-text-muted); font-weight: normal;">(optional)</span></label>
+              <select id="assetAgency">
+                <option value="">-- Select Agency --</option>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tags Section -->
+        <div class="form-section">
+          <div class="form-section-header" onclick="COMMS.toggleAssetSection('tags')">
+            <span class="material-icons section-toggle-icon" id="tagsToggleIcon">expand_more</span>
+            <span>Tags & Categories</span>
+          </div>
+          <div class="form-section-content" id="tagsSection">
+            <div class="form-group">
+              <label>Thematic Areas</label>
+              <div class="tag-suggestions" id="tagSuggestions">
+                <button type="button" class="tag-suggestion" data-tag="science" onclick="COMMS.toggleTag('science')">Science</button>
+                <button type="button" class="tag-suggestion" data-tag="applications" onclick="COMMS.toggleTag('applications')">Applications</button>
+                <button type="button" class="tag-suggestion" data-tag="partnerships" onclick="COMMS.toggleTag('partnerships')">Partnerships</button>
+                <button type="button" class="tag-suggestion" data-tag="data-access" onclick="COMMS.toggleTag('data-access')">Data Access</button>
+                <button type="button" class="tag-suggestion" data-tag="training" onclick="COMMS.toggleTag('training')">Training</button>
+                <button type="button" class="tag-suggestion" data-tag="milestone" onclick="COMMS.toggleTag('milestone')">Milestone</button>
+                <button type="button" class="tag-suggestion" data-tag="impact" onclick="COMMS.toggleTag('impact')">Impact</button>
+                <button type="button" class="tag-suggestion" data-tag="user-story" onclick="COMMS.toggleTag('user-story')">User Story</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Custom Tags</label>
+              <input type="text" id="customTags" placeholder="Add additional tags, comma-separated">
+              <div class="form-hint">e.g., agriculture, flood-monitoring, quarterly-report</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- More Options Section -->
+        <div class="form-section">
+          <div class="form-section-header" onclick="COMMS.toggleAssetSection('moreOptions')">
+            <span class="material-icons section-toggle-icon" id="moreOptionsToggleIcon">chevron_right</span>
+            <span>More Options</span>
+          </div>
+          <div class="form-section-content collapsed" id="moreOptionsSection">
+            <!-- Source Info -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>Source Name</label>
+                <input type="text" id="assetSourceName" placeholder="e.g., Dr. Jane Smith, USDA Report">
+              </div>
+              <div class="form-group">
+                <label>Source Type</label>
+                <select id="assetSourceType">
+                  <option value="internal">Internal</option>
+                  <option value="stakeholder">Stakeholder</option>
+                  <option value="leadership">Leadership</option>
+                  <option value="publication">Publication</option>
+                  <option value="event">Event</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Source URL</label>
+              <input type="url" id="assetSourceUrl" placeholder="https://...">
+            </div>
+            <div class="form-group">
+              <label>Attribution Text</label>
+              <input type="text" id="assetAttribution" placeholder="How to cite this content">
+            </div>
+
+            <!-- Usage Guidance -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>Audience</label>
+                <select id="assetAudience">
+                  <option value="all">All Audiences</option>
+                  <option value="internal">Internal Only</option>
+                  <option value="external">External</option>
+                  <option value="leadership">Leadership</option>
+                  <option value="public">Public</option>
+                  <option value="technical">Technical</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Tone</label>
+                <select id="assetTone">
+                  <option value="formal">Formal</option>
+                  <option value="casual">Casual</option>
+                  <option value="technical">Technical</option>
+                  <option value="inspirational">Inspirational</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Channels</label>
+              <div class="checkbox-group-inline">
+                <label class="checkbox-item-inline">
+                  <input type="checkbox" name="assetChannel" value="email"> Email
+                </label>
+                <label class="checkbox-item-inline">
+                  <input type="checkbox" name="assetChannel" value="presentation"> Presentation
+                </label>
+                <label class="checkbox-item-inline">
+                  <input type="checkbox" name="assetChannel" value="report"> Report
+                </label>
+                <label class="checkbox-item-inline">
+                  <input type="checkbox" name="assetChannel" value="social"> Social
+                </label>
+                <label class="checkbox-item-inline">
+                  <input type="checkbox" name="assetChannel" value="flyer"> Flyer
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Usage Notes</label>
+              <textarea id="assetUsageNotes" rows="2" placeholder="Any caveats or context needed when using this content"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Expiration Date</label>
+              <input type="date" id="assetExpirationDate">
+              <div class="form-hint">Leave blank if no expiration</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="COMMS.closeModal('addAssetModal')">Cancel</button>
+          <button type="submit" id="saveAssetBtn" class="btn btn-primary">
+            <span class="material-icons">save</span>
+            Save Asset
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Contact for Asset Modal (Quick Add) -->
+<div class="modal-overlay" id="addContactForAssetModal" onclick="COMMS.closeModal('addContactForAssetModal', event)">
+  <div class="modal-content modal-sm" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Quick Add Contact</h2>
+      <button class="modal-close" onclick="COMMS.closeModal('addContactForAssetModal')" aria-label="Close dialog">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="addContactForAssetForm" onsubmit="COMMS.submitContactForAsset(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name *</label>
+            <input type="text" id="assetContactFirstName" required>
+          </div>
+          <div class="form-group">
+            <label>Last Name *</label>
+            <input type="text" id="assetContactLastName" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" id="assetContactEmail" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Organization</label>
+            <input type="text" id="assetContactOrg">
+          </div>
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="assetContactTitle">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="COMMS.closeModal('addContactForAssetModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add & Select</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- Comms Styles -->
 <style>
   /* Page accent color for shared styles */
@@ -1129,6 +1711,783 @@
   .pipeline-filters select:focus {
     outline: none;
     border-color: var(--color-comms);
+  }
+
+  /* ========================================================================
+     CONTENT VIEW STYLES
+     ======================================================================== */
+
+  .content-view-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    height: 100%;
+  }
+
+  .content-search-header {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+  }
+
+  .content-search-box {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    background: var(--color-background);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .content-search-box:focus-within {
+    border-color: var(--color-comms);
+  }
+
+  .content-search-box .material-icons {
+    color: var(--color-text-muted);
+    font-size: 24px;
+  }
+
+  .content-search-box input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: var(--font-size-md);
+    background: transparent;
+  }
+
+  .content-filters {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  .content-filters label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .content-filters select {
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    min-width: 200px;
+  }
+
+  .content-results {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* Quick Access Cards */
+  .content-quick-access {
+    padding: var(--space-md);
+  }
+
+  .quick-access-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-md);
+  }
+
+  .quick-access-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+
+  .quick-access-card:hover {
+    border-color: var(--color-comms);
+    box-shadow: var(--shadow-md);
+  }
+
+  .quick-access-card .material-icons {
+    font-size: 48px;
+    color: var(--color-comms);
+    margin-bottom: var(--space-sm);
+  }
+
+  .quick-access-card h4 {
+    margin: 0 0 var(--space-xs);
+    font-size: var(--font-size-md);
+    font-weight: 600;
+  }
+
+  .quick-access-card p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  /* Solution Content Panel */
+  .solution-content-panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .solution-content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--color-border-light);
+    background: var(--color-background);
+  }
+
+  .solution-content-header h3 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-comms);
+  }
+
+  .solution-content-actions {
+    display: flex;
+    gap: var(--space-sm);
+  }
+
+  /* Content Type Sections */
+  .content-type-sections {
+    padding: var(--space-md);
+  }
+
+  .content-type-section {
+    margin-bottom: var(--space-lg);
+  }
+
+  .content-type-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .content-type-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--color-border-light);
+    margin-bottom: var(--space-sm);
+    cursor: pointer;
+  }
+
+  .content-type-header .material-icons {
+    font-size: 20px;
+    color: var(--color-comms);
+  }
+
+  .content-type-header h4 {
+    margin: 0;
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    flex: 1;
+  }
+
+  .content-type-header .count-badge {
+    background: var(--color-comms);
+    color: white;
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+  }
+
+  .content-type-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .content-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--color-background);
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+  }
+
+  .content-item:hover {
+    border-color: var(--color-border);
+  }
+
+  .content-item-text {
+    flex: 1;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+  }
+
+  .content-item-actions {
+    display: flex;
+    gap: var(--space-xs);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .content-item:hover .content-item-actions {
+    opacity: 1;
+  }
+
+  .content-item .btn-icon {
+    padding: 4px;
+    min-width: auto;
+  }
+
+  .copy-success {
+    color: var(--color-success);
+    font-size: var(--font-size-xs);
+    animation: fadeInOut 2s ease;
+  }
+
+  @keyframes fadeInOut {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* Search Results */
+  .search-results-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .search-results-header h3 {
+    margin: 0;
+    font-size: var(--font-size-md);
+    flex: 1;
+  }
+
+  .search-results-header .btn-icon {
+    padding: var(--space-xs);
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+  }
+
+  .search-results-header .btn-icon:hover {
+    background: var(--color-comms);
+    color: white;
+    border-color: var(--color-comms);
+  }
+
+  /* Solution content header back button */
+  .solution-content-header .btn-icon {
+    padding: var(--space-xs);
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    margin-right: var(--space-sm);
+  }
+
+  .solution-content-header .btn-icon:hover {
+    background: var(--color-comms);
+    color: white;
+    border-color: var(--color-comms);
+  }
+
+  .search-results-count {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  /* ========================================================================
+     ASSETS VIEW STYLES
+     ======================================================================== */
+
+  .assets-view-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    height: 100%;
+  }
+
+  .assets-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+  }
+
+  .assets-filters {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  .assets-filters select {
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+  }
+
+  .assets-search-box {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+  }
+
+  .assets-search-box:focus-within {
+    border-color: var(--color-comms);
+  }
+
+  .assets-search-box .material-icons {
+    font-size: 18px;
+    color: var(--color-text-muted);
+  }
+
+  .assets-search-box input {
+    border: none;
+    outline: none;
+    font-size: var(--font-size-sm);
+    width: 180px;
+    background: transparent;
+  }
+
+  .assets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-md);
+    padding: var(--space-md);
+    overflow-y: auto;
+  }
+
+  .asset-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .asset-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-comms);
+  }
+
+  .asset-card-thumbnail {
+    height: 120px;
+    background: var(--color-background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .asset-card-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .asset-card-thumbnail iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    pointer-events: none; /* Prevent iframe from capturing clicks */
+  }
+
+  .asset-card-thumbnail .material-icons {
+    font-size: 48px;
+    color: var(--color-text-muted);
+  }
+
+  .asset-card-info {
+    padding: var(--space-sm);
+  }
+
+  .asset-card-title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    margin: 0 0 var(--space-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .asset-card-meta {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .asset-card-actions {
+    display: flex;
+    padding: var(--space-xs) var(--space-sm);
+    border-top: 1px solid var(--color-border-light);
+    gap: var(--space-xs);
+  }
+
+  .asset-card-actions .btn {
+    flex: 1;
+    font-size: var(--font-size-xs);
+    padding: var(--space-xs);
+  }
+
+  /* Asset Detail Modal */
+  .asset-detail-modal {
+    max-width: 900px;
+    width: 95vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .asset-detail-body {
+    display: flex;
+    gap: var(--space-md);
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .asset-preview-container {
+    flex: 2;
+    min-width: 0;
+    background: var(--color-background);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .asset-preview-container iframe {
+    width: 100%;
+    height: 400px;
+    border: none;
+    border-radius: var(--radius-md);
+  }
+
+  .asset-preview-container img {
+    max-width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+  }
+
+  .asset-preview-container .preview-icon {
+    font-size: 96px;
+    color: var(--color-text-muted);
+  }
+
+  .asset-detail-info {
+    flex: 1;
+    min-width: 200px;
+    overflow-y: auto;
+  }
+
+  .asset-detail-info .detail-row {
+    margin-bottom: var(--space-sm);
+  }
+
+  .asset-detail-info .detail-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-xs);
+  }
+
+  .asset-detail-info .detail-value {
+    font-size: var(--font-size-sm);
+  }
+
+  @media (max-width: 768px) {
+    .asset-detail-body {
+      flex-direction: column;
+    }
+    .asset-detail-info {
+      min-width: 100%;
+    }
+  }
+
+  /* Upload Dropzone */
+  .upload-dropzone-container {
+    margin-bottom: var(--space-md);
+    position: relative;
+  }
+
+  .upload-dropzone {
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    text-align: center;
+    background: var(--color-surface);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .upload-dropzone:hover,
+  .upload-dropzone.drag-over {
+    border-color: var(--color-comms);
+    background: rgba(233, 30, 99, 0.05);
+  }
+
+  .upload-dropzone.drag-over {
+    border-style: solid;
+  }
+
+  .upload-dropzone .material-icons {
+    font-size: 48px;
+    color: var(--color-comms);
+    margin-bottom: var(--space-sm);
+  }
+
+  .upload-dropzone p {
+    margin: 0 0 var(--space-xs);
+    font-size: var(--font-size-md);
+    color: var(--color-text);
+  }
+
+  .dropzone-or {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    margin: var(--space-sm) 0;
+  }
+
+  .dropzone-hint {
+    font-size: var(--font-size-xs) !important;
+    color: var(--color-text-muted) !important;
+    margin-top: var(--space-sm) !important;
+  }
+
+  .dropzone-close {
+    position: absolute;
+    top: var(--space-sm);
+    right: var(--space-sm);
+  }
+
+  /* Upload Progress */
+  .upload-progress-container {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .upload-progress-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .upload-progress-item .material-icons {
+    font-size: 24px;
+    color: var(--color-comms);
+  }
+
+  .upload-progress-info {
+    flex: 1;
+  }
+
+  .upload-filename {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    display: block;
+    margin-bottom: var(--space-xs);
+  }
+
+  .upload-progress-bar {
+    height: 6px;
+    background: var(--color-background);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .upload-progress-fill {
+    height: 100%;
+    background: var(--color-comms);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
+  .upload-status {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .upload-status.success {
+    color: var(--color-success);
+  }
+
+  .upload-status.error {
+    color: var(--color-error);
+  }
+
+  /* Upload Metadata Form */
+  .upload-metadata-form {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    overflow: hidden;
+  }
+
+  .metadata-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-background);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .metadata-form-header h4 {
+    margin: 0;
+    font-size: var(--font-size-md);
+  }
+
+  .metadata-form-content {
+    padding: var(--space-md);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-md);
+  }
+
+  .metadata-form-content .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .metadata-form-content label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-muted);
+  }
+
+  .metadata-form-content input,
+  .metadata-form-content select,
+  .metadata-form-content textarea {
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+  }
+
+  .metadata-form-content input:focus,
+  .metadata-form-content select:focus,
+  .metadata-form-content textarea:focus {
+    outline: none;
+    border-color: var(--color-comms);
+  }
+
+  .metadata-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-background);
+    border-top: 1px solid var(--color-border-light);
+  }
+
+  /* ========================================================================
+     MANAGE VIEW STYLES
+     ======================================================================== */
+
+  .manage-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  /* Standalone Manage Subtabs Bar (shown above legacy views) */
+  .manage-subtabs-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .manage-subtabs-bar .manage-subtab-spacer {
+    flex: 1;
+  }
+
+  .manage-subtabs {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .manage-subtab {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .manage-subtab:hover {
+    background: var(--color-background);
+    color: var(--color-text);
+  }
+
+  .manage-subtab.active {
+    background: var(--color-comms);
+    color: white;
+  }
+
+  .manage-subtab .material-icons {
+    font-size: 18px;
+  }
+
+  .manage-subtab-spacer {
+    flex: 1;
+  }
+
+  .manage-content-area {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .manage-panel {
+    height: 100%;
+  }
+
+  .priorities-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    height: 100%;
   }
 
   /* Comms Pipeline Customizations */
@@ -2098,6 +3457,267 @@
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
     font-weight: normal;
+  }
+
+  /* Asset Contact Picker (matches SEP engagement modal) */
+  .asset-contact-picker {
+    position: relative;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    padding: 4px;
+    min-height: 38px;
+  }
+  .asset-contact-picker:focus-within {
+    border-color: var(--color-comms);
+    box-shadow: 0 0 0 2px rgba(123, 31, 162, 0.1);
+  }
+  .asset-selected-contacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+  .asset-selected-contacts:empty { margin-bottom: 0; }
+  .asset-contact-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--color-comms);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: var(--font-size-xs);
+    max-width: 200px;
+  }
+  .asset-contact-chip-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .asset-contact-chip-remove {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: white;
+    opacity: 0.7;
+    font-size: 14px;
+    line-height: 1;
+    display: flex;
+  }
+  .asset-contact-chip-remove:hover { opacity: 1; }
+  .asset-contact-search {
+    border: none;
+    outline: none;
+    width: 100%;
+    padding: 4px;
+    font-size: var(--font-size-sm);
+    background: transparent;
+  }
+  .asset-contact-results {
+    position: absolute;
+    top: 100%;
+    left: -1px;
+    right: -1px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+    box-shadow: var(--shadow-md);
+  }
+  .asset-contact-results.active { display: block; }
+  .asset-contact-result-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background var(--transition-fast);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .asset-contact-result-item:last-child { border-bottom: none; }
+  .asset-contact-result-item:hover { background: var(--color-surface-alt); }
+  .asset-contact-result-item.selected { background: rgba(123, 31, 162, 0.1); }
+  .asset-contact-result-info { flex: 1; min-width: 0; }
+  .asset-contact-result-name { font-weight: 500; font-size: var(--font-size-sm); }
+  .asset-contact-result-detail { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+  .asset-contact-results-empty {
+    padding: 12px;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  /* Asset Solution Tags */
+  .asset-solution-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+    min-height: 28px;
+  }
+  .asset-solution-tags:empty { margin-bottom: 0; min-height: 0; }
+  .asset-solution-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--color-comms);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: var(--font-size-xs);
+  }
+  .asset-solution-tag-remove {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: white;
+    opacity: 0.7;
+    display: flex;
+    align-items: center;
+  }
+  .asset-solution-tag-remove:hover { opacity: 1; }
+  .asset-solution-tag-remove .material-icons { font-size: 14px; }
+
+  /* Form Sections (Collapsible) */
+  .form-section {
+    margin-bottom: var(--space-md);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .form-section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-alt);
+    cursor: pointer;
+    user-select: none;
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+  }
+  .form-section-header:hover {
+    background: var(--color-surface);
+  }
+  .section-toggle-icon {
+    font-size: 20px;
+    color: var(--color-text-muted);
+    transition: transform var(--transition-fast);
+  }
+  .form-section-content.collapsed + .form-section-header .section-toggle-icon,
+  .form-section-content.collapsed ~ .section-toggle-icon {
+    transform: rotate(-90deg);
+  }
+  .form-section-badge {
+    margin-left: auto;
+    background: var(--color-comms);
+    color: white;
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    border-radius: 999px;
+    min-width: 20px;
+    text-align: center;
+  }
+  .form-section-badge:empty,
+  .form-section-badge[data-count="0"] {
+    display: none;
+  }
+  .form-section-content {
+    padding: var(--space-md);
+  }
+  .form-section-content.collapsed {
+    display: none;
+  }
+
+  /* Tag Suggestions */
+  .tag-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+  .tag-suggestion {
+    padding: 4px 12px;
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border-light);
+    border-radius: 999px;
+    font-size: var(--font-size-xs);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  .tag-suggestion:hover {
+    background: var(--color-surface);
+    border-color: var(--color-border);
+  }
+  .tag-suggestion.selected {
+    background: var(--color-comms);
+    color: white;
+    border-color: var(--color-comms);
+  }
+
+  /* Inline Checkbox Group */
+  .checkbox-group-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+  .checkbox-item-inline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    padding: 4px 8px;
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+  }
+  .checkbox-item-inline:hover {
+    background: var(--color-surface);
+  }
+  .checkbox-item-inline:has(input:checked) {
+    background: rgba(123, 31, 162, 0.1);
+  }
+  .checkbox-item-inline input {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Form Hint */
+  .form-hint {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-top: 4px;
+  }
+
+  /* Small Button Text Variant */
+  .btn-text {
+    background: transparent;
+    border: none;
+    color: var(--color-comms);
+    padding: 4px 8px;
+    font-size: var(--font-size-xs);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+  .btn-text:hover {
+    background: rgba(123, 31, 162, 0.08);
+    border-radius: var(--radius-sm);
+  }
+  .btn-text .material-icons {
+    font-size: 16px;
+  }
+
+  /* Small Modal */
+  .modal-sm .modal-content {
+    max-width: 480px;
   }
 
   /* Messaging View */
@@ -3339,7 +4959,8 @@ var COMMS = (function() {
     stories: [],
     opportunities: null,
     coverage: null,
-    currentView: 'pipeline',
+    currentView: 'content',  // NEW DEFAULT: Content tab
+    manageSubtab: 'pipeline',  // Default Manage sub-tab
     calendarDate: new Date(),
     filters: {
       type: '',
@@ -3354,10 +4975,36 @@ var COMMS = (function() {
       year: '',  // Empty = show all years (user can filter via dropdown)
       status: ''
     },
+    // Content view state (NEW)
+    content: {
+      searchQuery: '',
+      selectedSolution: '',
+      allContent: [],
+      filteredContent: [],
+      recentBlurbs: [],
+      mostUsed: []
+    },
+    // Assets view state (NEW)
+    assets: {
+      all: [],
+      filtered: [],
+      filters: { type: '', solution: '' },
+      searchQuery: ''
+    },
     // Save guards to prevent double-submit
     isSavingEvent: false,
     isSavingStory: false,
-    isSubmittingNewEvent: false
+    isSubmittingNewEvent: false,
+    isSavingAsset: false,
+    // Asset form state
+    assetForm: {
+      solutions: [],
+      contacts: [],
+      agencies: [],
+      selectedSolutions: [],  // Additional solutions (beyond primary)
+      selectedContacts: [],
+      selectedTags: []
+    }
   };
 
   // Navigation ID for abandoning stale loads
@@ -3399,6 +5046,11 @@ var COMMS = (function() {
     initRichTextField('storyNotes', 'Additional notes...');
     initRichTextField('newEventNotes', 'Any additional details...');
 
+    // Set initial view (Content is the new default)
+    setView(state.currentView || 'content');
+
+    // Load data for Manage tab (pipeline, coverage) in background
+    // These are loaded but not displayed until user switches to Manage
     loadOverview();
     loadStories();
     loadOpportunities();
@@ -3762,22 +5414,106 @@ var COMMS = (function() {
 
   function setView(view) {
     state.currentView = view;
+
+    // Update main tab buttons
     document.querySelectorAll('.view-btn').forEach(function(btn) {
       btn.classList.toggle('active', btn.dataset.view === view);
     });
-    document.getElementById('pipelineView').classList.toggle('active', view === 'pipeline');
-    document.getElementById('eventsView').classList.toggle('active', view === 'events');
-    document.getElementById('coverageView').classList.toggle('active', view === 'coverage');
-    document.getElementById('calendarView').classList.toggle('active', view === 'calendar');
-    document.getElementById('messagingView').classList.toggle('active', view === 'messaging');
-    document.getElementById('toolsView').classList.toggle('active', view === 'tools');
 
-    // Show pipeline stats only on pipeline view
+    // Hide all main view panels
+    var mainViews = ['contentView', 'assetsView', 'eventsView', 'manageView'];
+    mainViews.forEach(function(viewId) {
+      var el = document.getElementById(viewId);
+      if (el) el.classList.remove('active');
+    });
+
+    // Hide legacy view panels (they're shown within Manage sub-tabs)
+    var legacyViews = ['pipelineView', 'coverageView', 'calendarView', 'messagingView', 'toolsView'];
+    legacyViews.forEach(function(viewId) {
+      var el = document.getElementById(viewId);
+      if (el) el.classList.remove('active');
+    });
+
+    // Hide pipeline stats - no longer shown in reorganized Comms
     var pipelineStats = document.getElementById('pipelineStatsRow');
-    if (pipelineStats) pipelineStats.style.display = (view === 'pipeline') ? '' : 'none';
+    if (pipelineStats) {
+      pipelineStats.style.display = 'none';
+    }
 
-    if (view === 'coverage') {
-      // Refresh coverage view when switching to it
+    // Show/hide the manage subtabs bar
+    var subtabsBar = document.getElementById('manageSubtabsBar');
+    if (subtabsBar) {
+      subtabsBar.style.display = (view === 'manage') ? '' : 'none';
+    }
+
+    // Show the selected main view (except for manage which uses legacy views)
+    if (view !== 'manage') {
+      var viewEl = document.getElementById(view + 'View');
+      if (viewEl) viewEl.classList.add('active');
+    }
+
+    // Handle view-specific loading
+    if (view === 'content') {
+      loadContentView();
+    }
+
+    if (view === 'assets') {
+      loadAssetsView();
+    }
+
+    if (view === 'events') {
+      loadEvents();
+    }
+
+    if (view === 'manage') {
+      // Show the current manage sub-tab (this shows the legacy view panels)
+      setManageSubtab(state.manageSubtab || 'pipeline');
+    }
+  }
+
+  /**
+   * Switch between sub-tabs within the Manage view
+   */
+  function setManageSubtab(subtab) {
+    state.manageSubtab = subtab;
+
+    // Update sub-tab buttons in the standalone bar
+    document.querySelectorAll('#manageSubtabsBar .manage-subtab').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.subtab === subtab);
+    });
+
+    // Hide all legacy view panels and manage panels
+    var managePanels = ['pipelineView', 'coverageView', 'calendarView', 'messagingView', 'manageView'];
+    managePanels.forEach(function(panelId) {
+      var el = document.getElementById(panelId);
+      if (el) {
+        el.classList.remove('active');
+        el.style.display = 'none';
+      }
+    });
+
+    // Stats bar removed from Manage view - keep hidden
+    var pipelineStats = document.getElementById('pipelineStatsRow');
+    if (pipelineStats) {
+      pipelineStats.style.display = 'none';
+    }
+
+    // Show the selected sub-tab panel and load its content
+    if (subtab === 'pipeline') {
+      var pipelineEl = document.getElementById('pipelineView');
+      if (pipelineEl) {
+        pipelineEl.classList.add('active');
+        pipelineEl.style.display = '';
+      }
+      // Pipeline should already be loaded by init()
+    }
+
+    if (subtab === 'coverage') {
+      var coverageEl = document.getElementById('coverageView');
+      if (coverageEl) {
+        coverageEl.classList.add('active');
+        coverageEl.style.display = '';
+      }
       if (state.coverage) {
         renderCoverageView();
       } else {
@@ -3785,21 +5521,1119 @@ var COMMS = (function() {
       }
     }
 
-    if (view === 'calendar') {
+    if (subtab === 'calendar') {
+      var calendarEl = document.getElementById('calendarView');
+      if (calendarEl) {
+        calendarEl.classList.add('active');
+        calendarEl.style.display = '';
+      }
       renderCalendar();
       loadUpcomingTargets();
       renderCommsDue();
     }
 
-    if (view === 'events') {
-      loadEvents();
-    }
-
-    if (view === 'messaging') {
+    if (subtab === 'priorities') {
+      // Show the messaging view for priorities (it has the priority chips)
+      var messagingEl = document.getElementById('messagingView');
+      if (messagingEl) {
+        messagingEl.classList.add('active');
+        messagingEl.style.display = '';
+      }
       renderPrioritiesView();
       loadBlurbs();
       renderMessagesView();
     }
+  }
+
+  // ========================================================================
+  // CONTENT VIEW FUNCTIONS
+  // ========================================================================
+
+  var contentSearchTimer = null;  // Debounce timer for search
+
+  /**
+   * Load the Content view
+   */
+  function loadContentView() {
+    // Populate solution dropdown if not already done
+    var solutionSelect = document.getElementById('contentSolutionSelect');
+    if (solutionSelect && solutionSelect.options.length <= 1) {
+      populateContentSolutionDropdown();
+    }
+
+    // Load all content assets for client-side search (use cache)
+    if (state.content.allContent.length === 0) {
+      // Show loading state
+      var quickAccess = document.getElementById('contentQuickAccess');
+      if (quickAccess) {
+        quickAccess.innerHTML = '<div class="loading-state"><span class="loading-spinner"></span><p>Loading content...</p></div>';
+      }
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          if (!isNavigationCurrent(commsNavId)) return;
+          state.content.allContent = data || [];
+          // Restore quick access cards
+          renderQuickAccessCards();
+        })
+        .withFailureHandler(function(err) {
+          handleError(err);
+          renderQuickAccessCards();
+        })
+        .getAllCommsAssets();
+    }
+  }
+
+  /**
+   * Render quick access cards
+   */
+  function renderQuickAccessCards() {
+    var quickAccess = document.getElementById('contentQuickAccess');
+    if (!quickAccess) return;
+
+    quickAccess.innerHTML = '<div class="quick-access-grid">' +
+      '<div class="quick-access-card" onclick="COMMS.showRecentBlurbs()">' +
+        '<span class="material-icons">history</span>' +
+        '<h4>Recent Blurbs</h4>' +
+        '<p>Latest HQ updates and highlights</p>' +
+      '</div>' +
+      '<div class="quick-access-card" onclick="COMMS.showMostUsed()">' +
+        '<span class="material-icons">trending_up</span>' +
+        '<h4>Most Used</h4>' +
+        '<p>Frequently copied content</p>' +
+      '</div>' +
+      '<div class="quick-access-card" onclick="COMMS.showByType()">' +
+        '<span class="material-icons">category</span>' +
+        '<h4>By Type</h4>' +
+        '<p>Browse talking points, facts, quotes</p>' +
+      '</div>' +
+    '</div>';
+  }
+
+  /**
+   * Populate the Content solution dropdown
+   */
+  function populateContentSolutionDropdown() {
+    var select = document.getElementById('contentSolutionSelect');
+    if (!select) return;
+
+    // Use cached solutions if available
+    CachedAPI.getSolutions()
+      .then(function(solutions) {
+        if (!isNavigationCurrent(commsNavId)) return;
+        state.assetForm.solutions = solutions || [];
+
+        // Clear and rebuild options
+        select.innerHTML = '<option value="">All Solutions</option>';
+        solutions.forEach(function(sol) {
+          var opt = document.createElement('option');
+          opt.value = sol.core_id;
+          opt.textContent = sol.core_official_name || sol.core_id;
+          select.appendChild(opt);
+        });
+
+        // Also populate assets filter if it exists
+        populateAssetSolutionFilter();
+      })
+      .catch(handleError);
+  }
+
+  /**
+   * Search content by query (debounced, client-side when possible)
+   */
+  function searchContent(query) {
+    state.content.searchQuery = query;
+
+    // Hide quick access, show search results
+    var quickAccess = document.getElementById('contentQuickAccess');
+    var solutionPanel = document.getElementById('solutionContentPanel');
+    var searchPanel = document.getElementById('searchResultsPanel');
+
+    if (!query || query.length < 2) {
+      // Show quick access, hide others
+      if (quickAccess) quickAccess.style.display = '';
+      if (solutionPanel) solutionPanel.style.display = 'none';
+      if (searchPanel) searchPanel.style.display = 'none';
+      return;
+    }
+
+    // Show search results panel immediately
+    if (quickAccess) quickAccess.style.display = 'none';
+    if (solutionPanel) solutionPanel.style.display = 'none';
+    if (searchPanel) searchPanel.style.display = '';
+
+    // Update query display
+    var queryEl = document.getElementById('searchResultsQuery');
+    if (queryEl) queryEl.textContent = '"' + query + '"';
+
+    // Debounce the actual search
+    if (contentSearchTimer) clearTimeout(contentSearchTimer);
+    contentSearchTimer = setTimeout(function() {
+      performContentSearch(query);
+    }, 200);  // 200ms debounce
+  }
+
+  /**
+   * Perform the actual content search (client-side if data loaded)
+   */
+  function performContentSearch(query) {
+    var lowerQuery = query.toLowerCase();
+
+    // Client-side search if we have content loaded
+    if (state.content.allContent.length > 0) {
+      var results = state.content.allContent.filter(function(item) {
+        var searchText = [
+          item.title || '',
+          item.content || '',
+          item.solution_ids || '',
+          item.tags || '',
+          item.source_name || ''
+        ].join(' ').toLowerCase();
+        return searchText.includes(lowerQuery);
+      });
+
+      // Group by type
+      var grouped = groupContentByType(results);
+      renderSearchResults({ query: query, total: results.length, results: grouped });
+      return;
+    }
+
+    // Fallback to API search if content not loaded yet
+    google.script.run
+      .withSuccessHandler(function(data) {
+        if (!isNavigationCurrent(commsNavId)) return;
+        renderSearchResults(data);
+      })
+      .withFailureHandler(handleError)
+      .searchWhatToSay(query);
+  }
+
+  /**
+   * Group content items by type
+   */
+  function groupContentByType(items) {
+    var grouped = {
+      talking_point: [],
+      fact: [],
+      quote: [],
+      blurb: [],
+      soundbite: [],
+      boilerplate: [],
+      connection: []
+    };
+
+    items.forEach(function(item) {
+      var type = item.asset_type || 'blurb';
+      if (grouped[type]) {
+        grouped[type].push(item);
+      }
+    });
+
+    return grouped;
+  }
+
+  /**
+   * Select a solution to view its content
+   */
+  function selectContentSolution(solutionId) {
+    state.content.selectedSolution = solutionId;
+
+    // Clear search input when selecting solution
+    var searchInput = document.getElementById('contentSearchInput');
+    if (searchInput) searchInput.value = '';
+
+    // Hide quick access and search, show solution panel
+    var quickAccess = document.getElementById('contentQuickAccess');
+    var solutionPanel = document.getElementById('solutionContentPanel');
+    var searchPanel = document.getElementById('searchResultsPanel');
+
+    if (!solutionId) {
+      // Show quick access
+      if (quickAccess) quickAccess.style.display = '';
+      if (solutionPanel) solutionPanel.style.display = 'none';
+      if (searchPanel) searchPanel.style.display = 'none';
+      return;
+    }
+
+    // Show solution panel
+    if (quickAccess) quickAccess.style.display = 'none';
+    if (solutionPanel) solutionPanel.style.display = '';
+    if (searchPanel) searchPanel.style.display = 'none';
+
+    // Update title
+    var titleEl = document.getElementById('solutionContentTitle');
+    var solutions = state.assetForm.solutions || [];
+    var sol = solutions.find(function(s) { return s.core_id === solutionId; });
+    if (titleEl) titleEl.textContent = sol ? sol.core_official_name : solutionId;
+
+    // Client-side filter if content is loaded
+    if (state.content.allContent.length > 0) {
+      var lowerSolutionId = solutionId.toLowerCase();
+      var results = state.content.allContent.filter(function(item) {
+        var solutionIds = (item.solution_ids || '').toLowerCase();
+        return solutionIds.includes(lowerSolutionId);
+      });
+      var grouped = groupContentByType(results);
+      renderSolutionContent({ results: grouped });
+      return;
+    }
+
+    // Fallback to API if content not loaded
+    google.script.run
+      .withSuccessHandler(function(data) {
+        if (!isNavigationCurrent(commsNavId)) return;
+        renderSolutionContent(data);
+      })
+      .withFailureHandler(handleError)
+      .searchWhatToSay(solutionId);
+  }
+
+  /**
+   * Render search results grouped by type
+   */
+  function renderSearchResults(data) {
+    var countEl = document.getElementById('searchResultsCount');
+    if (countEl) countEl.textContent = data.total + ' results';
+
+    var sectionsEl = document.getElementById('searchResultsSections');
+    if (!sectionsEl) return;
+
+    renderContentSections(sectionsEl, data.results);
+  }
+
+  /**
+   * Render solution content grouped by type
+   */
+  function renderSolutionContent(data) {
+    var sectionsEl = document.getElementById('contentTypeSections');
+    if (!sectionsEl) return;
+
+    renderContentSections(sectionsEl, data.results);
+  }
+
+  /**
+   * Render content sections (shared by search results and solution content)
+   */
+  function renderContentSections(container, results) {
+    var typeConfig = [
+      { key: 'talking_point', icon: 'format_quote', label: 'Key Messages' },
+      { key: 'fact', icon: 'analytics', label: 'Facts & Stats' },
+      { key: 'quote', icon: 'chat', label: 'Quotes' },
+      { key: 'blurb', icon: 'description', label: 'Blurbs' },
+      { key: 'soundbite', icon: 'mic', label: 'Sound Bites' },
+      { key: 'boilerplate', icon: 'article', label: 'Boilerplate' },
+      { key: 'connection', icon: 'hub', label: 'Connections' }
+    ];
+
+    var html = '';
+
+    typeConfig.forEach(function(type) {
+      var items = results[type.key] || [];
+      if (items.length === 0) return;
+
+      html += '<div class="content-type-section">';
+      html += '<div class="content-type-header">';
+      html += '<span class="material-icons">' + type.icon + '</span>';
+      html += '<h4>' + type.label + '</h4>';
+      html += '<span class="count-badge">' + items.length + '</span>';
+      html += '</div>';
+      html += '<div class="content-type-items">';
+
+      items.forEach(function(item) {
+        html += renderContentItem(item);
+      });
+
+      html += '</div></div>';
+    });
+
+    if (!html) {
+      html = '<div class="empty-state"><span class="material-icons">search_off</span><p>No content found</p></div>';
+    }
+
+    container.innerHTML = html;
+  }
+
+  /**
+   * Render a single content item
+   */
+  function renderContentItem(item) {
+    var html = '<div class="content-item" data-asset-id="' + escapeAttr(item.asset_id) + '">';
+    html += '<div class="content-item-text">' + escapeHtml(item.content || item.title || '') + '</div>';
+    html += '<div class="content-item-actions">';
+    html += '<button class="btn btn-icon" onclick="COMMS.copyContentItem(\'' + escapeAttr(item.asset_id) + '\', this)" title="Copy">';
+    html += '<span class="material-icons">content_copy</span>';
+    html += '</button>';
+    html += '</div>';
+    html += '</div>';
+    return html;
+  }
+
+  /**
+   * Copy content item to clipboard
+   */
+  function copyContentItem(assetId, btnEl) {
+    var itemEl = btnEl.closest('.content-item');
+    var textEl = itemEl ? itemEl.querySelector('.content-item-text') : null;
+    if (!textEl) return;
+
+    var text = textEl.textContent;
+
+    navigator.clipboard.writeText(text).then(function() {
+      // Visual feedback
+      var icon = btnEl.querySelector('.material-icons');
+      if (icon) {
+        icon.textContent = 'check';
+        setTimeout(function() { icon.textContent = 'content_copy'; }, 2000);
+      }
+
+      // Track usage
+      google.script.run.recordCommsAssetUsage(assetId);
+    }).catch(function() {
+      showToast('Failed to copy', 'error');
+    });
+  }
+
+  /**
+   * Copy all content for the selected solution
+   */
+  function copyAllContent() {
+    var solutionId = state.content.selectedSolution;
+    if (!solutionId) return;
+
+    google.script.run
+      .withSuccessHandler(function(data) {
+        if (!isNavigationCurrent(commsNavId)) return;
+
+        var text = '';
+        var types = ['talking_point', 'fact', 'quote', 'blurb'];
+        types.forEach(function(type) {
+          var items = data.results[type] || [];
+          if (items.length > 0) {
+            text += '=== ' + type.toUpperCase().replace('_', ' ') + ' ===\n\n';
+            items.forEach(function(item) {
+              text += '• ' + (item.content || item.title) + '\n\n';
+            });
+          }
+        });
+
+        navigator.clipboard.writeText(text).then(function() {
+          showToast('Copied all content to clipboard');
+        }).catch(function() {
+          showToast('Failed to copy', 'error');
+        });
+      })
+      .withFailureHandler(handleError)
+      .searchWhatToSay(solutionId);
+  }
+
+  /**
+   * Show recent blurbs (client-side if available)
+   */
+  function showRecentBlurbs() {
+    var searchInput = document.getElementById('contentSearchInput');
+    if (searchInput) searchInput.value = '';
+
+    var solutionSelect = document.getElementById('contentSolutionSelect');
+    if (solutionSelect) solutionSelect.value = '';
+
+    var quickAccess = document.getElementById('contentQuickAccess');
+    var solutionPanel = document.getElementById('solutionContentPanel');
+    var searchPanel = document.getElementById('searchResultsPanel');
+
+    if (quickAccess) quickAccess.style.display = 'none';
+    if (solutionPanel) solutionPanel.style.display = 'none';
+    if (searchPanel) searchPanel.style.display = '';
+
+    var queryEl = document.getElementById('searchResultsQuery');
+    if (queryEl) queryEl.textContent = 'Recent Blurbs';
+
+    // Client-side if content loaded
+    if (state.content.allContent.length > 0) {
+      var blurbs = state.content.allContent
+        .filter(function(item) { return item.asset_type === 'blurb'; })
+        .sort(function(a, b) {
+          var dateA = a.date_captured || a.created_at || '';
+          var dateB = b.date_captured || b.created_at || '';
+          return dateB.localeCompare(dateA);
+        })
+        .slice(0, 20);
+
+      var countEl = document.getElementById('searchResultsCount');
+      if (countEl) countEl.textContent = blurbs.length + ' results';
+
+      var sectionsEl = document.getElementById('searchResultsSections');
+      if (sectionsEl) {
+        renderContentSections(sectionsEl, { blurb: blurbs });
+      }
+      return;
+    }
+
+    // Fallback to API
+    google.script.run
+      .withSuccessHandler(function(blurbs) {
+        if (!isNavigationCurrent(commsNavId)) return;
+
+        var countEl = document.getElementById('searchResultsCount');
+        if (countEl) countEl.textContent = blurbs.length + ' results';
+
+        var sectionsEl = document.getElementById('searchResultsSections');
+        if (sectionsEl) {
+          renderContentSections(sectionsEl, { blurb: blurbs });
+        }
+      })
+      .withFailureHandler(handleError)
+      .getHighlighterBlurbsFromAssets(20);
+  }
+
+  /**
+   * Show most used content (client-side if available)
+   */
+  function showMostUsed() {
+    var searchInput = document.getElementById('contentSearchInput');
+    if (searchInput) searchInput.value = '';
+
+    var solutionSelect = document.getElementById('contentSolutionSelect');
+    if (solutionSelect) solutionSelect.value = '';
+
+    var quickAccess = document.getElementById('contentQuickAccess');
+    var solutionPanel = document.getElementById('solutionContentPanel');
+    var searchPanel = document.getElementById('searchResultsPanel');
+
+    if (quickAccess) quickAccess.style.display = 'none';
+    if (solutionPanel) solutionPanel.style.display = 'none';
+    if (searchPanel) searchPanel.style.display = '';
+
+    var queryEl = document.getElementById('searchResultsQuery');
+    if (queryEl) queryEl.textContent = 'Most Used';
+
+    // Client-side if content loaded
+    if (state.content.allContent.length > 0) {
+      var mostUsed = state.content.allContent
+        .filter(function(item) { return (item.use_count || 0) > 0; })
+        .sort(function(a, b) { return (b.use_count || 0) - (a.use_count || 0); })
+        .slice(0, 20);
+
+      var countEl = document.getElementById('searchResultsCount');
+      if (countEl) countEl.textContent = mostUsed.length + ' results';
+
+      var sectionsEl = document.getElementById('searchResultsSections');
+      if (sectionsEl) {
+        var grouped = groupContentByType(mostUsed);
+        renderContentSections(sectionsEl, grouped);
+      }
+      return;
+    }
+
+    // Fallback to API
+    google.script.run
+      .withSuccessHandler(function(summary) {
+        if (!isNavigationCurrent(commsNavId)) return;
+
+        var mostUsed = summary.most_used || [];
+        var countEl = document.getElementById('searchResultsCount');
+        if (countEl) countEl.textContent = mostUsed.length + ' results';
+
+        var sectionsEl = document.getElementById('searchResultsSections');
+        if (sectionsEl) {
+          var grouped = groupContentByType(mostUsed);
+          renderContentSections(sectionsEl, grouped);
+        }
+      })
+      .withFailureHandler(handleError)
+      .getCommsAssetsSummary();
+  }
+
+  /**
+   * Show content by type (quick links)
+   */
+  function showByType() {
+    // For now, just load all content and let user search
+    var searchInput = document.getElementById('contentSearchInput');
+    if (searchInput) {
+      searchInput.focus();
+      searchInput.placeholder = 'Search by type: blurb, quote, fact...';
+    }
+  }
+
+  /**
+   * Reset Content view to show quick access cards
+   */
+  function resetContentView() {
+    // Clear search and solution selection
+    var searchInput = document.getElementById('contentSearchInput');
+    if (searchInput) {
+      searchInput.value = '';
+      searchInput.placeholder = 'What do you need content about?';
+    }
+
+    var solutionSelect = document.getElementById('contentSolutionSelect');
+    if (solutionSelect) solutionSelect.value = '';
+
+    // Reset state
+    state.content.searchQuery = '';
+    state.content.selectedSolution = '';
+
+    // Show quick access, hide others
+    var quickAccess = document.getElementById('contentQuickAccess');
+    var solutionPanel = document.getElementById('solutionContentPanel');
+    var searchPanel = document.getElementById('searchResultsPanel');
+
+    if (quickAccess) quickAccess.style.display = '';
+    if (solutionPanel) solutionPanel.style.display = 'none';
+    if (searchPanel) searchPanel.style.display = 'none';
+  }
+
+  // ========================================================================
+  // ASSETS VIEW FUNCTIONS
+  // ========================================================================
+
+  /**
+   * Load the Assets view
+   */
+  function loadAssetsView() {
+    // Populate solution filter dropdown if not already done
+    var solutionFilter = document.getElementById('assetSolutionFilter');
+    if (solutionFilter && solutionFilter.options.length <= 1) {
+      populateAssetSolutionFilter();
+    }
+
+    // Load assets - try getFileAssets first, fallback to getAllCommsAssets
+    google.script.run
+      .withSuccessHandler(function(data) {
+        if (!isNavigationCurrent(commsNavId)) return;
+
+        // Filter client-side for assets with URLs or file types
+        var fileTypes = ['image', 'presentation', 'pdf', 'video', 'document', 'graphic'];
+        var fileAssets = (data || []).filter(function(a) {
+          // Has a file-type asset_type
+          if (fileTypes.indexOf(a.asset_type) !== -1) return true;
+          // Has asset_url filled in
+          if (a.asset_url && String(a.asset_url).trim()) return true;
+          // Has source_url that looks like a file (Drive, image, etc.)
+          if (a.source_url && String(a.source_url).includes('drive.google.com')) return true;
+          return false;
+        });
+
+        state.assets.all = fileAssets;
+        state.assets.filtered = fileAssets;
+        renderAssetsGrid();
+      })
+      .withFailureHandler(handleError)
+      .getAllCommsAssets();
+  }
+
+  /**
+   * Populate the Assets solution filter dropdown
+   */
+  function populateAssetSolutionFilter() {
+    var select = document.getElementById('assetSolutionFilter');
+    if (!select) return;
+
+    var solutions = state.assetForm.solutions || [];
+    if (solutions.length === 0) {
+      // Will be populated when assetForm.solutions is loaded
+      return;
+    }
+
+    select.innerHTML = '<option value="">All Solutions</option>';
+    solutions.forEach(function(sol) {
+      var opt = document.createElement('option');
+      opt.value = sol.core_id;
+      opt.textContent = sol.core_official_name || sol.core_id;
+      select.appendChild(opt);
+    });
+  }
+
+  /**
+   * Filter assets based on type, solution, and search
+   */
+  function filterAssets() {
+    var typeFilter = document.getElementById('assetTypeFilter');
+    var solutionFilter = document.getElementById('assetSolutionFilter');
+    var searchInput = document.getElementById('assetsSearchInput');
+
+    var type = typeFilter ? typeFilter.value : '';
+    var solution = solutionFilter ? solutionFilter.value : '';
+    var query = searchInput ? searchInput.value.toLowerCase() : '';
+
+    state.assets.filters.type = type;
+    state.assets.filters.solution = solution;
+    state.assets.searchQuery = query;
+
+    state.assets.filtered = state.assets.all.filter(function(asset) {
+      // Type filter
+      if (type && asset.asset_file_type !== type && asset.asset_type !== type) {
+        return false;
+      }
+
+      // Solution filter
+      if (solution) {
+        var solutionIds = (asset.solution_ids || '').toLowerCase();
+        if (!solutionIds.includes(solution.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Search filter
+      if (query) {
+        var searchText = [asset.title, asset.content, asset.tags, asset.solution_ids].join(' ').toLowerCase();
+        if (!searchText.includes(query)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    renderAssetsGrid();
+  }
+
+  /**
+   * Render the assets grid
+   */
+  function renderAssetsGrid() {
+    var grid = document.getElementById('assetsGrid');
+    if (!grid) return;
+
+    var assets = state.assets.filtered;
+
+    if (assets.length === 0) {
+      grid.innerHTML = '<div class="empty-state"><span class="material-icons">perm_media</span><p>No assets found</p></div>';
+      return;
+    }
+
+    var html = assets.map(function(asset) {
+      return renderAssetCard(asset);
+    }).join('');
+
+    grid.innerHTML = html;
+  }
+
+  /**
+   * Render a single asset card
+   */
+  function renderAssetCard(asset) {
+    var thumbnailHtml = '';
+
+    // Use iframe preview for Drive files
+    if (asset.asset_url && asset.asset_url.includes('drive.google.com')) {
+      var match = asset.asset_url.match(/[-\w]{25,}/);
+      if (match) {
+        var fileId = match[0];
+        thumbnailHtml = '<iframe src="https://drive.google.com/file/d/' + fileId + '/preview" loading="lazy"></iframe>';
+      } else {
+        var icon = getFileTypeIcon(asset.asset_file_type || asset.asset_type);
+        thumbnailHtml = '<span class="material-icons">' + icon + '</span>';
+      }
+    } else {
+      var icon = getFileTypeIcon(asset.asset_file_type || asset.asset_type);
+      thumbnailHtml = '<span class="material-icons">' + icon + '</span>';
+    }
+
+    var solutionDisplay = (asset.solution_ids || '').split(',')[0] || '';
+
+    var html = '<div class="asset-card" onclick="COMMS.showAssetDetail(\'' + escapeAttr(asset.asset_id) + '\')">';
+    html += '<div class="asset-card-thumbnail">' + thumbnailHtml + '</div>';
+    html += '<div class="asset-card-info">';
+    html += '<div class="asset-card-title">' + escapeHtml(asset.title || 'Untitled') + '</div>';
+    html += '<div class="asset-card-meta">' + escapeHtml(solutionDisplay) + '</div>';
+    html += '</div>';
+    html += '<div class="asset-card-actions">';
+    html += '<button class="btn btn-secondary" onclick="event.stopPropagation(); COMMS.copyAssetLink(\'' + escapeAttr(asset.asset_id) + '\')">Copy Link</button>';
+    html += '</div>';
+    html += '</div>';
+    return html;
+  }
+
+  /**
+   * Get icon for file type
+   */
+  function getFileTypeIcon(fileType) {
+    var icons = {
+      'image': 'image',
+      'presentation': 'slideshow',
+      'pdf': 'picture_as_pdf',
+      'video': 'videocam',
+      'document': 'description',
+      'graphic': 'brush'
+    };
+    return icons[fileType] || 'insert_drive_file';
+  }
+
+  /**
+   * Show asset detail modal with preview
+   */
+  function showAssetDetail(assetId) {
+    var asset = state.assets.all.find(function(a) { return a.asset_id === assetId; });
+    if (!asset) return;
+
+    var modal = document.getElementById('assetDetailModal');
+    var titleEl = document.getElementById('assetDetailTitle');
+    var previewContainer = document.getElementById('assetPreviewContainer');
+    var infoContainer = document.getElementById('assetDetailInfo');
+
+    // Store asset info on modal for footer buttons
+    modal.dataset.assetId = assetId;
+    modal.dataset.assetUrl = asset.asset_url || '';
+
+    // Set title
+    titleEl.textContent = asset.title || 'Asset Preview';
+
+    // Build preview content
+    var previewHtml = '';
+    if (asset.asset_url && asset.asset_url.includes('drive.google.com')) {
+      // Extract file ID and use Drive preview
+      var match = asset.asset_url.match(/[-\w]{25,}/);
+      if (match) {
+        var fileId = match[0];
+        previewHtml = '<iframe src="https://drive.google.com/file/d/' + fileId + '/preview" allow="autoplay"></iframe>';
+      }
+    } else if (asset.asset_url) {
+      // Try to show as image or link
+      var fileType = asset.asset_file_type || asset.asset_type;
+      if (fileType === 'image') {
+        previewHtml = '<img src="' + escapeAttr(asset.asset_url) + '" alt="' + escapeAttr(asset.title) + '" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">';
+        previewHtml += '<span class="material-icons preview-icon" style="display:none;">broken_image</span>';
+      } else {
+        var icon = getFileTypeIcon(fileType);
+        previewHtml = '<span class="material-icons preview-icon">' + icon + '</span>';
+      }
+    } else {
+      previewHtml = '<span class="material-icons preview-icon">insert_drive_file</span>';
+    }
+    previewContainer.innerHTML = previewHtml;
+
+    // Build info panel
+    var infoHtml = '';
+
+    if (asset.content && !asset.content.startsWith('[File:')) {
+      infoHtml += '<div class="detail-row"><div class="detail-label">Description</div><div class="detail-value">' + escapeHtml(asset.content) + '</div></div>';
+    }
+    if (asset.solution_ids) {
+      infoHtml += '<div class="detail-row"><div class="detail-label">Solutions</div><div class="detail-value">' + escapeHtml(asset.solution_ids) + '</div></div>';
+    }
+    if (asset.asset_file_type) {
+      infoHtml += '<div class="detail-row"><div class="detail-label">Type</div><div class="detail-value">' + escapeHtml(asset.asset_file_type) + '</div></div>';
+    }
+    if (asset.usage_rights) {
+      infoHtml += '<div class="detail-row"><div class="detail-label">Usage Rights</div><div class="detail-value">' + escapeHtml(asset.usage_rights) + '</div></div>';
+    }
+    if (asset.rights_holder) {
+      infoHtml += '<div class="detail-row"><div class="detail-label">Rights Holder</div><div class="detail-value">' + escapeHtml(asset.rights_holder) + '</div></div>';
+    }
+    if (asset.tags) {
+      infoHtml += '<div class="detail-row"><div class="detail-label">Tags</div><div class="detail-value">' + escapeHtml(asset.tags) + '</div></div>';
+    }
+    if (asset.date_captured) {
+      infoHtml += '<div class="detail-row"><div class="detail-label">Date Added</div><div class="detail-value">' + escapeHtml(asset.date_captured) + '</div></div>';
+    }
+
+    infoContainer.innerHTML = infoHtml || '<p class="text-muted">No additional details available.</p>';
+
+    // Show modal
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  /**
+   * Close asset detail modal
+   */
+  function closeAssetDetailModal() {
+    var modal = document.getElementById('assetDetailModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    // Clear preview to stop any video/audio
+    document.getElementById('assetPreviewContainer').innerHTML = '';
+  }
+
+  /**
+   * Copy asset link to clipboard
+   */
+  function copyAssetLink(assetId) {
+    var asset = state.assets.all.find(function(a) { return a.asset_id === assetId; });
+    if (!asset || !asset.asset_url) {
+      showToast('No link available', 'error');
+      return;
+    }
+
+    var text = asset.asset_url;
+    if (asset.attribution_text) {
+      text += '\n\nAttribution: ' + asset.attribution_text;
+    }
+
+    navigator.clipboard.writeText(text).then(function() {
+      showToast('Link copied to clipboard');
+      google.script.run.recordCommsAssetUsage(assetId);
+    }).catch(function() {
+      showToast('Failed to copy', 'error');
+    });
+  }
+
+  /**
+   * Toggle the upload dropzone visibility
+   */
+  function toggleUploadDropzone() {
+    var container = document.getElementById('uploadDropzoneContainer');
+    var metadataForm = document.getElementById('uploadMetadataForm');
+    var progressContainer = document.getElementById('uploadProgressContainer');
+
+    if (container) {
+      var isVisible = container.style.display !== 'none';
+      container.style.display = isVisible ? 'none' : '';
+
+      // Hide metadata form and progress when closing
+      if (isVisible) {
+        if (metadataForm) metadataForm.style.display = 'none';
+        if (progressContainer) progressContainer.style.display = 'none';
+      }
+    }
+  }
+
+  /**
+   * Handle drag over event
+   */
+  function handleUploadDragOver(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    var dropzone = document.getElementById('uploadDropzone');
+    if (dropzone) dropzone.classList.add('drag-over');
+  }
+
+  /**
+   * Handle drag leave event
+   */
+  function handleUploadDragLeave(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    var dropzone = document.getElementById('uploadDropzone');
+    if (dropzone) dropzone.classList.remove('drag-over');
+  }
+
+  /**
+   * Handle file drop event
+   */
+  function handleUploadDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    var dropzone = document.getElementById('uploadDropzone');
+    if (dropzone) dropzone.classList.remove('drag-over');
+
+    var files = event.dataTransfer.files;
+    if (files.length > 0) {
+      processUploadFiles(files);
+    }
+  }
+
+  /**
+   * Handle file selection via input
+   */
+  function handleFileSelect(event) {
+    var files = event.target.files;
+    if (files.length > 0) {
+      processUploadFiles(files);
+    }
+  }
+
+  // Track pending file for upload
+  var pendingFile = null;
+  var pendingFileBase64 = null;
+
+  /**
+   * Process files for upload - show metadata form FIRST
+   */
+  function processUploadFiles(files) {
+    var file = files[0];
+    if (!file) return;
+
+    // Read file as base64 and store it
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      pendingFile = file;
+      pendingFileBase64 = e.target.result.split(',')[1];  // Remove data:... prefix
+
+      // Show metadata form
+      showUploadMetadataForm(file.name);
+    };
+
+    reader.onerror = function() {
+      showToast('Failed to read file', 'error');
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  /**
+   * Show metadata form BEFORE upload
+   */
+  function showUploadMetadataForm(filename) {
+    var dropzoneContainer = document.getElementById('uploadDropzoneContainer');
+    var metadataForm = document.getElementById('uploadMetadataForm');
+
+    if (dropzoneContainer) dropzoneContainer.style.display = 'none';
+    if (metadataForm) metadataForm.style.display = '';
+
+    // Pre-fill title from filename (without extension)
+    var titleInput = document.getElementById('uploadAssetTitle');
+    if (titleInput) {
+      var title = filename.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+      titleInput.value = title;
+    }
+
+    // Clear other fields
+    var descInput = document.getElementById('uploadAssetDescription');
+    if (descInput) descInput.value = '';
+    var tagsInput = document.getElementById('uploadAssetTags');
+    if (tagsInput) tagsInput.value = '';
+
+    // Populate solution dropdown
+    var solutionSelect = document.getElementById('uploadAssetSolution');
+    if (solutionSelect) {
+      var solutions = state.assetForm.solutions || [];
+      solutionSelect.innerHTML = '<option value="">Select solution...</option>';
+      solutions.forEach(function(sol) {
+        var opt = document.createElement('option');
+        opt.value = sol.core_id;
+        opt.textContent = sol.core_official_name || sol.core_id;
+        solutionSelect.appendChild(opt);
+      });
+    }
+  }
+
+  /**
+   * Cancel upload and close form
+   */
+  function cancelUploadMetadata() {
+    var metadataForm = document.getElementById('uploadMetadataForm');
+    var progressContainer = document.getElementById('uploadProgressContainer');
+
+    if (metadataForm) metadataForm.style.display = 'none';
+    if (progressContainer) progressContainer.style.display = 'none';
+
+    pendingFile = null;
+    pendingFileBase64 = null;
+
+    // Reset file input
+    var fileInput = document.getElementById('assetFileInput');
+    if (fileInput) fileInput.value = '';
+  }
+
+  /**
+   * Upload file with metadata
+   */
+  function saveUploadedAsset() {
+    if (!pendingFile || !pendingFileBase64) {
+      showToast('No file selected', 'error');
+      return;
+    }
+
+    var title = document.getElementById('uploadAssetTitle').value.trim();
+    var solution = document.getElementById('uploadAssetSolution').value;
+    var description = document.getElementById('uploadAssetDescription').value.trim();
+    var rights = document.getElementById('uploadAssetRights').value;
+    var tags = document.getElementById('uploadAssetTags').value.trim();
+
+    if (!title) {
+      showToast('Title is required', 'error');
+      return;
+    }
+
+    // Show progress
+    var metadataForm = document.getElementById('uploadMetadataForm');
+    var progressContainer = document.getElementById('uploadProgressContainer');
+    var filenameEl = document.getElementById('uploadFilename');
+    var progressFill = document.getElementById('uploadProgressFill');
+    var statusEl = document.getElementById('uploadStatus');
+
+    if (metadataForm) metadataForm.style.display = 'none';
+    if (progressContainer) progressContainer.style.display = '';
+    if (filenameEl) filenameEl.textContent = pendingFile.name;
+    if (progressFill) progressFill.style.width = '30%';
+    if (statusEl) {
+      statusEl.textContent = 'Uploading to Drive...';
+      statusEl.className = 'upload-status';
+    }
+
+    // Build metadata object
+    var metadata = {
+      title: title,
+      content: description || title,
+      solution_ids: solution,
+      usage_rights: rights,
+      tags: tags
+    };
+
+    // Upload with metadata
+    google.script.run
+      .withSuccessHandler(function(result) {
+        console.log('Upload result:', result);
+        if (progressFill) progressFill.style.width = '100%';
+
+        if (result && result.success) {
+          if (statusEl) {
+            statusEl.textContent = 'Uploaded!';
+            statusEl.className = 'upload-status success';
+          }
+          showToast('Asset uploaded successfully');
+
+          // Clear and refresh after short delay
+          setTimeout(function() {
+            if (progressContainer) progressContainer.style.display = 'none';
+            pendingFile = null;
+            pendingFileBase64 = null;
+            var fileInput = document.getElementById('assetFileInput');
+            if (fileInput) fileInput.value = '';
+            loadAssetsView();  // Refresh the grid
+          }, 1000);
+        } else {
+          var errorMsg = result ? result.error : 'Upload failed';
+          console.error('Upload error:', errorMsg);
+          if (statusEl) {
+            statusEl.textContent = errorMsg;
+            statusEl.className = 'upload-status error';
+          }
+          showToast(errorMsg, 'error');
+        }
+      })
+      .withFailureHandler(function(error) {
+        console.error('Upload failure:', error);
+        if (progressFill) progressFill.style.width = '100%';
+        var errorMsg = error.message || 'Upload failed';
+        if (statusEl) {
+          statusEl.textContent = errorMsg;
+          statusEl.className = 'upload-status error';
+        }
+        showToast(errorMsg, 'error');
+      })
+      .uploadCommsAssetWithMetadata(pendingFileBase64, pendingFile.name, pendingFile.type, metadata);
+  }
+
+  /**
+   * Show upload asset modal (legacy - now toggles dropzone)
+   */
+  function showUploadAssetModal() {
+    toggleUploadDropzone();
+  }
+
+  // ========================================================================
+  // MANAGE VIEW FUNCTIONS
+  // ========================================================================
+
+  /**
+   * Render priorities view within Manage tab
+   */
+  function renderManagePrioritiesView() {
+    // Reuse the existing priorities rendering logic
+    renderPrioritiesView();
+
+    // Move the chips to the manage panel
+    var sourceChips = document.getElementById('priorityChips');
+    var targetChips = document.getElementById('managePriorityChips');
+    var sourceDetail = document.getElementById('priorityDetail');
+    var targetDetail = document.getElementById('managePriorityDetail');
+
+    // The existing renderPrioritiesView populates the messaging view elements
+    // For now, just trigger the load - in a future iteration we could move the HTML
   }
 
   // Priority data cache
@@ -4143,7 +6977,561 @@ var COMMS = (function() {
   }
 
   function showNewBlurbModal() {
-    // Open the story modal pre-configured for highlighter blurb
+    // Open the Add Asset modal pre-configured for blurb type
+    showAddAssetModal('blurb');
+  }
+
+  // ============================================================================
+  // ADD ASSET MODAL FUNCTIONS
+  // ============================================================================
+
+  /**
+   * Show the Add Asset modal, optionally pre-selecting an asset type
+   * @param {string} preselectedType - Optional asset type to pre-select
+   */
+  function showAddAssetModal(preselectedType) {
+    // Reset form
+    document.getElementById('addAssetForm').reset();
+    document.getElementById('editAssetId').value = '';
+    document.getElementById('addAssetModalTitle').textContent = 'Add Communications Asset';
+
+    // Reset selections
+    state.assetForm.selectedSolutions = [];
+    state.assetForm.selectedContacts = [];
+    state.assetForm.selectedTags = [];
+
+    // Clear displays
+    document.getElementById('assetSolutionTags').innerHTML = '';
+    document.getElementById('assetSelectedContacts').innerHTML = '';
+
+    // Reset tag suggestions
+    document.querySelectorAll('.tag-suggestion').forEach(function(btn) {
+      btn.classList.remove('selected');
+    });
+
+    // Reset section toggles
+    document.getElementById('affiliationsSection').classList.remove('collapsed');
+    document.getElementById('affiliationsToggleIcon').textContent = 'expand_more';
+    document.getElementById('tagsSection').classList.remove('collapsed');
+    document.getElementById('tagsToggleIcon').textContent = 'expand_more';
+    document.getElementById('moreOptionsSection').classList.add('collapsed');
+    document.getElementById('moreOptionsToggleIcon').textContent = 'chevron_right';
+
+    // Update affiliation badge
+    updateAffiliationsBadge();
+
+    // Pre-select asset type if provided
+    if (preselectedType) {
+      document.getElementById('assetType').value = preselectedType;
+      onAssetTypeChange();
+
+      // Update title based on type
+      var typeLabels = {
+        'blurb': 'Add Highlighter Blurb',
+        'talking_point': 'Add Talking Point',
+        'quote': 'Add Quote',
+        'fact': 'Add Fact/Statistic',
+        'soundbite': 'Add Sound Bite',
+        'boilerplate': 'Add Boilerplate',
+        'connection': 'Add Connection'
+      };
+      document.getElementById('addAssetModalTitle').textContent = typeLabels[preselectedType] || 'Add Communications Asset';
+    }
+
+    // Load dropdown data if not already loaded
+    loadAssetFormData();
+
+    // Show modal
+    document.getElementById('addAssetModal').classList.add('active');
+  }
+
+  /**
+   * Load solutions, contacts, and agencies for the asset form
+   */
+  function loadAssetFormData() {
+    // Load solutions if not cached
+    if (state.assetForm.solutions.length === 0) {
+      google.script.run
+        .withSuccessHandler(function(solutions) {
+          state.assetForm.solutions = solutions || [];
+          populateSolutionDropdowns();
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load solutions:', error);
+        })
+        .getAllSolutions();
+    } else {
+      populateSolutionDropdowns();
+    }
+
+    // Load contacts if not cached
+    if (state.assetForm.contacts.length === 0) {
+      google.script.run
+        .withSuccessHandler(function(contacts) {
+          state.assetForm.contacts = contacts || [];
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load contacts:', error);
+        })
+        .getAllContacts();
+    }
+
+    // Load agencies if not cached
+    if (state.assetForm.agencies.length === 0) {
+      google.script.run
+        .withSuccessHandler(function(agencies) {
+          state.assetForm.agencies = agencies || [];
+          populateAgencyDropdown();
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load agencies:', error);
+        })
+        .getAllAgencies();
+    } else {
+      populateAgencyDropdown();
+    }
+  }
+
+  /**
+   * Populate solution dropdowns (Primary and Additional)
+   */
+  function populateSolutionDropdowns() {
+    var primarySelect = document.getElementById('assetPrimarySolution');
+    var additionalSelect = document.getElementById('addAssetSolution');
+
+    var options = '<option value="">-- Select Solution --</option>';
+    var addOptions = '<option value="">+ Add solution...</option>';
+
+    state.assetForm.solutions.forEach(function(sol) {
+      var name = sol.core_official_name || sol.core_id;
+      options += '<option value="' + escapeHtml(sol.core_id) + '">' + escapeHtml(name) + '</option>';
+      addOptions += '<option value="' + escapeHtml(sol.core_id) + '">' + escapeHtml(name) + '</option>';
+    });
+
+    primarySelect.innerHTML = options;
+    additionalSelect.innerHTML = addOptions;
+  }
+
+  /**
+   * Handle primary solution change
+   */
+  function onPrimarySolutionChange() {
+    updateAffiliationsBadge();
+  }
+
+  /**
+   * Add an additional solution tag
+   */
+  function addAssetSolution(solutionId) {
+    if (!solutionId) return;
+
+    // Don't add duplicates
+    if (state.assetForm.selectedSolutions.includes(solutionId)) return;
+
+    // Don't add if it's the primary solution
+    var primary = document.getElementById('assetPrimarySolution').value;
+    if (solutionId === primary) return;
+
+    state.assetForm.selectedSolutions.push(solutionId);
+    renderAssetSolutionTags();
+    updateAffiliationsBadge();
+  }
+
+  /**
+   * Remove an additional solution
+   */
+  function removeAssetSolution(solutionId) {
+    var index = state.assetForm.selectedSolutions.indexOf(solutionId);
+    if (index > -1) {
+      state.assetForm.selectedSolutions.splice(index, 1);
+      renderAssetSolutionTags();
+      updateAffiliationsBadge();
+    }
+  }
+
+  /**
+   * Render additional solution tags
+   */
+  function renderAssetSolutionTags() {
+    var container = document.getElementById('assetSolutionTags');
+    if (state.assetForm.selectedSolutions.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    var html = state.assetForm.selectedSolutions.map(function(id) {
+      var sol = state.assetForm.solutions.find(function(s) { return s.core_id === id; });
+      var name = sol ? (sol.core_official_name || id) : id;
+      return '<span class="asset-solution-tag">' +
+        escapeHtml(name) +
+        '<button type="button" class="asset-solution-tag-remove" onclick="COMMS.removeAssetSolution(\'' + escapeHtml(id) + '\')">' +
+          '<span class="material-icons">close</span>' +
+        '</button>' +
+      '</span>';
+    }).join('');
+
+    container.innerHTML = html;
+  }
+
+  /**
+   * Populate agency dropdown with readable names
+   */
+  function populateAgencyDropdown() {
+    var select = document.getElementById('assetAgency');
+    var html = '<option value="">-- Select Agency --</option>';
+
+    state.assetForm.agencies.forEach(function(agency) {
+      // Use abbreviation/acronym first, then name, then agency_id as fallback
+      var label = agency.abbreviation || agency.acronym || agency.name || agency.agency_name || agency.agency_id;
+      // If there's a full name that differs, append it
+      var fullName = agency.full_name || agency.agency_name;
+      if (fullName && fullName !== label && label.length < 10) {
+        label += ' - ' + fullName;
+      }
+      html += '<option value="' + escapeHtml(agency.agency_id) + '">' + escapeHtml(label) + '</option>';
+    });
+
+    select.innerHTML = html;
+  }
+
+  // Contact Picker Functions (like SEP engagement modal)
+  var assetContactSearchTimeout = null;
+
+  function searchAssetContacts(query) {
+    clearTimeout(assetContactSearchTimeout);
+    assetContactSearchTimeout = setTimeout(function() {
+      renderAssetContactResults(query);
+    }, 150);
+  }
+
+  function showAssetContactResults() {
+    document.getElementById('assetContactResults').classList.add('active');
+    renderAssetContactResults(document.getElementById('assetContactSearchInput').value);
+  }
+
+  function hideAssetContactResults() {
+    // Delay to allow click events on results
+    setTimeout(function() {
+      document.getElementById('assetContactResults').classList.remove('active');
+    }, 200);
+  }
+
+  function renderAssetContactResults(query) {
+    var container = document.getElementById('assetContactResults');
+    var contacts = state.assetForm.contacts;
+
+    if (!query || query.length < 2) {
+      container.innerHTML = '<div class="asset-contact-results-empty">Type to search contacts...</div>';
+      return;
+    }
+
+    var lowerQuery = query.toLowerCase();
+    var filtered = contacts.filter(function(c) {
+      // Exclude already selected
+      if (state.assetForm.selectedContacts.includes(c.email)) return false;
+
+      var searchText = ((c.first_name || '') + ' ' + (c.last_name || '') + ' ' + (c.email || '')).toLowerCase();
+      return searchText.includes(lowerQuery);
+    }).slice(0, 10);
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="asset-contact-results-empty">No contacts found</div>';
+      return;
+    }
+
+    var html = filtered.map(function(c) {
+      var name = ((c.first_name || '') + ' ' + (c.last_name || '')).trim() || c.email;
+      var org = c.organization || c.agency || '';
+      return '<div class="asset-contact-result-item" onmousedown="COMMS.selectAssetContact(\'' + escapeHtml(c.email) + '\')">' +
+        '<div class="asset-contact-result-info">' +
+          '<div class="asset-contact-result-name">' + escapeHtml(name) + '</div>' +
+          '<div class="asset-contact-result-detail">' + escapeHtml(c.email) + (org ? ' • ' + escapeHtml(org) : '') + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    container.innerHTML = html;
+  }
+
+  function selectAssetContact(email) {
+    if (state.assetForm.selectedContacts.includes(email)) return;
+
+    state.assetForm.selectedContacts.push(email);
+    renderAssetSelectedContacts();
+    updateAffiliationsBadge();
+
+    // Clear search
+    document.getElementById('assetContactSearchInput').value = '';
+    document.getElementById('assetContactResults').classList.remove('active');
+  }
+
+  function removeAssetContact(email) {
+    var index = state.assetForm.selectedContacts.indexOf(email);
+    if (index > -1) {
+      state.assetForm.selectedContacts.splice(index, 1);
+      renderAssetSelectedContacts();
+      updateAffiliationsBadge();
+    }
+  }
+
+  function renderAssetSelectedContacts() {
+    var container = document.getElementById('assetSelectedContacts');
+    if (state.assetForm.selectedContacts.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    var html = state.assetForm.selectedContacts.map(function(email) {
+      var contact = state.assetForm.contacts.find(function(c) { return c.email === email; });
+      var name = contact ? ((contact.first_name || '') + ' ' + (contact.last_name || '')).trim() : email;
+      name = name || email;
+      return '<span class="asset-contact-chip">' +
+        '<span class="asset-contact-chip-name">' + escapeHtml(name) + '</span>' +
+        '<button type="button" class="asset-contact-chip-remove" onclick="COMMS.removeAssetContact(\'' + escapeHtml(email) + '\')">' +
+          '<span class="material-icons">close</span>' +
+        '</button>' +
+      '</span>';
+    }).join('');
+
+    container.innerHTML = html;
+  }
+
+  /**
+   * Update the affiliations badge count
+   */
+  function updateAffiliationsBadge() {
+    var primarySol = document.getElementById('assetPrimarySolution') ? document.getElementById('assetPrimarySolution').value : '';
+    var agency = document.getElementById('assetAgency') ? document.getElementById('assetAgency').value : '';
+
+    var total = (primarySol ? 1 : 0) +
+                state.assetForm.selectedSolutions.length +
+                state.assetForm.selectedContacts.length +
+                (agency ? 1 : 0);
+
+    var badge = document.getElementById('affiliationsBadge');
+    if (badge) {
+      badge.textContent = total;
+      badge.dataset.count = total;
+    }
+  }
+
+  /**
+   * Toggle collapsible form sections
+   */
+  function toggleAssetSection(sectionId) {
+    var section = document.getElementById(sectionId + 'Section');
+    var icon = document.getElementById(sectionId + 'ToggleIcon');
+    if (!section || !icon) return;
+
+    var isCollapsed = section.classList.contains('collapsed');
+    section.classList.toggle('collapsed');
+    icon.textContent = isCollapsed ? 'expand_more' : 'chevron_right';
+  }
+
+  /**
+   * Toggle a thematic tag
+   */
+  function toggleTag(tag) {
+    var btn = document.querySelector('.tag-suggestion[data-tag="' + tag + '"]');
+    var index = state.assetForm.selectedTags.indexOf(tag);
+
+    if (index === -1) {
+      state.assetForm.selectedTags.push(tag);
+      if (btn) btn.classList.add('selected');
+    } else {
+      state.assetForm.selectedTags.splice(index, 1);
+      if (btn) btn.classList.remove('selected');
+    }
+  }
+
+  /**
+   * Update content hint based on asset type
+   */
+  function onAssetTypeChange() {
+    var type = document.getElementById('assetType').value;
+    var hint = document.getElementById('assetContentHint');
+
+    var hints = {
+      'blurb': '2-3 sentences recommended for HQ updates',
+      'talking_point': 'Key message with supporting detail',
+      'quote': 'Include attribution in Source Name field',
+      'fact': 'Include data source in Source Name field',
+      'soundbite': 'Short and punchy - 1-2 sentences max',
+      'boilerplate': 'Standard program description',
+      'connection': 'Describe the relationship between solution and user/agency'
+    };
+
+    hint.textContent = hints[type] || '';
+  }
+
+  /**
+   * Show the Add Contact for Asset modal
+   */
+  function showAddContactForAsset() {
+    document.getElementById('addContactForAssetForm').reset();
+    document.getElementById('addContactForAssetModal').classList.add('active');
+  }
+
+  /**
+   * Submit new contact and add to selection
+   */
+  function submitContactForAsset(event) {
+    event.preventDefault();
+
+    var contactData = {
+      first_name: document.getElementById('assetContactFirstName').value.trim(),
+      last_name: document.getElementById('assetContactLastName').value.trim(),
+      email: document.getElementById('assetContactEmail').value.trim(),
+      organization: document.getElementById('assetContactOrg').value.trim(),
+      title: document.getElementById('assetContactTitle').value.trim()
+    };
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result && result.success) {
+          // Add to contacts cache
+          state.assetForm.contacts.push(contactData);
+          // Select the new contact
+          state.assetForm.selectedContacts.push(contactData.email);
+          renderAssetSelectedContacts();
+          updateAffiliationsBadge();
+          closeModal('addContactForAssetModal');
+          window.showSuccess('Contact added and selected');
+        } else {
+          window.showError(result ? result.error : 'Failed to add contact');
+        }
+      })
+      .withFailureHandler(function(error) {
+        window.showError('Failed to add contact: ' + error);
+      })
+      .createContact(contactData);
+  }
+
+  /**
+   * Submit the asset form
+   */
+  function submitAsset(event) {
+    event.preventDefault();
+    if (state.isSavingAsset) return;
+
+    var assetType = document.getElementById('assetType').value;
+    var title = document.getElementById('assetTitle').value.trim();
+    var content = document.getElementById('assetContent').value.trim();
+
+    if (!assetType || !title || !content) {
+      window.showError('Please fill in all required fields');
+      return;
+    }
+
+    state.isSavingAsset = true;
+    var btn = document.getElementById('saveAssetBtn');
+    var originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="loading-spinner-sm"></span> Saving...';
+    btn.disabled = true;
+
+    // Collect all tags (suggested + custom)
+    var allTags = state.assetForm.selectedTags.slice();
+    var customTags = document.getElementById('customTags').value.trim();
+    if (customTags) {
+      customTags.split(',').forEach(function(t) {
+        var tag = t.trim();
+        if (tag && !allTags.includes(tag)) {
+          allTags.push(tag);
+        }
+      });
+    }
+
+    // Collect channels
+    var channels = [];
+    document.querySelectorAll('input[name="assetChannel"]:checked').forEach(function(cb) {
+      channels.push(cb.value);
+    });
+
+    // Collect solution IDs (primary + additional)
+    var solutionIds = [];
+    var primarySol = document.getElementById('assetPrimarySolution').value;
+    if (primarySol) solutionIds.push(primarySol);
+    state.assetForm.selectedSolutions.forEach(function(id) {
+      if (!solutionIds.includes(id)) solutionIds.push(id);
+    });
+
+    var assetData = {
+      asset_type: assetType,
+      title: title,
+      content: content,
+      status: document.getElementById('assetStatus').value,
+      solution_ids: solutionIds.join(','),
+      agency_ids: document.getElementById('assetAgency').value,
+      contact_ids: state.assetForm.selectedContacts.join(','),
+      tags: allTags.join(','),
+      source_name: document.getElementById('assetSourceName').value.trim(),
+      source_type: document.getElementById('assetSourceType').value,
+      source_url: document.getElementById('assetSourceUrl').value.trim(),
+      attribution_text: document.getElementById('assetAttribution').value.trim(),
+      audience: document.getElementById('assetAudience').value,
+      tone: document.getElementById('assetTone').value,
+      channels: channels.join(',') || 'all',
+      usage_notes: document.getElementById('assetUsageNotes').value.trim(),
+      expiration_date: document.getElementById('assetExpirationDate').value
+    };
+
+    var assetId = document.getElementById('editAssetId').value;
+
+    if (assetId) {
+      // Update existing
+      google.script.run
+        .withSuccessHandler(function(result) {
+          state.isSavingAsset = false;
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+
+          if (result && result.success) {
+            closeModal('addAssetModal');
+            loadBlurbs();
+            window.showSuccess('Asset updated successfully');
+          } else {
+            window.showError(result ? result.error : 'Failed to update asset');
+          }
+        })
+        .withFailureHandler(function(error) {
+          state.isSavingAsset = false;
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+          window.showError('Failed to update asset: ' + error);
+        })
+        .updateCommsAsset(assetId, assetData);
+    } else {
+      // Create new
+      google.script.run
+        .withSuccessHandler(function(result) {
+          state.isSavingAsset = false;
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+
+          if (result && result.success) {
+            closeModal('addAssetModal');
+            loadBlurbs();
+            window.showSuccess('Asset created successfully');
+          } else {
+            window.showError(result ? result.error : 'Failed to create asset');
+          }
+        })
+        .withFailureHandler(function(error) {
+          state.isSavingAsset = false;
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+          window.showError('Failed to create asset: ' + error);
+        })
+        .createCommsAsset(assetData);
+    }
+  }
+
+  // ============================================================================
+  // END ADD ASSET MODAL FUNCTIONS
+  // ============================================================================
+
+  function showNewBlurbModalLegacy() {
+    // Legacy: Open the story modal pre-configured for highlighter blurb
     document.getElementById('editStoryModalTitle').textContent = 'New Highlighter Blurb';
     document.getElementById('editStoryId').value = '';
     document.getElementById('storyTitle').value = '';
@@ -6600,7 +9988,50 @@ var COMMS = (function() {
     // Presentation Builder functions
     showPresentationBuilder: showPresentationBuilder,
     generatePresentation: generatePresentation,
-    resetPresentationBuilder: resetPresentationBuilder
+    resetPresentationBuilder: resetPresentationBuilder,
+    // Add Asset functions
+    showAddAssetModal: showAddAssetModal,
+    submitAsset: submitAsset,
+    onAssetTypeChange: onAssetTypeChange,
+    toggleAssetSection: toggleAssetSection,
+    toggleTag: toggleTag,
+    // Asset affiliation functions
+    onPrimarySolutionChange: onPrimarySolutionChange,
+    addAssetSolution: addAssetSolution,
+    removeAssetSolution: removeAssetSolution,
+    // Asset contact picker functions
+    searchAssetContacts: searchAssetContacts,
+    showAssetContactResults: showAssetContactResults,
+    hideAssetContactResults: hideAssetContactResults,
+    selectAssetContact: selectAssetContact,
+    removeAssetContact: removeAssetContact,
+    // Add contact for asset
+    showAddContactForAsset: showAddContactForAsset,
+    submitContactForAsset: submitContactForAsset,
+    // Content view functions (NEW)
+    searchContent: searchContent,
+    selectContentSolution: selectContentSolution,
+    copyContentItem: copyContentItem,
+    copyAllContent: copyAllContent,
+    showRecentBlurbs: showRecentBlurbs,
+    showMostUsed: showMostUsed,
+    showByType: showByType,
+    resetContentView: resetContentView,
+    // Assets view functions (NEW)
+    filterAssets: filterAssets,
+    showAssetDetail: showAssetDetail,
+    closeAssetDetailModal: closeAssetDetailModal,
+    copyAssetLink: copyAssetLink,
+    showUploadAssetModal: showUploadAssetModal,
+    toggleUploadDropzone: toggleUploadDropzone,
+    handleUploadDragOver: handleUploadDragOver,
+    handleUploadDragLeave: handleUploadDragLeave,
+    handleUploadDrop: handleUploadDrop,
+    handleFileSelect: handleFileSelect,
+    cancelUploadMetadata: cancelUploadMetadata,
+    saveUploadedAsset: saveUploadedAsset,
+    // Manage view functions (NEW)
+    setManageSubtab: setManageSubtab
   };
 })();
 

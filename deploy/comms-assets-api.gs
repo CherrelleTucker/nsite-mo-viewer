@@ -69,8 +69,33 @@ function getCommsAssetsSummary() {
   return MoApi.getCommsAssetsSummary();
 }
 
-function getCommsAssetTypeOptions() {
-  return MoApi.getCommsAssetTypeOptions();
+function getCommsAssetTypeOptions(includeFileTypes) {
+  return MoApi.getCommsAssetTypeOptions(includeFileTypes);
+}
+
+function getUsageRightsOptions() {
+  return MoApi.getUsageRightsOptions();
+}
+
+// File Assets
+function getFileAssets(filters) {
+  return MoApi.getFileAssets(filters);
+}
+
+function uploadCommsAsset(fileBlob, metadata) {
+  return MoApi.uploadCommsAsset(fileBlob, metadata);
+}
+
+function uploadCommsAssetBase64(base64Data, fileName, mimeType) {
+  return MoApi.uploadCommsAssetBase64(base64Data, fileName, mimeType);
+}
+
+function uploadCommsAssetWithMetadata(base64Data, fileName, mimeType, metadata) {
+  return MoApi.uploadCommsAssetWithMetadata(base64Data, fileName, mimeType, metadata);
+}
+
+function getAssetThumbnail(asset) {
+  return MoApi.getAssetThumbnail(asset);
 }
 
 // Usage Tracking

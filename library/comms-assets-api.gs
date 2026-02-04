@@ -14,6 +14,12 @@
  * - soundbite: Short punchy statements for elevator pitches, social
  * - boilerplate: Standard program descriptions
  * - connection: Relationships between solutions and agencies/users
+ *
+ * Multi-value fields (comma-separated):
+ * - solution_ids: Links to MO-DB_Solutions.core_id
+ * - agency_ids: Links to MO-DB_Agencies.agency_id
+ * - contact_ids: Links to MO-DB_Contacts.email (primary key)
+ * - tags: Thematic areas and keywords
  */
 
 // ============================================================================
@@ -114,7 +120,10 @@ function createCommsAsset(assetData) {
     if (!assetData.title || !String(assetData.title).trim()) {
       return { success: false, error: 'Title is required' };
     }
-    if (!assetData.content || !String(assetData.content).trim()) {
+    // Content is required for text assets, but file assets can use asset_url instead
+    var fileTypes = ['image', 'presentation', 'pdf', 'video', 'document', 'graphic'];
+    var isFileType = fileTypes.indexOf(assetData.asset_type) !== -1 || (assetData.asset_url && String(assetData.asset_url).trim());
+    if (!isFileType && (!assetData.content || !String(assetData.content).trim())) {
       return { success: false, error: 'Content is required' };
     }
 
@@ -506,18 +515,355 @@ function getCommsAssetsSummary() {
 
 /**
  * Get asset type options
+ * @param {boolean} includeFileTypes - Include file-based asset types
  * @returns {Array} Valid asset types
  */
-function getCommsAssetTypeOptions() {
-  return [
-    { value: 'blurb', label: 'Blurb', description: '2-3 sentence descriptions for updates' },
-    { value: 'talking_point', label: 'Talking Point', description: 'Key messages for briefings' },
-    { value: 'quote', label: 'Quote', description: 'Stakeholder/leadership quotes' },
-    { value: 'fact', label: 'Fact/Stat', description: 'Statistics and data points' },
-    { value: 'soundbite', label: 'Sound Bite', description: 'Short punchy statements' },
-    { value: 'boilerplate', label: 'Boilerplate', description: 'Standard program descriptions' },
-    { value: 'connection', label: 'Connection', description: 'Solution-agency relationships' }
+function getCommsAssetTypeOptions(includeFileTypes) {
+  var textTypes = [
+    { value: 'blurb', label: 'Blurb', description: '2-3 sentence descriptions for updates', category: 'text' },
+    { value: 'talking_point', label: 'Talking Point', description: 'Key messages for briefings', category: 'text' },
+    { value: 'quote', label: 'Quote', description: 'Stakeholder/leadership quotes', category: 'text' },
+    { value: 'fact', label: 'Fact/Stat', description: 'Statistics and data points', category: 'text' },
+    { value: 'soundbite', label: 'Sound Bite', description: 'Short punchy statements', category: 'text' },
+    { value: 'boilerplate', label: 'Boilerplate', description: 'Standard program descriptions', category: 'text' },
+    { value: 'connection', label: 'Connection', description: 'Solution-agency relationships', category: 'text' }
   ];
+
+  if (!includeFileTypes) {
+    return textTypes;
+  }
+
+  var fileTypes = [
+    { value: 'image', label: 'Image', description: 'Photos, screenshots, diagrams', category: 'file' },
+    { value: 'presentation', label: 'Presentation', description: 'PowerPoint/Google Slides', category: 'file' },
+    { value: 'pdf', label: 'PDF', description: 'PDF documents', category: 'file' },
+    { value: 'video', label: 'Video', description: 'Video files or links', category: 'file' },
+    { value: 'document', label: 'Document', description: 'Word/Google Docs files', category: 'file' },
+    { value: 'graphic', label: 'Graphic', description: 'Infographics, charts', category: 'file' }
+  ];
+
+  return textTypes.concat(fileTypes);
+}
+
+/**
+ * Get usage rights options
+ * @returns {Array} Valid usage rights
+ */
+function getUsageRightsOptions() {
+  return [
+    { value: 'public-domain', label: 'Public Domain', description: 'Free to use without attribution' },
+    { value: 'nasa-media', label: 'NASA Media', description: 'NASA-owned, follows NASA media guidelines' },
+    { value: 'internal-only', label: 'Internal Only', description: 'Not for external distribution' },
+    { value: 'attribution-required', label: 'Attribution Required', description: 'Must credit rights holder' }
+  ];
+}
+
+// ============================================================================
+// FILE ASSETS
+// ============================================================================
+
+/**
+ * Get file-type assets (images, presentations, etc.)
+ * @param {Object} filters - Optional filters {file_type, solution}
+ * @returns {Array} File assets
+ */
+function getFileAssets(filters) {
+  var assets = loadAllCommsAssets_();
+  var fileTypes = ['image', 'presentation', 'pdf', 'video', 'document', 'graphic'];
+
+  var results = assets.filter(function(a) {
+    // Must be a file-type asset OR have asset_url
+    var isFileType = fileTypes.includes(a.asset_type) || (a.asset_url && a.asset_url.trim());
+    if (!isFileType) return false;
+
+    // Apply file_type filter
+    if (filters && filters.file_type && a.asset_file_type !== filters.file_type) {
+      return false;
+    }
+
+    // Apply solution filter
+    if (filters && filters.solution) {
+      if (!a.solution_ids) return false;
+      var ids = a.solution_ids.toLowerCase().split(',').map(function(s) { return s.trim(); });
+      if (!ids.includes(filters.solution.toLowerCase())) return false;
+    }
+
+    return true;
+  });
+
+  return deepCopy(results);
+}
+
+/**
+ * Upload a file to Google Drive and create an asset record
+ * @param {Blob} fileBlob - The file blob to upload
+ * @param {Object} metadata - Asset metadata (title, solution_ids, tags, etc.)
+ * @returns {Object} Result with success/error and created asset
+ */
+function uploadCommsAsset(fileBlob, metadata) {
+  try {
+    // Get the assets folder
+    var folderId = getConfigValue('COMMS_ASSETS_FOLDER_ID');
+    if (!folderId) {
+      return { success: false, error: 'COMMS_ASSETS_FOLDER_ID not configured' };
+    }
+
+    var folder = DriveApp.getFolderById(folderId);
+
+    // Upload file to Drive
+    var file = folder.createFile(fileBlob);
+    var fileUrl = file.getUrl();
+    var mimeType = file.getMimeType();
+
+    // Determine file type from MIME type
+    var fileType = 'document';
+    if (mimeType.includes('image')) {
+      fileType = 'image';
+    } else if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) {
+      fileType = 'presentation';
+    } else if (mimeType.includes('pdf')) {
+      fileType = 'pdf';
+    } else if (mimeType.includes('video')) {
+      fileType = 'video';
+    }
+
+    // Build description with metadata for Drive file
+    var description = [];
+    if (metadata.solution_ids) description.push('Solutions: ' + metadata.solution_ids);
+    if (metadata.tags) description.push('Tags: ' + metadata.tags);
+    if (metadata.usage_rights) description.push('Rights: ' + metadata.usage_rights);
+    if (metadata.attribution_text) description.push('Attribution: ' + metadata.attribution_text);
+    if (description.length > 0) {
+      file.setDescription(description.join('\n'));
+    }
+
+    // Create asset record
+    var assetData = {
+      asset_type: fileType,
+      title: metadata.title || file.getName(),
+      content: metadata.content || '',
+      asset_url: fileUrl,
+      asset_file_type: fileType,
+      thumbnail_url: metadata.thumbnail_url || '',
+      source_name: metadata.source_name || 'File Upload',
+      source_type: 'internal',
+      source_url: fileUrl,
+      attribution_text: metadata.attribution_text || '',
+      date_captured: new Date().toISOString().split('T')[0],
+      usage_rights: metadata.usage_rights || 'internal-only',
+      rights_holder: metadata.rights_holder || '',
+      solution_ids: metadata.solution_ids || '',
+      agency_ids: metadata.agency_ids || '',
+      contact_ids: metadata.contact_ids || '',
+      tags: metadata.tags || '',
+      audience: metadata.audience || 'internal',
+      channels: metadata.channels || 'all',
+      tone: 'formal',
+      usage_notes: metadata.usage_notes || '',
+      status: 'draft'
+    };
+
+    var createResult = createCommsAsset(assetData);
+    if (!createResult.success) {
+      // Cleanup: delete the uploaded file if asset creation fails
+      file.setTrashed(true);
+      return createResult;
+    }
+
+    return {
+      success: true,
+      data: createResult.data,
+      fileUrl: fileUrl,
+      fileId: file.getId()
+    };
+  } catch (e) {
+    Logger.log('uploadCommsAsset error: ' + e.message);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Upload a file from base64 data with metadata and create an asset record
+ * @param {string} base64Data - Base64 encoded file data
+ * @param {string} fileName - Original filename
+ * @param {string} mimeType - MIME type of the file
+ * @param {Object} metadata - Asset metadata (title, content, solution_ids, etc.)
+ * @returns {Object} Result with success/error and created asset
+ */
+function uploadCommsAssetWithMetadata(base64Data, fileName, mimeType, metadata) {
+  try {
+    // Get the assets folder
+    var folderId = getConfigValue('COMMS_ASSETS_FOLDER_ID');
+    if (!folderId) {
+      return { success: false, error: 'COMMS_ASSETS_FOLDER_ID not configured. Add this to MO-DB_Config.' };
+    }
+
+    var folder = DriveApp.getFolderById(folderId);
+
+    // Decode base64 and create blob
+    var decoded = Utilities.base64Decode(base64Data);
+    var blob = Utilities.newBlob(decoded, mimeType, fileName);
+
+    // Upload file to Drive
+    var file = folder.createFile(blob);
+    var fileUrl = file.getUrl();
+
+    // Determine file type from MIME type
+    var fileType = 'document';
+    if (mimeType.includes('image')) {
+      fileType = 'image';
+    } else if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) {
+      fileType = 'presentation';
+    } else if (mimeType.includes('pdf')) {
+      fileType = 'pdf';
+    } else if (mimeType.includes('video')) {
+      fileType = 'video';
+    }
+
+    // Set file description with metadata
+    var description = [];
+    if (metadata.solution_ids) description.push('Solutions: ' + metadata.solution_ids);
+    if (metadata.tags) description.push('Tags: ' + metadata.tags);
+    if (metadata.usage_rights) description.push('Rights: ' + metadata.usage_rights);
+    if (description.length > 0) {
+      file.setDescription(description.join('\n'));
+    }
+
+    // Create asset record with user-provided metadata
+    var assetData = {
+      asset_type: fileType,
+      title: metadata.title || fileName.replace(/\.[^/.]+$/, ''),
+      content: metadata.content || metadata.title || '[File: ' + fileName + ']',
+      asset_url: fileUrl,
+      asset_file_type: fileType,
+      source_name: 'File Upload',
+      source_type: 'internal',
+      source_url: fileUrl,
+      date_captured: new Date().toISOString().split('T')[0],
+      usage_rights: metadata.usage_rights || 'internal-only',
+      rights_holder: metadata.rights_holder || '',
+      solution_ids: metadata.solution_ids || '',
+      agency_ids: metadata.agency_ids || '',
+      contact_ids: metadata.contact_ids || '',
+      tags: metadata.tags || '',
+      audience: metadata.audience || 'internal',
+      channels: metadata.channels || 'all',
+      status: 'approved'
+    };
+
+    var createResult = createCommsAsset(assetData);
+    if (!createResult.success) {
+      // Cleanup: delete the uploaded file if asset creation fails
+      file.setTrashed(true);
+      return createResult;
+    }
+
+    return {
+      success: true,
+      data: createResult.data,
+      fileUrl: fileUrl,
+      fileId: file.getId()
+    };
+  } catch (e) {
+    Logger.log('uploadCommsAssetWithMetadata error: ' + e.message);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Upload a file from base64 data and create an asset record (no metadata)
+ * Used by frontend dropzone upload (can't pass Blob directly via google.script.run)
+ * @param {string} base64Data - Base64 encoded file data
+ * @param {string} fileName - Original filename
+ * @param {string} mimeType - MIME type of the file
+ * @returns {Object} Result with success/error and created asset
+ */
+function uploadCommsAssetBase64(base64Data, fileName, mimeType) {
+  try {
+    // Get the assets folder
+    var folderId = getConfigValue('COMMS_ASSETS_FOLDER_ID');
+    if (!folderId) {
+      return { success: false, error: 'COMMS_ASSETS_FOLDER_ID not configured. Add this to MO-DB_Config.' };
+    }
+
+    var folder = DriveApp.getFolderById(folderId);
+
+    // Decode base64 and create blob
+    var decoded = Utilities.base64Decode(base64Data);
+    var blob = Utilities.newBlob(decoded, mimeType, fileName);
+
+    // Upload file to Drive
+    var file = folder.createFile(blob);
+    var fileUrl = file.getUrl();
+
+    // Determine file type from MIME type
+    var fileType = 'document';
+    if (mimeType.includes('image')) {
+      fileType = 'image';
+    } else if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) {
+      fileType = 'presentation';
+    } else if (mimeType.includes('pdf')) {
+      fileType = 'pdf';
+    } else if (mimeType.includes('video')) {
+      fileType = 'video';
+    }
+
+    // Create asset record with minimal data (user will fill in metadata)
+    var titleFromFile = fileName.replace(/\.[^/.]+$/, '');  // Filename without extension
+    var assetData = {
+      asset_type: fileType,
+      title: titleFromFile,
+      content: '[File: ' + fileName + ']',  // Placeholder content for file assets
+      asset_url: fileUrl,
+      asset_file_type: fileType,
+      source_name: 'File Upload',
+      source_type: 'internal',
+      source_url: fileUrl,
+      date_captured: new Date().toISOString().split('T')[0],
+      usage_rights: 'internal-only',
+      status: 'draft'
+    };
+
+    var createResult = createCommsAsset(assetData);
+    if (!createResult.success) {
+      // Cleanup: delete the uploaded file if asset creation fails
+      file.setTrashed(true);
+      return createResult;
+    }
+
+    return {
+      success: true,
+      data: createResult.data,
+      fileUrl: fileUrl,
+      fileId: file.getId()
+    };
+  } catch (e) {
+    Logger.log('uploadCommsAssetBase64 error: ' + e.message);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Get thumbnail URL for an asset
+ * If asset has thumbnail_url, returns that. Otherwise tries to generate from asset_url.
+ * @param {Object} asset - The asset object
+ * @returns {string} Thumbnail URL or empty string
+ */
+function getAssetThumbnail(asset) {
+  if (asset.thumbnail_url) {
+    return asset.thumbnail_url;
+  }
+
+  // Try to generate Drive thumbnail if it's a Drive file
+  if (asset.asset_url && asset.asset_url.includes('drive.google.com')) {
+    // Extract file ID and build thumbnail URL
+    var match = asset.asset_url.match(/[-\w]{25,}/);
+    if (match) {
+      return 'https://drive.google.com/thumbnail?id=' + match[0] + '&sz=w200-h200';
+    }
+  }
+
+  return '';
 }
 
 // ============================================================================

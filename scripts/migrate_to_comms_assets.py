@@ -105,7 +105,7 @@ def extract_key_messages(solutions_df):
                 'date_captured': datetime.now().strftime('%Y-%m-%d'),
                 'solution_ids': solution_id,
                 'agency_ids': '',
-                'contact_id': '',
+                'contact_ids': '',
                 'tags': f'{solution_id},{asset_type}',
                 'audience': 'all',
                 'channels': 'all',
@@ -163,7 +163,7 @@ def extract_blurbs(stories_df):
             'date_captured': str(target_date) if not pd.isna(target_date) else datetime.now().strftime('%Y-%m-%d'),
             'solution_ids': str(solution_id) if not pd.isna(solution_id) else '',
             'agency_ids': '',
-            'contact_id': '',
+            'contact_ids': '',
             'tags': 'blurb,hq-reporting',
             'audience': 'external',
             'channels': 'email,report',
@@ -216,7 +216,7 @@ def main():
         columns = [
             'asset_id', 'asset_type', 'title', 'content',
             'source_name', 'source_type', 'source_url', 'attribution_text', 'date_captured',
-            'solution_ids', 'agency_ids', 'contact_id', 'tags',
+            'solution_ids', 'agency_ids', 'contact_ids', 'tags',
             'audience', 'channels', 'tone', 'usage_notes',
             'status', 'approved_by', 'approved_date', 'expiration_date',
             'created_by', 'created_at', 'updated_at', 'use_count', 'last_used_date'

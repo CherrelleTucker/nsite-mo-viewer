@@ -675,44 +675,52 @@
         </div>
         <div class="page-card-body">
           <div class="data-flow-mini">
-            <span class="flow-chip source">Stories + Events + Contacts</span>
+            <span class="flow-chip source">CommsAssets + Events + Contacts</span>
             <span class="flow-arrow">→</span>
-            <span class="flow-chip output">Comms dashboard</span>
+            <span class="flow-chip output">Content library + Workflow</span>
           </div>
           <div class="page-details">
             <div class="detail-group">
               <span class="detail-label">Data:</span>
-              <span>MO-DB_Stories, MO-DB_Outreach (events with guest_list), MO-DB_Contacts (profiles), MO-DB_Solutions (key messages)</span>
+              <span>MO-DB_CommsAssets (content + files), MO-DB_Outreach (events), MO-DB_Stories (pipeline), MO-DB_Contacts, MO-DB_Solutions</span>
             </div>
             <div class="detail-group">
               <span class="detail-label">Views:</span>
-              <span>Pipeline, Events, Coverage, Calendar, Messaging, Tools</span>
+              <span>Content (default), Assets, Events, Manage (Pipeline/Coverage/Calendar/Priorities)</span>
             </div>
             <div class="detail-group">
-              <span class="detail-label">Features:</span>
-              <span>Story CRUD, Event CRUD (view-then-edit modal), Admin Priorities alignment, Key Messages reference, Highlighter Blurbs for HQ reporting</span>
-            </div>
-            <div class="detail-group">
-              <span class="detail-label">Event Prep:</span>
-              <span>Guest list management (search contacts, add/remove), Prep Report with guest profiles, agencies represented, potential connections, conversation starters</span>
-            </div>
-            <div class="detail-group">
-              <span class="detail-label">Post-Event:</span>
-              <span>Attendance tracking checkboxes, quick-add new contacts met at event</span>
+              <span class="detail-label">Purpose:</span>
+              <span>Content library for the whole MO team to find approved content, with workflow management preserved for Comms team in Manage tab</span>
             </div>
           </div>
           <div class="next-steps">
-            <span class="next-label">Key Features:</span>
+            <span class="next-label">Content Tab (Default):</span>
             <ul>
-              <li><strong>Export Prep Report:</strong> Generate formatted Google Doc with guest profiles, agencies, conversation starters</li>
-              <li><strong>Calendar Alerts:</strong> Sidebar shows solutions needing comms attention (>90 days without coverage)</li>
-              <li><strong>Event Cards:</strong> Redesigned with status badges, hover effects, cleaner visual hierarchy</li>
-              <li><strong>Story CRUD:</strong> Solution dropdown validation, schema v2 column alignment</li>
-              <li><strong>Highlighter Blurbs:</strong> Short updates for weekly NASA HQ reporting. Displayed in Messaging view with Tuesday deadline tracking. Table/card view toggle for different viewing preferences. Search by title, solution, or content; filter by status. "Submitted to HQ" status replaces "Published" for blurbs. Detail modal shows background info, blurb content, and HQ submission date. Content type "highlighter_blurb" in MO-DB_Stories with columns: background_info, blurb_content, hq_submission_date.</li>
+              <li><strong>Search-First Design:</strong> Type to search across all content (blurbs, key messages, facts, quotes)</li>
+              <li><strong>Browse by Solution:</strong> Select a solution to see all its content grouped by type</li>
+              <li><strong>Quick Access Cards:</strong> Recent Blurbs, Most Used, By Type for common tasks</li>
+              <li><strong>Copy Buttons:</strong> One-click copy with usage tracking</li>
+              <li><strong>Presentation Builder:</strong> "Generate Presentation" button when viewing solution content</li>
             </ul>
-            <span class="next-label" style="margin-top: var(--space-md); display: block;">Tools View:</span>
+            <span class="next-label" style="margin-top: var(--space-md); display: block;">Assets Tab:</span>
             <ul>
-              <li><strong>Presentation Builder:</strong> Generate customized Google Slides presentations for any solution. Select audience type (internal/external) to automatically filter slides based on speaker notes metadata. Supports filtering by audience, solution, and agency. Placeholders in template (e.g., <code>{{core_official_name}}</code>) are replaced with solution-specific data. Presentations saved to user's Google Drive. See <code>docs/PRESENTATION_SLIDE_MAPPING.md</code> for template configuration.</li>
+              <li><strong>Visual Grid:</strong> Browse images, presentations, PDFs with embedded Drive previews</li>
+              <li><strong>Upload Dropzone:</strong> Drag-and-drop files with metadata form (title, solution, rights, tags)</li>
+              <li><strong>Asset Detail Modal:</strong> Full preview with metadata, Copy Link, Open in Drive</li>
+              <li><strong>Filters:</strong> By file type and solution</li>
+            </ul>
+            <span class="next-label" style="margin-top: var(--space-md); display: block;">Events Tab:</span>
+            <ul>
+              <li><strong>Event Management:</strong> CRUD with view-then-edit modal</li>
+              <li><strong>Guest List:</strong> Search contacts, add/remove attendees, attendance tracking</li>
+              <li><strong>Prep Report:</strong> Export formatted Google Doc with guest profiles, agencies, conversation starters</li>
+            </ul>
+            <span class="next-label" style="margin-top: var(--space-md); display: block;">Manage Tab (Comms Team):</span>
+            <ul>
+              <li><strong>Pipeline:</strong> Story pipeline with drag-drop status updates</li>
+              <li><strong>Coverage:</strong> Solution coverage analysis</li>
+              <li><strong>Calendar:</strong> Editorial calendar with upcoming targets</li>
+              <li><strong>Priorities:</strong> Admin priority alignment tracking</li>
             </ul>
           </div>
         </div>
@@ -1046,7 +1054,7 @@ COLOR_PRIMARY = #1A5F2A</pre>
     <div class="version-info">
       <div class="version-item">
         <span class="version-label">Version</span>
-        <span class="version-value">2.3.2</span>
+        <span class="version-value">2.4.0</span>
       </div>
       <div class="version-item">
         <span class="version-label">Updated</span>

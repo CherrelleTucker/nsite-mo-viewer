@@ -1074,7 +1074,7 @@ Stores stakeholder survey responses extracted from Solution Stakeholder Lists. T
 
 Consolidates all reusable communications content: blurbs, quotes, facts, talking points, sound bites, boilerplate, and connections. Replaces scattered content from MO-DB_Solutions (comms_* columns) and MO-DB_Stories (highlighter_blurb content_type).
 
-**Asset Types:**
+**Asset Types (Text Content):**
 | Type | Description | Use Case |
 |------|-------------|----------|
 | `blurb` | 2-3 sentence descriptions | HQ updates, newsletters |
@@ -1085,6 +1085,16 @@ Consolidates all reusable communications content: blurbs, quotes, facts, talking
 | `boilerplate` | Standard program descriptions | Consistent messaging |
 | `connection` | Solution-agency relationships | Relationship context |
 
+**Asset Types (File Assets):**
+| Type | Description | Use Case |
+|------|-------------|----------|
+| `image` | Photos, screenshots, diagrams | Presentations, reports |
+| `presentation` | PowerPoint/Google Slides files | Briefings, external talks |
+| `pdf` | PDF documents | Factsheets, handouts |
+| `video` | Video files or links | Demos, explainers |
+| `document` | Word/Google Docs files | Templates, guides |
+| `graphic` | Infographics, charts, visualizations | Social, reports |
+
 #### Identity (4 columns)
 | Column | Type | Required | Description |
 |--------|------|----------|-------------|
@@ -1093,7 +1103,14 @@ Consolidates all reusable communications content: blurbs, quotes, facts, talking
 | `title` | STRING | Yes | Short title for quick scanning |
 | `content` | TEXT | Yes | The actual content text |
 
-#### Source & Attribution (5 columns)
+#### File Assets (3 columns)
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `asset_url` | STRING | No | Google Drive link to file (for images, presentations, etc.) |
+| `asset_file_type` | ENUM | No | image, presentation, pdf, video, document, graphic |
+| `thumbnail_url` | STRING | No | Preview image URL (optional) |
+
+#### Source & Attribution (7 columns)
 | Column | Type | Required | Description |
 |--------|------|----------|-------------|
 | `source_name` | STRING | No | Person, document, or event name |
@@ -1101,13 +1118,15 @@ Consolidates all reusable communications content: blurbs, quotes, facts, talking
 | `source_url` | STRING | No | Link to original source |
 | `attribution_text` | STRING | No | How to cite (e.g., "Dr. Jane Smith, USDA") |
 | `date_captured` | DATE | No | When content was captured |
+| `usage_rights` | ENUM | No | public-domain, nasa-media, internal-only, attribution-required |
+| `rights_holder` | STRING | No | Who owns the content (for attribution) |
 
 #### Context & Linking (4 columns)
 | Column | Type | Required | Description |
 |--------|------|----------|-------------|
 | `solution_ids` | STRING | No | Comma-separated solution IDs |
 | `agency_ids` | STRING | No | Comma-separated agency IDs |
-| `contact_id` | STRING | No | Contact ID if quote from specific person |
+| `contact_ids` | STRING | No | Comma-separated contact emails (for quotes/testimonials) |
 | `tags` | STRING | No | Comma-separated tags for searchability |
 
 #### Usage Guidance (4 columns)
@@ -1138,7 +1157,7 @@ Consolidates all reusable communications content: blurbs, quotes, facts, talking
 **Key Relationships:**
 - `solution_ids` → `MO-DB_Solutions.core_id` (many-to-many via comma-separated)
 - `agency_ids` → `MO-DB_Agencies.agency_id` (many-to-many via comma-separated)
-- `contact_id` → `MO-DB_Contacts.email` (many-to-one for quotes)
+- `contact_ids` → `MO-DB_Contacts.email` (many-to-many via comma-separated)
 
 **API Functions:**
 - `getAllCommsAssets(limit)` - Get all assets

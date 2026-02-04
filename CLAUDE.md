@@ -1,6 +1,6 @@
 # Claude Code Instructions for MO-Viewer
 
-**Version:** 2.3.2 | **Updated:** 2026-02-03 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
+**Version:** 2.4.0 | **Updated:** 2026-02-03 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
 
 ---
 
@@ -63,7 +63,80 @@ Updates in agendas should use:
 - Complete historical backfill for all agenda sources
 - Build Actions sync script (similar pattern)
 - Test automated triggers for weekly/monthly syncs
-- Continue Comms page improvements (event guest list UI)
+- **Comms Page Reorganization** (see below)
+
+---
+
+### Comms Page Reorganization Project (v2.4.0) - COMPLETE
+
+**Status:** ✅ Implemented and deployed
+**Completed:** 2026-02-03
+
+**Goal:** Transform Comms from a workflow management tool to a content library for the whole MO team, while preserving workflow features for the Comms team.
+
+**What was built:**
+- **Content Tab** (new default): Search-first interface with solution browsing, quick access cards, copy buttons
+- **Assets Tab** (new): Visual grid with Drive iframe previews, upload dropzone with metadata form, detail modal
+- **Events Tab**: Unchanged
+- **Manage Tab**: Consolidated Pipeline, Coverage, Calendar, Priorities as sub-tabs
+
+#### Tab Structure Change
+
+| Current (6 tabs) | New (4 tabs) |
+|------------------|--------------|
+| Pipeline | → Manage > Pipeline |
+| Events | → Events (unchanged) |
+| Coverage | → Manage > Coverage |
+| Calendar | → Manage > Calendar |
+| Messaging | → Split: content to Content, priorities to Manage |
+| Tools | → Presentation Builder moves to Content |
+
+#### New Tab Purposes
+
+| Tab | Primary Audience | Purpose |
+|-----|------------------|---------|
+| **Content** (default) | All MO team | Search & find approved content (blurbs, key messages, facts, quotes) |
+| **Assets** | All MO team | Browse images, presentations, files with attribution |
+| **Events** | All MO team | Event prep, guest lists (unchanged) |
+| **Manage** | Comms team | Pipeline, coverage, calendar, priorities (sub-tabs) |
+
+#### Schema Additions (MO-DB_CommsAssets)
+
+New fields for file/image support:
+- `asset_url` - Link to file (Google Drive)
+- `asset_file_type` - ENUM: image, presentation, pdf, video, document, graphic
+- `usage_rights` - ENUM: public-domain, nasa-media, internal-only, attribution-required
+- `rights_holder` - Who owns it (for attribution)
+- `thumbnail_url` - Optional preview image
+
+Config addition:
+- `COMMS_ASSETS_FOLDER_ID` - Google Drive folder for uploads
+
+#### Key Implementation Notes
+
+1. **Content Tab** - Search-first design with solution dropdown, grouped results by type
+2. **Presentation Builder** - Becomes contextual action (shows when viewing solution content)
+3. **Assets Tab** - Grid view with thumbnails, upload via drag-drop to Google Drive
+4. **Manage Tab** - Sub-tab navigation (Pipeline, Coverage, Calendar, Priorities)
+5. **Preserve all existing functions** - Just reorganize HTML structure
+
+#### Files to Modify
+
+- `database-files/comms-assets-schema.csv` - Add new columns
+- `docs/DATA_SCHEMA.md` - Update CommsAssets schema
+- `library/comms-assets-api.gs` - Add new fields, upload support
+- `deploy/comms.html` - Major restructure (7700+ lines - be careful)
+- `deploy/comms-assets-api.gs` - Add wrapper functions
+- `CHANGELOG.md` - Document changes
+
+#### Risk Mitigation
+
+- comms.html is large - make incremental changes, test frequently
+- Keep existing state objects, add new ones for Content/Assets
+- Preserve all function signatures for backward compatibility
+- SPA navigation guards (commsNavId) must work with new tab structure
+
+---
 
 ### Future Development: Historical Updates Report
 
