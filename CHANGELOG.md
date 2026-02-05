@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.0] - 2026-02-04
+
+### Added
+- **SNWG Champions** - Identify and track agency friends/potential SNWG champions
+  - 3 new database columns: `champion_status`, `relationship_owner`, `champion_notes`
+  - Champion Status values: Active, Prospective, Alumni, Inactive
+  - NSITE MO Connection: MO team member linked to this contact
+  - New API functions: getChampionStatusOptions, getChampions, getChampionsByOwner, getChampionStats, updateContactChampionStatus, updateContactRelationshipOwner, updateContactChampionNotes
+  - Contacts page: SNWG Champion filter, MO Connection filter, Champion form section
+  - Champion badges in card/table views with status-specific colors
+  - Champion details section in contact modal with inline editing
+
+---
+
 ## [2.4.1] - 2026-02-04
 
 ### Added

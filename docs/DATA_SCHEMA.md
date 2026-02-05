@@ -1,7 +1,7 @@
 # MO-Viewer Data Schema
 
-**Version:** 2.6.0
-**Date:** 2026-02-03
+**Version:** 2.7.0
+**Date:** 2026-02-04
 **Reference:** [ARCHITECTURE.md](../ARCHITECTURE.md)
 
 ---
@@ -259,10 +259,23 @@ Primary contact database for the Contacts Directory. One row per contact-solutio
 | `supervisor` | STRING | No | Supervisor name (for org chart) |
 | `start_date` | DATE | No | When joined the MO team |
 | `active` | STRING | No | 'Y' = current team member, 'N' = former |
+| | | | |
+| **SNWG Champion Columns** | | | |
+| `champion_status` | STRING | No | SNWG Champion status: Active, Prospective, Alumni, Inactive, or empty |
+| `relationship_owner` | STRING | No | NSITE MO Connection - email of MO team member (FK to internal contacts) |
+| `champion_notes` | STRING | No | Free-form notes about champion value and relationship context |
+
+**SNWG Champion Status Values:**
+| Status | Description |
+|--------|-------------|
+| `Active` | Currently engaged champion actively supporting SNWG |
+| `Prospective` | Potential champion being cultivated |
+| `Alumni` | Former champion, still friendly, less active |
+| `Inactive` | Champion relationship has gone dormant |
 
 **Indexes:**
 - Primary: `contact_id`
-- Secondary: `email`, `solution_id`, `role`, `department`, `survey_year`, `is_internal`
+- Secondary: `email`, `solution_id`, `role`, `department`, `survey_year`, `is_internal`, `champion_status`, `relationship_owner`
 
 **Data Source:** Extracted from 47 stakeholder Excel files in `DB-Solution Stakeholder Lists/`
 
@@ -553,10 +566,45 @@ Tracks all stakeholder interactions: emails, calls, meetings, webinars, conferen
 | `supplementary_notes` | STRING | No | Additional context from other sources (max 2000 chars) |
 | `logged_by` | STRING | No | Email of user who logged the engagement |
 | `created_at` | DATETIME | Yes | Record creation timestamp |
+| | | | |
+| **Event Fields** | | | *(Presence of `event_date` indicates this engagement is an event)* |
+| `event_date` | DATE | No | Event date (YYYY-MM-DD). Presence distinguishes events from regular engagements |
+| `event_name` | STRING | No | Display name for the event (e.g., "HLS Workshop 2026") |
+| `event_status` | STRING | No | Planning, Confirmed, Completed, Postponed, Cancelled |
+| `event_location` | STRING | No | Physical or virtual location |
+| `event_url` | STRING | No | Event page or registration URL |
+| `event_owner` | STRING | No | FK to MO-DB_Contacts (team member leading the event) |
+| `event_planning_doc_url` | STRING | No | Link to planning document |
+| `event_attendee_ids` | STRING | No | Comma-separated contact IDs of attendees |
+| `event_artifacts` | STRING | No | JSON array of artifacts (see structure below) |
 
 **Indexes:**
 - Primary: `engagement_id`
-- Secondary: `date`, `solution_id`, `participants`, `agency_id`
+- Secondary: `date`, `solution_id`, `participants`, `agency_id`, `event_date`
+
+**Event Status Values:**
+| Status | Description |
+|--------|-------------|
+| `Planning` | Event is being planned |
+| `Confirmed` | Event date/details confirmed |
+| `Completed` | Event has occurred |
+| `Postponed` | Event delayed to future date |
+| `Cancelled` | Event cancelled |
+
+**event_artifacts JSON Structure:**
+```json
+[
+  {
+    "type": "presentation|recording|notes|photos",
+    "name": "Display name for the artifact",
+    "url": "Link to the resource",
+    "comms_asset_id": "CA-XXX"  // Optional - populated if promoted to CommsAssets
+  }
+]
+```
+
+**Event Detection:**
+An engagement is treated as an event when `event_date` is present. This allows filtering events from regular engagements while keeping all data in one table.
 
 **Engagement Linking:**
 Engagements can reference other related engagements through the `related_engagement_ids` field. This enables:
@@ -1153,6 +1201,9 @@ Consolidates all reusable communications content: blurbs, quotes, facts, talking
 | `updated_at` | DATE | Yes | Last update date |
 | `use_count` | INTEGER | No | Track how often copied/used |
 | `last_used_date` | DATE | No | Last time content was copied |
+| | | | |
+| **Source Tracking** | | | |
+| `source_engagement_id` | STRING | No | FK to MO-DB_Engagements (for assets promoted from event artifacts) |
 
 **Key Relationships:**
 - `solution_ids` → `MO-DB_Solutions.core_id` (many-to-many via comma-separated)
@@ -1631,6 +1682,8 @@ The original SolutionFlow schema maps to this unified schema:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.7.0 | 2026-02-04 | **SNWG Champions**: Added 3 new columns to CONTACTS (champion_status, relationship_owner, champion_notes). Added Champion Status Values table. Updated indexes to include champion_status and relationship_owner. |
+| 2.6.0 | 2026-02-04 | **Event/Workshop Tracking**: Added 9 event columns to ENGAGEMENTS (event_date, event_name, event_status, event_location, event_url, event_owner, event_planning_doc_url, event_attendee_ids, event_artifacts). Added event_artifacts JSON structure documentation. Added source_engagement_id to COMMS_ASSETS for artifact promotion tracking. Event detection via event_date presence. |
 | 2.5.0 | 2026-02-02 | **STORIES Schema Update**: Added `background_info` (for Highlighter Blurb background sections), `hq_submission_date` (HQ portal submission tracking), `content_type` (with 7 types including `highlighter_blurb`). Added Content Types table. Renamed columns for consistency: `scheduled_date`→`target_date`, `published_date`→`publish_date`, `created_at`→`created_date`. |
 | 2.4.0 | 2026-01-30 | Added ENGAGEMENTS table (section 7) with multi-solution support: `solution_id` (primary, required), `secondary_solution_id` (optional), `additional_solution_ids` (optional, comma-separated). Renumbered subsequent sections 8-16. |
 | 2.3.0 | 2026-01-29 | Added `admin_shared_team_folder` column to SOLUTIONS for implementation team file sharing functionality. |

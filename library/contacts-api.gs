@@ -220,6 +220,10 @@ function getUniqueContacts(contacts) {
         department: c.department || '',
         agency: c.agency || '',
         organization: c.organization || '',
+        // Champion fields
+        champion_status: c.champion_status || '',
+        relationship_owner: c.relationship_owner || '',
+        champion_notes: c.champion_notes || '',
         solutions: [],
         roles: [],
         years: []
@@ -295,10 +299,10 @@ function getContactSolutions(email) {
         years: []
       };
     }
-    if (c.role && solutions[sol].roles.indexOf(c.role) === -1) {
+    if (c.role && !solutions[sol].roles.includes(c.role)) {
       solutions[sol].roles.push(c.role);
     }
-    if (c.survey_year && solutions[sol].years.indexOf(c.survey_year) === -1) {
+    if (c.survey_year && !solutions[sol].years.includes(c.survey_year)) {
       solutions[sol].years.push(c.survey_year);
     }
   });
@@ -325,7 +329,7 @@ function getContactsAcrossSolutions(solutionNames) {
   contacts.forEach(function(c) {
     solutionNames.forEach(function(sol) {
       if (c.solution_id && normalizeString(c.solution_id).includes(normalizeString(sol))) {
-        if (solutionEmails[sol].indexOf(c.email) === -1) {
+        if (!solutionEmails[sol].includes(c.email)) {
           solutionEmails[sol].push(c.email);
         }
       }
@@ -377,7 +381,7 @@ function getRelatedContacts(email) {
           shared_solutions: []
         };
       }
-      if (relatedEmails[c.email].shared_solutions.indexOf(c.solution_id) === -1) {
+      if (!relatedEmails[c.email].shared_solutions.includes(c.solution_id)) {
         relatedEmails[c.email].shared_solutions.push(c.solution_id);
       }
     }
@@ -611,6 +615,16 @@ var ENGAGEMENT_LEVELS = {
 };
 
 /**
+ * Champion status definitions for identifying agency friends/potential SNWG champions
+ */
+var CHAMPION_STATUSES = {
+  'Active': { order: 1, description: 'Currently engaged champion actively supporting SNWG' },
+  'Prospective': { order: 2, description: 'Potential champion being cultivated' },
+  'Alumni': { order: 3, description: 'Former champion, still friendly, less active' },
+  'Inactive': { order: 4, description: 'Champion relationship has gone dormant' }
+};
+
+/**
  * Get contacts by touchpoint status
  * @param {string} touchpoint - Touchpoint (T4, W1, W2, T5, T6, T7, T8)
  * @returns {Array} Contacts in this touchpoint stage
@@ -724,7 +738,7 @@ function getContactsOverdueFollowUp() {
  * Update contact touchpoint status
  * @param {string} email - Contact email
  * @param {string} touchpoint - New touchpoint status
- * @returns {boolean} Success status
+ * @returns {Object} {success: boolean, error?: string}
  */
 function updateContactTouchpoint(email, touchpoint) {
   return updateContactField_(email, 'touchpoint_status', touchpoint);
@@ -734,7 +748,7 @@ function updateContactTouchpoint(email, touchpoint) {
  * Update contact engagement level
  * @param {string} email - Contact email
  * @param {string} level - New engagement level
- * @returns {boolean} Success status
+ * @returns {Object} {success: boolean, error?: string}
  */
 function updateContactEngagement(email, level) {
   return updateContactField_(email, 'engagement_level', level);
@@ -744,7 +758,7 @@ function updateContactEngagement(email, level) {
  * Update contact last contact date
  * @param {string} email - Contact email
  * @param {string} date - Date (ISO string or YYYY-MM-DD)
- * @returns {boolean} Success status
+ * @returns {Object} {success: boolean, error?: string}
  */
 function updateContactLastContactDate(email, date) {
   return updateContactField_(email, 'last_contact_date', date);
@@ -754,7 +768,7 @@ function updateContactLastContactDate(email, date) {
  * Update contact next scheduled contact
  * @param {string} email - Contact email
  * @param {string} date - Date (ISO string or YYYY-MM-DD)
- * @returns {boolean} Success status
+ * @returns {Object} {success: boolean, error?: string}
  */
 function updateContactNextScheduledContact(email, date) {
   return updateContactField_(email, 'next_scheduled_contact', date);
@@ -763,36 +777,47 @@ function updateContactNextScheduledContact(email, date) {
 /**
  * Update a single field for a contact by email
  * @private
+ * @returns {Object} {success: boolean, error?: string}
  */
 function updateContactField_(email, fieldName, value) {
-  var sheet = getContactsSheet_();
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0];
-
-  var emailColIndex = headers.indexOf('email');
-  var fieldColIndex = headers.indexOf(fieldName);
-
-  if (emailColIndex === -1) {
-    throw new Error('email column not found');
-  }
-  if (fieldColIndex === -1) {
-    throw new Error(fieldName + ' column not found');
-  }
-
-  var updated = false;
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][emailColIndex] && data[i][emailColIndex].toLowerCase() === email.toLowerCase()) {
-      sheet.getRange(i + 1, fieldColIndex + 1).setValue(value);
-      updated = true;
-      // Don't break - update all rows for this email
+  try {
+    if (!email) {
+      return { success: false, error: 'Email is required' };
     }
-  }
 
-  if (updated) {
-    clearContactsCache_(); // Clear cache
-  }
+    var sheet = getContactsSheet_();
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
 
-  return updated;
+    var emailColIndex = headers.indexOf('email');
+    var fieldColIndex = headers.indexOf(fieldName);
+
+    if (emailColIndex === -1) {
+      return { success: false, error: 'email column not found in database' };
+    }
+    if (fieldColIndex === -1) {
+      return { success: false, error: fieldName + ' column not found in database' };
+    }
+
+    var updated = false;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][emailColIndex] && data[i][emailColIndex].toLowerCase() === email.toLowerCase()) {
+        sheet.getRange(i + 1, fieldColIndex + 1).setValue(value);
+        updated = true;
+        // Don't break - update all rows for this email
+      }
+    }
+
+    if (updated) {
+      clearContactsCache_(); // Clear cache
+      return { success: true };
+    } else {
+      return { success: false, error: 'Contact not found: ' + email };
+    }
+  } catch (e) {
+    Logger.log('Error in updateContactField_: ' + e);
+    return { success: false, error: 'Failed to update contact: ' + e.message };
+  }
 }
 
 // ============================================================================
@@ -1068,12 +1093,16 @@ function getSEPPipelineContacts() {
         last_contact_date: c.last_contact_date,
         next_scheduled_contact: c.next_scheduled_contact,
         relationship_notes: c.relationship_notes,
+        // Champion fields
+        champion_status: c.champion_status,
+        relationship_owner: c.relationship_owner,
+        champion_notes: c.champion_notes,
         solutions: []
       };
     }
 
     // Aggregate solutions
-    if (c.solution_id && emailMap[email].solutions.indexOf(c.solution_id) === -1) {
+    if (c.solution_id && !emailMap[email].solutions.includes(c.solution_id)) {
       emailMap[email].solutions.push(c.solution_id);
     }
   });
@@ -1124,4 +1153,198 @@ function getEngagementLevelOptions() {
         description: ENGAGEMENT_LEVELS[key].description
       };
     });
+}
+
+// ============================================================================
+// CHAMPIONS TRACKING
+// ============================================================================
+
+/**
+ * Get champion status options for UI
+ * @returns {Array} Champion status options with metadata
+ */
+function getChampionStatusOptions() {
+  return Object.keys(CHAMPION_STATUSES)
+    .sort(function(a, b) {
+      return CHAMPION_STATUSES[a].order - CHAMPION_STATUSES[b].order;
+    })
+    .map(function(key) {
+      return {
+        value: key,
+        order: CHAMPION_STATUSES[key].order,
+        description: CHAMPION_STATUSES[key].description
+      };
+    });
+}
+
+/**
+ * Get contacts by champion status
+ * @param {string} status - Champion status (Active, Prospective, Alumni, Inactive)
+ * @returns {Array} Contacts with this champion status
+ */
+function getChampions(status) {
+  var contacts = loadAllContacts_();
+  var results;
+
+  if (status) {
+    // Filter by specific status
+    results = contacts.filter(function(c) {
+      return c.champion_status === status;
+    });
+  } else {
+    // Return all champions (any non-empty status)
+    results = contacts.filter(function(c) {
+      return c.champion_status && c.champion_status.trim() !== '';
+    });
+  }
+
+  return deepCopy(results);
+}
+
+/**
+ * Get contacts by relationship owner
+ * @param {string} ownerEmail - Email of the MO team member who owns the relationship
+ * @returns {Array} Contacts owned by this team member
+ */
+function getChampionsByOwner(ownerEmail) {
+  var contacts = loadAllContacts_();
+  var emailLower = (ownerEmail || '').toLowerCase().trim();
+
+  var results = contacts.filter(function(c) {
+    return c.relationship_owner &&
+           c.relationship_owner.toLowerCase().trim() === emailLower;
+  });
+
+  return deepCopy(results);
+}
+
+/**
+ * Get champion statistics
+ * @returns {Object} Statistics about champions by status and owner
+ */
+function getChampionStats() {
+  var contacts = loadAllContacts_();
+  var champions = contacts.filter(function(c) {
+    return c.champion_status && c.champion_status.trim() !== '';
+  });
+
+  var byStatus = {};
+  var byOwner = {};
+
+  champions.forEach(function(c) {
+    // Count by status
+    var status = c.champion_status || 'Unknown';
+    byStatus[status] = (byStatus[status] || 0) + 1;
+
+    // Count by owner
+    if (c.relationship_owner) {
+      var owner = c.relationship_owner.trim();
+      byOwner[owner] = (byOwner[owner] || 0) + 1;
+    }
+  });
+
+  return {
+    total_champions: champions.length,
+    by_status: byStatus,
+    by_owner: byOwner
+  };
+}
+
+/**
+ * Update contact champion status
+ * @param {string} email - Contact email
+ * @param {string} status - New champion status (Active, Prospective, Alumni, Inactive, or empty to clear)
+ * @returns {Object} {success: boolean, error?: string}
+ */
+function updateContactChampionStatus(email, status) {
+  // Validate status if provided
+  if (status && status.trim() !== '' && !CHAMPION_STATUSES.hasOwnProperty(status)) {
+    return { success: false, error: 'Invalid champion status: ' + status };
+  }
+  return updateContactField_(email, 'champion_status', status || '');
+}
+
+/**
+ * Update contact relationship owner
+ * @param {string} email - Contact email
+ * @param {string} ownerEmail - Email of the MO team member who owns this relationship
+ * @returns {Object} {success: boolean, error?: string}
+ */
+function updateContactRelationshipOwner(email, ownerEmail) {
+  // Normalize owner email
+  var normalizedOwner = (ownerEmail || '').toLowerCase().trim();
+  return updateContactField_(email, 'relationship_owner', normalizedOwner);
+}
+
+/**
+ * Update contact champion notes
+ * @param {string} email - Contact email
+ * @param {string} notes - Champion notes
+ * @returns {Object} {success: boolean, error?: string}
+ */
+function updateContactChampionNotes(email, notes) {
+  return updateContactField_(email, 'champion_notes', notes || '');
+}
+
+// ============================================================================
+// EVENT PARTICIPATION
+// ============================================================================
+
+/**
+ * Get events that a contact participated in
+ * Wrapper for getEventsForContact from engagements-api.gs
+ * @param {string} contactId - Contact ID to search for
+ * @returns {Array} Events where contact is in event_attendee_ids
+ */
+function getContactEvents(contactId) {
+  // getEventsForContact is defined in engagements-api.gs
+  return getEventsForContact(contactId);
+}
+
+/**
+ * Get event participation summary for a contact
+ * @param {string} contactId - Contact ID
+ * @returns {Object} Summary of event participation
+ */
+function getContactEventsSummary(contactId) {
+  var events = getEventsForContact(contactId);
+
+  var summary = {
+    total_events: events.length,
+    upcoming: 0,
+    completed: 0,
+    by_solution: {},
+    events: []
+  };
+
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  events.forEach(function(event) {
+    // Count by status
+    if (event.event_date) {
+      var eventDate = new Date(event.event_date);
+      if (eventDate >= today) {
+        summary.upcoming++;
+      } else {
+        summary.completed++;
+      }
+    }
+
+    // Count by solution
+    if (event.solution_id) {
+      summary.by_solution[event.solution_id] = (summary.by_solution[event.solution_id] || 0) + 1;
+    }
+
+    // Build simplified event list for display
+    summary.events.push({
+      engagement_id: event.engagement_id,
+      event_name: event.event_name || event.subject,
+      event_date: event.event_date,
+      event_status: event.event_status,
+      solution_id: event.solution_id
+    });
+  });
+
+  return summary;
 }

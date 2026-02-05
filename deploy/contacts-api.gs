@@ -192,3 +192,53 @@ function createContactForAgency(contactData) {
   }
   return MoApi.createContactForAgency(contactData);
 }
+
+// Event Participation
+function getContactEvents(contactId) {
+  return MoApi.getContactEvents(contactId);
+}
+
+function getContactEventsSummary(contactId) {
+  return MoApi.getContactEventsSummary(contactId);
+}
+
+// Champions Tracking
+function getChampionStatusOptions() {
+  return MoApi.getChampionStatusOptions();
+}
+
+function getChampions(status) {
+  return MoApi.getChampions(status);
+}
+
+function getChampionsByOwner(ownerEmail) {
+  return MoApi.getChampionsByOwner(ownerEmail);
+}
+
+function getChampionStats() {
+  return MoApi.getChampionStats();
+}
+
+function updateContactChampionStatus(email, status) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.updateContactChampionStatus(email, status);
+}
+
+function updateContactRelationshipOwner(email, ownerEmail) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.updateContactRelationshipOwner(email, ownerEmail);
+}
+
+function updateContactChampionNotes(email, notes) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.updateContactChampionNotes(email, notes);
+}

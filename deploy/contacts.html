@@ -94,6 +94,23 @@
           <option value="2016">2016</option>
         </select>
       </div>
+      <div class="filter-group">
+        <label>SNWG Champion:</label>
+        <select id="filterChampion" class="filter-select" onchange="Contacts.applyFilters()">
+          <option value="">All Contacts</option>
+          <option value="any">Any Champion</option>
+          <option value="Active">Active</option>
+          <option value="Prospective">Prospective</option>
+          <option value="Alumni">Alumni</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>MO Connection:</label>
+        <select id="filterOwner" class="filter-select" onchange="Contacts.applyFilters()">
+          <option value="">All</option>
+        </select>
+      </div>
       <button class="btn btn-sm btn-secondary" onclick="Contacts.clearFilters()">Clear</button>
     </div>
   </div>
@@ -267,6 +284,39 @@
                   <option value="CoOwners">Co-Owners</option>
                 </select>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SNWG Champion Tracking (Collapsible) -->
+        <div class="form-section collapsible">
+          <h3 class="form-section-title" onclick="Contacts.toggleFormSection(this)">
+            <span class="material-icons section-toggle">expand_more</span>
+            SNWG Champion
+            <span class="optional-label">(Optional)</span>
+          </h3>
+          <div class="form-section-content">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newChampionStatus">Champion Status</label>
+                <select id="newChampionStatus" name="champion_status">
+                  <option value="">-- Not a Champion --</option>
+                  <option value="Active">Active - Currently engaged champion</option>
+                  <option value="Prospective">Prospective - Being cultivated</option>
+                  <option value="Alumni">Alumni - Former champion, still friendly</option>
+                  <option value="Inactive">Inactive - Relationship dormant</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="newRelationshipOwner">NSITE MO Connection</label>
+                <select id="newRelationshipOwner" name="relationship_owner">
+                  <option value="">-- Select Team Member --</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group full-width">
+              <label for="newChampionNotes">Champion Notes</label>
+              <textarea id="newChampionNotes" name="champion_notes" rows="2" placeholder="Why is this person a champion? Value they bring? Relationship context?"></textarea>
             </div>
           </div>
         </div>
@@ -478,6 +528,12 @@
     color: var(--color-text);
   }
 
+  .contact-badges {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
   .contact-solutions-count {
     font-size: var(--font-size-xs);
     padding: 2px 8px;
@@ -485,6 +541,121 @@
     color: var(--color-primary);
     border-radius: 12px;
     font-weight: 600;
+  }
+
+  /* Champion badges */
+  .champion-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .champion-badge .material-icons {
+    font-size: 14px;
+  }
+
+  .champion-badge.champion-active {
+    background: rgba(46, 125, 50, 0.15);
+    color: var(--color-success);
+  }
+
+  .champion-badge.champion-prospective {
+    background: rgba(21, 101, 192, 0.15);
+    color: var(--color-primary);
+  }
+
+  .champion-badge.champion-alumni {
+    background: rgba(123, 31, 162, 0.15);
+    color: var(--color-comms);
+  }
+
+  .champion-badge.champion-inactive {
+    background: rgba(117, 117, 117, 0.15);
+    color: var(--color-text-muted);
+  }
+
+  /* Champion detail section in modal */
+  .champion-detail {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-sm);
+  }
+
+  .champion-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: 4px 12px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+  }
+
+  .champion-status-badge.champion-active {
+    background: rgba(46, 125, 50, 0.15);
+    color: var(--color-success);
+  }
+
+  .champion-status-badge.champion-prospective {
+    background: rgba(21, 101, 192, 0.15);
+    color: var(--color-primary);
+  }
+
+  .champion-status-badge.champion-alumni {
+    background: rgba(123, 31, 162, 0.15);
+    color: var(--color-comms);
+  }
+
+  .champion-status-badge.champion-inactive {
+    background: rgba(117, 117, 117, 0.15);
+    color: var(--color-text-muted);
+  }
+
+  .champion-owner {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .champion-notes {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    font-style: italic;
+    margin: 0;
+  }
+
+  /* Champion badge in table view */
+  .champion-table-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+  }
+
+  .champion-table-badge.champion-active {
+    background: rgba(46, 125, 50, 0.15);
+    color: var(--color-success);
+  }
+
+  .champion-table-badge.champion-prospective {
+    background: rgba(21, 101, 192, 0.15);
+    color: var(--color-primary);
+  }
+
+  .champion-table-badge.champion-alumni {
+    background: rgba(123, 31, 162, 0.15);
+    color: var(--color-comms);
+  }
+
+  .champion-table-badge.champion-inactive {
+    background: rgba(117, 117, 117, 0.15);
+    color: var(--color-text-muted);
   }
 
   .contact-email {
@@ -871,6 +1042,125 @@
     background: var(--color-primary);
   }
 
+  /* Inline Editing Styles */
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+  }
+
+  .detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .detail-label {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .detail-value {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+  }
+
+  .inline-edit-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .inline-select {
+    flex: 1;
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    cursor: pointer;
+    transition: border-color var(--transition-fast);
+  }
+
+  .inline-select:hover {
+    border-color: var(--color-primary);
+  }
+
+  .inline-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+  }
+
+  .inline-textarea {
+    width: 100%;
+    padding: var(--space-sm);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    min-height: 60px;
+    resize: vertical;
+    font-family: inherit;
+    transition: border-color var(--transition-fast);
+  }
+
+  .inline-textarea:hover {
+    border-color: var(--color-primary);
+  }
+
+  .inline-textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+  }
+
+  .save-indicator {
+    font-size: var(--font-size-xs);
+    color: var(--color-success);
+    margin-left: var(--space-sm);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+
+  .save-indicator.show {
+    opacity: 1;
+  }
+
+  /* Collapsible Section Styles */
+  .collapsible-section .collapsible-header {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    user-select: none;
+  }
+
+  .collapsible-section .collapsible-header:hover {
+    color: var(--color-primary);
+  }
+
+  .section-toggle-icon {
+    font-size: 18px;
+    transition: transform var(--transition-fast);
+  }
+
+  .collapsible-section.collapsed .section-toggle-icon {
+    transform: rotate(-90deg);
+  }
+
+  .collapsible-section .collapsible-content {
+    margin-top: var(--space-sm);
+    transition: max-height var(--transition-fast);
+  }
+
+  .collapsible-section.collapsed .collapsible-content {
+    display: none;
+  }
+
   /* Responsive */
   @media (max-width: 768px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
@@ -878,6 +1168,7 @@
     .filter-group { justify-content: space-between; }
     .contact-detail-header { flex-direction: column; align-items: center; text-align: center; }
     .form-row { grid-template-columns: 1fr; }
+    .detail-grid { grid-template-columns: 1fr; }
   }
 </style>
 
@@ -889,10 +1180,13 @@ var Contacts = (function() {
     filteredContacts: [],
     departments: [],
     solutions: [],
+    teamMembers: [],
+    relationshipOwners: [],
     currentPage: 1,
     pageSize: 24,
     view: 'cards',
-    searchTimeout: null
+    searchTimeout: null,
+    currentContactEmail: null
   };
 
   function init() {
@@ -900,6 +1194,7 @@ var Contacts = (function() {
     var navId = getNavigationId();
     loadContacts(navId);
     loadStats(navId);
+    loadTeamMembers(navId);
   }
 
   function loadContacts(navId) {
@@ -963,6 +1258,76 @@ var Contacts = (function() {
       .getContactStats();
   }
 
+  function loadTeamMembers(navId) {
+    google.script.run
+      .withSuccessHandler(function(team) {
+        // Abandon if user navigated away
+        if (navId && !isNavigationCurrent(navId)) return;
+
+        state.teamMembers = team || [];
+        populateOwnerDropdowns();
+      })
+      .withFailureHandler(function(error) {
+        if (navId && !isNavigationCurrent(navId)) return;
+        console.error('Failed to load team members:', error);
+      })
+      .getInternalTeam();
+  }
+
+  function populateOwnerDropdowns() {
+    // Extract unique relationship owners from existing contacts
+    var owners = {};
+    state.allContacts.forEach(function(c) {
+      if (c.relationship_owner && c.relationship_owner.trim()) {
+        owners[c.relationship_owner.toLowerCase()] = c.relationship_owner;
+      }
+    });
+
+    // Add team members to owner options
+    state.teamMembers.forEach(function(tm) {
+      if (tm.email) {
+        owners[tm.email.toLowerCase()] = tm.email;
+      }
+    });
+
+    state.relationshipOwners = Object.keys(owners).sort();
+
+    // Populate filter dropdown
+    var filterSelect = document.getElementById('filterOwner');
+    if (filterSelect) {
+      filterSelect.innerHTML = '<option value="">All</option>';
+      state.relationshipOwners.forEach(function(email) {
+        // Find display name from team members
+        var displayName = email;
+        var teamMember = state.teamMembers.find(function(tm) {
+          return tm.email && tm.email.toLowerCase() === email.toLowerCase();
+        });
+        if (teamMember) {
+          displayName = (teamMember.first_name || '') + ' ' + (teamMember.last_name || '');
+          displayName = displayName.trim() || email;
+        }
+        var opt = document.createElement('option');
+        opt.value = email;
+        opt.textContent = displayName;
+        filterSelect.appendChild(opt);
+      });
+    }
+
+    // Populate form dropdown
+    var formSelect = document.getElementById('newRelationshipOwner');
+    if (formSelect) {
+      formSelect.innerHTML = '<option value="">-- Select Team Member --</option>';
+      state.teamMembers.forEach(function(tm) {
+        if (tm.email) {
+          var opt = document.createElement('option');
+          opt.value = tm.email;
+          opt.textContent = ((tm.first_name || '') + ' ' + (tm.last_name || '')).trim() || tm.email;
+          formSelect.appendChild(opt);
+        }
+      });
+    }
+  }
+
   function updateMultiSolutionStat() {
     var multiCount = state.allContacts.filter(function(c) {
       return c.solutions_count > 1;
@@ -984,6 +1349,7 @@ var Contacts = (function() {
     state.solutions = Object.keys(sols).sort();
 
     populateFilterDropdowns();
+    populateOwnerDropdowns();
   }
 
   function populateFilterDropdowns() {
@@ -1026,6 +1392,8 @@ var Contacts = (function() {
     var sol = document.getElementById('filterSolution').value;
     var role = document.getElementById('filterRole').value;
     var year = document.getElementById('filterYear').value;
+    var champion = document.getElementById('filterChampion').value;
+    var owner = document.getElementById('filterOwner').value;
 
     state.filteredContacts = state.allContacts.filter(function(c) {
       // Search filter
@@ -1048,6 +1416,23 @@ var Contacts = (function() {
       // Year filter
       if (year && (!c.years || c.years.indexOf(parseInt(year)) === -1)) return false;
 
+      // Champion filter
+      if (champion) {
+        if (champion === 'any') {
+          // Any champion (non-empty status)
+          if (!c.champion_status || c.champion_status.trim() === '') return false;
+        } else {
+          // Specific status
+          if (c.champion_status !== champion) return false;
+        }
+      }
+
+      // Relationship owner filter
+      if (owner) {
+        var contactOwner = (c.relationship_owner || '').toLowerCase().trim();
+        if (contactOwner !== owner.toLowerCase()) return false;
+      }
+
       return true;
     });
 
@@ -1069,6 +1454,8 @@ var Contacts = (function() {
     document.getElementById('filterSolution').value = '';
     document.getElementById('filterRole').value = '';
     document.getElementById('filterYear').value = '';
+    document.getElementById('filterChampion').value = '';
+    document.getElementById('filterOwner').value = '';
     applyFilters();
   }
 
@@ -1114,7 +1501,14 @@ renderPagination();
     var html = '<div class="contact-card" onclick="Contacts.showDetail(\'' + escapeAttr(contact.email) + '\')">';
     html += '<div class="contact-card-header">';
     html += '<span class="contact-name">' + escapeHtml(contact.first_name || '') + ' ' + escapeHtml(contact.last_name || '') + '</span>';
+    html += '<div class="contact-badges">';
+    if (contact.champion_status) {
+      var championClass = 'champion-badge champion-' + contact.champion_status.toLowerCase();
+      html += '<span class="' + championClass + '" title="Champion: ' + escapeAttr(contact.champion_status) + '">';
+      html += '<span class="material-icons">star</span></span>';
+    }
     html += '<span class="contact-solutions-count">' + (contact.solutions_count || 0) + ' solutions</span>';
+    html += '</div>';
     html += '</div>';
     html += '<div class="contact-email">' + escapeHtml(contact.email || '') + '</div>';
 
@@ -1126,9 +1520,9 @@ renderPagination();
       html += '<div class="contact-roles">';
       roles.forEach(function(role) {
         var roleClass = 'role-tag';
-        if (role.indexOf('Primary') !== -1) roleClass += ' role-primary';
-        else if (role.indexOf('Secondary') !== -1) roleClass += ' role-secondary';
-        else if (role.indexOf('Submitter') !== -1) roleClass += ' role-submitter';
+        if (role.includes('Primary')) roleClass += ' role-primary';
+        else if (role.includes('Secondary')) roleClass += ' role-secondary';
+        else if (role.includes('Submitter')) roleClass += ' role-submitter';
         html += '<span class="' + roleClass + '">' + escapeHtml(role) + '</span>';
       });
       html += '</div>';
@@ -1145,6 +1539,7 @@ renderPagination();
     html += '<th>Email</th>';
     html += '<th>Department</th>';
     html += '<th>Solutions</th>';
+    html += '<th>Champion</th>';
     html += '<th>Roles</th>';
     html += '</tr></thead>';
     html += '<tbody>';
@@ -1155,7 +1550,16 @@ renderPagination();
       html += '<td class="table-email">' + escapeHtml(c.email || '') + '</td>';
       html += '<td>' + escapeHtml(c.department || '-') + '</td>';
       html += '<td>' + (c.solutions_count || 0) + '</td>';
-      html += '<td>' + (c.roles || []).slice(0, 2).join(', ') + '</td>';
+      // Champion status cell
+      html += '<td>';
+      if (c.champion_status) {
+        var statusClass = 'champion-table-badge champion-' + c.champion_status.toLowerCase();
+        html += '<span class="' + statusClass + '">' + escapeHtml(c.champion_status) + '</span>';
+      } else {
+        html += '-';
+      }
+      html += '</td>';
+      html += '<td>' + escapeHtml((c.roles || []).slice(0, 2).join(', ') || '-') + '</td>';
       html += '</tr>';
     });
 
@@ -1204,6 +1608,8 @@ renderPagination();
     var contact = state.allContacts.find(function(c) { return c.email === normalizedEmail; });
     if (!contact) return;
 
+    state.currentContactEmail = normalizedEmail;
+
     document.getElementById('modalContactName').textContent =
       (contact.first_name || '') + ' ' + (contact.last_name || '');
 
@@ -1220,17 +1626,56 @@ renderPagination();
     }
 
     if (contact.phone) {
-      html += '<div class="contact-detail-org"><span class="material-icons">phone</span>' + escapeHtml(contact.phone) + '</div>';
+      html += '<div class="contact-detail-org"><span class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">phone</span>' + escapeHtml(contact.phone) + '</div>';
     }
 
-    html += '<div class="contact-actions">';
-    html += '<a href="mailto:' + escapeHtml(contact.email) + '" class="btn btn-primary btn-sm"><span class="material-icons">email</span> Email</a>';
-    html += '</div>';
     html += '</div></div>';
 
-    // Solutions section
+    // SNWG Champion Section - Inline Editable
     html += '<div class="detail-section">';
-    html += '<div class="detail-section-title">Solutions (' + (contact.solutions_count || 0) + ')</div>';
+    html += '<div class="detail-section-title"><span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">star</span> SNWG Champion <span class="save-indicator" id="saveIndicator"></span></div>';
+    html += '<div class="detail-grid">';
+
+    // Champion Status - Inline Editable
+    html += '<div class="detail-item"><div class="detail-label">Status</div><div class="detail-value inline-edit-group">';
+    html += '<select class="inline-select" id="editChampionStatus" onchange="Contacts.updateContactField(\'' + escapeAttr(contact.email) + '\', \'champion_status\', this.value)">';
+    html += '<option value="">Not a Champion</option>';
+    ['Active', 'Prospective', 'Alumni', 'Inactive'].forEach(function(status) {
+      var selected = contact.champion_status === status ? ' selected' : '';
+      var labels = { 'Active': 'Active - Currently engaged', 'Prospective': 'Prospective - Being cultivated', 'Alumni': 'Alumni - Former champion', 'Inactive': 'Inactive - Dormant' };
+      html += '<option value="' + status + '"' + selected + '>' + labels[status] + '</option>';
+    });
+    html += '</select></div></div>';
+
+    // NSITE MO Connection - Inline Editable
+    html += '<div class="detail-item"><div class="detail-label">NSITE MO Connection</div><div class="detail-value inline-edit-group">';
+    html += '<select class="inline-select" id="editRelationshipOwner" onchange="Contacts.updateContactField(\'' + escapeAttr(contact.email) + '\', \'relationship_owner\', this.value)">';
+    html += '<option value="">-- None --</option>';
+    state.teamMembers.forEach(function(tm) {
+      if (tm.email) {
+        var selected = contact.relationship_owner && contact.relationship_owner.toLowerCase() === tm.email.toLowerCase() ? ' selected' : '';
+        var displayName = ((tm.first_name || '') + ' ' + (tm.last_name || '')).trim() || tm.email;
+        html += '<option value="' + escapeAttr(tm.email) + '"' + selected + '>' + escapeHtml(displayName) + '</option>';
+      }
+    });
+    html += '</select></div></div>';
+
+    html += '</div>';
+
+    // Champion Notes - Inline Editable
+    html += '<div class="detail-item" style="margin-top: var(--space-sm);"><div class="detail-label">Champion Notes</div>';
+    html += '<textarea class="inline-textarea" id="editChampionNotes" placeholder="Why is this person a champion? Value they bring?" onblur="Contacts.updateContactField(\'' + escapeAttr(contact.email) + '\', \'champion_notes\', this.value)">' + escapeHtml(contact.champion_notes || '') + '</textarea>';
+    html += '</div>';
+
+    html += '</div>';
+
+    // Solutions section - Collapsible, collapsed by default
+    html += '<div class="detail-section collapsible-section collapsed" id="solutionsSection">';
+    html += '<div class="detail-section-title collapsible-header" onclick="Contacts.toggleDetailSection(\'solutionsSection\')">';
+    html += '<span class="material-icons section-toggle-icon">expand_more</span>';
+    html += 'Solutions (' + (contact.solutions_count || 0) + ')';
+    html += '</div>';
+    html += '<div class="collapsible-content">';
 
     if (contact.solutions && contact.solutions.length > 0) {
       html += '<div class="solutions-grid">';
@@ -1243,7 +1688,7 @@ renderPagination();
     } else {
       html += '<p style="color:var(--color-text-muted)">No solutions linked</p>';
     }
-    html += '</div>';
+    html += '</div></div>';
 
     // Roles section
     if (contact.roles && contact.roles.length > 0) {
@@ -1252,9 +1697,9 @@ renderPagination();
       html += '<div class="contact-roles" style="gap: var(--space-sm);">';
       contact.roles.forEach(function(role) {
         var roleClass = 'role-tag';
-        if (role.indexOf('Primary') !== -1) roleClass += ' role-primary';
-        else if (role.indexOf('Secondary') !== -1) roleClass += ' role-secondary';
-        else if (role.indexOf('Submitter') !== -1) roleClass += ' role-submitter';
+        if (role.includes('Primary')) roleClass += ' role-primary';
+        else if (role.includes('Secondary')) roleClass += ' role-secondary';
+        else if (role.includes('Submitter')) roleClass += ' role-submitter';
         html += '<span class="' + roleClass + '" style="font-size: var(--font-size-sm); padding: 4px 12px;">' + escapeHtml(role) + '</span>';
       });
       html += '</div></div>';
@@ -1268,6 +1713,12 @@ renderPagination();
       html += '</div>';
     }
 
+    // Events Participated section
+    html += '<div class="detail-section" id="eventsParticipatedSection">';
+    html += '<div class="detail-section-title"><span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">event</span> Events Participated</div>';
+    html += '<div class="loading-state"><span class="loading-spinner"></span></div>';
+    html += '</div>';
+
     // Load related contacts
     html += '<div class="detail-section" id="relatedContactsSection">';
     html += '<div class="detail-section-title">Related Contacts</div>';
@@ -1276,7 +1727,20 @@ renderPagination();
 
     document.getElementById('modalBody').innerHTML = html;
     document.getElementById('contactModal').classList.add('active');
-// Load related contacts async
+
+    // Load events participated async
+    var contactId = contact.contact_id || contact.email;
+    google.script.run
+      .withSuccessHandler(function(summary) {
+        renderEventsParticipated(summary);
+      })
+      .withFailureHandler(function(error) {
+        document.getElementById('eventsParticipatedSection').innerHTML =
+          '<div class="detail-section-title"><span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">event</span> Events Participated</div><p style="color:var(--color-text-muted)">Could not load event participation</p>';
+      })
+      .getContactEventsSummary(contactId);
+
+    // Load related contacts async
     google.script.run
       .withSuccessHandler(function(related) {
         renderRelatedContacts(related);
@@ -1286,6 +1750,48 @@ renderPagination();
           '<div class="detail-section-title">Related Contacts</div><p style="color:var(--color-text-muted)">Could not load related contacts</p>';
       })
       .getRelatedContacts(email);
+  }
+
+  function renderEventsParticipated(summary) {
+    var section = document.getElementById('eventsParticipatedSection');
+    if (!summary || summary.total_events === 0) {
+      section.innerHTML = '<div class="detail-section-title"><span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">event</span> Events Participated</div><p style="color:var(--color-text-muted)">No event participation recorded</p>';
+      return;
+    }
+
+    var html = '<div class="detail-section-title"><span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">event</span> Events Participated (' + summary.total_events + ')</div>';
+
+    // Summary stats
+    html += '<div class="event-stats" style="display: flex; gap: var(--space-md); margin-bottom: var(--space-sm); font-size: var(--font-size-sm); color: var(--color-text-secondary);">';
+    html += '<span><strong>' + summary.completed + '</strong> completed</span>';
+    if (summary.upcoming > 0) {
+      html += '<span><strong>' + summary.upcoming + '</strong> upcoming</span>';
+    }
+    html += '</div>';
+
+    // Event list
+    html += '<div class="events-list" style="display: flex; flex-direction: column; gap: var(--space-xs);">';
+    summary.events.slice(0, 5).forEach(function(event) {
+      var eventDate = event.event_date ? formatDate(event.event_date) : '';
+      var statusClass = (event.event_status || 'planning').toLowerCase();
+      html += '<div class="event-item" style="display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm); background: var(--color-surface-alt); border-radius: var(--radius-sm); border-left: 3px solid var(--color-sep);">';
+      html += '<div style="flex: 1; min-width: 0;">';
+      html += '<div style="font-weight: 500; font-size: var(--font-size-sm);">' + escapeHtml(event.event_name || 'Unnamed Event') + '</div>';
+      html += '<div style="font-size: var(--font-size-xs); color: var(--color-text-muted);">';
+      if (eventDate) html += eventDate;
+      if (event.solution_id) html += (eventDate ? ' • ' : '') + escapeHtml(event.solution_id.toUpperCase());
+      html += '</div>';
+      html += '</div>';
+      html += '<span class="event-status-badge status-' + statusClass + '">' + escapeHtml(event.event_status || 'Planning') + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    if (summary.events.length > 5) {
+      html += '<p style="text-align:center;color:var(--color-text-muted);margin-top:var(--space-sm);font-size:var(--font-size-sm);">+' + (summary.events.length - 5) + ' more events</p>';
+    }
+
+    section.innerHTML = html;
   }
 
   function renderRelatedContacts(related) {
@@ -1413,7 +1919,11 @@ renderPagination();
       role: form.role.value,
       touchpoint_status: form.touchpoint_status.value,
       engagement_level: form.engagement_level.value,
-      relationship_notes: form.relationship_notes.value.trim()
+      relationship_notes: form.relationship_notes.value.trim(),
+      // Champion fields
+      champion_status: form.champion_status.value,
+      relationship_owner: form.relationship_owner.value,
+      champion_notes: form.champion_notes.value.trim()
     };
 
     google.script.run
@@ -1469,7 +1979,78 @@ renderPagination();
   function showError(message) {
     document.getElementById('contactsContainer').innerHTML =
       '<div class="empty-state"><span class="material-icons">error</span><p>' + message + '</p></div>';
-}
+  }
+
+  // ============================================
+  // Inline Edit Functions
+  // ============================================
+
+  function updateContactField(email, fieldName, value) {
+    var indicator = document.getElementById('saveIndicator');
+    if (indicator) {
+      indicator.textContent = 'Saving...';
+      indicator.classList.add('show');
+    }
+
+    // Map field names to API functions
+    var apiCallMap = {
+      'champion_status': 'updateContactChampionStatus',
+      'relationship_owner': 'updateContactRelationshipOwner',
+      'champion_notes': 'updateContactChampionNotes'
+    };
+
+    var apiFunction = apiCallMap[fieldName];
+    if (!apiFunction) {
+      console.error('Unknown field:', fieldName);
+      if (indicator) {
+        indicator.textContent = 'Error';
+        setTimeout(function() { indicator.classList.remove('show'); }, 2000);
+      }
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result && result.success) {
+          if (indicator) {
+            indicator.textContent = 'Saved';
+            setTimeout(function() { indicator.classList.remove('show'); }, 1500);
+          }
+          // Update local state
+          var contact = state.allContacts.find(function(c) {
+            return c.email === email.toLowerCase();
+          });
+          if (contact) {
+            contact[fieldName] = value;
+          }
+          // Invalidate cache so other pages see the update
+          if (typeof CachedAPI !== 'undefined' && CachedAPI.invalidate) {
+            CachedAPI.invalidate.contacts();
+          }
+        } else {
+          if (indicator) {
+            indicator.textContent = 'Failed';
+            setTimeout(function() { indicator.classList.remove('show'); }, 2000);
+          }
+          showToast(result && result.error ? result.error : 'Failed to save', 'error');
+        }
+      })
+      .withFailureHandler(function(error) {
+        if (indicator) {
+          indicator.textContent = 'Error';
+          setTimeout(function() { indicator.classList.remove('show'); }, 2000);
+        }
+        showToast('Error: ' + error.message, 'error');
+      })
+      [apiFunction](email, value);
+  }
+
+  function toggleDetailSection(sectionId) {
+    var section = document.getElementById(sectionId);
+    if (section) {
+      section.classList.toggle('collapsed');
+    }
+  }
 
   return {
     init: init,
@@ -1485,7 +2066,9 @@ renderPagination();
     showAddModal: showAddModal,
     closeAddModal: closeAddModal,
     toggleFormSection: toggleFormSection,
-    submitNewContact: submitNewContact
+    submitNewContact: submitNewContact,
+    updateContactField: updateContactField,
+    toggleDetailSection: toggleDetailSection
   };
 })();
 
