@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.2] - 2026-02-05
+
+### Added
+- **Team Capacity View** - Combined Actions + Availability + Team Members in single view
+  - New "Capacity" tab replaces separate Overview and Actions tabs
+  - Actions and Availability displayed side-by-side at top
+  - Team Members grid below
+  - New stats: Open Actions, Out This Week, Kudos This Month, Parking Lot Items
+  - Confetti celebration effect when completing actions or giving kudos
+- **Bug Logging to Spreadsheet** - Feedback now logged to BUGLOG_SHEET_ID in addition to Slack
+  - Auto-generated bug IDs (BUG-001, FEAT-002, FB-003)
+  - Columns: bug_id, timestamp, type, page, description, steps_to_reproduce, submitted_by, user_agent, status, priority, assigned_to, resolution_notes, resolved_date
+  - Bug ID shown in Slack notification header and user confirmation toast
+- **Sub-View Tracking in Feedback** - Feedback form now captures current sub-view/tab
+  - Shows "Sep > Dashboard", "Team > Capacity", "Comms > Content", etc.
+  - Exposed `currentView` getter on SEP and COMMS modules
+
+### Changed
+- Team page tab order: Capacity → Kudos → Meetings → Documents → Parking Lot
+- `formatNotesHtml()` function added to deploy/index.html for rich text rendering
+
+### Fixed
+- Synced DataCache system and navigation guards between index.html versions
+- XSS vulnerability in toast notifications (message now escaped)
+
+### Removed
+- **Directory cleanup** - Deleted obsolete `core/` and `instance-mo/` directories
+  - White-labeling is now done via MO-DB_Config, not separate code directories
+  - `deploy/` is now the single source of truth for all web app code
+
+---
+
 ## [2.5.1] - 2026-02-05
 
 ### Added

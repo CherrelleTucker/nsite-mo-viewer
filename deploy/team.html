@@ -8,13 +8,9 @@
     </div>
     <div class="page-actions">
       <div class="view-toggle">
-        <button class="view-btn active" data-view="overview" onclick="Team.setView('overview')">
-          <span class="material-icons">grid_view</span>
-          <span>Overview</span>
-        </button>
-        <button class="view-btn" data-view="actions" onclick="Team.setView('actions')">
-          <span class="material-icons">task_alt</span>
-          <span>Actions</span>
+        <button class="view-btn active" data-view="capacity" onclick="Team.setView('capacity')">
+          <span class="material-icons">dashboard</span>
+          <span>Capacity</span>
         </button>
         <button class="view-btn" data-view="kudos" onclick="Team.setView('kudos')">
           <span class="material-icons">celebration</span>
@@ -33,7 +29,7 @@
           <span>Parking Lot</span>
         </button>
       </div>
-      <button class="btn btn-primary" id="addEntryBtn" onclick="Team.showAddModal()">
+      <button class="btn btn-primary" id="addEntryBtn" onclick="Team.showAddModal()" style="display:none">
         <span class="material-icons">add</span>
         <span id="addEntryLabel">Add Availability</span>
       </button>
@@ -43,17 +39,10 @@
   <!-- Stats Row -->
   <div class="stats-row">
     <div class="stat-card">
-      <div class="stat-icon"><span class="material-icons">group</span></div>
+      <div class="stat-icon"><span class="material-icons">task_alt</span></div>
       <div class="stat-info">
-        <span class="stat-value" id="statTeamMembers">--</span>
-        <span class="stat-label">Team Members</span>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon"><span class="material-icons">calendar_today</span></div>
-      <div class="stat-info">
-        <span class="stat-value" id="statMeetingsThisWeek">--</span>
-        <span class="stat-label">Meetings This Week</span>
+        <span class="stat-value" id="statOpenActions">--</span>
+        <span class="stat-label">Open Actions</span>
       </div>
     </div>
     <div class="stat-card stat-warning">
@@ -70,45 +59,123 @@
         <span class="stat-label">Kudos This Month</span>
       </div>
     </div>
+    <div class="stat-card">
+      <div class="stat-icon"><span class="material-icons">lightbulb</span></div>
+      <div class="stat-info">
+        <span class="stat-value" id="statParkingLot">--</span>
+        <span class="stat-label">Parking Lot Items</span>
+      </div>
+    </div>
   </div>
 
   <!-- Main Content Area -->
   <div class="team-content">
-    <!-- Overview View (default) -->
-    <div class="view-panel active" id="overviewView">
-      <!-- Two column layout -->
-      <div class="team-grid">
-        <!-- Left: Team Profiles -->
-        <div class="team-profiles-section">
+    <!-- Capacity View (default) - combines Actions + Availability + Team -->
+    <div class="view-panel active" id="capacityView">
+      <!-- Top: Actions and Availability side by side -->
+      <div class="capacity-top-grid">
+        <!-- Left: Actions -->
+        <div class="panel capacity-panel capacity-actions">
           <div class="section-header">
-            <h2>Team Members</h2>
-            <div class="team-filter">
-              <select id="teamFilterSelect" onchange="Team.filterTeam(this.value)">
-                <option value="all">All Teams</option>
-                <option value="Leadership">Leadership</option>
-                <option value="Assessment">Assessment</option>
-                <option value="SEP">SEP</option>
-                <option value="Comms">Comms</option>
-                <option value="Operations">Operations</option>
-                <option value="Implementation">Implementation</option>
-              </select>
+            <h2>Actions</h2>
+            <div class="page-actions">
+              <div class="view-toggle view-toggle-compact">
+                <button class="view-btn active" data-subview="assignee" onclick="Team.setActionsSubview('assignee')">
+                  <span class="material-icons">group</span>
+                </button>
+                <button class="view-btn" data-subview="status" onclick="Team.setActionsSubview('status')">
+                  <span class="material-icons">view_column</span>
+                </button>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="Team.showAddActionModal()">
+                <span class="material-icons">add</span>
+                Add Action
+              </button>
             </div>
           </div>
-          <div class="team-grid-cards" id="teamProfilesGrid">
-            <div class="loading-state">
-              <span class="loading-spinner"></span>
-              <span>Loading team...</span>
+
+          <!-- Actions Filter Bar -->
+          <div class="actions-filters">
+            <div class="filter-chips">
+              <button class="chip active" data-filter="open" onclick="Team.setActionsFilter('open')">Open</button>
+              <button class="chip" data-filter="all" onclick="Team.setActionsFilter('all')">All</button>
+              <button class="chip" data-filter="done" onclick="Team.setActionsFilter('done')">Done</button>
             </div>
+            <div class="filter-search">
+              <span class="material-icons">search</span>
+              <input type="text" id="action-search" placeholder="Search..." onkeyup="Team.applyActionsFilters()">
+            </div>
+            <select id="filter-source" onchange="Team.applyActionsFilters()">
+              <option value="">All Sources</option>
+              <option value="MO">Internal</option>
+              <option value="SEP">SEP</option>
+            </select>
+            <select id="filter-solution" onchange="Team.applyActionsFilters()">
+              <option value="">All Solutions</option>
+            </select>
+          </div>
+
+          <!-- Actions Content -->
+          <div class="actions-content">
+            <!-- Assignee View (Default) -->
+            <div class="assignee-view active" id="assignee-view">
+              <div class="loading-state">
+                <span class="loading-spinner"></span>
+                <span>Loading actions...</span>
+              </div>
+            </div>
+
+            <!-- Status/Kanban View -->
+            <div class="status-view" id="status-view">
+              <div class="kanban-column" data-status="pending">
+                <div class="column-header">
+                  <span class="dot pending"></span>
+                  <span>Pending</span>
+                  <span class="count" id="count-pending">0</span>
+                </div>
+                <div class="column-cards" id="cards-pending"></div>
+              </div>
+              <div class="kanban-column" data-status="not_started">
+                <div class="column-header">
+                  <span class="dot not-started"></span>
+                  <span>Not Started</span>
+                  <span class="count" id="count-not-started">0</span>
+                </div>
+                <div class="column-cards" id="cards-not-started"></div>
+              </div>
+              <div class="kanban-column" data-status="in_progress">
+                <div class="column-header">
+                  <span class="dot in-progress"></span>
+                  <span>In Progress</span>
+                  <span class="count" id="count-in-progress">0</span>
+                </div>
+                <div class="column-cards" id="cards-in-progress"></div>
+              </div>
+              <div class="kanban-column" data-status="done">
+                <div class="column-header">
+                  <span class="dot done"></span>
+                  <span>Done</span>
+                  <span class="count" id="count-done">0</span>
+                </div>
+                <div class="column-cards" id="cards-done"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div class="empty-state" id="actions-empty" style="display:none;">
+            <span class="material-icons">inbox</span>
+            <p>No actions found</p>
           </div>
         </div>
 
-        <!-- Right: Availability Calendar -->
-        <div class="availability-section">
+        <!-- Right: Availability -->
+        <div class="panel capacity-panel capacity-availability">
           <div class="section-header">
-            <h2>Office Availability</h2>
-            <button class="btn btn-sm btn-secondary" onclick="Team.showAddAvailabilityModal()">
+            <h2>Availability</h2>
+            <button class="btn btn-primary btn-sm" onclick="Team.showAddAvailabilityModal()">
               <span class="material-icons">add</span>
-              Add
+              Add Availability
             </button>
           </div>
           <div class="availability-list" id="availabilityList">
@@ -118,101 +185,27 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Actions View -->
-    <div class="view-panel" id="actionsView">
-      <!-- Actions Sub-header -->
-      <div class="actions-subheader">
-        <div class="actions-view-toggle">
-          <button class="view-btn active" data-subview="assignee" onclick="Team.setActionsSubview('assignee')">
-            <span class="material-icons">group</span>
-            <span>By Person</span>
-          </button>
-          <button class="view-btn" data-subview="status" onclick="Team.setActionsSubview('status')">
-            <span class="material-icons">view_column</span>
-            <span>By Status</span>
-          </button>
+      <!-- Bottom: Team Members -->
+      <div class="panel capacity-panel capacity-team">
+        <div class="section-header">
+          <h2>Team Members</h2>
+          <select id="teamFilterSelect" onchange="Team.filterTeam(this.value)">
+            <option value="all">All Teams</option>
+            <option value="Leadership">Leadership</option>
+            <option value="Assessment">Assessment</option>
+            <option value="SEP">SEP</option>
+            <option value="Comms">Comms</option>
+            <option value="Operations">Operations</option>
+            <option value="Implementation">Implementation</option>
+          </select>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="Team.showAddActionModal()">
-          <span class="material-icons">add</span>
-          Add Action
-        </button>
-      </div>
-
-      <!-- Actions Filter Bar -->
-      <div class="actions-filters">
-        <div class="filter-chips">
-          <button class="chip active" data-filter="open" onclick="Team.setActionsFilter('open')">Open</button>
-          <button class="chip" data-filter="all" onclick="Team.setActionsFilter('all')">All</button>
-          <button class="chip" data-filter="done" onclick="Team.setActionsFilter('done')">Done</button>
-        </div>
-        <div class="filter-search">
-          <span class="material-icons">search</span>
-          <input type="text" id="action-search" placeholder="Search actions..." onkeyup="Team.applyActionsFilters()">
-        </div>
-        <select id="filter-source" onchange="Team.applyActionsFilters()">
-          <option value="">All Sources</option>
-          <option value="MO">Internal (MO)</option>
-          <option value="SEP">SEP</option>
-        </select>
-        <select id="filter-solution" onchange="Team.applyActionsFilters()">
-          <option value="">All Solutions</option>
-        </select>
-      </div>
-
-      <!-- Actions Content -->
-      <div class="actions-content">
-        <!-- Assignee View (Default) -->
-        <div class="assignee-view active" id="assignee-view">
+        <div class="team-grid-cards" id="teamProfilesGrid">
           <div class="loading-state">
             <span class="loading-spinner"></span>
-            <span>Loading actions...</span>
+            <span>Loading team...</span>
           </div>
         </div>
-
-        <!-- Status/Kanban View -->
-        <div class="status-view" id="status-view">
-          <div class="kanban-column" data-status="pending">
-            <div class="column-header">
-              <span class="dot pending"></span>
-              <span>Pending</span>
-              <span class="count" id="count-pending">0</span>
-            </div>
-            <div class="column-cards" id="cards-pending"></div>
-          </div>
-          <div class="kanban-column" data-status="not_started">
-            <div class="column-header">
-              <span class="dot not-started"></span>
-              <span>Not Started</span>
-              <span class="count" id="count-not-started">0</span>
-            </div>
-            <div class="column-cards" id="cards-not-started"></div>
-          </div>
-          <div class="kanban-column" data-status="in_progress">
-            <div class="column-header">
-              <span class="dot in-progress"></span>
-              <span>In Progress</span>
-              <span class="count" id="count-in-progress">0</span>
-            </div>
-            <div class="column-cards" id="cards-in-progress"></div>
-          </div>
-          <div class="kanban-column" data-status="done">
-            <div class="column-header">
-              <span class="dot done"></span>
-              <span>Done</span>
-              <span class="count" id="count-done">0</span>
-            </div>
-            <div class="column-cards" id="cards-done"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <div class="empty-state" id="actions-empty" style="display:none;">
-        <span class="material-icons">inbox</span>
-        <p>No actions found</p>
-        <p class="text-muted">Actions sync automatically from meeting agendas</p>
       </div>
     </div>
 
@@ -977,7 +970,7 @@
       <form id="add-action-form" onsubmit="return Team.submitAction(event)">
         <div class="form-group">
           <label for="add-task">Task *</label>
-          <div id="add-task" class="rich-text-field" contenteditable="true" data-placeholder="Describe the action item..."></div>
+          <textarea id="add-task" rows="3" required maxlength="1000" placeholder="Describe the action item..."></textarea>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -1105,7 +1098,95 @@
     margin: 0 auto;
   }
 
-  /* Team Grid Layout */
+  /* Capacity View Layout - uses shared .panel, .section-header, .view-toggle */
+  .capacity-top-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+  }
+
+  /* Capacity panels - extends .panel with accent border, padding, and scroll */
+  .capacity-panel {
+    border-top: 3px solid var(--page-accent);
+    padding: var(--space-md);
+    overflow: visible; /* Override .panel's overflow:hidden */
+  }
+
+  .capacity-actions {
+    max-height: 600px;
+    overflow-y: auto;
+  }
+
+  .capacity-availability {
+    max-height: 500px;
+    overflow-y: auto;
+  }
+
+  .capacity-team {
+    margin-top: 0; /* Already has gap from grid */
+  }
+
+  /* Actions filter bar */
+  .capacity-actions .actions-filters {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .capacity-actions .filter-chips {
+    display: flex;
+    gap: var(--space-xs);
+  }
+
+  .capacity-actions .filter-search {
+    position: relative;
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .capacity-actions .filter-search .material-icons {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: var(--color-text-muted);
+    pointer-events: none;
+  }
+
+  .capacity-actions .filter-search input {
+    width: 100%;
+    padding: var(--space-xs) var(--space-sm) var(--space-xs) 28px;
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+  }
+
+  .capacity-actions .filter-search input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+
+  .capacity-actions select {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-xs);
+    max-width: 100px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+  }
+
+  @media (max-width: 1024px) {
+    .capacity-top-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Team Grid Layout (legacy - keeping for compatibility) */
   .team-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -1920,6 +2001,7 @@
   /* Form Styles - matching SEP pattern */
   .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-md); }
   .form-group { margin-bottom: var(--space-md); }
+  .form-group-half { flex: 1; min-width: 150px; }
   .form-group label { display: block; font-size: var(--font-size-sm); font-weight: 500; margin-bottom: var(--space-xs); color: var(--color-text); }
   .form-group input, .form-group select, .form-group textarea {
     width: 100%;
@@ -1934,6 +2016,30 @@
     outline: none;
     border-color: var(--color-primary);
   }
+
+  /* Rich text field (contenteditable) - must have explicit background/border */
+  .rich-text-field {
+    width: 100%;
+    min-height: 80px;
+    padding: var(--space-sm);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    font-family: inherit;
+    line-height: 1.5;
+  }
+  .rich-text-field:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+  .rich-text-field:empty:before {
+    content: attr(data-placeholder);
+    color: var(--color-text-muted);
+  }
+
+  /* Full-width button variant */
+  .btn-full { width: 100%; justify-content: center; }
 
   /* Hidden form groups */
   .form-group.hidden { display: none; }
@@ -3357,7 +3463,7 @@
     kudos: [],
     kudosStats: null,
     selectedKudosCategory: null,
-    currentView: 'overview',
+    currentView: 'capacity',
     // Actions state
     actionsData: [],
     filteredActions: [],
@@ -3366,28 +3472,18 @@
     currentAction: null,
     editingActionId: null,
     collapsedAssignees: {},
-    navId: null,  // Navigation ID for abandoning stale loads
 
     init: function() {
-      // Capture navigation ID to detect if user navigates away during load
-      this.navId = getNavigationId();
-      this.loadData();
+      this.loadData();       // Load team members + availability
+      this.loadActions();    // Load actions (Capacity is default view)
+      this.loadParkingLot(); // Load parking lot for stats
       this.setupKudosForm();
       this.loadCurrentUser();
-      // Initialize rich text fields
-      initRichTextField('add-task', 'Describe the action item...');
-    },
-
-    // Check if this page load is still current
-    isCurrentNavigation: function() {
-      return isNavigationCurrent(this.navId);
     },
 
     loadCurrentUser: function() {
-      var self = this;
       google.script.run
         .withSuccessHandler(function(user) {
-          if (!self.isCurrentNavigation()) return;
           window.currentUserName = user.name || 'Anonymous';
           // If user has a name, we can personalize the kudos form
           if (user.name) {
@@ -3398,7 +3494,6 @@
           }
         })
         .withFailureHandler(function(error) {
-          if (!self.isCurrentNavigation()) return;
           console.error('Could not load user info:', error);
           window.currentUserName = 'Anonymous';
         })
@@ -3407,7 +3502,6 @@
       // Check if Slack is configured
       google.script.run
         .withSuccessHandler(function(isConfigured) {
-          if (!self.isCurrentNavigation()) return;
           if (isConfigured) {
             var slackGroup = document.getElementById('slackOptionGroup');
             if (slackGroup) slackGroup.style.display = '';
@@ -3420,67 +3514,45 @@
     },
 
     loadData: function() {
-      var self = this;
-
-      // Load team members with profiles using CachedAPI
-      CachedAPI.getTeamMembers()
-        .then(function(data) {
-          if (!self.isCurrentNavigation()) {
-            console.log('[Team] Abandoning members load - user navigated away');
-            return;
-          }
+      // Load team members with profiles
+      google.script.run
+        .withSuccessHandler(function(data) {
           Team.members = data || [];
           Team.renderTeamProfiles();
           Team.updateStats();
           Team.populatePersonSelect();
         })
-        .catch(function(error) {
-          if (!self.isCurrentNavigation()) return;
-          handleError(error);
-        });
+        .withFailureHandler(handleError)
+        .getInternalTeamWithProfiles();
 
-      // Load meetings using CachedAPI
-      CachedAPI.getMeetings()
-        .then(function(data) {
-          if (!self.isCurrentNavigation()) {
-            console.log('[Team] Abandoning meetings load - user navigated away');
-            return;
-          }
+      // Load meetings
+      google.script.run
+        .withSuccessHandler(function(data) {
           Team.meetings = data || [];
           Team.renderMeetings();
           Team.updateStats();
         })
-        .catch(function(error) {
-          if (!self.isCurrentNavigation()) return;
-          handleError(error);
-        });
+        .withFailureHandler(handleError)
+        .getAllMeetings();
 
       // Load availability
       google.script.run
         .withSuccessHandler(function(data) {
-          if (!self.isCurrentNavigation()) return;
           Team.availability = data || [];
           Team.renderAvailability();
           Team.updateStats();
         })
-        .withFailureHandler(function(error) {
-          if (!self.isCurrentNavigation()) return;
-          handleError(error);
-        })
+        .withFailureHandler(handleError)
         .getAvailability();
 
       // Load directing documents
       google.script.run
         .withSuccessHandler(function(data) {
-          if (!self.isCurrentNavigation()) return;
           Team.documents = data || [];
           Team.renderDocuments();
           Team.updateStats();
         })
-        .withFailureHandler(function(error) {
-          if (!self.isCurrentNavigation()) return;
-          handleError(error);
-        })
+        .withFailureHandler(handleError)
         .getDirectingDocuments();
 
       // Load kudos
@@ -3488,32 +3560,23 @@
     },
 
     loadKudos: function() {
-      var self = this;
       // Load recent kudos
       google.script.run
         .withSuccessHandler(function(data) {
-          if (!self.isCurrentNavigation()) return;
           Team.kudos = data || [];
           Team.renderKudosFeed();
           Team.updateStats();
         })
-        .withFailureHandler(function(error) {
-          if (!self.isCurrentNavigation()) return;
-          handleError(error);
-        })
+        .withFailureHandler(handleError)
         .getAllKudos({ days: 30, limit: 50 });
 
       // Load kudos stats
       google.script.run
         .withSuccessHandler(function(data) {
-          if (!self.isCurrentNavigation()) return;
           Team.kudosStats = data;
           Team.renderKudosStats();
         })
-        .withFailureHandler(function(error) {
-          if (!self.isCurrentNavigation()) return;
-          handleError(error);
-        })
+        .withFailureHandler(handleError)
         .getKudosStats(90);
     },
 
@@ -3851,18 +3914,15 @@
       // Update add button label based on view
       var addBtn = document.getElementById('addEntryBtn');
       var addLabel = document.getElementById('addEntryLabel');
-      if (view === 'overview') {
-        addBtn.style.display = '';
-        addLabel.textContent = 'Add Availability';
-      } else if (view === 'meetings') {
-        addBtn.style.display = '';
-        addLabel.textContent = 'Add Meeting';
-      } else if (view === 'actions') {
-        addBtn.style.display = 'none'; // Actions has its own add button in subheader
+      if (view === 'capacity') {
+        addBtn.style.display = 'none'; // Capacity has its own add buttons
         // Load actions data if not already loaded
         if (Team.actionsData.length === 0) {
           Team.loadActions();
         }
+      } else if (view === 'meetings') {
+        addBtn.style.display = '';
+        addLabel.textContent = 'Add Meeting';
       } else if (view === 'kudos') {
         addBtn.style.display = 'none'; // Kudos has inline form
       } else if (view === 'parkingLot') {
@@ -3888,7 +3948,7 @@
       var selectedType = typeSelect.value;
 
       var officeWideTypes = ['holiday', 'special_event'];
-      var isOfficeWide = officeWideTypes.includes(selectedType);
+      var isOfficeWide = officeWideTypes.indexOf(selectedType) !== -1;
       var isHoliday = selectedType === 'holiday';
 
       // Person select: hide for office-wide types
@@ -4054,7 +4114,7 @@
 
         // For office-wide events, show differently
         var officeWideTypes = ['holiday', 'special_event'];
-        var isOfficeWide = officeWideTypes.includes(item.type);
+        var isOfficeWide = officeWideTypes.indexOf(item.type) !== -1;
         var isHoliday = item.type === 'holiday';
         // Use holiday_name for holidays, notes for special events, contact_name for personal
         var nameDisplay = isHoliday
@@ -4258,18 +4318,17 @@
 
     updateStats: function() {
       // Guard against SPA navigation
-      var statEl = document.getElementById('statTeamMembers');
+      var statEl = document.getElementById('statOpenActions');
       if (!statEl) {
         // SPA navigation - elements no longer exist
         return;
       }
-      statEl.textContent = this.members.length;
 
-      // Count meetings this week (recurring meetings with day_of_week set)
-      var weeklyMeetings = this.meetings.filter(function(m) {
-        return m.day_of_week && m.is_active;
+      // Open actions count
+      var openActions = this.actionsData.filter(function(a) {
+        return a.status !== 'done';
       });
-      document.getElementById('statMeetingsThisWeek').textContent = weeklyMeetings.length;
+      statEl.textContent = openActions.length;
 
       // Count people out this week
       var today = new Date();
@@ -4288,6 +4347,12 @@
         return new Date(k.created_at) >= thirtyDaysAgo;
       }).length;
       document.getElementById('statKudosMonth').textContent = kudosThisMonth;
+
+      // Parking lot items (open)
+      var openParkingLot = this.parkingLotItems.filter(function(item) {
+        return item.status !== 'resolved' && item.status !== 'archived';
+      });
+      document.getElementById('statParkingLot').textContent = openParkingLot.length;
     },
 
     populatePersonSelect: function() {
@@ -4423,7 +4488,7 @@
       if (item.partners) {
         var partners = item.partners.split(',').map(function(p) { return p.trim(); });
         document.querySelectorAll('#partnerCheckboxes input[type="checkbox"]').forEach(function(cb) {
-          cb.checked = partners.includes(cb.value);
+          cb.checked = partners.indexOf(cb.value) !== -1;
         });
       } else {
         document.querySelectorAll('#partnerCheckboxes input[type="checkbox"]').forEach(function(cb) {
@@ -4581,7 +4646,7 @@
 
       // Validate person for personal types
       var officeWideTypes = ['holiday', 'special_event'];
-      var isOfficeWide = officeWideTypes.includes(selectedType);
+      var isOfficeWide = officeWideTypes.indexOf(selectedType) !== -1;
       var isHoliday = selectedType === 'holiday';
 
       if (!isOfficeWide && !personSelect.value) {
@@ -4737,6 +4802,7 @@
           Team.parkingLotItems = items || [];
           Team.renderParkingLot();
           Team.updatePLStats();
+          Team.updateStats();
         })
         .withFailureHandler(function(error) {
           console.error('Failed to load parking lot:', error);
@@ -4815,12 +4881,7 @@
       };
 
       google.script.run
-        .withSuccessHandler(function(result) {
-          if (!result || !result.success) {
-            showError('Failed to add item: ' + (result ? result.error : 'Unknown error'));
-            return;
-          }
-
+        .withSuccessHandler(function(newItem) {
           // Clear form
           document.getElementById('plTitle').value = '';
           document.getElementById('plDescription').value = '';
@@ -4991,7 +5052,7 @@
       priorityBadge.textContent = Team.formatPLPriority(item.priority);
 
       // Description
-      document.getElementById('plDetailDescription').innerHTML = formatTextWithLinks(item.description || 'No description provided.');
+      document.getElementById('plDetailDescription').textContent = item.description || 'No description provided.';
 
       // Meta info
       document.getElementById('plDetailSubmitter').textContent = item.submitted_by || 'Unknown';
@@ -5028,7 +5089,7 @@
       var notesSection = document.getElementById('plDetailNotesSection');
       if (item.notes) {
         notesSection.style.display = '';
-        document.getElementById('plDetailNotes').innerHTML = formatTextWithLinks(item.notes);
+        document.getElementById('plDetailNotes').textContent = item.notes;
       } else {
         notesSection.style.display = 'none';
       }
@@ -5102,29 +5163,17 @@
       var note = document.getElementById('plDetailNoteInput').value.trim();
       if (!note) return;
 
-      // Show loading state
-      var btn = document.querySelector('.pl-note-input .btn');
-      var originalHtml = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = '<span class="material-icons spin">sync</span>';
-
       google.script.run
         .withSuccessHandler(function(updatedItem) {
-          btn.disabled = false;
-          btn.innerHTML = originalHtml;
           if (updatedItem) {
             Team.currentPLItem = updatedItem;
             document.getElementById('plDetailNotesSection').style.display = '';
-            document.getElementById('plDetailNotes').innerHTML = formatTextWithLinks(updatedItem.notes);
+            document.getElementById('plDetailNotes').textContent = updatedItem.notes;
             document.getElementById('plDetailNoteInput').value = '';
             Team.loadParkingLot();
           }
         })
-        .withFailureHandler(function(err) {
-          btn.disabled = false;
-          btn.innerHTML = originalHtml;
-          handleError(err);
-        })
+        .withFailureHandler(handleError)
         .addNoteToParkingLotItem(Team.currentPLItem.item_id, note);
     },
 
@@ -5160,6 +5209,7 @@
           Team.populateSolutionFilter();
           Team.applyActionsFilters();
           Team.populateTeamMembersList();
+          Team.updateStats();
         })
         .withFailureHandler(function(err) {
           console.error('Failed to load actions:', err);
@@ -5320,7 +5370,7 @@
             Team.showActionDetail(action.action_id);
           };
 
-          row.innerHTML = '<div class="action-task">' + displayRichContent(action.task || '') + '</div>' +
+          row.innerHTML = '<div class="action-task">' + escapeHtml(action.task || '') + '</div>' +
             '<div class="action-row-meta">' +
             '<span class="action-status"><span class="status-dot ' + status.replace('_', '-') + '"></span>' +
             '<span class="status-text">' + Team.formatActionStatus(status) + '</span></span>' +
@@ -5364,7 +5414,7 @@
           var card = document.createElement('div');
           card.className = 'kanban-card';
           card.onclick = function() { Team.showActionDetail(action.action_id); };
-          card.innerHTML = '<div class="task">' + displayRichContent(action.task || '') + '</div>' +
+          card.innerHTML = '<div class="task">' + escapeHtml(action.task || '') + '</div>' +
             '<div class="meta">' +
             '<span class="owner">' + escapeHtml(action.assigned_to || 'Unassigned') + '</span>' +
             '<span class="action-solution' + (isSolution ? ' is-solution' : '') + '" style="font-size:10px;padding:2px 6px;">' + escapeHtml(solution) + '</span>' +
@@ -5387,7 +5437,7 @@
       // Task
       var taskField = document.createElement('div');
       taskField.className = 'detail-field';
-      taskField.innerHTML = '<label>Task</label><div class="value" style="white-space:pre-wrap;">' + displayRichContent(action.task || '-') + '</div>';
+      taskField.innerHTML = '<label>Task</label><div class="value">' + escapeHtml(action.task || '-') + '</div>';
       container.appendChild(taskField);
 
       // Assigned To
@@ -5454,7 +5504,7 @@
       if (action.notes) {
         var notesField = document.createElement('div');
         notesField.className = 'detail-field';
-        notesField.innerHTML = '<label>Notes</label><div class="value" style="white-space:pre-wrap;">' + formatTextWithLinks(action.notes) + '</div>';
+        notesField.innerHTML = '<label>Notes</label><div class="value notes-formatted">' + formatNotesHtml(action.notes) + '</div>';
         container.appendChild(notesField);
       }
 
@@ -5507,6 +5557,12 @@
         .withSuccessHandler(function(result) {
           if (result && result.success) {
             Team.currentAction.status = newStatus;
+
+            // Celebrate when marking as done!
+            if (newStatus === 'done') {
+              Team.celebrate();
+            }
+
             buttons.forEach(function(btn) {
               btn.disabled = false;
               btn.classList.remove('active');
@@ -5539,7 +5595,7 @@
 
       // Populate the add modal with existing data
       document.getElementById('addActionModal').querySelector('.modal-header h3').textContent = 'Edit Action';
-      setRichTextContent('add-task', action.task || '');
+      document.getElementById('add-task').value = action.task || '';
       document.getElementById('add-category').value = action.category || 'MO';
       document.getElementById('add-assigned').value = action.assigned_to || '';
       document.getElementById('add-due').value = action.due_date || '';
@@ -5559,32 +5615,16 @@
         return;
       }
 
-      // Show loading state on delete button
-      var deleteBtn = document.querySelector('#action-drawer .btn-danger');
-      var originalHtml = deleteBtn ? deleteBtn.innerHTML : '';
-      if (deleteBtn) {
-        deleteBtn.disabled = true;
-        deleteBtn.innerHTML = '<span class="material-icons spin">sync</span> Deleting...';
-      }
-
       google.script.run
         .withSuccessHandler(function(result) {
           if (result && result.success) {
             Team.closeActionDrawer();
             Team.loadActions();
           } else {
-            if (deleteBtn) {
-              deleteBtn.disabled = false;
-              deleteBtn.innerHTML = originalHtml;
-            }
             showError('Failed to delete: ' + (result && result.error ? result.error : 'Unknown error'));
           }
         })
         .withFailureHandler(function(err) {
-          if (deleteBtn) {
-            deleteBtn.disabled = false;
-            deleteBtn.innerHTML = originalHtml;
-          }
           showError('Failed to delete action: ' + err);
         })
         .deleteAction(actionId);
@@ -5647,7 +5687,6 @@
     showAddActionModal: function() {
       Team.editingActionId = null;
       document.getElementById('add-action-form').reset();
-      setRichTextContent('add-task', ''); // Clear rich text field (form.reset doesn't work for contenteditable)
       document.getElementById('addActionModal').querySelector('.modal-header h3').textContent = 'Add Action';
       document.getElementById('add-submit-btn').innerHTML = '<span class="material-icons">add</span> Add Action';
       document.getElementById('addActionModal').classList.add('show');
@@ -5657,7 +5696,7 @@
     submitAction: function(e) {
       if (e) e.preventDefault();
 
-      var task = getRichTextContent('add-task').trim();
+      var task = document.getElementById('add-task').value.trim();
       var assigned = document.getElementById('add-assigned').value.trim();
       var category = document.getElementById('add-category').value;
       var solution = document.getElementById('add-solution').value.trim();
@@ -5757,10 +5796,9 @@
         'pending': 'Pending',
         'not_started': 'Not Started',
         'in_progress': 'In Progress',
-        'done': 'Done',
-        'blocked': 'Blocked'
+        'done': 'Done'
       };
-      return map[status] || escapeHtml(status || 'Unknown');
+      return map[status] || status;
     },
 
     showActionsEmpty: function(show) {

@@ -1250,19 +1250,22 @@ function submitAccessRequest(email, reason) {
 }
 
 /**
- * Submit feedback (bug report or feature suggestion) to Slack
+ * Submit feedback (bug report or feature suggestion) to Sheet + Slack
  * @param {Object} feedback - Feedback data from the form
  * @returns {Object} Result with success flag
  */
 function submitFeedback(feedback) {
   try {
-    // Get Slack webhook URL from config
+    // 1. Log to bug tracking sheet first (so we don't lose data if Slack fails)
+    var bugId = logFeedbackToSheet_(feedback);
+
+    // 2. Get Slack webhook URL from config
     var webhookUrl = MoApi.getConfigValue('FEEDBACK_SLACK_WEBHOOK_URL');
 
     if (!webhookUrl) {
-      Logger.log('Feedback received but no Slack webhook configured');
-      // Still return success - we logged it
-      return { success: true, message: 'Feedback logged (Slack not configured)' };
+      Logger.log('Feedback received but no Slack webhook configured. Bug ID: ' + bugId);
+      // Still return success - we logged it to sheet
+      return { success: true, message: 'Feedback logged (Slack not configured)', bugId: bugId };
     }
 
     // Build emoji based on type
@@ -1286,7 +1289,7 @@ function submitFeedback(feedback) {
         type: 'header',
         text: {
           type: 'plain_text',
-          text: emoji + ' ' + (typeLabel[feedback.type] || 'Feedback'),
+          text: emoji + ' ' + (typeLabel[feedback.type] || 'Feedback') + (bugId ? ' [' + bugId + ']' : ''),
           emoji: true
         }
       },
@@ -1349,16 +1352,68 @@ function submitFeedback(feedback) {
 
     var responseCode = response.getResponseCode();
     if (responseCode === 200) {
-      Logger.log('Feedback sent to Slack successfully');
-      return { success: true };
+      Logger.log('Feedback sent to Slack successfully. Bug ID: ' + bugId);
+      return { success: true, bugId: bugId };
     } else {
       Logger.log('Slack webhook returned: ' + responseCode + ' - ' + response.getContentText());
-      return { success: false, message: 'Slack returned error: ' + responseCode };
+      // Still return success because we logged to sheet
+      return { success: true, bugId: bugId, slackError: 'Slack returned error: ' + responseCode };
     }
 
   } catch (e) {
     Logger.log('Error submitting feedback: ' + e);
     return { success: false, message: e.message };
+  }
+}
+
+/**
+ * Log feedback to the bug tracking sheet
+ * @param {Object} feedback - Feedback data from the form
+ * @returns {string} Generated bug ID
+ * @private
+ */
+function logFeedbackToSheet_(feedback) {
+  var sheetId = MoApi.getConfigValue('BUGLOG_SHEET_ID');
+  if (!sheetId) {
+    Logger.log('BUGLOG_SHEET_ID not configured - skipping sheet logging');
+    return null;
+  }
+
+  try {
+    var ss = SpreadsheetApp.openById(sheetId);
+    var sheet = ss.getSheetByName('Bugs') || ss.getSheets()[0];
+
+    // Generate bug ID based on existing rows
+    var lastRow = sheet.getLastRow();
+    var nextNum = lastRow; // Row 1 is header, so lastRow = count of bugs
+    var prefix = feedback.type === 'bug' ? 'BUG' : (feedback.type === 'feature' ? 'FEAT' : 'FB');
+    var bugId = prefix + '-' + String(nextNum).padStart(3, '0');
+
+    // Prepare row data matching expected columns:
+    // bug_id | timestamp | type | page | description | steps_to_reproduce | submitted_by | user_agent | status | priority | assigned_to | resolution_notes | resolved_date
+    var rowData = [
+      bugId,
+      feedback.timestamp || new Date().toISOString(),
+      feedback.type || 'other',
+      feedback.page || '',
+      feedback.description || '',
+      feedback.steps || '',
+      feedback.name || 'Anonymous',
+      feedback.userAgent || '',
+      'new',      // status - default to new
+      '',         // priority - to be triaged
+      '',         // assigned_to - to be assigned
+      '',         // resolution_notes
+      ''          // resolved_date
+    ];
+
+    sheet.appendRow(rowData);
+    Logger.log('Feedback logged to sheet with ID: ' + bugId);
+
+    return bugId;
+  } catch (e) {
+    Logger.log('Error logging feedback to sheet: ' + e);
+    return null;
   }
 }
 

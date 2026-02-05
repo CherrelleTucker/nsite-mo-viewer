@@ -1272,14 +1272,53 @@
     // FEEDBACK FORM
     // ========================================================================
 
+    /**
+     * Get the current sub-view/tab for the active page
+     * Each page object tracks its own currentView property
+     */
+    function getCurrentSubView() {
+      var page = Platform.activePage;
+      try {
+        switch(page) {
+          case 'sep':
+            return (typeof SEP !== 'undefined' && SEP.currentView) ? SEP.currentView : null;
+          case 'team':
+            return (typeof Team !== 'undefined' && Team.currentView) ? Team.currentView : null;
+          case 'comms':
+            return (typeof COMMS !== 'undefined' && COMMS.currentView) ? COMMS.currentView : null;
+          case 'implementation':
+            return (typeof Implementation !== 'undefined' && Implementation.currentView) ? Implementation.currentView : null;
+          case 'contacts':
+            return (typeof Contacts !== 'undefined' && Contacts.currentView) ? Contacts.currentView : null;
+          case 'reports':
+            return (typeof Reports !== 'undefined' && Reports.currentView) ? Reports.currentView : null;
+          default:
+            return null;
+        }
+      } catch (e) {
+        return null;
+      }
+    }
+
     function openFeedbackModal() {
-      // Auto-fill current page
+      // Auto-fill current page with sub-view if available
       var pageName = Platform.activePage || 'unknown';
-      document.getElementById('feedbackPage').value = pageName.charAt(0).toUpperCase() + pageName.slice(1);
+      var pageDisplay = pageName.charAt(0).toUpperCase() + pageName.slice(1);
+
+      var subView = getCurrentSubView();
+      if (subView) {
+        // Capitalize first letter of sub-view
+        var subViewDisplay = subView.charAt(0).toUpperCase() + subView.slice(1);
+        // Convert camelCase to Title Case (e.g., "parkingLot" -> "Parking Lot")
+        subViewDisplay = subViewDisplay.replace(/([A-Z])/g, ' $1').trim();
+        pageDisplay += ' > ' + subViewDisplay;
+      }
+
+      document.getElementById('feedbackPage').value = pageDisplay;
 
       // Reset form
       document.getElementById('feedbackForm').reset();
-      document.getElementById('feedbackPage').value = pageName.charAt(0).toUpperCase() + pageName.slice(1);
+      document.getElementById('feedbackPage').value = pageDisplay;
       toggleStepsField();
 
       // Show modal
@@ -1322,7 +1361,11 @@
 
           if (result && result.success) {
             closeFeedbackModal();
-            showToast('Feedback sent! Thank you for helping improve the platform.', 'success');
+            var msg = 'Feedback sent! Thank you for helping improve the platform.';
+            if (result.bugId) {
+              msg += ' (Reference: ' + result.bugId + ')';
+            }
+            showToast(msg, 'success');
           } else {
             showToast('Failed to send feedback. Please try again.', 'error');
           }
@@ -1561,6 +1604,28 @@
     }
 
     /**
+     * Global notes formatter - renders HTML content or converts plain text.
+     * If content contains HTML tags, renders as-is (trusted internal content).
+     * If plain text, converts URLs to links and newlines to <br>.
+     */
+    function formatNotesHtml(text) {
+      if (text === null || text === undefined) return '';
+      var str = String(text);
+
+      // Check if content already contains HTML tags (trusted rich content)
+      if (/<[a-z][\s\S]*>/i.test(str)) {
+        // Already HTML - render as-is, just ensure links open in new tab
+        return str.replace(/<a\s+(?![^>]*target=)/gi, '<a target="_blank" rel="noopener" ');
+      }
+
+      // Plain text - escape HTML and convert URLs/newlines
+      var escaped = escapeHtml(str);
+      var urlRegex = /(https?:\/\/[^\s<]+)/g;
+      var linked = escaped.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+      return linked.replace(/\n/g, '<br>');
+    }
+
+    /**
      * Global Toast Notification System
      * Usage: showToast('Message', 'success|error|warning|info', duration)
      * BACKLOG: Not executing in GAS environment - needs investigation
@@ -1589,9 +1654,11 @@
 
       var toast = document.createElement('div');
       toast.className = 'toast ' + type;
+      // Security: Escape message to prevent XSS injection
+      var safeMessage = escapeHtml(message);
       toast.innerHTML =
         '<span class="toast-icon"><span class="material-icons">' + icons[type] + '</span></span>' +
-        '<span class="toast-content">' + message + '</span>' +
+        '<span class="toast-content">' + safeMessage + '</span>' +
         '<button class="toast-close" onclick="this.parentElement.remove()" aria-label="Dismiss notification"><span class="material-icons" aria-hidden="true">close</span></button>';
 
       container.appendChild(toast);

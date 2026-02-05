@@ -1,6 +1,6 @@
 # Claude Code Instructions for MO-Viewer
 
-**Version:** 2.4.1 | **Updated:** 2026-02-04 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
+**Version:** 2.5.2 | **Updated:** 2026-02-05 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
 
 ---
 
@@ -450,6 +450,46 @@ When making significant changes, update ALL relevant files:
 
 8. **Editing deploy instead of library** - For API logic changes, edit `library/*-api.gs` files.
 
+9. **Creating duplicate directories** - NEVER create `core/`, `instance-*/`, or similar directories. The `deploy/` folder is the SINGLE SOURCE OF TRUTH. White-labeling is done via MO-DB_Config configuration, not code copies. (Learned 2026-02-05: obsolete directories caused major sync issues)
+
+---
+
+## Testing
+
+### Browser Console Does NOT Work
+
+**CRITICAL: Browser console (F12) does not work in Apps Script test deployments.** Console.log statements in HTML/JS files are not visible in the browser developer tools when running the test deployment.
+
+**Always use these methods instead:**
+
+1. **Logger.log() in Apps Script Editor** - For testing API functions
+   ```javascript
+   function testMyFunction() {
+     var result = myApiFunction('param');
+     Logger.log(JSON.stringify(result, null, 2));
+   }
+   ```
+   Run the function, then View → Logs to see output.
+
+2. **Alert/Toast in UI** - For quick client-side debugging
+   ```javascript
+   alert('Debug: ' + JSON.stringify(data));
+   // or use the app's toast system
+   showToast('Debug: ' + someValue, 'info');
+   ```
+
+3. **Temporary UI element** - For inspecting data structures
+   ```javascript
+   document.getElementById('someDiv').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+   ```
+
+### Testing Workflow
+
+1. **API functions** → Test in Apps Script editor with Logger.log()
+2. **UI interactions** → Use alert() or showToast() for debugging
+3. **Data flow** → Add temporary visible output, then remove after debugging
+4. **Production deployment** → Console.log may work, but don't rely on it
+
 ---
 
 ## Data Standards
@@ -704,14 +744,20 @@ Before completing any task, verify:
 
 ## Project Structure
 
+**IMPORTANT: `deploy/` is the SINGLE SOURCE OF TRUTH for all web app code.**
+
+Do NOT create alternative directories like `core/`, `instance-*/`, or similar. White-labeling is achieved through **MO-DB_Config** configuration, not separate code directories. The `setup-wizard/` helps new teams create their own config sheets.
+
 ```
 nsite-mo-viewer/
-├── deploy/           # Files to copy to NSITE-MO-Viewer (Apps Script)
+├── deploy/           # SINGLE SOURCE - Files to copy to NSITE-MO-Viewer (Apps Script)
 ├── library/          # Files to copy to MO-APIs Library (Apps Script)
+├── setup-wizard/     # Creates new team instances via config (NOT code copies)
 ├── scripts/          # Python import/processing scripts
 ├── database-files/   # Local Excel/CSV database backups
 ├── docs/             # Technical documentation
-└── tests/            # Testing files
+├── extensions/       # Browser extensions
+└── training/         # Training materials
 ```
 
 ## Key Files
@@ -748,25 +794,39 @@ nsite-mo-viewer/
 
 ## Design System
 
+**IMPORTANT: See `docs/STYLE_GUIDE.md` for comprehensive component patterns and CSS conventions.**
+
+Before creating any new UI components, ALWAYS check:
+1. `docs/STYLE_GUIDE.md` - Component patterns and usage examples
+2. `deploy/styles.html` - CSS variables (colors, spacing, typography)
+3. `deploy/shared-page-styles.html` - Shared component CSS
+
 ### Icons
 - **Use Material Icons** - NOT Feather icons
 - Syntax: `<span class="material-icons">icon_name</span>`
 - Reference: https://fonts.google.com/icons
 
-### CSS Variables
-- Colors, spacing, typography in `shared-styles.html`
-- Page-specific accents (e.g., `--color-comms`, `--color-sep`)
+### Key Shared Components (from shared-page-styles.html)
+- Panels: `.panel`, `.panel-header`, `.panel-content`
+- Section headers: `.section-header`
+- Buttons: `.btn`, `.btn-primary`, `.btn-secondary`, `.btn-sm`, `.btn-full`
+- View toggles: `.view-toggle`, `.view-btn`, `.view-toggle-compact`
+- Filter chips: `.filter-chips`, `.chip`
+- Filter search: `.filter-search`
+- Stats: `.stats-row`, `.stat-card`
+- Forms: `.form-group`, `.form-row`, `.rich-text-field`
+- Modals: `.modal-overlay`, `.modal-content`, `.modal-header`, `.modal-body`
 
-### Components
-- Modals: `.modal-overlay`, `.modal-content`
-- Buttons: `.btn`, `.btn-primary`, `.btn-secondary`
-- Cards: `.stat-card`, `.content-card`
+### Critical CSS Rules
+- **Rich text fields (contenteditable)** MUST have `background: #fff` and `border` - they're invisible otherwise
+- **Use CSS variables** - never hardcode colors, spacing, or font sizes
+- **Set `--page-accent`** on viewer containers for page-specific theming
 
 ---
 
 ## Access Control
 
-MO-Viewer uses **passphrase + whitelist authentication**.
+MO-Viewer uses **passphrase + whitelist authentication** (NOT OAuth).
 
 ### How It Works
 1. User visits MO-Viewer → sees sign-in page
@@ -781,6 +841,101 @@ MO-Viewer uses **passphrase + whitelist authentication**.
 | `SITE_PASSPHRASE` | Shared team passphrase |
 | `ACCESS_SHEET_ID` | ID of MO-DB_Access spreadsheet |
 | `ADMIN_EMAIL` | Email for access request notifications |
+
+### ⛔ CRITICAL: Do NOT Use Session.getActiveUser() or Session.getEffectiveUser()
+
+**These methods require OAuth scopes that are NOT configured for this web app.**
+
+```javascript
+// ❌ WRONG - Will fail with "permissions not sufficient" error
+var email = Session.getActiveUser().getEmail();
+var email = Session.getEffectiveUser().getEmail();
+
+// ✅ CORRECT - Trust the session-based auth
+// Users already authenticated via passphrase + whitelist to reach the page
+function checkAuthorization() {
+  return { authorized: true, email: 'session-user', message: 'Authorized via session' };
+}
+```
+
+**Why this matters:**
+- The web app is deployed WITHOUT the `userinfo.email` OAuth scope
+- Session methods fail silently or throw errors without this scope
+- Users already proved their identity through passphrase + whitelist sign-in
+- API functions called from the page can trust the user is authenticated
+
+**If you need user identity in an API function:**
+- Pass it from the client (the session already validated them)
+- Or use `logged_by` fields populated client-side
+
+---
+
+## UI/CSS Patterns
+
+### Toast Notifications
+
+Toasts must have `position: fixed` and high `z-index` to appear above modals:
+
+```css
+.toast {
+  position: fixed;
+  bottom: var(--space-lg);
+  right: var(--space-lg);
+  z-index: 10001; /* Above modals (z-index: 1000) */
+}
+```
+
+### Modal Z-Index Hierarchy
+
+| Element | z-index |
+|---------|---------|
+| Modal overlay | 1000 |
+| Modal content | 1001 |
+| Toast notifications | 10001 |
+| Skip link (a11y) | 10000 |
+
+### Form Fields
+
+All form inputs must have visible styling:
+
+```css
+.form-group input, .form-group select, .form-group textarea {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  /* ... other styles */
+}
+
+/* For contenteditable divs used as rich text fields */
+.form-group .rich-text-field {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  min-height: 80px;
+}
+```
+
+### Activity Type Icons
+
+When adding new activity types, update the icon mapping in ALL locations:
+
+```javascript
+var typeIcons = {
+  'Email': 'email',
+  'Phone': 'phone',
+  'Meeting': 'groups',
+  'Webinar': 'videocam',
+  'Workshop': 'handyman',
+  'Conference': 'location_city',
+  'Site Visit': 'place',
+  'Training': 'school'
+};
+```
+
+**Locations to update when adding activity types:**
+1. `library/engagements-api.gs` - ENGAGEMENT_ACTIVITY_TYPES constant
+2. `deploy/sep.html` - Quick Log form dropdown
+3. `deploy/sep.html` - Filter dropdown
+4. `deploy/sep.html` - Edit form dropdown
+5. `deploy/sep.html` - typeIcons objects (multiple locations)
 
 ---
 

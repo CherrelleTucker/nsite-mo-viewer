@@ -3,7 +3,7 @@
 **Configurable Dashboard Platform for Project/Stakeholder Management**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.5.2-blue.svg)](CHANGELOG.md)
 
 ---
 
@@ -72,50 +72,37 @@ All component names are **configurable** through MO-DB_Config. The default NSITE
 
 ## Repository Structure
 
+**IMPORTANT:** `deploy/` is the **single source of truth** for all web app code. White-labeling is achieved through MO-DB_Config configuration, not separate code directories.
+
 ```
 nsite-mo-viewer/
 ├── README.md                     # This file
+├── CLAUDE.md                     # AI assistant instructions
 ├── ARCHITECTURE.md               # Master architecture document
-├── INTEGRATION_PLAN.md           # Implementation roadmap
 ├── CHANGELOG.md                  # Version history
 ├── LICENSE                       # MIT License
 │
+├── deploy/                       # SINGLE SOURCE - Copy to NSITE-MO-Viewer (Apps Script)
+│   ├── Code.gs                   # Main routing, auth, session management
+│   ├── index.html                # SPA shell, navigation, global utilities
+│   ├── *.html                    # Page templates (implementation, sep, comms, etc.)
+│   └── *-api.gs                  # Thin wrappers calling MoApi library
+│
+├── library/                      # Copy to MO-APIs Library (Apps Script)
+│   ├── config-helpers.gs         # Shared utilities, database helpers
+│   └── *-api.gs                  # Full API implementations
+│
+├── setup-wizard/                 # Creates new team instances via config sheets
+│
 ├── docs/                         # Documentation
 │   ├── DATA_SCHEMA.md
-│   ├── SETUP_GUIDE.md
-│   ├── USER_GUIDE.md
-│   └── API_REFERENCE.md
+│   ├── STYLE_GUIDE.md
+│   └── BUG_TRACKER.md
 │
-├── src/                          # Source code
-│   ├── platform/                 # Platform shell & navigation
-│   ├── implementation-viewer/    # Solution tracking view
-│   ├── sep-viewer/               # Stakeholder engagement view
-│   ├── comms-viewer/             # Communications tracking view
-│   ├── quick-update/             # Embedded update form
-│   └── shared/                   # Cross-cutting components
-│
-├── parsers/                      # Document parsers
-│   ├── internal-agenda-parser.gs
-│   ├── sep-agenda-parser.gs
-│   └── comms-tracker-parser.gs
-│
-├── storage/                      # Database layer
-│   ├── database-setup.gs
-│   ├── database-api.gs
-│   └── database-sync.gs
-│
-├── reports/                      # Report generators
-│   ├── quicklook-generator.gs
-│   └── quadchart-data.gs
-│
-├── config/                       # Configuration
-│   └── script-properties.md
-│
-├── tests/                        # Test files
-│   └── README.md
-│
-└── legacy/                       # Migration notes
-    └── README.md
+├── database-files/               # Local Excel/CSV database backups
+├── scripts/                      # Python import/processing scripts
+├── extensions/                   # Browser extensions
+└── training/                     # Training materials
 ```
 
 ---

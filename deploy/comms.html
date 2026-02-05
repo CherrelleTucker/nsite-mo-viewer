@@ -10051,7 +10051,9 @@ var COMMS = (function() {
     cancelUploadMetadata: cancelUploadMetadata,
     saveUploadedAsset: saveUploadedAsset,
     // Manage view functions (NEW)
-    setManageSubtab: setManageSubtab
+    setManageSubtab: setManageSubtab,
+    // Expose current view for feedback form
+    get currentView() { return state.currentView; }
   };
 })();
 

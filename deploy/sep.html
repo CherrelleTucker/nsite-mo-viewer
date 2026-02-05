@@ -7521,7 +7521,9 @@ return;
     expandStakeholders: expandStakeholders,
     collapseStakeholders: collapseStakeholders,
     expandAgencies: expandAgencies,
-    collapseAgencies: collapseAgencies
+    collapseAgencies: collapseAgencies,
+    // Expose current view for feedback form
+    get currentView() { return state.currentView; }
   };
 })();
 
