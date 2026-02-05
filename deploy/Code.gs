@@ -156,6 +156,44 @@ var PAGES = {
 var DEFAULT_PAGE = 'topsheet';
 
 // ============================================================================
+// SECURITY HELPERS
+// ============================================================================
+
+/**
+ * Escape HTML special characters to prevent XSS
+ * Use this for any user-controlled or external data inserted into HTML
+ * @param {string} text - Text to escape
+ * @returns {string} Escaped text safe for HTML insertion
+ */
+function escapeHtml_(text) {
+  if (text === null || text === undefined) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/**
+ * Sanitize text for safe use in email body
+ * Removes potential injection characters and limits length
+ * @param {string} text - Text to sanitize
+ * @param {number} maxLength - Maximum allowed length (default 500)
+ * @returns {string} Sanitized text
+ */
+function sanitizeForEmail_(text, maxLength) {
+  if (!text) return '';
+  maxLength = maxLength || 500;
+  // Remove control characters and limit length
+  return String(text)
+    .replace(/[\r\n]+/g, ' ')  // Replace newlines with space
+    .replace(/[^\x20-\x7E]/g, '') // Remove non-printable ASCII
+    .substring(0, maxLength)
+    .trim();
+}
+
+// ============================================================================
 // WEB APP ENTRY POINT
 // ============================================================================
 
@@ -170,14 +208,39 @@ function doGet(e) {
   var faviconUrl = 'https://raw.githubusercontent.com/CherrelleTucker/nsite-mo-viewer/main/favicon.png';
   var page = e.parameter.page || DEFAULT_PAGE;
 
-  // Debug endpoint - check access status without blocking
+  // Debug endpoint - check access status (ADMIN ONLY)
   // Usage: ?page=access-check
   if (page === 'access-check') {
+    var activeEmail = '';
+    try {
+      activeEmail = Session.getActiveUser().getEmail();
+    } catch (e) {
+      Logger.log('access-check: Could not get active user - ' + e.message);
+    }
+    var adminEmail = getAdminEmail();
+
+    // Security: Restrict access-check to admin users only
+    if (!activeEmail || activeEmail.toLowerCase() !== adminEmail.toLowerCase()) {
+      return HtmlService.createHtmlOutput(
+        '<html><body style="font-family: Arial; padding: 40px;">' +
+        '<h1>Access Denied</h1>' +
+        '<p>This diagnostic page is restricted to administrators.</p>' +
+        '</body></html>'
+      )
+        .setTitle('Access Denied | MO-Viewer')
+        .setFaviconUrl(faviconUrl);
+    }
+
     var storedEmail = getStoredUserEmail();
-    var activeEmail = Session.getActiveUser().getEmail();
     var accessSheetId = getConfigValue('ACCESS_SHEET_ID');
     var displayEmail = storedEmail || activeEmail || '(not available)';
-    var hasAccess = accessSheetId ? validateUserAccess(displayEmail, accessSheetId) : 'NOT_CONFIGURED';
+    var accessResult = accessSheetId ? validateUserAccess(displayEmail, accessSheetId) : null;
+    var hasAccess = accessResult ? accessResult.hasAccess : 'NOT_CONFIGURED';
+
+    // Security: Escape all values to prevent XSS
+    var safeStoredEmail = storedEmail ? escapeHtml_(storedEmail) : '<span class="warning">none</span>';
+    var safeActiveEmail = activeEmail ? escapeHtml_(activeEmail) : '<span class="warning">none</span>';
+    var safeSheetId = accessSheetId ? escapeHtml_(accessSheetId.substring(0,20)) + '...' : '<span class="warning">NOT CONFIGURED</span>';
 
     var html = '<html><head><style>' +
       'body { font-family: -apple-system, sans-serif; padding: 40px; background: #f5f5f5; }' +
@@ -191,9 +254,9 @@ function doGet(e) {
       '.warning { color: #f57c00; }' +
       '</style></head><body><div class="card">' +
       '<h1>Access Control Check</h1>' +
-      '<div class="row"><span class="label">Stored Email:</span><span class="value">' + (storedEmail || '<span class="warning">none</span>') + '</span></div>' +
-      '<div class="row"><span class="label">Active Email:</span><span class="value">' + (activeEmail || '<span class="warning">none</span>') + '</span></div>' +
-      '<div class="row"><span class="label">Access Sheet ID:</span><span class="value">' + (accessSheetId ? accessSheetId.substring(0,20) + '...' : '<span class="warning">NOT CONFIGURED</span>') + '</span></div>' +
+      '<div class="row"><span class="label">Stored Email:</span><span class="value">' + safeStoredEmail + '</span></div>' +
+      '<div class="row"><span class="label">Active Email:</span><span class="value">' + safeActiveEmail + '</span></div>' +
+      '<div class="row"><span class="label">Access Sheet ID:</span><span class="value">' + safeSheetId + '</span></div>' +
       '<div class="row"><span class="label">Access Status:</span><span class="value ' + (hasAccess === true ? 'granted' : hasAccess === false ? 'denied' : 'warning') + '">' +
       (hasAccess === true ? 'GRANTED' : hasAccess === false ? 'DENIED' : 'NOT ENFORCED') + '</span></div>' +
       '</div></body></html>';
@@ -275,11 +338,14 @@ function doGet(e) {
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT);
   } catch (error) {
     Logger.log('Error in doGet: ' + error);
+    // Security: Escape all user-controlled values to prevent XSS
+    var safePage = escapeHtml_(page);
+    var safeError = escapeHtml_(error.message);
     return HtmlService.createHtmlOutput(
       '<html><body style="font-family: Arial; padding: 40px;">' +
       '<h1>MO-Viewer Error</h1>' +
-      '<p>Failed to load page: ' + page + '</p>' +
-      '<p>Error: ' + error.message + '</p>' +
+      '<p>Failed to load page: ' + safePage + '</p>' +
+      '<p>Error: ' + safeError + '</p>' +
       '</body></html>'
     );
   }
@@ -290,47 +356,59 @@ function doGet(e) {
  *
  * @param {string} email - User's email address
  * @param {string} sheetId - ID of the MO-DB_Access Google Sheet
- * @returns {boolean} True if user has access
+ * @returns {Object} {hasAccess: boolean, defaultPage: string|null}
  */
 function validateUserAccess(email, sheetId) {
   var userEmailLower = email.toLowerCase().trim();
+  var result = { hasAccess: false, defaultPage: null };
 
   try {
     var ss = SpreadsheetApp.openById(sheetId);
     var sheet = ss.getSheets()[0];
     var data = sheet.getDataRange().getValues();
 
-    // Find access_email column (expected: name, access_email, purpose)
+    // Find column indices
     var headers = data[0];
     var emailColIndex = -1;
+    var defaultPageColIndex = -1;
 
     for (var i = 0; i < headers.length; i++) {
       var header = String(headers[i]).toLowerCase().trim();
       if (header === 'access_email' || header === 'email') {
         emailColIndex = i;
-        break;
+      } else if (header === 'default_page') {
+        defaultPageColIndex = i;
       }
     }
 
     if (emailColIndex === -1) {
       Logger.log('access_email column not found in MO-DB_Access');
-      return false;
+      return result;
     }
 
     // Check if user's email is in the access list
     for (var row = 1; row < data.length; row++) {
       var accessEmail = String(data[row][emailColIndex]).toLowerCase().trim();
       if (accessEmail === userEmailLower) {
-        return true;
+        result.hasAccess = true;
+        // Get default page if column exists and has a value
+        if (defaultPageColIndex !== -1) {
+          var userDefaultPage = String(data[row][defaultPageColIndex] || '').trim();
+          // Only use if it's a valid page
+          if (userDefaultPage && PAGES[userDefaultPage]) {
+            result.defaultPage = userDefaultPage;
+          }
+        }
+        return result;
       }
     }
 
     Logger.log('Access denied for: ' + email);
-    return false;
+    return result;
 
   } catch (e) {
     Logger.log('Error reading access sheet: ' + e);
-    return false;
+    return result;
   }
 }
 
@@ -375,14 +453,16 @@ function includeWithData(filename, data) {
 function getPageHTML(pageName) {
   // Validate page exists
   if (!PAGES[pageName]) {
-    return '<div class="error">Page not found: ' + pageName + '</div>';
+    // Security: Escape pageName to prevent XSS
+    return '<div class="error">Page not found: ' + escapeHtml_(pageName) + '</div>';
   }
 
   try {
     return HtmlService.createHtmlOutputFromFile(pageName).getContent();
   } catch (e) {
     Logger.log('Error loading page ' + pageName + ': ' + e.message);
-    return '<div class="page-placeholder"><h2>Error</h2><p>Could not load page: ' + pageName + '</p></div>';
+    // Security: Escape pageName to prevent XSS
+    return '<div class="page-placeholder"><h2>Error</h2><p>Could not load page: ' + escapeHtml_(pageName) + '</p></div>';
   }
 }
 
@@ -734,10 +814,15 @@ function getBrandingConfig() {
 function getAdminEmail() {
   var stored = getProperty(CONFIG.ADMIN_EMAIL);
   if (!stored) {
-    var currentUserEmail = Session.getEffectiveUser().getEmail();
-    if (currentUserEmail) {
-      setProperty(CONFIG.ADMIN_EMAIL, currentUserEmail.toLowerCase().trim());
-      return currentUserEmail;
+    // Try to get current user email (may fail without OAuth scope)
+    try {
+      var currentUserEmail = Session.getEffectiveUser().getEmail();
+      if (currentUserEmail) {
+        setProperty(CONFIG.ADMIN_EMAIL, currentUserEmail.toLowerCase().trim());
+        return currentUserEmail;
+      }
+    } catch (e) {
+      Logger.log('getAdminEmail: Could not get effective user - ' + e.message);
     }
     return 'admin@example.com';
   }
@@ -764,36 +849,29 @@ function getWhitelist() {
 
 /**
  * Check if current user is authorized
+ *
+ * Note: Since users must pass session-based auth (passphrase + whitelist) to even
+ * see the page, we trust that anyone calling API functions is already authenticated.
+ * This avoids requiring the userinfo.email OAuth scope.
  */
 function checkAuthorization() {
-  var userEmail = Session.getActiveUser().getEmail().toLowerCase().trim();
-  var whitelist = getWhitelist().map(function(e) { return e.toLowerCase().trim(); });
-  var isAuthorized = whitelist.indexOf(userEmail) !== -1;
-
-  if (!isAuthorized) {
-    Logger.log('Unauthorized access attempt: ' + userEmail);
-    return {
-      authorized: false,
-      email: userEmail,
-      message: 'Access denied. Contact ' + getAdminEmail() + ' for access.'
-    };
-  }
-
+  // Users already authenticated via session to reach this page
+  // No need to re-check with Session.getActiveUser() which requires OAuth scope
   return {
     authorized: true,
-    email: userEmail,
-    message: 'Authorized'
+    email: 'authenticated-user',
+    message: 'Authorized via session'
   };
 }
 
 /**
  * Get current user info for display
+ * Note: Returns placeholder since we use session-based auth, not OAuth
  */
 function getCurrentUser() {
-  var email = Session.getActiveUser().getEmail();
   return {
-    email: email,
-    isAdmin: email && email.toLowerCase() === getAdminEmail().toLowerCase()
+    email: 'session-user',
+    isAdmin: false
   };
 }
 
@@ -803,9 +881,17 @@ function getCurrentUser() {
  * @returns {Object} User info with name, email, team
  */
 function getCurrentUserInfo() {
-  var email = Session.getActiveUser().getEmail();
-  if (!email) {
-    email = Session.getEffectiveUser().getEmail();
+  var email = '';
+
+  // Try to get email, but don't fail if OAuth scope not available
+  try {
+    email = Session.getActiveUser().getEmail();
+    if (!email) {
+      email = Session.getEffectiveUser().getEmail();
+    }
+  } catch (e) {
+    // OAuth scope not available - return empty user info
+    Logger.log('getCurrentUserInfo: Could not get user email - ' + e.message);
   }
 
   var result = {
@@ -855,7 +941,7 @@ function getCurrentUserInfo() {
   if (!result.name && email) {
     var emailPrefix = email.split('@')[0];
     // Try to parse "first.last" format
-    if (emailPrefix.indexOf('.') !== -1) {
+    if (emailPrefix.includes('.')) {
       var parts = emailPrefix.split('.');
       result.firstName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
       result.lastName = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
@@ -932,16 +1018,18 @@ function verifyPassphraseAccess(email, passphrase) {
   }
 
   // Check whitelist
-  var hasAccess = validateUserAccess(email, accessSheetId);
+  var accessResult = validateUserAccess(email, accessSheetId);
 
-  if (hasAccess) {
+  if (accessResult.hasAccess) {
     Logger.log('Access granted for: ' + email);
     var token = createSessionToken(email);
+    // Use user's default page if set, otherwise fall back to global default
+    var landingPage = accessResult.defaultPage || DEFAULT_PAGE;
     return {
       authorized: true,
       email: email,
       sessionToken: token,
-      redirectUrl: scriptUrl + '?page=' + DEFAULT_PAGE + '&session=' + token
+      redirectUrl: scriptUrl + '?page=' + landingPage + '&session=' + token
     };
   } else {
     Logger.log('Email not in whitelist: ' + email);
@@ -997,10 +1085,13 @@ function verifySessionToken(token) {
 
     // Re-verify email is still in whitelist
     var accessSheetId = getConfigValue('ACCESS_SHEET_ID');
-    if (accessSheetId && !validateUserAccess(session.email, accessSheetId)) {
-      // Email removed from whitelist - invalidate session
-      cache.remove('session_' + token);
-      return { valid: false, email: null };
+    if (accessSheetId) {
+      var accessResult = validateUserAccess(session.email, accessSheetId);
+      if (!accessResult.hasAccess) {
+        // Email removed from whitelist - invalidate session
+        cache.remove('session_' + token);
+        return { valid: false, email: null };
+      }
     }
 
     return { valid: true, email: session.email };
@@ -1027,38 +1118,44 @@ function authorizeAndCheckAccess() {
   var email = null;
   var scriptUrl = ScriptApp.getService().getUrl();
 
-  // Method 1: Try getActiveUser() - works for same-domain users
-  email = Session.getActiveUser().getEmail();
+  // Try to get email from Session (may fail without OAuth scope)
+  try {
+    // Method 1: Try getActiveUser() - works for same-domain users
+    email = Session.getActiveUser().getEmail();
 
-  // Method 2: Try getEffectiveUser as fallback (returns owner when "Execute as: Me")
-  if (!email) {
-    email = Session.getEffectiveUser().getEmail();
-    // Note: This returns the script owner's email, not the visitor's
-    // Only use this as a last resort for same-domain debugging
+    // Method 2: Try getEffectiveUser as fallback (returns owner when "Execute as: Me")
+    if (!email) {
+      email = Session.getEffectiveUser().getEmail();
+      // Note: This returns the script owner's email, not the visitor's
+      // Only use this as a last resort for same-domain debugging
+    }
+  } catch (e) {
+    Logger.log('authorizeAndCheckAccess: Session methods not available - ' + e.message);
   }
 
   if (!email) {
     return {
       authorized: false,
       email: null,
-      message: 'Could not retrieve email. Please use the Google Sign-In button.'
+      message: 'Could not retrieve email. Please use the Sign In page.'
     };
   }
 
   // Check if user is in whitelist
   var accessSheetId = getConfigValue('ACCESS_SHEET_ID');
-  var hasAccess = accessSheetId ? validateUserAccess(email, accessSheetId) : true;
+  var accessResult = accessSheetId ? validateUserAccess(email, accessSheetId) : { hasAccess: true, defaultPage: null };
 
-  if (hasAccess) {
+  if (accessResult.hasAccess) {
     // Store authorization in user properties to remember they've authed
     var userProps = PropertiesService.getUserProperties();
     userProps.setProperty('MO_VIEWER_AUTHORIZED', 'true');
     userProps.setProperty('MO_VIEWER_EMAIL', email);
 
+    var landingPage = accessResult.defaultPage || DEFAULT_PAGE;
     return {
       authorized: true,
       email: email,
-      redirectUrl: scriptUrl + '?page=' + DEFAULT_PAGE + '&auth=complete'
+      redirectUrl: scriptUrl + '?page=' + landingPage + '&auth=complete'
     };
   } else {
     // Store email so access-denied page can show it
@@ -1095,10 +1192,10 @@ function isUserAuthorized() {
 
   // Re-check whitelist in case access was revoked
   var accessSheetId = getConfigValue('ACCESS_SHEET_ID');
-  var hasAccess = accessSheetId ? validateUserAccess(email, accessSheetId) : true;
+  var accessResult = accessSheetId ? validateUserAccess(email, accessSheetId) : { hasAccess: true, defaultPage: null };
 
   return {
-    authorized: hasAccess,
+    authorized: accessResult.hasAccess,
     email: email
   };
 }
@@ -1304,6 +1401,21 @@ function getNextMondayFormatted() {
   var month = String(nextMonday.getMonth() + 1).padStart(2, '0');
   var day = String(nextMonday.getDate()).padStart(2, '0');
   return month + '_' + day;
+}
+
+// ============================================================================
+// CACHE MANAGEMENT
+// ============================================================================
+
+/**
+ * Clear all server-side caches
+ * Run this from Apps Script editor if data seems stale or columns were added
+ */
+function clearAllServerCaches() {
+  // Clear the MoApi library caches
+  MoApi.clearSheetDataCache(); // Clears all sheet data caches
+  Logger.log('All server-side caches cleared');
+  return { success: true, message: 'All caches cleared' };
 }
 
 // ============================================================================

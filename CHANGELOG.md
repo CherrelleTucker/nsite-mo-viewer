@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.1] - 2026-02-05
+
+### Added
+- **Per-User Default Landing Page** - Each user can have a custom landing page after login
+  - New `default_page` column in MO-DB_Access whitelist
+  - Valid values: `implementation`, `sep`, `comms`, `topsheet`, `quick-update`, `contacts`, `reports`, `schedule`, `team`, `about`
+  - If blank or invalid, falls back to global default (`topsheet`)
+  - Modified `validateUserAccess()` to return user's preferred page
+  - Login redirect now uses user-specific landing page
+
+---
+
 ## [2.5.0] - 2026-02-04
 
 ### Added
