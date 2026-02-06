@@ -386,6 +386,45 @@
       </div>
     </div>
 
+    <!-- ROSES Gap Analysis -->
+    <div class="report-card">
+      <div class="report-card-header">
+        <div class="report-icon icon-accent">
+          <span class="material-icons">science</span>
+        </div>
+        <div class="report-title-area">
+          <h3>ROSES Gap Analysis</h3>
+          <p class="report-description">Cross-cutting gaps for ROSES solicitation</p>
+        </div>
+      </div>
+      <div class="report-card-body">
+        <div class="report-info">
+          <p><strong>Shows:</strong> PI-actionable gaps (1-3 yrs, &lt;$1M) across all solutions, aligned to admin priorities</p>
+        </div>
+        <div class="report-notice">
+          <span class="material-icons">schedule</span>
+          <span>Analyzes 2,000+ survey records - may take 1-2 minutes</span>
+        </div>
+        <details class="methodology-details">
+          <summary><span class="material-icons">info</span> How is this calculated?</summary>
+          <div class="methodology-content">
+            <p><strong>Data Sources:</strong> MO-DB_Needs (survey responses), MO-DB_Solutions</p>
+            <table class="methodology-table">
+              <tr><th>Analysis</th><th>Method</th></tr>
+              <tr><td>LOS Distribution</td><td>Stakeholder degree_need_met scores binned into 10-pt ranges</td></tr>
+              <tr><td>Barrier Frequency</td><td>Keyword matching across 16 barrier categories from free-text fields</td></tr>
+              <tr><td>Gap Themes</td><td>8 cross-cutting themes scored by mention frequency and solution breadth</td></tr>
+              <tr><td>Department Rollup</td><td>Sub-agencies mapped to parent departments</td></tr>
+            </table>
+            <p><strong>Gap Identification:</strong> Themes ranked by combined score of affected needs, mention frequency, and solution breadth</p>
+          </div>
+        </details>
+      </div>
+      <div class="report-card-actions">
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewRosesGap()"><span class="material-icons">visibility</span> View</button>
+      </div>
+    </div>
+
   </div>
 
   <!-- Coming Soon Notice -->
@@ -1845,7 +1884,8 @@
         stakeholderCoverage: { fn: 'exportStakeholderCoverageToSheet', name: 'Stakeholder Coverage' },
         engagementFunnel: { fn: 'exportEngagementFunnelToSheet', name: 'Engagement Funnel' },
         departmentReach: { fn: 'exportDepartmentReachToSheet', name: 'Department Reach' },
-        historicalUpdates: { fn: 'exportHistoricalUpdatesToSheet', name: 'Historical Updates' }
+        historicalUpdates: { fn: 'exportHistoricalUpdatesToSheet', name: 'Historical Updates' },
+        rosesGap: { fn: 'exportRosesGapToSheet', name: 'ROSES Gap Analysis' }
       };
 
       var exportConfig = exportFunctions[currentReportType];
@@ -2936,6 +2976,133 @@
         .updateAlignmentDecision(solutionId, characteristic, decision, null);
     }
 
+    // ── ROSES Gap Analysis ──────────────────────────────────────────────
+
+    function previewRosesGap() {
+      currentReportType = 'rosesGap';
+      showPreview('Loading...', '<div class="loading-state"><span class="loading-spinner"></span><p>Generating ROSES gap analysis...</p></div>', '');
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          previewData = data;
+          if (data.error) {
+            showPreview('ROSES Gap Analysis', '<p style="color: var(--color-error);">' + escapeHtml(data.error) + '</p>', '');
+            return;
+          }
+          var html = renderRosesGapReport(data);
+          var meta = 'Generated: ' + new Date(data.generated).toLocaleString() + ' | ' + data.stats.totalNeeds + ' needs across ' + data.stats.totalSolutions + ' solutions';
+          showPreview('ROSES Cross-Cutting Gap Analysis', html, meta);
+        })
+        .withFailureHandler(function(err) {
+          showPreview('Error', '<p style="color: var(--color-error);">Failed to generate report: ' + escapeHtml(err.message) + '</p>', '');
+        })
+        .getRosesGapReport({});
+    }
+
+    function renderRosesGapReport(data) {
+      var html = '';
+      var s = data.stats;
+
+      // Data provenance banner
+      html += renderDataProvenance({
+        'MO-DB_Needs': s.totalNeeds + ' survey responses',
+        'MO-DB_Solutions': s.totalSolutions + ' solutions'
+      });
+
+      // Summary stats grid
+      html += '<div class="stats-grid">';
+      html += '<div class="stat-item"><span class="stat-value">' + s.totalSolutions + '</span><span class="stat-label">Solutions</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + s.totalNeeds + '</span><span class="stat-label">Survey Responses</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + s.meanLos + '%</span><span class="stat-label">Mean LOS</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + s.medianLos + '%</span><span class="stat-label">Median LOS</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + s.departments + '</span><span class="stat-label">Departments</span></div>';
+      html += '<div class="stat-item"><span class="stat-value">' + s.barrierPct + '%</span><span class="stat-label">With Barriers</span></div>';
+      html += '</div>';
+
+      // Top 8 cross-cutting gaps
+      html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">Top Cross-Cutting Gaps</h4>';
+      html += '<p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin-bottom: var(--space-sm);">PI-actionable gaps addressable in 1-3 years with &lt;$1M funding</p>';
+      html += '<table class="preview-table">';
+      html += '<thead><tr><th>#</th><th>Gap Theme</th><th>Evidence</th><th>Opportunity</th><th>Domains</th></tr></thead>';
+      html += '<tbody>';
+      data.gaps.forEach(function(g) {
+        html += '<tr>';
+        html += '<td>' + g.rank + '</td>';
+        html += '<td><strong>' + escapeHtml(g.theme) + '</strong></td>';
+        html += '<td style="font-size: var(--font-size-xs);">' + escapeHtml(g.evidence) + '</td>';
+        html += '<td style="font-size: var(--font-size-xs);">' + escapeHtml(g.opportunity) + '</td>';
+        html += '<td style="font-size: var(--font-size-xs);">' + escapeHtml(g.domains) + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+
+      // Admin priority alignment
+      html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">Admin Priority Alignment</h4>';
+      html += '<table class="preview-table">';
+      html += '<thead><tr><th>Priority</th><th>Related Gaps</th><th>Key Solutions</th><th>Agencies</th></tr></thead>';
+      html += '<tbody>';
+      data.adminPriorities.forEach(function(p) {
+        html += '<tr>';
+        html += '<td><strong>' + escapeHtml(p.priority) + '</strong></td>';
+        html += '<td style="font-size: var(--font-size-xs);">' + escapeHtml(p.gaps) + '</td>';
+        html += '<td style="font-size: var(--font-size-xs);">' + escapeHtml(p.solutions) + '</td>';
+        html += '<td style="font-size: var(--font-size-xs);">' + escapeHtml(p.agencies) + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+
+      // Top barriers
+      if (data.barriers && data.barriers.length > 0) {
+        html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">Top Barriers (by mention frequency)</h4>';
+        html += '<div style="display: flex; flex-wrap: wrap; gap: var(--space-xs);">';
+        data.barriers.slice(0, 10).forEach(function(b) {
+          html += '<span style="background: var(--color-surface-alt, #f5f5f5); padding: 4px 10px; border-radius: var(--radius-sm); font-size: var(--font-size-xs);">' + escapeHtml(b.label) + ' <strong>(' + b.count + ')</strong></span>';
+        });
+        html += '</div>';
+      }
+
+      // LOS distribution
+      if (data.losDist && data.losDist.length > 0) {
+        html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">Level of Satisfaction Distribution</h4>';
+        var maxCount = Math.max.apply(null, data.losDist.map(function(d) { return d.count; }));
+        html += '<div style="display: flex; align-items: flex-end; gap: 4px; height: 80px; margin-bottom: var(--space-xs);">';
+        data.losDist.forEach(function(d) {
+          var pct = maxCount > 0 ? (d.count / maxCount * 100) : 0;
+          var color = d.bin < 30 ? 'var(--color-error, #d32f2f)' : d.bin < 60 ? 'var(--color-warning, #f9a825)' : 'var(--color-success, #2e7d32)';
+          html += '<div style="flex: 1; display: flex; flex-direction: column; align-items: center;">';
+          html += '<div style="width: 100%; background: ' + color + '; height: ' + Math.max(pct, 2) + '%; border-radius: 2px 2px 0 0; opacity: 0.8;" title="' + d.bin + '-' + (d.bin + 9) + '% : ' + d.count + ' responses"></div>';
+          html += '</div>';
+        });
+        html += '</div>';
+        html += '<div style="display: flex; gap: 4px; font-size: 10px; color: var(--color-text-muted);">';
+        data.losDist.forEach(function(d) {
+          html += '<div style="flex: 1; text-align: center;">' + d.bin + '</div>';
+        });
+        html += '</div>';
+      }
+
+      // Top solutions by stakeholder count
+      if (data.solutions && data.solutions.length > 0) {
+        html += '<h4 style="margin: var(--space-lg) 0 var(--space-sm);">Solutions by Stakeholder Count (top 15)</h4>';
+        html += '<table class="preview-table">';
+        html += '<thead><tr><th>Solution</th><th>Stakeholders</th><th>Mean LOS</th><th>Min LOS</th><th>Top Barriers</th></tr></thead>';
+        html += '<tbody>';
+        data.solutions.slice(0, 15).forEach(function(sol) {
+          var losColor = sol.meanLos < 30 ? 'var(--color-error)' : sol.meanLos < 60 ? 'var(--color-warning)' : 'var(--color-success, inherit)';
+          html += '<tr>';
+          html += '<td><strong>' + escapeHtml(sol.name) + '</strong></td>';
+          html += '<td>' + sol.count + '</td>';
+          html += '<td style="color: ' + losColor + ';">' + sol.meanLos.toFixed(1) + '%</td>';
+          html += '<td>' + sol.minLos.toFixed(0) + '%</td>';
+          html += '<td style="font-size: var(--font-size-xs);">' + (sol.topBarriers || []).map(function(b) { return escapeHtml(b.label); }).join(', ') + '</td>';
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+      }
+
+      return html;
+    }
+
     // Public API
     return {
       init: init,
@@ -2948,6 +3115,7 @@
       previewDepartmentReach: previewDepartmentReach,
       previewHistoricalUpdates: previewHistoricalUpdates,
       previewSectorReport: previewSectorReport,
+      previewRosesGap: previewRosesGap,
       closePreview: closePreview,
       exportPreview: exportPreview,
       toggleOptions: toggleOptions,

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.4] - 2026-02-06
+
+### Added
+- **ROSES Gap Analysis Report** - Cross-cutting gap analysis for ROSES solicitation on the Reports page
+  - Identifies 8 PI-actionable gaps (1-3 yrs, <$1M) across all 44 NSITE solutions
+  - Analyzes 2,000+ MO-DB_Needs survey responses for LOS distribution, barrier frequency, and requirement characteristics
+  - Maps gaps to admin priorities (Agriculture, Fire, Invasive Species, New Missions)
+  - Department rollup aggregates sub-agencies to parent departments
+  - Preview: stats grid, gap themes table, admin priority alignment, barrier tags, LOS histogram, top solutions
+  - Export: 6-sheet Google Sheets workbook (Summary, Solution Overview, Gap Analysis, Survey Years, Departments, Methodology)
+  - New files: `extensions/quicklook-reports/roses-gap-analysis.gs`, `deploy/roses-gap-analysis-api.gs`
+
+---
+
 ## [2.5.3] - 2026-02-05
 
 ### Changed
@@ -21,6 +35,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Assignee groups collapsed by default
 - **Team member badges** - Comma-separated team assignments (e.g. "SEP, Assessment") now render as individual colored badges on team cards and in member detail modal
 - **Rich text on SEP, Comms, Contacts** - Formatting (bullets, links, bold) preserved through save/display cycle
+- **Guidance tab** - Merged separate Meetings and Documents tabs into single "Guidance" tab
+  - Weekly schedule calendar on top, Directing Documents grid below
+  - Meeting chips now open a detail modal (replaces expandable row list)
+  - `filterMeetings()` rewritten to filter data and re-render weekly grid
+  - Removed "All Meetings" expandable list, `toggleMeetingRow()`, related CSS
+  - Removed Add Meeting button (page is for recurring meetings, not ad hoc)
 
 ### Fixed
 - `index.html` redirect for `navigateTo('actions')` now correctly targets `Team.setView('capacity')`
