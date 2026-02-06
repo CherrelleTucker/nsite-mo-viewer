@@ -16,13 +16,9 @@
           <span class="material-icons">celebration</span>
           <span>Kudos</span>
         </button>
-        <button class="view-btn" data-view="meetings" onclick="Team.setView('meetings')">
-          <span class="material-icons">calendar_today</span>
-          <span>Meetings</span>
-        </button>
-        <button class="view-btn" data-view="documents" onclick="Team.setView('documents')">
-          <span class="material-icons">description</span>
-          <span>Documents</span>
+        <button class="view-btn" data-view="guidance" onclick="Team.setView('guidance')">
+          <span class="material-icons">menu_book</span>
+          <span>Guidance</span>
         </button>
         <button class="view-btn" data-view="parkingLot" onclick="Team.setView('parkingLot')">
           <span class="material-icons">lightbulb</span>
@@ -268,13 +264,13 @@
     <!-- Confetti Canvas for Celebrations -->
     <canvas id="confettiCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;display:none;"></canvas>
 
-    <!-- Meetings View -->
-    <div class="view-panel" id="meetingsView">
-      <div class="meetings-layout">
-        <!-- Weekly Schedule Grid -->
-        <div class="meetings-schedule-section">
-          <div class="section-header">
-            <h2>Weekly Schedule</h2>
+    <!-- Guidance View (Meetings + Documents) -->
+    <div class="view-panel" id="guidanceView">
+      <!-- Weekly Schedule -->
+      <div class="meetings-schedule-section">
+        <div class="section-header">
+          <h2>Weekly Schedule</h2>
+          <div class="page-actions" style="display:flex; gap:var(--space-sm); align-items:center;">
             <div class="meeting-filters">
               <select id="meetingCategoryFilter" onchange="Team.filterMeetings()">
                 <option value="all">All Categories</option>
@@ -297,54 +293,35 @@
               </select>
             </div>
           </div>
-          <div class="weekly-grid" id="weeklyMeetingGrid">
-            <div class="day-column" data-day="Monday">
-              <div class="day-header">Monday</div>
-              <div class="day-meetings" id="meetingsMonday"></div>
-            </div>
-            <div class="day-column" data-day="Tuesday">
-              <div class="day-header">Tuesday</div>
-              <div class="day-meetings" id="meetingsTuesday"></div>
-            </div>
-            <div class="day-column" data-day="Wednesday">
-              <div class="day-header">Wednesday</div>
-              <div class="day-meetings" id="meetingsWednesday"></div>
-            </div>
-            <div class="day-column" data-day="Thursday">
-              <div class="day-header">Thursday</div>
-              <div class="day-meetings" id="meetingsThursday"></div>
-            </div>
-            <div class="day-column" data-day="Friday">
-              <div class="day-header">Friday</div>
-              <div class="day-meetings" id="meetingsFriday"></div>
-            </div>
-          </div>
         </div>
-
-        <!-- Meeting List with Expandable Details -->
-        <div class="meetings-list-section">
-          <div class="section-header">
-            <h2>All Meetings</h2>
-            <button class="btn btn-sm btn-primary" onclick="Team.showAddMeetingModal()">
-              <span class="material-icons">add</span>
-              Add Meeting
-            </button>
+        <div class="weekly-grid" id="weeklyMeetingGrid">
+          <div class="day-column" data-day="Monday">
+            <div class="day-header">Monday</div>
+            <div class="day-meetings" id="meetingsMonday"></div>
           </div>
-          <div class="meetings-list" id="meetingsList">
-            <div class="loading-state">
-              <span class="loading-spinner"></span>
-            </div>
+          <div class="day-column" data-day="Tuesday">
+            <div class="day-header">Tuesday</div>
+            <div class="day-meetings" id="meetingsTuesday"></div>
+          </div>
+          <div class="day-column" data-day="Wednesday">
+            <div class="day-header">Wednesday</div>
+            <div class="day-meetings" id="meetingsWednesday"></div>
+          </div>
+          <div class="day-column" data-day="Thursday">
+            <div class="day-header">Thursday</div>
+            <div class="day-meetings" id="meetingsThursday"></div>
+          </div>
+          <div class="day-column" data-day="Friday">
+            <div class="day-header">Friday</div>
+            <div class="day-meetings" id="meetingsFriday"></div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Documents View -->
-    <div class="view-panel" id="documentsView">
+      <!-- Directing Documents -->
       <div class="documents-section">
         <div class="section-header">
           <h2>Directing Documents</h2>
-          <p class="section-description">Governing documents and policies for NSITE MO</p>
         </div>
         <div class="documents-grid" id="directingDocsList">
           <div class="loading-state">
@@ -1335,13 +1312,6 @@
     background: var(--color-gray-50);
   }
 
-  /* Meetings Layout */
-  .meetings-layout {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-lg);
-  }
-
   .meetings-schedule-section {
     background: var(--color-surface);
     border-radius: var(--radius-md);
@@ -1423,17 +1393,21 @@
     font-size: 0.9em;
   }
 
-  /* Meeting Row Highlight (when clicked from weekly grid) */
-  .meeting-row.highlight {
-    animation: highlightPulse 1.5s ease-out;
-  }
-
-  @keyframes highlightPulse {
-    0% { background-color: rgba(11, 61, 145, 0.2); }
-    100% { background-color: var(--color-surface); }
-  }
-
   /* Meeting Detail Modal */
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .detail-grid .detail-field label {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-xs);
+  }
+
   .meeting-detail-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1482,59 +1456,6 @@
     font-size: 14px;
     margin-right: var(--space-xs);
     vertical-align: middle;
-  }
-
-  /* Meetings List */
-  .meetings-list-section {
-    background: var(--color-surface);
-    border-radius: var(--radius-md);
-    padding: var(--space-md);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .meetings-list {
-    margin-top: var(--space-md);
-  }
-
-  .meeting-row {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--space-sm);
-    overflow: hidden;
-  }
-
-  .meeting-row-header {
-    display: flex;
-    align-items: center;
-    padding: var(--space-md);
-    cursor: pointer;
-    gap: var(--space-md);
-    transition: background var(--transition-fast);
-  }
-
-  .meeting-row-header:hover {
-    background: var(--color-surface-alt);
-  }
-
-  .meeting-row-header .expand-icon {
-    transition: transform 0.2s;
-    color: var(--color-text-muted);
-  }
-
-  .meeting-row.expanded .expand-icon {
-    transform: rotate(90deg);
-  }
-
-  .meeting-row-details {
-    display: none;
-    padding: var(--space-md);
-    border-top: 1px solid var(--color-border-light);
-    background: var(--color-surface-alt);
-  }
-
-  .meeting-row.expanded .meeting-row-details {
-    display: block;
   }
 
   .meeting-meta {
@@ -1597,6 +1518,7 @@
     border-radius: var(--radius-md);
     padding: var(--space-md);
     box-shadow: var(--shadow-sm);
+    margin-top: var(--space-lg);
   }
 
   .section-description {
@@ -3719,9 +3641,8 @@
         if (Team.actionsData.length === 0) {
           Team.loadActions();
         }
-      } else if (view === 'meetings') {
-        addBtn.style.display = '';
-        addLabel.textContent = 'Add Meeting';
+      } else if (view === 'guidance') {
+        addBtn.style.display = 'none'; // Guidance has its own add button
       } else if (view === 'kudos') {
         addBtn.style.display = 'none'; // Kudos has inline form
       } else if (view === 'parkingLot') {
@@ -3731,7 +3652,7 @@
           Team.loadParkingLot();
         }
       } else {
-        addBtn.style.display = 'none'; // Hide for documents view
+        addBtn.style.display = 'none';
       }
     },
 
@@ -3967,21 +3888,29 @@
     },
 
     renderMeetings: function() {
-      // Guard against SPA navigation - elements may not exist
-      var listContainer = document.getElementById('meetingsList');
-      if (!listContainer) {
-        // SPA navigation - elements no longer exist
-        return;
-      }
+      Team.filterMeetings();
+    },
 
-      // Render weekly grid
+    filterMeetings: function() {
+      var catEl = document.getElementById('meetingCategoryFilter');
+      var typeEl = document.getElementById('meetingTypeFilter');
+      var category = catEl ? catEl.value : 'all';
+      var type = typeEl ? typeEl.value : 'all';
+
+      var filtered = Team.meetings.filter(function(m) {
+        if (!m.is_active) return false;
+        if (category !== 'all' && m.category !== category) return false;
+        if (type !== 'all' && m.type !== type) return false;
+        return true;
+      });
+
       var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
       days.forEach(function(day) {
         var container = document.getElementById('meetings' + day);
         if (!container) return;
 
-        var dayMeetings = Team.meetings.filter(function(m) {
-          return m.day_of_week === day && m.is_active;
+        var dayMeetings = filtered.filter(function(m) {
+          return m.day_of_week === day;
         });
 
         if (!dayMeetings.length) {
@@ -3989,68 +3918,13 @@
           return;
         }
 
-        var html = dayMeetings.map(function(m) {
+        container.innerHTML = dayMeetings.map(function(m) {
           var cadenceText = m.cadence && m.cadence.toLowerCase() !== 'weekly' ? ' <span class="meeting-cadence">(' + m.cadence + ')</span>' : '';
           return '<div class="meeting-chip" onclick="Team.showMeetingDetail(\'' + m.meeting_id + '\')">' +
             '<span class="meeting-time">' + (m.time || 'TBD') + '</span>' +
-            '<span class="meeting-name">' + m.name + cadenceText + '</span>' +
+            '<span class="meeting-name">' + escapeHtml(m.name) + cadenceText + '</span>' +
           '</div>';
         }).join('');
-
-        container.innerHTML = html;
-      });
-
-      // Render meetings list
-      var html = this.meetings.map(function(m) {
-        return '<div class="meeting-row" id="meeting-' + m.meeting_id + '">' +
-          '<div class="meeting-row-header" onclick="Team.toggleMeetingRow(\'' + m.meeting_id + '\')">' +
-            '<span class="material-icons">chevron_right</span>' +
-            '<span class="meeting-name-col" style="flex:1;font-weight:600;">' + m.name + '</span>' +
-            '<span class="category-badge ' + m.category + '">' + m.category + '</span>' +
-            '<span class="type-badge">' + m.type + '</span>' +
-            '<span style="width:100px;text-align:right;">' + (m.cadence || '') + '</span>' +
-          '</div>' +
-          '<div class="meeting-row-details">' +
-            '<div class="meeting-meta">' +
-              '<div class="meeting-meta-item"><span class="material-icons">schedule</span>' + (m.day_of_week || 'TBD') + ' ' + (m.time || '') + '</div>' +
-              '<div class="meeting-meta-item"><span class="material-icons">repeat</span>' + (m.cadence || '') + '</div>' +
-              '<div class="meeting-meta-item"><span class="material-icons">schedule</span>' + (m.duration_minutes || 60) + ' min</div>' +
-            '</div>' +
-            '<p><strong>Purpose:</strong> ' + (m.purpose || 'Not specified') + '</p>' +
-            (m.online_link ? '<p><a href="' + m.online_link + '" target="_blank">Join Online</a></p>' : '') +
-            (m.drive_folder_url ? '<p><a href="' + m.drive_folder_url + '" target="_blank">Drive Folder</a></p>' : '') +
-            '<div class="artifacts-section">' +
-              '<h4>Resources</h4>' +
-              '<div class="artifacts-list">' +
-                (m.agenda_url ? '<div class="artifact-item"><span class="material-icons">description</span><a href="' + m.agenda_url + '" target="_blank">Agenda</a></div>' : '') +
-                (m.notes_url ? '<div class="artifact-item"><span class="material-icons">edit</span><a href="' + m.notes_url + '" target="_blank">Notes</a></div>' : '') +
-                (m.slides_url ? '<div class="artifact-item"><span class="material-icons">monitor</span><a href="' + m.slides_url + '" target="_blank">Slides</a></div>' : '') +
-                (m.recording_url ? '<div class="artifact-item"><span class="material-icons">videocam</span><a href="' + m.recording_url + '" target="_blank">Recording</a></div>' : '') +
-                (!m.agenda_url && !m.notes_url && !m.slides_url && !m.recording_url ? '<p class="text-muted text-sm">No resources linked yet</p>' : '') +
-              '</div>' +
-            '</div>' +
-          '</div>' +
-        '</div>';
-      }).join('');
-
-      listContainer.innerHTML = html;
-},
-
-    toggleMeetingRow: function(meetingId) {
-      var row = document.getElementById('meeting-' + meetingId);
-      row.classList.toggle('expanded');
-},
-
-    filterMeetings: function() {
-      var category = document.getElementById('meetingCategoryFilter').value;
-      var type = document.getElementById('meetingTypeFilter').value;
-
-      document.querySelectorAll('.meeting-row').forEach(function(row) {
-        var catBadge = row.querySelector('.category-badge');
-        var typeBadge = row.querySelector('.type-badge');
-        var catMatch = category === 'all' || (catBadge && catBadge.textContent === category);
-        var typeMatch = type === 'all' || (typeBadge && typeBadge.textContent === type);
-        row.style.display = (catMatch && typeMatch) ? '' : 'none';
       });
     },
 
@@ -4185,7 +4059,7 @@
 
     // Modal functions
     showAddModal: function() {
-      if (this.currentView === 'meetings') {
+      if (this.currentView === 'guidance') {
         this.showAddMeetingModal();
       } else {
         this.showAddAvailabilityModal();
@@ -4315,23 +4189,35 @@
     },
 
     showMeetingDetail: function(meetingId) {
-      // Scroll to and expand the meeting row in the list below
-      var row = document.getElementById('meeting-' + meetingId);
-      if (!row) return;
+      var m = Team.meetings.find(function(mtg) { return mtg.meeting_id === meetingId; });
+      if (!m) return;
 
-      // Expand the row if not already expanded
-      if (!row.classList.contains('expanded')) {
-        this.toggleMeetingRow(meetingId);
-      }
+      document.getElementById('meetingDetailTitle').textContent = m.name || 'Meeting Details';
 
-      // Scroll into view with some offset for the header
-      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      var html = '<div class="detail-grid">' +
+        '<div class="detail-field"><label>Category</label><span class="category-badge ' + (m.category || '') + '">' + escapeHtml(m.category || '--') + '</span></div>' +
+        '<div class="detail-field"><label>Type</label><span>' + escapeHtml(m.type || '--') + '</span></div>' +
+        '<div class="detail-field"><label>Day</label><span>' + escapeHtml(m.day_of_week || 'TBD') + '</span></div>' +
+        '<div class="detail-field"><label>Time</label><span>' + escapeHtml(m.time || 'TBD') + '</span></div>' +
+        '<div class="detail-field"><label>Duration</label><span>' + (m.duration_minutes || 60) + ' min</span></div>' +
+        '<div class="detail-field"><label>Cadence</label><span>' + escapeHtml(m.cadence || '--') + '</span></div>' +
+      '</div>' +
+      (m.purpose ? '<div class="detail-field" style="margin-top:var(--space-md);"><label>Purpose</label><p>' + escapeHtml(m.purpose) + '</p></div>' : '') +
+      '<div style="margin-top:var(--space-md);">' +
+        '<h4>Resources</h4>' +
+        '<div class="artifacts-list">' +
+          (m.online_link ? '<div class="artifact-item"><span class="material-icons">videocam</span><a href="' + m.online_link + '" target="_blank">Join Online</a></div>' : '') +
+          (m.drive_folder_url ? '<div class="artifact-item"><span class="material-icons">folder</span><a href="' + m.drive_folder_url + '" target="_blank">Drive Folder</a></div>' : '') +
+          (m.agenda_url ? '<div class="artifact-item"><span class="material-icons">description</span><a href="' + m.agenda_url + '" target="_blank">Agenda</a></div>' : '') +
+          (m.notes_url ? '<div class="artifact-item"><span class="material-icons">edit_note</span><a href="' + m.notes_url + '" target="_blank">Notes</a></div>' : '') +
+          (m.slides_url ? '<div class="artifact-item"><span class="material-icons">slideshow</span><a href="' + m.slides_url + '" target="_blank">Slides</a></div>' : '') +
+          (m.recording_url ? '<div class="artifact-item"><span class="material-icons">play_circle</span><a href="' + m.recording_url + '" target="_blank">Recording</a></div>' : '') +
+          (!m.online_link && !m.agenda_url && !m.notes_url && !m.slides_url && !m.recording_url && !m.drive_folder_url ? '<p class="text-muted text-sm">No resources linked yet</p>' : '') +
+        '</div>' +
+      '</div>';
 
-      // Brief highlight effect
-      row.classList.add('highlight');
-      setTimeout(function() {
-        row.classList.remove('highlight');
-      }, 1500);
+      document.getElementById('meetingDetailBody').innerHTML = html;
+      document.getElementById('meetingDetailModal').classList.add('show');
     },
 
     showMemberDetail: function(contactId) {
