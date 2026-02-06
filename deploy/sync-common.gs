@@ -239,7 +239,7 @@ function parseUpdatesFromTableFormat_(doc, source, docUrl) {
           }
 
           // Found a 🆕 update - collect it and any nested child items
-          if (item.text.indexOf(NEW_MARKER) !== -1 && currentSolution) {
+          if (item.text.includes(NEW_MARKER) && currentSolution) {
             var updateNestingLevel = item.nesting;
             var updateParts = [item.text.replace(NEW_MARKER, '').trim()];
 
@@ -347,7 +347,7 @@ function parseUpdatesFromBody_(body, source, docUrl, meetingDate, tabName) {
           }
 
           // Found a 🆕 update - collect it and any nested child items
-          if (item.text.indexOf(NEW_MARKER) !== -1 && currentSolution) {
+          if (item.text.includes(NEW_MARKER) && currentSolution) {
             var updateNestingLevel = item.nesting;
             var updateParts = [item.text.replace(NEW_MARKER, '').trim()];
 

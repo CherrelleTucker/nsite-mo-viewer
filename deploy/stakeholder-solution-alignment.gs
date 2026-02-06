@@ -158,7 +158,7 @@ function matchSolutionToNeeds_(solution, allNeeds) {
       // Abbreviation matches alternate name
       if (needAbbrev && needAbbrev === alt) return true;
       // Need's solution contains the alternate name (for longer alt names)
-      if (alt.length >= 8 && needSol.indexOf(alt) !== -1) return true;
+      if (alt.length >= 8 && needSol.includes(alt)) return true;
     }
 
     // 4. Exact match on full solution name
@@ -167,12 +167,12 @@ function matchSolutionToNeeds_(solution, allNeeds) {
     // 5. Full name match (solution name appears in need's solution)
     // Require exact word match or long enough to be specific
     if (solName && solName.length >= 10) {
-      if (needSol.indexOf(solName) !== -1) return true;
+      if (needSol.includes(solName)) return true;
     }
 
     // 6. core_id match in need's solution text (only for very specific IDs)
     // e.g., "global-et" (9 chars) appearing in the need's solution text
-    if (solId && solId.length >= 8 && needSol.indexOf(solId) !== -1) return true;
+    if (solId && solId.length >= 8 && needSol.includes(solId)) return true;
 
     return false;
   });
@@ -609,13 +609,13 @@ function checkResolutionMatch_(solRes, needRes) {
   // Find position in hierarchy (lower = finer resolution)
   var solPos = -1, needPos = -1;
   for (var i = 0; i < resOrder.length; i++) {
-    if (solRes.indexOf(resOrder[i].toLowerCase()) !== -1) solPos = i;
-    if (needRes.indexOf(resOrder[i].toLowerCase()) !== -1) needPos = i;
+    if (solRes.includes(resOrder[i].toLowerCase())) solPos = i;
+    if (needRes.includes(resOrder[i].toLowerCase())) needPos = i;
   }
 
   if (solPos === -1 || needPos === -1) {
     // Can't determine, check string match
-    return { matches: solRes.indexOf(needRes) !== -1 || needRes.indexOf(solRes) !== -1, partial: true };
+    return { matches: solRes.includes(needRes) || needRes.includes(solRes), partial: true };
   }
 
   return {
@@ -634,12 +634,12 @@ function checkFrequencyMatch_(solFreq, needFreq) {
 
   var solPos = -1, needPos = -1;
   for (var i = 0; i < freqOrder.length; i++) {
-    if (solFreq.indexOf(freqOrder[i]) !== -1) solPos = i;
-    if (needFreq.indexOf(freqOrder[i]) !== -1) needPos = i;
+    if (solFreq.includes(freqOrder[i])) solPos = i;
+    if (needFreq.includes(freqOrder[i])) needPos = i;
   }
 
   if (solPos === -1 || needPos === -1) {
-    return { matches: solFreq.indexOf(needFreq) !== -1 || needFreq.indexOf(solFreq) !== -1, partial: true };
+    return { matches: solFreq.includes(needFreq) || needFreq.includes(solFreq), partial: true };
   }
 
   return {
@@ -1683,7 +1683,7 @@ function exportNeedAlignmentToSheet(options) {
           } else {
             var topNeed = charData[0].name.toLowerCase();
             var solLower = solProvides.toLowerCase();
-            if (solLower.indexOf(topNeed) !== -1 || topNeed.indexOf(solLower) !== -1) {
+            if (solLower.includes(topNeed) || topNeed.includes(solLower)) {
               hasGap = 'No';
             } else {
               hasGap = 'POTENTIAL';

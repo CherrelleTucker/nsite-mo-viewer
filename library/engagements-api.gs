@@ -57,6 +57,7 @@ var ENGAGEMENT_ACTIVITY_TYPES = [
   'Phone',
   'Meeting',
   'Webinar',
+  'Workshop',
   'Conference',
   'Site Visit',
   'Training'
@@ -69,6 +70,27 @@ var ENGAGEMENT_DIRECTIONS = [
   'Outbound',
   'Inbound',
   'Bidirectional'
+];
+
+/**
+ * Valid event status values
+ */
+var EVENT_STATUS_VALUES = [
+  'Planning',
+  'Confirmed',
+  'Completed',
+  'Postponed',
+  'Cancelled'
+];
+
+/**
+ * Valid artifact types for events
+ */
+var ARTIFACT_TYPES = [
+  'presentation',
+  'recording',
+  'notes',
+  'photos'
 ];
 
 // ============================================================================
@@ -676,6 +698,346 @@ function logQuickEngagement(params) {
     summary: params.summary || '',
     logged_by: params.logged_by || 'manual'
   });
+}
+
+// ============================================================================
+// EVENT-SPECIFIC QUERIES
+// ============================================================================
+
+/**
+ * Check if an engagement is an event (has event_date)
+ * @param {Object} engagement - Engagement record
+ * @returns {boolean} True if this is an event
+ */
+function isEvent_(engagement) {
+  return engagement && engagement.event_date;
+}
+
+/**
+ * Get all events (engagements with event_date)
+ * @param {number} limit - Optional max results
+ * @returns {Array} Events sorted by event_date descending
+ */
+function getAllEvents(limit) {
+  var engagements = loadAllEngagements_();
+  var events = engagements.filter(function(e) {
+    return isEvent_(e);
+  });
+
+  // Sort by event_date descending (most recent first)
+  events.sort(function(a, b) {
+    var dateA = a.event_date ? new Date(a.event_date) : new Date(0);
+    var dateB = b.event_date ? new Date(b.event_date) : new Date(0);
+    return dateB - dateA;
+  });
+
+  if (limit && limit > 0) {
+    return deepCopy(events.slice(0, limit));
+  }
+  return deepCopy(events);
+}
+
+/**
+ * Get events for a specific solution
+ * @param {string} solutionId - Solution ID
+ * @returns {Array} Events for this solution, sorted by event_date desc
+ */
+function getEventsForSolution(solutionId) {
+  var engagements = loadAllEngagements_();
+  var events = engagements.filter(function(e) {
+    if (!isEvent_(e)) return false;
+    // Check primary, secondary, and additional solution IDs
+    if (e.solution_id === solutionId) return true;
+    if (e.secondary_solution_id === solutionId) return true;
+    if (e.additional_solution_ids) {
+      var additionalIds = e.additional_solution_ids.split(',').map(function(id) { return id.trim(); });
+      if (additionalIds.includes(solutionId)) return true;
+    }
+    return false;
+  });
+
+  // Sort by event_date descending
+  events.sort(function(a, b) {
+    var dateA = a.event_date ? new Date(a.event_date) : new Date(0);
+    var dateB = b.event_date ? new Date(b.event_date) : new Date(0);
+    return dateB - dateA;
+  });
+
+  return deepCopy(events);
+}
+
+/**
+ * Get upcoming events (event_date >= today)
+ * @param {number} limit - Optional max results
+ * @returns {Array} Upcoming events sorted by event_date ascending
+ */
+function getUpcomingEvents(limit) {
+  var engagements = loadAllEngagements_();
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  var events = engagements.filter(function(e) {
+    if (!isEvent_(e)) return false;
+    var eventDate = new Date(e.event_date);
+    return eventDate >= today;
+  });
+
+  // Sort by event_date ascending (soonest first)
+  events.sort(function(a, b) {
+    var dateA = new Date(a.event_date);
+    var dateB = new Date(b.event_date);
+    return dateA - dateB;
+  });
+
+  if (limit && limit > 0) {
+    return deepCopy(events.slice(0, limit));
+  }
+  return deepCopy(events);
+}
+
+/**
+ * Get events where a contact is an attendee
+ * @param {string} contactId - Contact ID to search for in event_attendee_ids
+ * @returns {Array} Events this contact attended/will attend
+ */
+function getEventsForContact(contactId) {
+  var engagements = loadAllEngagements_();
+  var events = engagements.filter(function(e) {
+    if (!isEvent_(e)) return false;
+    if (!e.event_attendee_ids) return false;
+    var attendeeIds = e.event_attendee_ids.split(',').map(function(id) { return id.trim(); });
+    return attendeeIds.includes(contactId);
+  });
+
+  // Sort by event_date descending
+  events.sort(function(a, b) {
+    var dateA = a.event_date ? new Date(a.event_date) : new Date(0);
+    var dateB = b.event_date ? new Date(b.event_date) : new Date(0);
+    return dateB - dateA;
+  });
+
+  return deepCopy(events);
+}
+
+/**
+ * Get events by status
+ * @param {string} status - Event status (Planning, Confirmed, Completed, Postponed, Cancelled)
+ * @returns {Array} Events with this status
+ */
+function getEventsByStatus(status) {
+  var engagements = loadAllEngagements_();
+  var events = engagements.filter(function(e) {
+    return isEvent_(e) && e.event_status === status;
+  });
+  return deepCopy(events);
+}
+
+// ============================================================================
+// EVENT ARTIFACT MANAGEMENT
+// ============================================================================
+
+/**
+ * Parse artifacts JSON from engagement
+ * @private
+ * @param {Object} engagement - Engagement record
+ * @returns {Array} Parsed artifacts array or empty array
+ */
+function parseArtifacts_(engagement) {
+  if (!engagement || !engagement.event_artifacts) {
+    return [];
+  }
+  try {
+    var artifacts = JSON.parse(engagement.event_artifacts);
+    return Array.isArray(artifacts) ? artifacts : [];
+  } catch (e) {
+    Logger.log('Error parsing artifacts for engagement ' + engagement.engagement_id + ': ' + e.message);
+    return [];
+  }
+}
+
+/**
+ * Validate artifact data
+ * @private
+ * @param {Object} artifact - Artifact to validate
+ * @returns {Object} { valid: boolean, errors: string[] }
+ */
+function validateArtifact_(artifact) {
+  var errors = [];
+
+  if (!artifact.type) {
+    errors.push('Artifact type is required');
+  } else if (!ARTIFACT_TYPES.includes(artifact.type)) {
+    errors.push('Invalid artifact type: ' + artifact.type + '. Valid types: ' + ARTIFACT_TYPES.join(', '));
+  }
+
+  if (!artifact.name || !String(artifact.name).trim()) {
+    errors.push('Artifact name is required');
+  }
+
+  if (!artifact.url || !String(artifact.url).trim()) {
+    errors.push('Artifact URL is required');
+  }
+
+  return { valid: errors.length === 0, errors: errors };
+}
+
+/**
+ * Add an artifact to an event
+ * @param {string} engagementId - Engagement ID
+ * @param {Object} artifact - Artifact to add {type, name, url}
+ * @returns {Object} Result with success/error and updated artifacts
+ */
+function addArtifact(engagementId, artifact) {
+  try {
+    // Validate artifact
+    var validation = validateArtifact_(artifact);
+    if (!validation.valid) {
+      return { success: false, error: 'Validation failed: ' + validation.errors.join('; ') };
+    }
+
+    // Get existing engagement
+    var engagement = getEngagementById(engagementId);
+    if (!engagement) {
+      return { success: false, error: 'Engagement not found: ' + engagementId };
+    }
+
+    if (!isEvent_(engagement)) {
+      return { success: false, error: 'This engagement is not an event (no event_date)' };
+    }
+
+    // Parse existing artifacts and add new one
+    var artifacts = parseArtifacts_(engagement);
+    artifacts.push({
+      type: artifact.type,
+      name: artifact.name.trim(),
+      url: artifact.url.trim(),
+      comms_asset_id: artifact.comms_asset_id || ''
+    });
+
+    // Update engagement
+    var updated = updateEngagement(engagementId, {
+      event_artifacts: JSON.stringify(artifacts)
+    });
+
+    if (!updated) {
+      return { success: false, error: 'Failed to update engagement' };
+    }
+
+    clearEngagementsCache_();
+    return { success: true, data: { artifacts: artifacts, engagement: updated } };
+  } catch (e) {
+    Logger.log('Error in addArtifact: ' + e.message);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Remove an artifact from an event
+ * @param {string} engagementId - Engagement ID
+ * @param {number} artifactIndex - Index of artifact to remove
+ * @returns {Object} Result with success/error and updated artifacts
+ */
+function removeArtifact(engagementId, artifactIndex) {
+  try {
+    // Get existing engagement
+    var engagement = getEngagementById(engagementId);
+    if (!engagement) {
+      return { success: false, error: 'Engagement not found: ' + engagementId };
+    }
+
+    var artifacts = parseArtifacts_(engagement);
+
+    if (artifactIndex < 0 || artifactIndex >= artifacts.length) {
+      return { success: false, error: 'Invalid artifact index: ' + artifactIndex };
+    }
+
+    // Remove artifact at index
+    artifacts.splice(artifactIndex, 1);
+
+    // Update engagement
+    var updated = updateEngagement(engagementId, {
+      event_artifacts: JSON.stringify(artifacts)
+    });
+
+    if (!updated) {
+      return { success: false, error: 'Failed to update engagement' };
+    }
+
+    clearEngagementsCache_();
+    return { success: true, data: { artifacts: artifacts, engagement: updated } };
+  } catch (e) {
+    Logger.log('Error in removeArtifact: ' + e.message);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Update an artifact's comms_asset_id after promotion
+ * @param {string} engagementId - Engagement ID
+ * @param {number} artifactIndex - Index of artifact to update
+ * @param {string} commsAssetId - ID of the created CommsAsset
+ * @returns {Object} Result with success/error
+ */
+function updateArtifactCommsAssetId(engagementId, artifactIndex, commsAssetId) {
+  try {
+    var engagement = getEngagementById(engagementId);
+    if (!engagement) {
+      return { success: false, error: 'Engagement not found: ' + engagementId };
+    }
+
+    var artifacts = parseArtifacts_(engagement);
+
+    if (artifactIndex < 0 || artifactIndex >= artifacts.length) {
+      return { success: false, error: 'Invalid artifact index: ' + artifactIndex };
+    }
+
+    // Update the comms_asset_id
+    artifacts[artifactIndex].comms_asset_id = commsAssetId;
+
+    // Update engagement
+    var updated = updateEngagement(engagementId, {
+      event_artifacts: JSON.stringify(artifacts)
+    });
+
+    if (!updated) {
+      return { success: false, error: 'Failed to update engagement' };
+    }
+
+    clearEngagementsCache_();
+    return { success: true, data: { artifact: artifacts[artifactIndex] } };
+  } catch (e) {
+    Logger.log('Error in updateArtifactCommsAssetId: ' + e.message);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Get artifacts for an event
+ * @param {string} engagementId - Engagement ID
+ * @returns {Array} Artifacts array or empty array if not found
+ */
+function getArtifacts(engagementId) {
+  var engagement = getEngagementById(engagementId);
+  if (!engagement) {
+    return [];
+  }
+  return parseArtifacts_(engagement);
+}
+
+/**
+ * Get event status options for UI dropdowns
+ * @returns {Array} Event status options
+ */
+function getEventStatusOptions() {
+  return EVENT_STATUS_VALUES.slice();
+}
+
+/**
+ * Get artifact type options for UI dropdowns
+ * @returns {Array} Artifact type options
+ */
+function getArtifactTypeOptions() {
+  return ARTIFACT_TYPES.slice();
 }
 
 // ============================================================================

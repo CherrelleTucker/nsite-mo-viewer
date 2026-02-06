@@ -384,8 +384,8 @@ function generateEventId_() {
 function detectType_(name) {
   if (!name) return 'conference';
   var n = name.toLowerCase();
-  if (n.indexOf('workshop') !== -1) return 'workshop';
-  if (n.indexOf('webinar') !== -1) return 'webinar';
-  if (n.indexOf('meeting') !== -1) return 'meeting';
+  if (n.includes('workshop')) return 'workshop';
+  if (n.includes('webinar')) return 'webinar';
+  if (n.includes('meeting')) return 'meeting';
   return 'conference';
 }

@@ -111,3 +111,61 @@ function logQuickEngagement(params) {
 function getSEPInitData() {
   return MoApi.getSEPInitData();
 }
+
+// Event-Specific Queries
+function getAllEvents(limit) {
+  return MoApi.getAllEvents(limit);
+}
+
+function getEventsForSolution(solutionId) {
+  return MoApi.getEventsForSolution(solutionId);
+}
+
+function getUpcomingEvents(limit) {
+  return MoApi.getUpcomingEvents(limit);
+}
+
+function getEventsForContact(contactId) {
+  return MoApi.getEventsForContact(contactId);
+}
+
+function getEventsByStatus(status) {
+  return MoApi.getEventsByStatus(status);
+}
+
+// Event Artifact Management
+function addArtifact(engagementId, artifact) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.addArtifact(engagementId, artifact);
+}
+
+function removeArtifact(engagementId, artifactIndex) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.removeArtifact(engagementId, artifactIndex);
+}
+
+function updateArtifactCommsAssetId(engagementId, artifactIndex, commsAssetId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.updateArtifactCommsAssetId(engagementId, artifactIndex, commsAssetId);
+}
+
+function getArtifacts(engagementId) {
+  return MoApi.getArtifacts(engagementId);
+}
+
+function getEventStatusOptions() {
+  return MoApi.getEventStatusOptions();
+}
+
+function getArtifactTypeOptions() {
+  return MoApi.getArtifactTypeOptions();
+}

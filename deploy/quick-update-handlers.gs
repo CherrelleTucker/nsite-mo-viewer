@@ -360,8 +360,8 @@ function acquireSubmissionLock(email, solutionName, updateText) {
 function formatUpdateText(types, text) {
   var sanitizedText = sanitizeInput(text);
   var prefixes = [];
-  if (types.indexOf('milestone') !== -1) prefixes.push('Milestone');
-  if (types.indexOf('action') !== -1) prefixes.push('Action');
+  if (types.includes('milestone')) prefixes.push('Milestone');
+  if (types.includes('action')) prefixes.push('Action');
 
   if (prefixes.length === 0) return sanitizedText;
   return prefixes.join(', ') + ': ' + sanitizedText;
@@ -516,7 +516,7 @@ function findSectionByHeading(body, headingText) {
     if (child.getType() === DocumentApp.ElementType.PARAGRAPH) {
       var para = child.asParagraph();
       var text = para.getText();
-      if (text.indexOf(headingText) !== -1) {
+      if (text.includes(headingText)) {
         return { element: para, index: i };
       }
     }
@@ -558,7 +558,7 @@ function findSolutionInSEPSection(body, solutionName, sectionStartIndex) {
 
       if (heading === DocumentApp.ParagraphHeading.HEADING2) {
         for (var j = 0; j < majorSections.length; j++) {
-          if (text.indexOf(majorSections[j]) !== -1) {
+          if (text.includes(majorSections[j])) {
             return null;
           }
         }
@@ -1018,7 +1018,7 @@ function listSEPSolutions() {
       if (heading === DocumentApp.ParagraphHeading.HEADING2) {
         var isMajor = false;
         for (var j = 0; j < majorSections.length; j++) {
-          if (text.indexOf(majorSections[j]) !== -1) {
+          if (text.includes(majorSections[j])) {
             isMajor = true;
             break;
           }

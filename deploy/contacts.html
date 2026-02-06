@@ -316,7 +316,7 @@
             </div>
             <div class="form-group full-width">
               <label for="newChampionNotes">Champion Notes</label>
-              <textarea id="newChampionNotes" name="champion_notes" rows="2" placeholder="Why is this person a champion? Value they bring? Relationship context?"></textarea>
+              <div id="newChampionNotes" class="rich-text-field" contenteditable="true" data-placeholder="Why is this person a champion? Value they bring? Relationship context?"></div>
             </div>
           </div>
         </div>
@@ -331,7 +331,7 @@
           <div class="form-section-content">
             <div class="form-group full-width">
               <label for="newNotes">Relationship Notes</label>
-              <textarea id="newNotes" name="relationship_notes" rows="3" placeholder="How did you meet? Key interests? Follow-up context?"></textarea>
+              <div id="newRelationshipNotes" class="rich-text-field" contenteditable="true" data-placeholder="How did you meet? Key interests? Follow-up context?"></div>
             </div>
           </div>
         </div>
@@ -1662,9 +1662,25 @@ renderPagination();
 
     html += '</div>';
 
-    // Champion Notes - Inline Editable
+    // Champion Notes - View/Edit pattern
     html += '<div class="detail-item" style="margin-top: var(--space-sm);"><div class="detail-label">Champion Notes</div>';
-    html += '<textarea class="inline-textarea" id="editChampionNotes" placeholder="Why is this person a champion? Value they bring?" onblur="Contacts.updateContactField(\'' + escapeAttr(contact.email) + '\', \'champion_notes\', this.value)">' + escapeHtml(contact.champion_notes || '') + '</textarea>';
+    // View mode
+    html += '<div id="championNotesView">';
+    if (contact.champion_notes && contact.champion_notes.trim()) {
+      html += '<div class="notes-content" style="font-size: var(--font-size-sm); margin-bottom: var(--space-xs);">' + displayRichContent(contact.champion_notes) + '</div>';
+    } else {
+      html += '<div class="notes-empty" style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: var(--space-xs);">No champion notes yet</div>';
+    }
+    html += '<button class="btn btn-secondary btn-sm" onclick="Contacts.editChampionNotes()"><span class="material-icons" style="font-size: 14px; margin-right: 4px;">edit</span>Edit</button>';
+    html += '</div>';
+    // Edit mode (hidden by default)
+    html += '<div id="championNotesEdit" style="display: none;">';
+    html += '<div id="editChampionNotes" class="rich-text-field" contenteditable="true" data-placeholder="Why is this person a champion? Value they bring?"></div>';
+    html += '<div style="display: flex; gap: var(--space-xs); margin-top: var(--space-xs);">';
+    html += '<button class="btn btn-secondary btn-sm" onclick="Contacts.cancelChampionNotes()">Cancel</button>';
+    html += '<button class="btn btn-primary btn-sm" onclick="Contacts.saveChampionNotes(\'' + escapeAttr(contact.email) + '\')">Save</button>';
+    html += '</div>';
+    html += '</div>';
     html += '</div>';
 
     html += '</div>';
@@ -1919,11 +1935,11 @@ renderPagination();
       role: form.role.value,
       touchpoint_status: form.touchpoint_status.value,
       engagement_level: form.engagement_level.value,
-      relationship_notes: form.relationship_notes.value.trim(),
+      relationship_notes: getRichTextContent('newRelationshipNotes'),
       // Champion fields
       champion_status: form.champion_status.value,
       relationship_owner: form.relationship_owner.value,
-      champion_notes: form.champion_notes.value.trim()
+      champion_notes: getRichTextContent('newChampionNotes')
     };
 
     google.script.run
@@ -2045,6 +2061,89 @@ renderPagination();
       [apiFunction](email, value);
   }
 
+  function editChampionNotes() {
+    var viewEl = document.getElementById('championNotesView');
+    var editEl = document.getElementById('championNotesEdit');
+    if (viewEl) viewEl.style.display = 'none';
+    if (editEl) editEl.style.display = 'block';
+    var notesField = document.getElementById('editChampionNotes');
+    if (notesField) {
+      initRichTextField('editChampionNotes', 'Why is this person a champion? Value they bring?');
+      var contact = state.allContacts.find(function(c) { return c.email === state.currentContactEmail; });
+      setRichTextContent('editChampionNotes', (contact && contact.champion_notes) || '');
+      notesField.focus();
+    }
+  }
+
+  function saveChampionNotes(email) {
+    var notesEl = document.getElementById('editChampionNotes');
+    if (!notesEl) return;
+
+    var notes = getRichTextContent('editChampionNotes');
+    var indicator = document.getElementById('saveIndicator');
+    if (indicator) {
+      indicator.textContent = 'Saving...';
+      indicator.classList.add('show');
+    }
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result && result.success) {
+          if (indicator) {
+            indicator.textContent = 'Saved';
+            setTimeout(function() { indicator.classList.remove('show'); }, 1500);
+          }
+          // Update local state
+          var contact = state.allContacts.find(function(c) { return c.email === email.toLowerCase(); });
+          if (contact) {
+            contact.champion_notes = notes;
+          }
+          if (typeof CachedAPI !== 'undefined' && CachedAPI.invalidate) {
+            CachedAPI.invalidate.contacts();
+          }
+          // Update view mode content
+          var viewEl = document.getElementById('championNotesView');
+          if (viewEl) {
+            var contentHtml = '';
+            if (notes && notes.trim()) {
+              contentHtml = '<div class="notes-content" style="font-size: var(--font-size-sm); margin-bottom: var(--space-xs);">' + displayRichContent(notes) + '</div>';
+            } else {
+              contentHtml = '<div class="notes-empty" style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: var(--space-xs);">No champion notes yet</div>';
+            }
+            contentHtml += '<button class="btn btn-secondary btn-sm" onclick="Contacts.editChampionNotes()"><span class="material-icons" style="font-size: 14px; margin-right: 4px;">edit</span>Edit</button>';
+            viewEl.innerHTML = contentHtml;
+          }
+          // Switch back to view mode
+          var editEl = document.getElementById('championNotesEdit');
+          if (viewEl) viewEl.style.display = 'block';
+          if (editEl) editEl.style.display = 'none';
+        } else {
+          if (indicator) {
+            indicator.textContent = 'Failed';
+            setTimeout(function() { indicator.classList.remove('show'); }, 2000);
+          }
+          showToast(result && result.error ? result.error : 'Failed to save', 'error');
+        }
+      })
+      .withFailureHandler(function(error) {
+        if (indicator) {
+          indicator.textContent = 'Error';
+          setTimeout(function() { indicator.classList.remove('show'); }, 2000);
+        }
+        showToast('Error: ' + error.message, 'error');
+      })
+      .updateContactChampionNotes(email, notes);
+  }
+
+  function cancelChampionNotes() {
+    var contact = state.allContacts.find(function(c) { return c.email === state.currentContactEmail; });
+    setRichTextContent('editChampionNotes', (contact && contact.champion_notes) || '');
+    var viewEl = document.getElementById('championNotesView');
+    var editEl = document.getElementById('championNotesEdit');
+    if (viewEl) viewEl.style.display = 'block';
+    if (editEl) editEl.style.display = 'none';
+  }
+
   function toggleDetailSection(sectionId) {
     var section = document.getElementById(sectionId);
     if (section) {
@@ -2068,6 +2167,9 @@ renderPagination();
     toggleFormSection: toggleFormSection,
     submitNewContact: submitNewContact,
     updateContactField: updateContactField,
+    editChampionNotes: editChampionNotes,
+    saveChampionNotes: saveChampionNotes,
+    cancelChampionNotes: cancelChampionNotes,
     toggleDetailSection: toggleDetailSection
   };
 })();

@@ -175,7 +175,7 @@ function findActionTableInDoc_(doc) {
       for (var i = 0; i < tabs.length; i++) {
         var tab = tabs[i];
         var tabTitle = tab.getTitle();
-        if (tabTitle && tabTitle.toLowerCase().indexOf('action') !== -1) {
+        if (tabTitle && tabTitle.toLowerCase().includes('action')) {
           var result = findTableWithActionColumns_(tab.asDocumentTab().getBody());
           if (result.found) {
             Logger.log('Found action table in tab: ' + tabTitle);
@@ -216,9 +216,9 @@ function findTableWithActionColumns_(body) {
         headerText += headerRow.getCell(c).getText().toLowerCase() + ' ';
       }
       // Look for tables with action-related headers
-      if ((headerText.indexOf('status') !== -1 || headerText.indexOf('complete') !== -1) &&
-          (headerText.indexOf('owner') !== -1 || headerText.indexOf('assigned') !== -1) &&
-          (headerText.indexOf('action') !== -1 || headerText.indexOf('task') !== -1)) {
+      if ((headerText.includes('status') || headerText.includes('complete')) &&
+          (headerText.includes('owner') || headerText.includes('assigned')) &&
+          (headerText.includes('action') || headerText.includes('task'))) {
         return { found: true, table: table };
       }
     }
@@ -244,23 +244,23 @@ function parseActionTable_(table, sourceInfo) {
 
   for (var c = 0; c < headerRow.getNumCells(); c++) {
     var header = headerRow.getCell(c).getText().toLowerCase().trim();
-    if (header.indexOf('status') !== -1 || header.indexOf('complete') !== -1) {
+    if (header.includes('status') || header.includes('complete')) {
       colMap.status = c;
     }
-    if (header.indexOf('owner') !== -1 || header.indexOf('assigned') !== -1) {
+    if (header.includes('owner') || header.includes('assigned')) {
       colMap.owner = c;
     }
-    if ((header.indexOf('action') !== -1 || header.indexOf('task') !== -1) &&
-        header.indexOf('source') === -1) {
+    if ((header.includes('action') || header.includes('task')) &&
+        !header.includes('source')) {
       colMap.action = c;
     }
-    if (header.indexOf('due') !== -1 || header.indexOf('date') !== -1) {
+    if (header.includes('due') || header.includes('date')) {
       colMap.dueDate = c;
     }
-    if (header.indexOf('note') !== -1 || header.indexOf('comment') !== -1) {
+    if (header.includes('note') || header.includes('comment')) {
       colMap.notes = c;
     }
-    if (header.indexOf('solution') !== -1 || header.indexOf('project') !== -1) {
+    if (header.includes('solution') || header.includes('project')) {
       colMap.solution = c;
     }
   }

@@ -114,8 +114,8 @@ function ensureColumnsExist() {
   var sheet = getContactsSheet();
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 
-  var hasNotes = headers.indexOf('notes') !== -1;
-  var hasLastUpdated = headers.indexOf('last_updated') !== -1;
+  var hasNotes = headers.includes('notes');
+  var hasLastUpdated = headers.includes('last_updated');
 
   if (!hasNotes) {
     var lastCol = sheet.getLastColumn() + 1;

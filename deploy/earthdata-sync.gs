@@ -96,7 +96,7 @@ function discoverAndUpdateUrls() {
     var currentUrl = row[cols.url] || '';
 
     // Skip if already has a valid URL
-    if (currentUrl && currentUrl.indexOf('earthdata.nasa.gov') !== -1 &&
+    if (currentUrl && currentUrl.includes('earthdata.nasa.gov') &&
         currentUrl !== 'https://www.earthdata.nasa.gov/about/nasa-support-snwg/solutions/') {
       continue;
     }
@@ -193,13 +193,13 @@ function findMatchingUrl_(name, solutionId, solutionLinks) {
 
     // Check if solution name contains the link title or vice versa
     if (normalizedName && key &&
-        (normalizedName.indexOf(key) !== -1 || key.indexOf(normalizedName) !== -1)) {
+        (normalizedName.includes(key) || key.includes(normalizedName))) {
       return linkData.url;
     }
 
     // Check solution_id
     if (normalizedId && key &&
-        (normalizedId.indexOf(key) !== -1 || key.indexOf(normalizedId) !== -1)) {
+        (normalizedId.includes(key) || key.includes(normalizedId))) {
       return linkData.url;
     }
   }

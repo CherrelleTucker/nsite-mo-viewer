@@ -533,7 +533,7 @@ function getAllHistoricalUpdatesForReport(yearTabs, solutionFilter, maxUpdates) 
       // Filter by solution_id if specified (partial match, case-insensitive)
       if (filterLower) {
         var solutionId = (update.solution_id || '').toLowerCase();
-        if (solutionId.indexOf(filterLower) === -1) return false;
+        if (!solutionId.includes(filterLower)) return false;
       }
 
       return true;

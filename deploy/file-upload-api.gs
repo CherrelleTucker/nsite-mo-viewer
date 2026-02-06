@@ -16,6 +16,10 @@
  * @returns {Object} Result object
  */
 function uploadFileToTeamFolder(folderId, fileName, base64Data, mimeType, solutionId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.uploadFileToTeamFolder(folderId, fileName, base64Data, mimeType, solutionId);
 }
 

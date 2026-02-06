@@ -408,7 +408,7 @@ function detectSection_(text) {
   for (var section in SECTION_CATEGORIES) {
     var keywords = SECTION_CATEGORIES[section];
     for (var i = 0; i < keywords.length; i++) {
-      if (lowerText.indexOf(keywords[i]) !== -1) {
+      if (lowerText.includes(keywords[i])) {
         return section;
       }
     }
@@ -424,12 +424,12 @@ function detectSection_(text) {
  */
 function isSectionHeader_(text) {
   var lowerText = text.toLowerCase();
-  return lowerText.indexOf('what programmatic') !== -1 ||
-         lowerText.indexOf('what software') !== -1 ||
-         lowerText.indexOf('what have i done') !== -1 ||
-         lowerText.indexOf('snwg mo can help') !== -1 ||
-         lowerText.indexOf('project status') !== -1 ||
-         lowerText.indexOf('project phase') !== -1;
+  return lowerText.includes('what programmatic') ||
+         lowerText.includes('what software') ||
+         lowerText.includes('what have i done') ||
+         lowerText.includes('snwg mo can help') ||
+         lowerText.includes('project status') ||
+         lowerText.includes('project phase');
 }
 
 /**
@@ -485,9 +485,9 @@ function filterPlaceholderContent_(content) {
   return content.filter(function(text) {
     var lower = text.toLowerCase();
     // Skip placeholder patterns
-    if (lower.indexOf('[task name') !== -1) return false;
-    if (lower.indexOf('[name]') !== -1) return false;
-    if (lower.indexOf('example:') !== -1) return false;
+    if (lower.includes('[task name')) return false;
+    if (lower.includes('[name]')) return false;
+    if (lower.includes('example:')) return false;
     if (lower.match(/^n\/a\.?$/)) return false;
     if (lower === 'none') return false;
     if (lower === 'nothing new' || lower === 'nothing new.') return false;

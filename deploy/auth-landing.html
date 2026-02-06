@@ -434,8 +434,8 @@
           '<span class="material-icons">check_circle</span>' +
         '</div>' +
         '<h2 class="success-title">Access Granted!</h2>' +
-        '<p class="success-text">Click below to continue to MO-Viewer</p>' +
-        '<a href="' + escapeAttr(redirectUrl) + '" target="_top" class="continue-btn">' +
+        '<p class="success-text">Redirecting...</p>' +
+        '<a id="continueLink" href="' + escapeAttr(redirectUrl) + '" target="_top" class="continue-btn">' +
           '<span class="material-icons">arrow_forward</span>' +
           'Continue to Dashboard' +
         '</a>';
@@ -446,6 +446,15 @@
         securityNote.style.display = 'none';
       }
       cardBody.appendChild(successDiv);
+
+      // Try to auto-redirect. If browser blocks it due to user activation policy,
+      // the user can still click the button manually.
+      setTimeout(function() {
+        var link = document.getElementById('continueLink');
+        if (link) {
+          link.click();
+        }
+      }, 500);
     }
 
     function showError(message) {

@@ -65,7 +65,7 @@ function generatePresentation(solutionId, audienceType, folderId) {
     }
 
     audienceType = normalizeString(audienceType);
-    if (!audienceType || PRESENTATION_AUDIENCE_TYPES.indexOf(audienceType) === -1) {
+    if (!audienceType || !PRESENTATION_AUDIENCE_TYPES.includes(audienceType)) {
       Logger.log('ERROR: Invalid audience type: ' + audienceType);
       return { success: false, error: 'Invalid audience type. Must be: ' + PRESENTATION_AUDIENCE_TYPES.join(', ') };
     }

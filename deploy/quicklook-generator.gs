@@ -35,7 +35,7 @@ function generateQuickLookData(options) {
 
     if (options.phase) {
       solutions = solutions.filter(function(s) {
-        return (s.admin_lifecycle_phase || '').toLowerCase().indexOf(options.phase.toLowerCase()) !== -1;
+        return (s.admin_lifecycle_phase || '').toLowerCase().includes(options.phase.toLowerCase());
       });
     }
 
@@ -185,7 +185,7 @@ function generateQuickLookCSV(options) {
 function escapeCSV_(value) {
   if (value === null || value === undefined) return '';
   var str = String(value);
-  if (str.indexOf(',') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\n') !== -1) {
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
     return '"' + str.replace(/"/g, '""') + '"';
   }
   return str;

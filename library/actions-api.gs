@@ -257,6 +257,149 @@ function getActionsOverview() {
 }
 
 // ============================================================================
+// INPUT VALIDATION HELPERS
+// ============================================================================
+
+/**
+ * Validate email format
+ * @param {string} email - Email to validate
+ * @returns {boolean} True if valid email format
+ */
+function isValidEmail_(email) {
+  if (!email) return true; // Empty is OK for optional fields
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
+}
+
+/**
+ * Validate date format (YYYY-MM-DD)
+ * @param {string} dateStr - Date string to validate
+ * @returns {boolean} True if valid date format
+ */
+function isValidDateFormat_(dateStr) {
+  if (!dateStr) return true; // Empty is OK for optional fields
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(dateStr).trim());
+}
+
+/**
+ * Sanitize text to prevent formula injection in Google Sheets
+ * Cells starting with =, +, -, @, or tab can be interpreted as formulas
+ * @param {string} text - Text to sanitize
+ * @returns {string} Sanitized text safe for sheet cells
+ */
+function sanitizeForSheet_(text) {
+  if (!text) return '';
+  var str = String(text).trim();
+  // If starts with formula trigger character, prefix with single quote
+  if (/^[=+\-@\t]/.test(str)) {
+    return "'" + str;
+  }
+  return str;
+}
+
+/**
+ * Validate and sanitize action data for create/update
+ * @param {Object} data - Action data to validate
+ * @param {boolean} isUpdate - Whether this is an update (less strict)
+ * @returns {Object} {valid: boolean, errors: string[], sanitized: Object}
+ */
+function validateActionData_(data, isUpdate) {
+  var errors = [];
+  var sanitized = {};
+
+  // Task is required for new actions
+  if (!isUpdate) {
+    if (!data.task || !String(data.task).trim()) {
+      errors.push('Task description is required');
+    }
+  }
+
+  // Validate and sanitize each field
+  if (data.task !== undefined) {
+    var task = String(data.task).trim();
+    if (task.length > 2000) {
+      errors.push('Task description must be under 2000 characters');
+    }
+    sanitized.task = sanitizeForSheet_(task);
+  }
+
+  if (data.assigned_to !== undefined) {
+    var assignee = String(data.assigned_to).trim();
+    if (assignee.length > 100) {
+      errors.push('Assigned to must be under 100 characters');
+    }
+    sanitized.assigned_to = sanitizeForSheet_(assignee);
+  }
+
+  if (data.due_date !== undefined && data.due_date !== '') {
+    if (!isValidDateFormat_(data.due_date)) {
+      errors.push('Due date must be in YYYY-MM-DD format');
+    } else {
+      sanitized.due_date = data.due_date;
+    }
+  } else if (data.due_date === '') {
+    sanitized.due_date = '';
+  }
+
+  if (data.source_date !== undefined && data.source_date !== '') {
+    if (!isValidDateFormat_(data.source_date)) {
+      errors.push('Source date must be in YYYY-MM-DD format');
+    } else {
+      sanitized.source_date = data.source_date;
+    }
+  } else if (data.source_date === '') {
+    sanitized.source_date = '';
+  }
+
+  if (data.notes !== undefined) {
+    var notes = String(data.notes);
+    if (notes.length > 5000) {
+      errors.push('Notes must be under 5000 characters');
+    }
+    sanitized.notes = sanitizeForSheet_(notes);
+  }
+
+  // Validate enum fields
+  var validStatuses = ['not_started', 'in_progress', 'done', 'blocked', 'pending'];
+  if (data.status !== undefined) {
+    var status = String(data.status).toLowerCase().trim();
+    if (status && !validStatuses.includes(status)) {
+      errors.push('Invalid status value');
+    } else {
+      sanitized.status = status || 'not_started';
+    }
+  }
+
+  var validPriorities = ['low', 'medium', 'high', 'critical'];
+  if (data.priority !== undefined) {
+    var priority = String(data.priority).toLowerCase().trim();
+    if (priority && !validPriorities.includes(priority)) {
+      errors.push('Invalid priority value');
+    } else {
+      sanitized.priority = priority || 'medium';
+    }
+  }
+
+  // Pass through other safe fields with sanitization
+  var safeFields = ['source_document', 'source_url', 'category', 'solution_id', 'created_by'];
+  safeFields.forEach(function(field) {
+    if (data[field] !== undefined) {
+      var value = String(data[field]).trim();
+      if (value.length > 500) {
+        errors.push(field + ' must be under 500 characters');
+      } else {
+        sanitized[field] = sanitizeForSheet_(value);
+      }
+    }
+  });
+
+  return {
+    valid: errors.length === 0,
+    errors: errors,
+    sanitized: sanitized
+  };
+}
+
+// ============================================================================
 // CREATE/UPDATE OPERATIONS
 // ============================================================================
 
@@ -267,11 +410,13 @@ function getActionsOverview() {
  */
 function createAction(actionData) {
   try {
-    // Validate required fields
-    if (!actionData.task || !String(actionData.task).trim()) {
-      return { success: false, error: 'Task description is required' };
+    // Security: Validate and sanitize all input
+    var validation = validateActionData_(actionData, false);
+    if (!validation.valid) {
+      return { success: false, error: validation.errors.join('; ') };
     }
 
+    var sanitized = validation.sanitized;
     var sheet = getDatabaseSheet('Actions');
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 
@@ -283,33 +428,33 @@ function createAction(actionData) {
         case 'action_id':
           return actionId;
         case 'source_document':
-          return actionData.source_document || '';
+          return sanitized.source_document || '';
         case 'source_date':
-          return actionData.source_date || '';
+          return sanitized.source_date || '';
         case 'source_url':
-          return actionData.source_url || '';
+          return sanitized.source_url || '';
         case 'category':
-          return actionData.category || 'MO';
+          return sanitized.category || 'MO';
         case 'solution_id':
-          return actionData.solution_id || actionData.category || 'MO';
+          return sanitized.solution_id || sanitized.category || 'MO';
         case 'status':
-          return actionData.status || 'not_started';
+          return sanitized.status || 'not_started';
         case 'assigned_to':
-          return actionData.assigned_to || '';
+          return sanitized.assigned_to || '';
         case 'task':
-          return actionData.task || '';
+          return sanitized.task || '';
         case 'due_date':
-          return actionData.due_date || '';
+          return sanitized.due_date || '';
         case 'priority':
-          return actionData.priority || 'medium';
+          return sanitized.priority || 'medium';
         case 'notes':
-          return actionData.notes || '';
+          return sanitized.notes || '';
         case 'created_at':
           return timestamp;
         case 'updated_at':
           return timestamp;
         case 'created_by':
-          return actionData.created_by || 'manual';
+          return sanitized.created_by || 'manual';
         default:
           return '';
       }
@@ -353,6 +498,18 @@ function createAction(actionData) {
  */
 function updateAction(actionId, updates) {
   try {
+    // Security: Validate actionId format
+    if (!actionId || typeof actionId !== 'string' || !/^ACT_\d{8}_\d{4}$/.test(actionId)) {
+      return { success: false, error: 'Invalid action ID format' };
+    }
+
+    // Security: Validate and sanitize update data
+    var validation = validateActionData_(updates, true);
+    if (!validation.valid) {
+      return { success: false, error: validation.errors.join('; ') };
+    }
+
+    var sanitized = validation.sanitized;
     var sheet = getDatabaseSheet('Actions');
     var data = sheet.getDataRange().getValues();
     var headers = data[0];
@@ -371,14 +528,14 @@ function updateAction(actionId, updates) {
     }
 
     if (rowIndex === -1) {
-      return { success: false, error: 'Action not found: ' + actionId };
+      return { success: false, error: 'Action not found' };
     }
 
-    // Update fields
-    for (var field in updates) {
+    // Update fields with sanitized values
+    for (var field in sanitized) {
       var colIndex = headers.indexOf(field);
       if (colIndex !== -1 && field !== 'action_id') {
-        sheet.getRange(rowIndex, colIndex + 1).setValue(updates[field]);
+        sheet.getRange(rowIndex, colIndex + 1).setValue(sanitized[field]);
       }
     }
 
@@ -846,8 +1003,30 @@ function sendSlackAssignmentNotification_(action, assigneeName, slackUserId, pre
     return false;
   }
 
-  var taskPreview = (action.task || '').substring(0, 150);
-  if (action.task && action.task.length > 150) taskPreview += '...';
+  // Security: Validate Slack user ID format (starts with U or W)
+  if (!slackUserId || !/^[UW][A-Z0-9]{8,}$/.test(slackUserId)) {
+    Logger.log('Invalid Slack user ID: ' + slackUserId);
+    return false;
+  }
+
+  // Security: Sanitize all user-provided content for Slack
+  // Escape Slack's markdown-like formatting characters
+  function sanitizeForSlack(text, maxLength) {
+    if (!text) return '';
+    maxLength = maxLength || 200;
+    return String(text)
+      .replace(/[\r\n]/g, ' ')           // Remove newlines
+      .replace(/[<>&]/g, '')             // Remove Slack special chars
+      .replace(/[^\x20-\x7E]/g, '')      // Remove non-printable
+      .trim()
+      .substring(0, maxLength);
+  }
+
+  var safeTask = sanitizeForSlack(action.task, 150);
+  if (safeTask.length < (action.task || '').length) safeTask += '...';
+  var safeSolution = sanitizeForSlack(action.solution_id, 50);
+  var safeDueDate = sanitizeForSlack(action.due_date, 20);
+  var safePreviousAssignee = sanitizeForSlack(previousAssignee, 50);
 
   // Build Slack message with blocks for rich formatting
   var blocks = [
@@ -862,7 +1041,7 @@ function sendSlackAssignmentNotification_(action, assigneeName, slackUserId, pre
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: '> ' + taskPreview
+        text: '> ' + safeTask
       }
     },
     {
@@ -871,16 +1050,16 @@ function sendSlackAssignmentNotification_(action, assigneeName, slackUserId, pre
     }
   ];
 
-  // Add context elements
+  // Add context elements with sanitized content
   var contextElements = blocks[2].elements;
-  if (action.solution_id) {
-    contextElements.push({ type: 'mrkdwn', text: '*Solution:* ' + action.solution_id });
+  if (safeSolution) {
+    contextElements.push({ type: 'mrkdwn', text: '*Solution:* ' + safeSolution });
   }
-  if (action.due_date) {
-    contextElements.push({ type: 'mrkdwn', text: '*Due:* ' + action.due_date });
+  if (safeDueDate) {
+    contextElements.push({ type: 'mrkdwn', text: '*Due:* ' + safeDueDate });
   }
-  if (previousAssignee && previousAssignee !== 'Unassigned') {
-    contextElements.push({ type: 'mrkdwn', text: '_Previously:_ ' + previousAssignee });
+  if (safePreviousAssignee && safePreviousAssignee !== 'Unassigned') {
+    contextElements.push({ type: 'mrkdwn', text: '_Previously:_ ' + safePreviousAssignee });
   }
 
   // Add action buttons
@@ -974,29 +1153,70 @@ function getSlackUserIdForMember_(nameOrEmail) {
 }
 
 /**
+ * Sanitize text for safe use in email body
+ * Removes newlines and control characters to prevent header injection
+ * @param {string} text - Text to sanitize
+ * @param {number} maxLength - Maximum length (default 200)
+ * @returns {string} Sanitized text
+ */
+function sanitizeEmailText_(text, maxLength) {
+  if (!text) return '';
+  maxLength = maxLength || 200;
+  return String(text)
+    .replace(/[\r\n\t]/g, ' ')           // Replace newlines/tabs with spaces
+    .replace(/[^\x20-\x7E]/g, '')        // Remove non-printable ASCII
+    .replace(/\s+/g, ' ')                // Collapse multiple spaces
+    .trim()
+    .substring(0, maxLength);
+}
+
+/**
+ * Validate email address format
+ * @param {string} email - Email to validate
+ * @returns {boolean} True if valid
+ */
+function isValidEmailAddress_(email) {
+  if (!email) return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
+}
+
+/**
  * Send email notification for action assignment
  * @private
  */
 function sendAssignmentNotification_(action, assigneeName, assigneeEmail, previousAssignee) {
+  // Security: Validate email before sending
+  if (!isValidEmailAddress_(assigneeEmail)) {
+    Logger.log('Invalid email address for notification: ' + assigneeEmail);
+    return;
+  }
+
   var subject = '[MO-Viewer] Action Item Assigned to You';
 
-  var taskPreview = (action.task || '').substring(0, 100);
-  if (action.task && action.task.length > 100) taskPreview += '...';
+  // Security: Sanitize all user-provided content
+  var safeName = sanitizeEmailText_(assigneeName, 50);
+  var safeFirstName = safeName.split(' ')[0] || 'Team Member';
+  var safeTask = sanitizeEmailText_(action.task, 100);
+  var safeSolution = sanitizeEmailText_(action.solution_id, 50);
+  var safeDueDate = sanitizeEmailText_(action.due_date, 20);
+  var safePreviousAssignee = sanitizeEmailText_(previousAssignee, 50);
 
-  var body = 'Hi ' + assigneeName.split(' ')[0] + ',\n\n';
+  if (safeTask.length < (action.task || '').length) safeTask += '...';
+
+  var body = 'Hi ' + safeFirstName + ',\n\n';
   body += 'An action item has been assigned to you in MO-Viewer:\n\n';
   body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-  body += 'TASK: ' + taskPreview + '\n';
+  body += 'TASK: ' + safeTask + '\n';
   body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
 
-  if (action.solution_id) {
-    body += 'Solution: ' + action.solution_id + '\n';
+  if (safeSolution) {
+    body += 'Solution: ' + safeSolution + '\n';
   }
-  if (action.due_date) {
-    body += 'Due Date: ' + action.due_date + '\n';
+  if (safeDueDate) {
+    body += 'Due Date: ' + safeDueDate + '\n';
   }
-  if (previousAssignee && previousAssignee !== 'Unassigned') {
-    body += 'Previously assigned to: ' + previousAssignee + '\n';
+  if (safePreviousAssignee && safePreviousAssignee !== 'Unassigned') {
+    body += 'Previously assigned to: ' + safePreviousAssignee + '\n';
   }
 
   body += '\nView in MO-Viewer Actions page to update status.\n\n';

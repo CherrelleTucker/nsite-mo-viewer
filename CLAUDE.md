@@ -1,6 +1,6 @@
 # Claude Code Instructions for MO-Viewer
 
-**Version:** 2.5.2 | **Updated:** 2026-02-05 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
+**Version:** 2.5.3 | **Updated:** 2026-02-05 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
 
 ---
 
@@ -14,7 +14,7 @@ When beginning a new session:
 
 ---
 
-## Development Status (January 2026)
+## Development Status (February 2026)
 
 ### Current Phase: Data Infrastructure
 
@@ -63,7 +63,6 @@ Updates in agendas should use:
 - Complete historical backfill for all agenda sources
 - Build Actions sync script (similar pattern)
 - Test automated triggers for weekly/monthly syncs
-- **Comms Page Reorganization** (see below)
 
 ---
 
@@ -316,7 +315,7 @@ Users can click the refresh icon in the navigation bar to:
 │  sep.html            │ SEP pipeline, touchpoints, working sessions          │
 │  comms.html          │ Stories, events, coverage, messaging                  │
 │  contacts.html       │ Contact directory and search                          │
-│  team.html           │ Team info, documents, meetings                        │
+│  team.html           │ Team info, actions, availability, meetings, kudos      │
 │  reports.html        │ Historical updates report, data exports               │
 │  schedule.html       │ Meeting schedule and availability                     │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -1057,7 +1056,7 @@ Files updated:
 - [ ] Add automated tests (see docs/TESTING_STRATEGY.md)
 - [ ] SEP Pipeline toolbar cleanup
 - [ ] **State Management Navigation Guards** - Some pages have incomplete coverage:
-  - Actions page: No guards (HIGH priority)
+  - Team (Actions section): No guards (HIGH priority)
   - SEP: ~60% coverage (MEDIUM)
   - Reports: ~70% coverage (MEDIUM)
   - Contacts: ~80% coverage (LOW)

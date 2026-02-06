@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.3] - 2026-02-05
+
+### Changed
+- **Team Actions refactor** - Actions section within Team page overhauled
+  - Removed standalone `actions.html` (dead code - never loaded by app)
+  - Removed Kanban view (By Person / By Status toggle)
+  - Replaced action detail drawer with standard modal (matches Parking Lot pattern)
+  - Added rich text support: contenteditable fields for Task/Notes, `displayRichContent()` for rendering
+  - Simplified filter bar: Open/All/Done chips + click-to-open search icon
+  - Removed Source and Solution filter dropdowns
+  - Removed height limits/scrollbars from Actions and Availability sections
+  - Assignee groups collapsed by default
+- **Team member badges** - Comma-separated team assignments (e.g. "SEP, Assessment") now render as individual colored badges on team cards and in member detail modal
+- **Rich text on SEP, Comms, Contacts** - Formatting (bullets, links, bold) preserved through save/display cycle
+
+### Fixed
+- `index.html` redirect for `navigateTo('actions')` now correctly targets `Team.setView('capacity')`
+- Team filter dropdown now matches members belonging to any of their teams (not just exact string match)
+
+---
+
 ## [2.5.2] - 2026-02-05
 
 ### Added

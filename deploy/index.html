@@ -147,6 +147,15 @@
           <div class="form-group">
             <label>Current Page</label>
             <input type="text" id="feedbackPage" readonly style="background: var(--color-surface-alt);">
+            <input type="hidden" id="feedbackSubpage">
+          </div>
+
+          <div class="form-group" id="categoryGroup" style="display:none;">
+            <label>Category</label>
+            <select id="feedbackCategory">
+              <option value="functional">Functional (broken feature)</option>
+              <option value="cosmetic">Cosmetic (visual/UI issue)</option>
+            </select>
           </div>
 
           <div class="form-group">
@@ -155,7 +164,7 @@
                       placeholder="Describe the bug or feature..."></textarea>
           </div>
 
-          <div class="form-group" id="stepsGroup">
+          <div class="form-group" id="stepsGroup" style="display:none;">
             <label>Steps to Reproduce (for bugs)</label>
             <textarea id="feedbackSteps" rows="3"
                       placeholder="1. Go to...&#10;2. Click on...&#10;3. See error..."></textarea>
@@ -763,7 +772,7 @@
           navigateTo('team');
           setTimeout(function() {
             if (typeof Team !== 'undefined' && Team.setView) {
-              Team.setView('actions');
+              Team.setView('capacity');
             }
           }, 100);
           break;
@@ -1306,19 +1315,21 @@
       var pageDisplay = pageName.charAt(0).toUpperCase() + pageName.slice(1);
 
       var subView = getCurrentSubView();
+      var subViewDisplay = '';
       if (subView) {
         // Capitalize first letter of sub-view
-        var subViewDisplay = subView.charAt(0).toUpperCase() + subView.slice(1);
+        subViewDisplay = subView.charAt(0).toUpperCase() + subView.slice(1);
         // Convert camelCase to Title Case (e.g., "parkingLot" -> "Parking Lot")
         subViewDisplay = subViewDisplay.replace(/([A-Z])/g, ' $1').trim();
         pageDisplay += ' > ' + subViewDisplay;
       }
 
-      document.getElementById('feedbackPage').value = pageDisplay;
-
-      // Reset form
+      // Reset form first
       document.getElementById('feedbackForm').reset();
+
+      // Then set values
       document.getElementById('feedbackPage').value = pageDisplay;
+      document.getElementById('feedbackSubpage').value = subViewDisplay;
       toggleStepsField();
 
       // Show modal
@@ -1332,8 +1343,9 @@
 
     function toggleStepsField() {
       var type = document.getElementById('feedbackType').value;
-      var stepsGroup = document.getElementById('stepsGroup');
-      stepsGroup.style.display = (type === 'bug') ? 'block' : 'none';
+      var isBug = (type === 'bug');
+      document.getElementById('stepsGroup').style.display = isBug ? 'block' : 'none';
+      document.getElementById('categoryGroup').style.display = isBug ? 'block' : 'none';
     }
 
     function submitFeedback(event) {
@@ -1344,9 +1356,12 @@
       btn.innerHTML = '<span class="loading-spinner" style="width: 16px; height: 16px;"></span> Sending...';
       btn.disabled = true;
 
+      var feedbackType = document.getElementById('feedbackType').value;
       var feedback = {
-        type: document.getElementById('feedbackType').value,
+        type: feedbackType,
         page: document.getElementById('feedbackPage').value,
+        subpage: document.getElementById('feedbackSubpage').value || '',
+        category: (feedbackType === 'bug') ? document.getElementById('feedbackCategory').value : '',
         description: document.getElementById('feedbackDescription').value,
         steps: document.getElementById('feedbackSteps').value || '',
         name: document.getElementById('feedbackName').value || 'Anonymous',

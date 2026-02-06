@@ -858,7 +858,7 @@ var TopSheet = (function() {
     if (!valB) return -1;
 
     // Handle dates
-    if (col.indexOf('date') !== -1) {
+    if (col.includes('date')) {
       var dateA = parseDate(valA);
       var dateB = parseDate(valB);
       if (dateA && dateB) return (dateA - dateB) * dir;

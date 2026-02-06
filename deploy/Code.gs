@@ -1304,7 +1304,10 @@ function submitFeedback(feedback) {
             type: 'mrkdwn',
             text: '*From:*\n' + (feedback.name || 'Anonymous')
           }
-        ]
+        ].concat(feedback.category ? [{
+            type: 'mrkdwn',
+            text: '*Category:*\n' + (feedback.category === 'functional' ? 'Functional' : 'Cosmetic')
+          }] : [])
       },
       {
         type: 'section',
@@ -1390,12 +1393,14 @@ function logFeedbackToSheet_(feedback) {
     var bugId = prefix + '-' + String(nextNum).padStart(3, '0');
 
     // Prepare row data matching expected columns:
-    // bug_id | timestamp | type | page | description | steps_to_reproduce | submitted_by | user_agent | status | priority | assigned_to | resolution_notes | resolved_date
+    // bug_id | timestamp | type | category | page | subpage | description | steps_to_reproduce | submitted_by | user_agent | status | priority | assigned_to | resolution_notes | resolved_date
     var rowData = [
       bugId,
       feedback.timestamp || new Date().toISOString(),
       feedback.type || 'other',
+      feedback.category || '',
       feedback.page || '',
+      feedback.subpage || '',
       feedback.description || '',
       feedback.steps || '',
       feedback.name || 'Anonymous',

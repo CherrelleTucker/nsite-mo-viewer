@@ -60,90 +60,114 @@ function getAgencyById(agencyId) {
 /**
  * Create a new agency
  * @param {Object} agencyData - Agency data
- * @returns {Object} Created agency with ID
+ * @returns {Object} {success: boolean, data?: Object, error?: string}
  */
 function createAgency(agencyData) {
-  // Validate required fields
-  if (!agencyData.name || !String(agencyData.name).trim()) {
-    return { success: false, error: 'Agency name is required' };
+  try {
+    // Validate required fields
+    if (!agencyData.name || !String(agencyData.name).trim()) {
+      return { success: false, error: 'Agency name is required' };
+    }
+
+    var sheetInfo = getSheetForWrite_('AGENCIES_SHEET_ID');
+    var sheet = sheetInfo.sheet;
+    var headers = sheetInfo.headers;
+
+    // Generate agency_id if not provided
+    if (!agencyData.agency_id) {
+      agencyData.agency_id = 'AGY_' + new Date().getTime();
+    }
+
+    // Set timestamps
+    var now = new Date().toISOString();
+    agencyData.created_at = now;
+    agencyData.updated_at = now;
+
+    // Build row from headers
+    var newRow = headers.map(function(header) {
+      return agencyData[header] !== undefined ? agencyData[header] : '';
+    });
+
+    sheet.appendRow(newRow);
+    clearAgenciesCache_();
+
+    return { success: true, data: agencyData };
+  } catch (e) {
+    Logger.log('Error in createAgency: ' + e.message);
+    return { success: false, error: 'Failed to create agency: ' + e.message };
   }
-
-  var sheetInfo = getSheetForWrite_('AGENCIES_SHEET_ID');
-  var sheet = sheetInfo.sheet;
-  var headers = sheetInfo.headers;
-
-  // Generate agency_id if not provided
-  if (!agencyData.agency_id) {
-    agencyData.agency_id = 'AGY_' + new Date().getTime();
-  }
-
-  // Set timestamps
-  var now = new Date().toISOString();
-  agencyData.created_at = now;
-  agencyData.updated_at = now;
-
-  // Build row from headers
-  var newRow = headers.map(function(header) {
-    return agencyData[header] !== undefined ? agencyData[header] : '';
-  });
-
-  sheet.appendRow(newRow);
-  clearAgenciesCache_();
-
-  return agencyData;
 }
 
 /**
  * Update an existing agency
  * @param {string} agencyId - Agency ID to update
  * @param {Object} updates - Fields to update
- * @returns {Object|null} Updated agency or null if not found
+ * @returns {Object} {success: boolean, data?: Object, error?: string}
  */
 function updateAgency(agencyId, updates) {
-  var sheetInfo = getSheetForWrite_('AGENCIES_SHEET_ID');
-  var sheet = sheetInfo.sheet;
-  var headers = sheetInfo.headers;
-
-  // Find row to update using shared utility
-  var rowIndex = findRowByField_(sheet, headers, 'agency_id', agencyId);
-  if (rowIndex === -1) {
-    return null;
-  }
-
-  // Update timestamp
-  updates.updated_at = new Date().toISOString();
-
-  // Update cells (rowIndex is already 1-indexed from findRowByField_)
-  headers.forEach(function(header, colIndex) {
-    if (updates.hasOwnProperty(header) && header !== 'agency_id' && header !== 'created_at') {
-      sheet.getRange(rowIndex, colIndex + 1).setValue(updates[header]);
+  try {
+    if (!agencyId) {
+      return { success: false, error: 'Agency ID is required' };
     }
-  });
 
-  clearAgenciesCache_();
+    var sheetInfo = getSheetForWrite_('AGENCIES_SHEET_ID');
+    var sheet = sheetInfo.sheet;
+    var headers = sheetInfo.headers;
 
-  return getAgencyById(agencyId);
+    // Find row to update using shared utility
+    var rowIndex = findRowByField_(sheet, headers, 'agency_id', agencyId);
+    if (rowIndex === -1) {
+      return { success: false, error: 'Agency not found: ' + agencyId };
+    }
+
+    // Update timestamp
+    updates.updated_at = new Date().toISOString();
+
+    // Update cells (rowIndex is already 1-indexed from findRowByField_)
+    headers.forEach(function(header, colIndex) {
+      if (updates.hasOwnProperty(header) && header !== 'agency_id' && header !== 'created_at') {
+        sheet.getRange(rowIndex, colIndex + 1).setValue(updates[header]);
+      }
+    });
+
+    clearAgenciesCache_();
+
+    var updatedAgency = getAgencyById(agencyId);
+    return { success: true, data: updatedAgency };
+  } catch (e) {
+    Logger.log('Error in updateAgency: ' + e.message);
+    return { success: false, error: 'Failed to update agency: ' + e.message };
+  }
 }
 
 /**
  * Delete an agency
  * @param {string} agencyId - Agency ID to delete
- * @returns {boolean} Success status
+ * @returns {Object} {success: boolean, error?: string}
  */
 function deleteAgency(agencyId) {
-  var sheetInfo = getSheetForWrite_('AGENCIES_SHEET_ID');
-  var sheet = sheetInfo.sheet;
-  var headers = sheetInfo.headers;
+  try {
+    if (!agencyId) {
+      return { success: false, error: 'Agency ID is required' };
+    }
 
-  // Find row using shared utility
-  var rowIndex = findRowByField_(sheet, headers, 'agency_id', agencyId);
-  if (rowIndex === -1) {
-    return false;
+    var sheetInfo = getSheetForWrite_('AGENCIES_SHEET_ID');
+    var sheet = sheetInfo.sheet;
+    var headers = sheetInfo.headers;
+
+    // Find row using shared utility
+    var rowIndex = findRowByField_(sheet, headers, 'agency_id', agencyId);
+    if (rowIndex === -1) {
+      return { success: false, error: 'Agency not found: ' + agencyId };
+    }
+
+    sheet.deleteRow(rowIndex);
+    clearAgenciesCache_();
+    return { success: true };
+  } catch (e) {
+    Logger.log('Error in deleteAgency: ' + e.message);
+    return { success: false, error: 'Failed to delete agency: ' + e.message };
   }
-
-  sheet.deleteRow(rowIndex);
-  clearAgenciesCache_();
-  return true;
 }
 
 // ============================================================================

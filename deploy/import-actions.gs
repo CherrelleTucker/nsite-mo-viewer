@@ -275,7 +275,7 @@ function findColumnIndex_(headers, possibleNames) {
   for (var i = 0; i < headers.length; i++) {
     var header = headers[i].toString().toLowerCase().trim();
     for (var j = 0; j < possibleNames.length; j++) {
-      if (header.indexOf(possibleNames[j].toLowerCase()) !== -1) {
+      if (header.includes(possibleNames[j].toLowerCase())) {
         return i;
       }
     }

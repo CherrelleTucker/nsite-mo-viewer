@@ -79,14 +79,6 @@
           <div class="section-header">
             <h2>Actions</h2>
             <div class="page-actions">
-              <div class="view-toggle view-toggle-compact">
-                <button class="view-btn active" data-subview="assignee" onclick="Team.setActionsSubview('assignee')">
-                  <span class="material-icons">group</span>
-                </button>
-                <button class="view-btn" data-subview="status" onclick="Team.setActionsSubview('status')">
-                  <span class="material-icons">view_column</span>
-                </button>
-              </div>
               <button class="btn btn-primary btn-sm" onclick="Team.showAddActionModal()">
                 <span class="material-icons">add</span>
                 Add Action
@@ -101,18 +93,10 @@
               <button class="chip" data-filter="all" onclick="Team.setActionsFilter('all')">All</button>
               <button class="chip" data-filter="done" onclick="Team.setActionsFilter('done')">Done</button>
             </div>
-            <div class="filter-search">
-              <span class="material-icons">search</span>
-              <input type="text" id="action-search" placeholder="Search..." onkeyup="Team.applyActionsFilters()">
+            <div class="action-search-toggle" id="actionSearchToggle">
+              <span class="material-icons" onclick="Team.toggleActionSearch()">search</span>
+              <input type="text" id="action-search" placeholder="Search actions..." onkeyup="Team.applyActionsFilters()">
             </div>
-            <select id="filter-source" onchange="Team.applyActionsFilters()">
-              <option value="">All Sources</option>
-              <option value="MO">Internal</option>
-              <option value="SEP">SEP</option>
-            </select>
-            <select id="filter-solution" onchange="Team.applyActionsFilters()">
-              <option value="">All Solutions</option>
-            </select>
           </div>
 
           <!-- Actions Content -->
@@ -125,41 +109,8 @@
               </div>
             </div>
 
-            <!-- Status/Kanban View -->
-            <div class="status-view" id="status-view">
-              <div class="kanban-column" data-status="pending">
-                <div class="column-header">
-                  <span class="dot pending"></span>
-                  <span>Pending</span>
-                  <span class="count" id="count-pending">0</span>
-                </div>
-                <div class="column-cards" id="cards-pending"></div>
-              </div>
-              <div class="kanban-column" data-status="not_started">
-                <div class="column-header">
-                  <span class="dot not-started"></span>
-                  <span>Not Started</span>
-                  <span class="count" id="count-not-started">0</span>
-                </div>
-                <div class="column-cards" id="cards-not-started"></div>
-              </div>
-              <div class="kanban-column" data-status="in_progress">
-                <div class="column-header">
-                  <span class="dot in-progress"></span>
-                  <span>In Progress</span>
-                  <span class="count" id="count-in-progress">0</span>
-                </div>
-                <div class="column-cards" id="cards-in-progress"></div>
-              </div>
-              <div class="kanban-column" data-status="done">
-                <div class="column-header">
-                  <span class="dot done"></span>
-                  <span>Done</span>
-                  <span class="count" id="count-done">0</span>
-                </div>
-                <div class="column-cards" id="cards-done"></div>
-              </div>
-            </div>
+
+
           </div>
 
           <!-- Empty State -->
@@ -944,17 +895,18 @@
   </div>
 </div>
 
-<!-- Action Detail Drawer -->
-<div class="drawer-overlay" id="action-drawer">
-  <div class="drawer">
-    <div class="drawer-header">
+<!-- Action Detail Modal -->
+<div class="modal" id="actionDetailModal">
+  <div class="modal-content modal-md">
+    <div class="modal-header">
       <h3>Action Details</h3>
-      <button class="btn-icon" onclick="Team.closeActionDrawer()">
-        <span class="material-icons">close</span>
-      </button>
+      <button class="modal-close" onclick="Team.closeModal('actionDetailModal')" aria-label="Close dialog">&times;</button>
     </div>
-    <div class="drawer-body" id="drawer-body">
-      <!-- Populated by JavaScript -->
+    <div class="modal-body" id="actionDetailBody">
+      <!-- Populated dynamically -->
+    </div>
+    <div class="modal-footer" id="actionDetailFooter">
+      <!-- Populated dynamically -->
     </div>
   </div>
 </div>
@@ -970,7 +922,7 @@
       <form id="add-action-form" onsubmit="return Team.submitAction(event)">
         <div class="form-group">
           <label for="add-task">Task *</label>
-          <textarea id="add-task" rows="3" required maxlength="1000" placeholder="Describe the action item..."></textarea>
+          <div id="add-task" class="rich-text-field" contenteditable="true" data-placeholder="Describe the action item..."></div>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -1076,7 +1028,7 @@
         </div>
         <div class="form-group">
           <label for="add-notes">Notes</label>
-          <textarea id="add-notes" rows="2" maxlength="2000" placeholder="Additional context (optional)"></textarea>
+          <div id="add-notes" class="rich-text-field" contenteditable="true" data-placeholder="Additional context (optional)"></div>
         </div>
       </form>
     </div>
@@ -1114,13 +1066,9 @@
   }
 
   .capacity-actions {
-    max-height: 600px;
-    overflow-y: auto;
   }
 
   .capacity-availability {
-    max-height: 500px;
-    overflow-y: auto;
   }
 
   .capacity-team {
@@ -1141,43 +1089,46 @@
     gap: var(--space-xs);
   }
 
-  .capacity-actions .filter-search {
-    position: relative;
-    flex: 1;
-    min-width: 100px;
+  .action-search-toggle {
+    display: flex;
+    align-items: center;
   }
 
-  .capacity-actions .filter-search .material-icons {
-    position: absolute;
-    left: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 16px;
+  .action-search-toggle .material-icons {
+    font-size: 20px;
     color: var(--color-text-muted);
-    pointer-events: none;
+    cursor: pointer;
+    padding: var(--space-xs);
+    border-radius: var(--radius-sm);
   }
 
-  .capacity-actions .filter-search input {
-    width: 100%;
-    padding: var(--space-xs) var(--space-sm) var(--space-xs) 28px;
+  .action-search-toggle .material-icons:hover {
+    color: var(--color-primary);
+    background: var(--color-background);
+  }
+
+  .action-search-toggle input {
+    width: 0;
+    padding: 0;
+    border: none;
+    opacity: 0;
+    overflow: hidden;
+    transition: width 0.2s, opacity 0.2s, padding 0.2s;
     font-size: var(--font-size-sm);
-    border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     background: var(--color-surface);
   }
 
-  .capacity-actions .filter-search input:focus {
+  .action-search-toggle.open input {
+    width: 160px;
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    opacity: 1;
+  }
+
+  .action-search-toggle.open input:focus {
     outline: none;
     border-color: var(--color-primary);
-  }
-
-  .capacity-actions select {
-    padding: var(--space-xs) var(--space-sm);
-    font-size: var(--font-size-xs);
-    max-width: 100px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    background: var(--color-surface);
   }
 
   @media (max-width: 1024px) {
@@ -1251,6 +1202,13 @@
     margin-bottom: var(--space-xs);
   }
 
+  .team-card .team-badges {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
   .team-card .team-badge {
     display: inline-block;
     padding: 2px 8px;
@@ -1269,8 +1227,6 @@
   /* Availability List */
   .availability-list {
     margin-top: var(--space-md);
-    max-height: 400px;
-    overflow-y: auto;
   }
 
   .availability-item {
@@ -2914,23 +2870,6 @@
   /* ============================================
      ACTIONS VIEW STYLES
      ============================================ */
-  .actions-subheader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-md);
-  }
-
-  .actions-view-toggle {
-    display: flex;
-    gap: var(--space-xs);
-  }
-
-  .actions-view-toggle .view-btn {
-    padding: var(--space-xs) var(--space-sm);
-    font-size: var(--font-size-sm);
-  }
-
   .actions-filters {
     display: flex;
     align-items: center;
@@ -3171,144 +3110,7 @@
     color: #1d4ed8;
   }
 
-  /* Status/Kanban View */
-  .status-view {
-    display: none;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-md);
-  }
-
-  .status-view.active {
-    display: grid;
-  }
-
-  .kanban-column {
-    background: var(--color-gray-50);
-    border-radius: var(--radius-md);
-    padding: var(--space-md);
-    min-height: 400px;
-  }
-
-  .column-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    margin-bottom: var(--space-md);
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    color: var(--color-text);
-  }
-
-  .column-header .dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-  }
-
-  .dot.pending { background: #f59e0b; }
-  .dot.not-started { background: #94a3b8; }
-  .dot.in-progress { background: #3b82f6; }
-  .dot.done { background: #10b981; }
-
-  .column-header .count {
-    margin-left: auto;
-    background: var(--color-surface);
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: var(--font-size-xs);
-    color: var(--color-text-secondary);
-  }
-
-  .column-cards {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-
-  .kanban-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    padding: var(--space-sm);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .kanban-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
-  }
-
-  .kanban-card .task {
-    font-size: var(--font-size-sm);
-    color: var(--color-text);
-    line-height: 1.5;
-    margin-bottom: var(--space-sm);
-  }
-
-  .kanban-card .meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: var(--font-size-xs);
-    color: var(--color-text-muted);
-  }
-
-  .kanban-card .owner {
-    font-weight: 500;
-    color: var(--color-text-secondary);
-  }
-
-  /* Drawer */
-  .drawer-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.3);
-    z-index: 1000;
-  }
-
-  .drawer-overlay.active {
-    display: block;
-  }
-
-  .drawer {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 480px;
-    max-width: 100%;
-    height: 100%;
-    background: var(--color-surface);
-    box-shadow: -4px 0 24px rgba(0,0,0,0.15);
-    display: flex;
-    flex-direction: column;
-  }
-
-  .drawer-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--space-md) var(--space-lg);
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .drawer-header h3 {
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    color: var(--color-text);
-    margin: 0;
-  }
-
-  .drawer-body {
-    flex: 1;
-    padding: var(--space-lg);
-    overflow-y: auto;
-  }
-
+  /* Action Detail Field */
   .detail-field {
     margin-bottom: var(--space-md);
   }
@@ -3432,12 +3234,7 @@
     justify-content: flex-end;
   }
 
-  @media (max-width: 1200px) {
-    .status-view { grid-template-columns: repeat(2, 1fr); }
-  }
-
   @media (max-width: 768px) {
-    .status-view { grid-template-columns: 1fr; }
     .actions-filters { flex-direction: column; align-items: stretch; }
     .filter-search { max-width: none; }
   }
@@ -3467,7 +3264,6 @@
     // Actions state
     actionsData: [],
     filteredActions: [],
-    actionsSubview: 'assignee',
     actionsFilter: 'open',
     currentAction: null,
     editingActionId: null,
@@ -3479,6 +3275,9 @@
       this.loadParkingLot(); // Load parking lot for stats
       this.setupKudosForm();
       this.loadCurrentUser();
+      // Initialize rich text fields for action add/edit form (once)
+      initRichTextField('add-task', 'Describe the action item...');
+      initRichTextField('add-notes', 'Additional context (optional)');
     },
 
     loadCurrentUser: function() {
@@ -3992,7 +3791,11 @@
 
       var html = this.members.map(function(member) {
         var initials = (member.first_name || '').charAt(0) + (member.last_name || '').charAt(0);
-        var teamClass = escapeAttr((member.internal_team || '').replace(/\s+/g, ''));
+        var teams = (member.internal_team || '').split(',').map(function(t) { return t.trim(); }).filter(Boolean);
+        var badgesHtml = teams.map(function(t) {
+          var cls = escapeAttr(t.replace(/\s+/g, ''));
+          return '<span class="team-badge ' + cls + '">' + escapeHtml(t) + '</span>';
+        }).join(' ');
         var profileIndicator = member.has_profile ? '<span class="profile-badge" title="View About Me"><span class="material-icons">person</span></span>' : '';
 
         return '<div class="team-card' + (member.has_profile ? ' has-profile' : '') + '" onclick="Team.showMemberDetail(\'' + escapeAttr(member.contact_id) + '\')">' +
@@ -4000,7 +3803,7 @@
           '<div class="avatar">' + escapeHtml(initials.toUpperCase()) + '</div>' +
           '<div class="name">' + escapeHtml(member.first_name || '') + ' ' + escapeHtml(member.last_name || '') + '</div>' +
           '<div class="title">' + escapeHtml(member.internal_title || '') + '</div>' +
-          '<span class="team-badge ' + teamClass + '">' + escapeHtml(member.internal_team || '') + '</span>' +
+          '<div class="team-badges">' + badgesHtml + '</div>' +
         '</div>';
       }).join('');
 
@@ -4010,11 +3813,13 @@
     filterTeam: function(team) {
       var cards = document.querySelectorAll('.team-card');
       cards.forEach(function(card) {
-        var badge = card.querySelector('.team-badge');
-        if (team === 'all' || (badge && badge.textContent === team)) {
+        if (team === 'all') {
           card.style.display = '';
         } else {
-          card.style.display = 'none';
+          var badges = card.querySelectorAll('.team-badge');
+          var match = false;
+          badges.forEach(function(b) { if (b.textContent === team) match = true; });
+          card.style.display = match ? '' : 'none';
         }
       });
     },
@@ -4540,7 +4345,16 @@
       document.getElementById('memberDetailAvatar').textContent = initials.toUpperCase();
       document.getElementById('memberDetailName').textContent = fullName;
       document.getElementById('memberDetailTitle2').textContent = member.internal_title || 'Team Member';
-      document.getElementById('memberDetailTeam').textContent = member.internal_team || '--';
+      var teamEl = document.getElementById('memberDetailTeam');
+      var teams = (member.internal_team || '').split(',').map(function(t) { return t.trim(); }).filter(Boolean);
+      if (teams.length) {
+        teamEl.innerHTML = teams.map(function(t) {
+          var cls = escapeAttr(t.replace(/\s+/g, ''));
+          return '<span class="team-badge ' + cls + '">' + escapeHtml(t) + '</span>';
+        }).join(' ');
+      } else {
+        teamEl.textContent = '--';
+      }
 
       // Email
       var emailEl = document.getElementById('memberDetailEmail');
@@ -5206,7 +5020,6 @@
         .withSuccessHandler(function(actions) {
           Team.actionsData = actions || [];
           Team.filteredActions = Team.actionsData;
-          Team.populateSolutionFilter();
           Team.applyActionsFilters();
           Team.populateTeamMembersList();
           Team.updateStats();
@@ -5221,25 +5034,6 @@
         .getAllActions();
     },
 
-    populateSolutionFilter: function() {
-      var select = document.getElementById('filter-solution');
-      if (!select) return;
-
-      var solutions = {};
-      Team.actionsData.forEach(function(action) {
-        if (action.solution_id && action.solution_id.trim()) {
-          solutions[action.solution_id.trim()] = true;
-        }
-      });
-
-      select.innerHTML = '<option value="">All Solutions</option>';
-      Object.keys(solutions).sort().forEach(function(solution) {
-        var option = document.createElement('option');
-        option.value = solution;
-        option.textContent = solution;
-        select.appendChild(option);
-      });
-    },
 
     populateTeamMembersList: function() {
       var datalist = document.getElementById('team-members-list');
@@ -5251,21 +5045,6 @@
         option.value = m.first_name || '';
         datalist.appendChild(option);
       });
-    },
-
-    setActionsSubview: function(subview) {
-      Team.actionsSubview = subview;
-
-      document.querySelectorAll('.actions-view-toggle .view-btn').forEach(function(btn) {
-        btn.classList.toggle('active', btn.dataset.subview === subview);
-      });
-
-      var assigneeView = document.getElementById('assignee-view');
-      var statusView = document.getElementById('status-view');
-      if (assigneeView) assigneeView.classList.toggle('active', subview === 'assignee');
-      if (statusView) statusView.classList.toggle('active', subview === 'status');
-
-      Team.renderActions();
     },
 
     setActionsFilter: function(filter) {
@@ -5280,21 +5059,14 @@
 
     applyActionsFilters: function() {
       var searchEl = document.getElementById('action-search');
-      var sourceEl = document.getElementById('filter-source');
-      var solutionEl = document.getElementById('filter-solution');
-      if (!searchEl || !sourceEl || !solutionEl) return;
+      if (!searchEl) return;
 
       var search = (searchEl.value || '').toLowerCase();
-      var source = sourceEl.value;
-      var solution = solutionEl.value;
 
       Team.filteredActions = Team.actionsData.filter(function(action) {
         var status = Team.normalizeActionStatus(action.status);
         if (Team.actionsFilter === 'open' && status === 'done') return false;
         if (Team.actionsFilter === 'done' && status !== 'done') return false;
-
-        if (source && action.category !== source) return false;
-        if (solution && action.solution_id !== solution) return false;
 
         if (search) {
           var text = [action.task, action.assigned_to, action.source_document, action.solution_id].join(' ').toLowerCase();
@@ -5309,11 +5081,7 @@
     },
 
     renderActions: function() {
-      if (Team.actionsSubview === 'assignee') {
-        Team.renderAssigneeView();
-      } else {
-        Team.renderStatusView();
-      }
+      Team.renderAssigneeView();
     },
 
     renderAssigneeView: function() {
@@ -5339,7 +5107,7 @@
       assignees.forEach(function(assignee) {
         var actions = byAssignee[assignee];
         var initials = assignee.split(' ').map(function(n) { return n[0] || ''; }).join('').toUpperCase().substring(0, 2) || '?';
-        var isCollapsed = Team.collapsedAssignees && Team.collapsedAssignees[assignee];
+        var isCollapsed = !(Team.collapsedAssignees && Team.collapsedAssignees[assignee] === false);
 
         var section = document.createElement('div');
         section.className = 'assignee-section' + (isCollapsed ? ' collapsed' : '');
@@ -5370,7 +5138,7 @@
             Team.showActionDetail(action.action_id);
           };
 
-          row.innerHTML = '<div class="action-task">' + escapeHtml(action.task || '') + '</div>' +
+          row.innerHTML = '<div class="action-task">' + displayRichContent(action.task || '') + '</div>' +
             '<div class="action-row-meta">' +
             '<span class="action-status"><span class="status-dot ' + status.replace('_', '-') + '"></span>' +
             '<span class="status-text">' + Team.formatActionStatus(status) + '</span></span>' +
@@ -5388,40 +5156,22 @@
 
     toggleAssignee: function(assignee, section) {
       if (!Team.collapsedAssignees) Team.collapsedAssignees = {};
-      Team.collapsedAssignees[assignee] = !Team.collapsedAssignees[assignee];
+      var isCurrentlyCollapsed = Team.collapsedAssignees[assignee] !== false;
+      Team.collapsedAssignees[assignee] = isCurrentlyCollapsed ? false : true;
       section.classList.toggle('collapsed');
     },
 
-    renderStatusView: function() {
-      var statuses = ['pending', 'not_started', 'in_progress', 'done'];
-
-      statuses.forEach(function(status) {
-        var container = document.getElementById('cards-' + status.replace('_', '-'));
-        var countEl = document.getElementById('count-' + status.replace('_', '-'));
-        if (!container || !countEl) return;
-
-        var actions = Team.filteredActions.filter(function(a) {
-          return Team.normalizeActionStatus(a.status) === status;
-        });
-
-        countEl.textContent = actions.length;
-        container.innerHTML = '';
-
-        actions.forEach(function(action) {
-          var solution = action.solution_id || action.category || '';
-          var isSolution = solution && solution !== action.category;
-
-          var card = document.createElement('div');
-          card.className = 'kanban-card';
-          card.onclick = function() { Team.showActionDetail(action.action_id); };
-          card.innerHTML = '<div class="task">' + escapeHtml(action.task || '') + '</div>' +
-            '<div class="meta">' +
-            '<span class="owner">' + escapeHtml(action.assigned_to || 'Unassigned') + '</span>' +
-            '<span class="action-solution' + (isSolution ? ' is-solution' : '') + '" style="font-size:10px;padding:2px 6px;">' + escapeHtml(solution) + '</span>' +
-            '</div>';
-          container.appendChild(card);
-        });
-      });
+    toggleActionSearch: function() {
+      var wrapper = document.getElementById('actionSearchToggle');
+      if (!wrapper) return;
+      var input = document.getElementById('action-search');
+      wrapper.classList.toggle('open');
+      if (wrapper.classList.contains('open')) {
+        input.focus();
+      } else {
+        input.value = '';
+        Team.applyActionsFilters();
+      }
     },
 
     showActionDetail: function(actionId) {
@@ -5431,16 +5181,16 @@
       Team.currentAction = action;
       var status = Team.normalizeActionStatus(action.status);
 
-      var container = document.getElementById('drawer-body');
+      var container = document.getElementById('actionDetailBody');
       container.innerHTML = '';
 
-      // Task
+      // Task (rich text)
       var taskField = document.createElement('div');
       taskField.className = 'detail-field';
-      taskField.innerHTML = '<label>Task</label><div class="value">' + escapeHtml(action.task || '-') + '</div>';
+      taskField.innerHTML = '<label>Task</label><div class="value">' + displayRichContent(action.task || '-') + '</div>';
       container.appendChild(taskField);
 
-      // Assigned To
+      // Assigned To with reassign
       var assigneeField = document.createElement('div');
       assigneeField.className = 'detail-field';
       assigneeField.innerHTML = '<label>Assigned To</label>' +
@@ -5453,20 +5203,20 @@
       reassignDiv.id = 'reassign-form';
       reassignDiv.className = 'reassign-form';
       reassignDiv.style.display = 'none';
-      reassignDiv.innerHTML = '<input type="text" id="reassign-input" list="drawer-team-list" placeholder="Select team member">' +
-        '<datalist id="drawer-team-list"></datalist>' +
+      reassignDiv.innerHTML = '<input type="text" id="reassign-input" list="modal-team-list" placeholder="Select team member">' +
+        '<datalist id="modal-team-list"></datalist>' +
         '<div class="reassign-buttons">' +
         '<button class="btn btn-secondary btn-sm" onclick="Team.cancelReassign()">Cancel</button>' +
         '<button class="btn btn-primary btn-sm" id="reassign-btn" onclick="Team.confirmReassign()">Reassign</button>' +
         '</div>';
       container.appendChild(reassignDiv);
 
-      // Populate datalist with first names only
-      var drawerDatalist = reassignDiv.querySelector('#drawer-team-list');
+      // Populate datalist
+      var modalDatalist = reassignDiv.querySelector('#modal-team-list');
       Team.members.forEach(function(m) {
         var opt = document.createElement('option');
         opt.value = m.first_name || '';
-        drawerDatalist.appendChild(opt);
+        modalDatalist.appendChild(opt);
       });
 
       // Status
@@ -5500,11 +5250,11 @@
         container.appendChild(sourceField);
       }
 
-      // Notes
+      // Notes (rich text)
       if (action.notes) {
         var notesField = document.createElement('div');
         notesField.className = 'detail-field';
-        notesField.innerHTML = '<label>Notes</label><div class="value notes-formatted">' + formatNotesHtml(action.notes) + '</div>';
+        notesField.innerHTML = '<label>Notes</label><div class="value notes-formatted">' + displayRichContent(action.notes) + '</div>';
         container.appendChild(notesField);
       }
 
@@ -5520,31 +5270,15 @@
       });
       container.appendChild(btnsDiv);
 
-      // Edit and Delete buttons
-      var actionBtns = document.createElement('div');
-      actionBtns.className = 'action-buttons';
-      actionBtns.style.cssText = 'display:flex; gap:var(--space-sm); margin-top:var(--space-md); padding-top:var(--space-md); border-top:1px solid var(--color-border);';
+      // Populate footer with Edit and Delete buttons
+      var footer = document.getElementById('actionDetailFooter');
+      footer.innerHTML = '<button class="btn btn-danger btn-sm" onclick="Team.deleteAction(\'' + escapeHtml(action.action_id) + '\')">' +
+        '<span class="material-icons">delete</span> Delete</button>' +
+        '<button class="btn btn-secondary" onclick="Team.closeModal(\'actionDetailModal\')">Close</button>' +
+        '<button class="btn btn-primary" onclick="Team.editAction(\'' + escapeHtml(action.action_id) + '\')">' +
+        '<span class="material-icons">edit</span> Edit</button>';
 
-      var editBtn = document.createElement('button');
-      editBtn.className = 'btn btn-secondary btn-sm';
-      editBtn.innerHTML = '<span class="material-icons">edit</span> Edit';
-      editBtn.onclick = function() { Team.editAction(action.action_id); };
-      actionBtns.appendChild(editBtn);
-
-      var deleteBtn = document.createElement('button');
-      deleteBtn.className = 'btn btn-danger btn-sm';
-      deleteBtn.innerHTML = '<span class="material-icons">delete</span> Delete';
-      deleteBtn.onclick = function() { Team.deleteAction(action.action_id); };
-      actionBtns.appendChild(deleteBtn);
-
-      container.appendChild(actionBtns);
-
-      document.getElementById('action-drawer').classList.add('active');
-    },
-
-    closeActionDrawer: function() {
-      document.getElementById('action-drawer').classList.remove('active');
-      Team.currentAction = null;
+      document.getElementById('actionDetailModal').classList.add('show');
     },
 
     updateActionStatus: function(newStatus) {
@@ -5571,7 +5305,7 @@
               }
             });
             setTimeout(function() {
-              Team.closeActionDrawer();
+              Team.closeModal('actionDetailModal');
               Team.loadActions();
             }, 600);
           } else {
@@ -5591,17 +5325,17 @@
       if (!action) return;
 
       Team.editingActionId = actionId;
-      Team.closeActionDrawer();
+      Team.closeModal('actionDetailModal');
 
       // Populate the add modal with existing data
       document.getElementById('addActionModal').querySelector('.modal-header h3').textContent = 'Edit Action';
-      document.getElementById('add-task').value = action.task || '';
+      setRichTextContent('add-task', action.task || '');
       document.getElementById('add-category').value = action.category || 'MO';
       document.getElementById('add-assigned').value = action.assigned_to || '';
       document.getElementById('add-due').value = action.due_date || '';
       document.getElementById('add-priority').value = action.priority || 'medium';
       document.getElementById('add-solution').value = action.solution_id || '';
-      document.getElementById('add-notes').value = action.notes || '';
+      setRichTextContent('add-notes', action.notes || '');
 
       // Change button text
       var btn = document.getElementById('add-submit-btn');
@@ -5618,7 +5352,7 @@
       google.script.run
         .withSuccessHandler(function(result) {
           if (result && result.success) {
-            Team.closeActionDrawer();
+            Team.closeModal('actionDetailModal');
             Team.loadActions();
           } else {
             showError('Failed to delete: ' + (result && result.error ? result.error : 'Unknown error'));
@@ -5687,6 +5421,8 @@
     showAddActionModal: function() {
       Team.editingActionId = null;
       document.getElementById('add-action-form').reset();
+      setRichTextContent('add-task', '');
+      setRichTextContent('add-notes', '');
       document.getElementById('addActionModal').querySelector('.modal-header h3').textContent = 'Add Action';
       document.getElementById('add-submit-btn').innerHTML = '<span class="material-icons">add</span> Add Action';
       document.getElementById('addActionModal').classList.add('show');
@@ -5696,13 +5432,13 @@
     submitAction: function(e) {
       if (e) e.preventDefault();
 
-      var task = document.getElementById('add-task').value.trim();
+      var task = getRichTextContent('add-task');
       var assigned = document.getElementById('add-assigned').value.trim();
       var category = document.getElementById('add-category').value;
       var solution = document.getElementById('add-solution').value.trim();
       var priority = document.getElementById('add-priority').value;
       var dueDate = document.getElementById('add-due').value;
-      var notes = document.getElementById('add-notes').value.trim();
+      var notes = getRichTextContent('add-notes');
 
       if (!task || !assigned) {
         showToast('Task and Assigned To are required', 'warning');

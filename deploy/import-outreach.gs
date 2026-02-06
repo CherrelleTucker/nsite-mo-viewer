@@ -412,10 +412,10 @@ function detectEventType_(name) {
   if (!name) return 'conference';
   var nameLower = name.toLowerCase();
 
-  if (nameLower.indexOf('workshop') !== -1) return 'workshop';
-  if (nameLower.indexOf('webinar') !== -1 || nameLower.indexOf('virtual') !== -1) return 'webinar';
-  if (nameLower.indexOf('meeting') !== -1 || nameLower.indexOf('face to face') !== -1 || nameLower.indexOf('f2f') !== -1) return 'meeting';
-  if (nameLower.indexOf('visit') !== -1 || nameLower.indexOf('tour') !== -1) return 'site_visit';
+  if (nameLower.includes('workshop')) return 'workshop';
+  if (nameLower.includes('webinar') || nameLower.includes('virtual')) return 'webinar';
+  if (nameLower.includes('meeting') || nameLower.includes('face to face') || nameLower.includes('f2f')) return 'meeting';
+  if (nameLower.includes('visit') || nameLower.includes('tour')) return 'site_visit';
 
   return 'conference';
 }

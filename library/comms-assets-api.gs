@@ -901,6 +901,134 @@ function getAssetThumbnail(asset) {
 }
 
 // ============================================================================
+// PROMOTE ARTIFACT TO COMMS ASSET
+// ============================================================================
+
+/**
+ * Promote an event artifact to a CommsAsset
+ * Creates a new CommsAsset with source_engagement_id set,
+ * then updates the artifact's comms_asset_id reference
+ * @param {string} engagementId - Engagement ID
+ * @param {number} artifactIndex - Index of artifact to promote
+ * @param {Object} assetData - Additional asset metadata to include
+ *   {title, content, solution_ids, tags, audience, channels, usage_rights, etc.}
+ * @returns {Object} Result with success/error and created asset
+ */
+function promoteArtifactToCommsAsset(engagementId, artifactIndex, assetData) {
+  try {
+    // Get the engagement and artifact
+    var engagement = getEngagementById(engagementId);
+    if (!engagement) {
+      return { success: false, error: 'Engagement not found: ' + engagementId };
+    }
+
+    // Parse artifacts
+    var artifacts = [];
+    if (engagement.event_artifacts) {
+      try {
+        artifacts = JSON.parse(engagement.event_artifacts);
+      } catch (e) {
+        return { success: false, error: 'Failed to parse artifacts JSON' };
+      }
+    }
+
+    if (artifactIndex < 0 || artifactIndex >= artifacts.length) {
+      return { success: false, error: 'Invalid artifact index: ' + artifactIndex };
+    }
+
+    var artifact = artifacts[artifactIndex];
+
+    // Check if already promoted
+    if (artifact.comms_asset_id) {
+      return { success: false, error: 'Artifact already promoted to CommsAsset: ' + artifact.comms_asset_id };
+    }
+
+    // Map artifact type to CommsAsset type
+    var typeMap = {
+      'presentation': 'presentation',
+      'recording': 'video',
+      'notes': 'document',
+      'photos': 'image'
+    };
+    var assetType = typeMap[artifact.type] || 'document';
+
+    // Build CommsAsset data
+    var newAssetData = {
+      asset_type: assetType,
+      title: assetData.title || artifact.name,
+      content: assetData.content || '[Promoted from event: ' + (engagement.event_name || engagement.subject) + ']',
+      asset_url: artifact.url,
+      asset_file_type: assetType,
+      source_name: engagement.event_name || engagement.subject,
+      source_type: 'event',
+      source_url: artifact.url,
+      source_engagement_id: engagementId,
+      date_captured: engagement.event_date || engagement.date,
+      solution_ids: assetData.solution_ids || engagement.solution_id,
+      agency_ids: assetData.agency_ids || engagement.agency_id || '',
+      tags: assetData.tags || artifact.type,
+      audience: assetData.audience || 'internal',
+      channels: assetData.channels || 'all',
+      usage_rights: assetData.usage_rights || 'internal-only',
+      rights_holder: assetData.rights_holder || '',
+      status: 'approved'
+    };
+
+    // Create the CommsAsset
+    var createResult = createCommsAsset(newAssetData);
+    if (!createResult.success) {
+      return createResult;
+    }
+
+    var newAssetId = createResult.data.asset_id;
+
+    // Update the artifact with the new comms_asset_id
+    artifacts[artifactIndex].comms_asset_id = newAssetId;
+
+    // Update the artifact's comms_asset_id in the engagement
+    // Use updateArtifactCommsAssetId from engagements-api if available,
+    // otherwise update directly
+    try {
+      var updateResult = updateArtifactCommsAssetId(engagementId, artifactIndex, newAssetId);
+      if (!updateResult.success) {
+        Logger.log('Warning: Created CommsAsset ' + newAssetId + ' but could not update artifact reference: ' + updateResult.error);
+      }
+    } catch (e) {
+      Logger.log('Warning: Created CommsAsset ' + newAssetId + ' but could not update artifact reference: ' + e.message);
+    }
+
+    // Clear comms assets cache (engagements cache cleared by updateArtifactCommsAssetId)
+    clearCommsAssetsCache_();
+
+    return {
+      success: true,
+      data: createResult.data,
+      message: 'Artifact promoted to CommsAsset ' + newAssetId
+    };
+  } catch (e) {
+    Logger.log('Error in promoteArtifactToCommsAsset: ' + e.message);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Get CommsAssets that were promoted from events
+ * @param {string} engagementId - Optional engagement ID to filter by
+ * @returns {Array} Assets with source_engagement_id set
+ */
+function getPromotedAssets(engagementId) {
+  var assets = loadAllCommsAssets_();
+  var results = assets.filter(function(a) {
+    if (!a.source_engagement_id) return false;
+    if (engagementId) {
+      return a.source_engagement_id === engagementId;
+    }
+    return true;
+  });
+  return deepCopy(results);
+}
+
+// ============================================================================
 // USAGE TRACKING
 // ============================================================================
 

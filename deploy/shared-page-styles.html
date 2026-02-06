@@ -935,6 +935,9 @@ a:focus-visible {
 }
 
 .toast {
+  position: fixed;
+  bottom: var(--space-lg);
+  right: var(--space-lg);
   display: flex;
   align-items: center;
   gap: var(--space-sm);
@@ -949,6 +952,7 @@ a:focus-visible {
   pointer-events: auto;
   animation: toast-slide-in 0.3s ease-out;
   transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 10001; /* Above modals (z-index: 1000) */
 }
 
 .toast.removing {

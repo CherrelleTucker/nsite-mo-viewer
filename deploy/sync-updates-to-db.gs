@@ -426,7 +426,7 @@ function parseUpdatesFromBody_(body, source, docUrl, meetingDate, tabName) {
           }
 
           // Check for 🆕 updates
-          if (item.text.indexOf(NEW_MARKER) !== -1 && currentSolution) {
+          if (item.text.includes(NEW_MARKER) && currentSolution) {
             var updateNestingLevel = item.nesting;
             var updateParts = [item.text.replace(NEW_MARKER, '').trim()];
 
@@ -541,7 +541,7 @@ function parseUpdatesFromBodyParagraph_(body, source, docUrl, meetingDate, tabNa
       continue;
     }
 
-    if (currentSolution && elem.type === 'list_item' && elem.text.indexOf(NEW_MARKER) !== -1) {
+    if (currentSolution && elem.type === 'list_item' && elem.text.includes(NEW_MARKER)) {
       var updateNestingLevel = elem.nesting;
       var updateParts = [elem.text.replace(NEW_MARKER, '').trim()];
 
@@ -687,7 +687,7 @@ function parseUpdatesFromTableFormat_(doc, source, docUrl, docName) {
           }
 
           // Check for 🆕 updates
-          if (item.text.indexOf(NEW_MARKER) !== -1 && currentSolution) {
+          if (item.text.includes(NEW_MARKER) && currentSolution) {
             var updateNestingLevel = item.nesting;
             var updateParts = [item.text.replace(NEW_MARKER, '').trim()];
 
@@ -853,7 +853,7 @@ function parseUpdatesFromParagraphFormat_(doc, source, docUrl, docName) {
     }
 
     // Check for :new: updates in list items
-    if (currentSolution && elem.type === 'list_item' && elem.text.indexOf(NEW_MARKER) !== -1) {
+    if (currentSolution && elem.type === 'list_item' && elem.text.includes(NEW_MARKER)) {
       var updateNestingLevel = elem.nesting;
       var updateParts = [elem.text.replace(NEW_MARKER, '').trim()];
 

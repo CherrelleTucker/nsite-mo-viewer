@@ -7964,7 +7964,7 @@ var COMMS = (function() {
     if (story.notes) {
       html += '<div style="background: var(--color-surface-alt); padding: var(--space-md); border-radius: var(--radius-sm); margin-bottom: var(--space-md);">';
       html += '<div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: var(--space-xs);">NOTES</div>';
-      html += '<div style="font-size: var(--font-size-sm); white-space: pre-wrap;">' + formatTextWithLinks(story.notes) + '</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + displayRichContent(story.notes) + '</div>';
       html += '</div>';
     }
 
@@ -8760,7 +8760,7 @@ var COMMS = (function() {
     if (event.notes) {
       html += '<div style="background: var(--color-surface-alt); padding: var(--space-md); border-radius: var(--radius-sm); margin-bottom: var(--space-md);">';
       html += '<div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: var(--space-xs);">NOTES</div>';
-      html += '<div style="font-size: var(--font-size-sm);">' + formatTextWithLinks(event.notes) + '</div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + displayRichContent(event.notes) + '</div>';
       html += '</div>';
     }
 
@@ -8901,7 +8901,7 @@ var COMMS = (function() {
     // Row 9: Notes
     html += '<div class="form-group" style="margin-bottom: var(--space-md);">';
     html += '<label style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">Notes</label>';
-    html += '<textarea id="editEventNotes" rows="3" class="form-control">' + escapeHtml(event.notes || '') + '</textarea>';
+    html += '<div id="editEventNotes" class="rich-text-field" contenteditable="true" data-placeholder="Any additional details..."></div>';
     html += '</div>';
 
     // Actions
@@ -8913,6 +8913,10 @@ var COMMS = (function() {
     html += '</form>';
 
     document.getElementById('eventModalBody').innerHTML = html;
+
+    // Initialize rich text field and populate with saved content
+    initRichTextField('editEventNotes', 'Any additional details...');
+    setRichTextContent('editEventNotes', event.notes || '');
   }
 
   function getCurrentEventDetail() {
@@ -8941,7 +8945,7 @@ var COMMS = (function() {
       purpose: document.getElementById('editEventPurpose').value.trim(),
       event_url: document.getElementById('editEventUrl').value.trim(),
       presentation_url: document.getElementById('editEventPresentation').value.trim(),
-      notes: document.getElementById('editEventNotes').value.trim()
+      notes: getRichTextContent('editEventNotes')
     };
 
     if (!updates.name) {

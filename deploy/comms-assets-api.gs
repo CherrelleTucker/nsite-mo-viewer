@@ -131,6 +131,19 @@ function recordCommsAssetUsage(assetId) {
   return MoApi.recordCommsAssetUsage(assetId);
 }
 
+// Promote Artifact to Comms Asset
+function promoteArtifactToCommsAsset(engagementId, artifactIndex, assetData) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.promoteArtifactToCommsAsset(engagementId, artifactIndex, assetData);
+}
+
+function getPromotedAssets(engagementId) {
+  return MoApi.getPromotedAssets(engagementId);
+}
+
 // Backward Compatibility - Blurbs
 function getHighlighterBlurbsFromAssets(limit) {
   return MoApi.getHighlighterBlurbsFromAssets(limit);

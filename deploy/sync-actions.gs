@@ -276,7 +276,7 @@ function findActionTable_(doc) {
         var tabTitle = tab.getTitle();
 
         // Look for tab named "Action Items" or similar
-        if (tabTitle && tabTitle.toLowerCase().indexOf('action') !== -1) {
+        if (tabTitle && tabTitle.toLowerCase().includes('action')) {
           Logger.log('Found tab: ' + tabTitle);
           var tabBody = tab.asDocumentTab().getBody();
           var result = findTableInBody_(tabBody);
@@ -323,9 +323,9 @@ function findTableInBody_(body) {
       }
 
       // Look for Status, Owner, Action columns
-      if (headerText.indexOf('status') !== -1 &&
-          headerText.indexOf('owner') !== -1 &&
-          headerText.indexOf('action') !== -1) {
+      if (headerText.includes('status') &&
+          headerText.includes('owner') &&
+          headerText.includes('action')) {
         return {
           found: true,
           table: table,
@@ -352,10 +352,10 @@ function parseActionTable_(table, category, docName, docId) {
   var colMap = {};
   for (var c = 0; c < headerRow.getNumCells(); c++) {
     var header = headerRow.getCell(c).getText().toLowerCase().trim();
-    if (header.indexOf('status') !== -1) colMap.status = c;
-    if (header.indexOf('owner') !== -1) colMap.owner = c;
-    if (header.indexOf('action') !== -1 && header.indexOf('source') === -1) colMap.action = c;
-    if (header.indexOf('source') !== -1) colMap.source = c;
+    if (header.includes('status')) colMap.status = c;
+    if (header.includes('owner')) colMap.owner = c;
+    if (header.includes('action') && !header.includes('source')) colMap.action = c;
+    if (header.includes('source')) colMap.source = c;
   }
 
   if (colMap.action === undefined) {
@@ -627,9 +627,9 @@ function updateActionInTable_(table, action) {
   var colMap = {};
   for (var c = 0; c < headerRow.getNumCells(); c++) {
     var header = headerRow.getCell(c).getText().toLowerCase().trim();
-    if (header.indexOf('status') !== -1) colMap.status = c;
-    if (header.indexOf('owner') !== -1) colMap.owner = c;
-    if (header.indexOf('action') !== -1 && header.indexOf('source') === -1) colMap.action = c;
+    if (header.includes('status')) colMap.status = c;
+    if (header.includes('owner')) colMap.owner = c;
+    if (header.includes('action') && !header.includes('source')) colMap.action = c;
   }
 
   if (colMap.status === undefined || colMap.action === undefined) {
