@@ -91,10 +91,10 @@
 </div>
 
 <!-- Solution Detail Modal -->
-<div class="modal-overlay" id="solutionModal" onclick="TopSheet.closeModal(event)">
+<div class="modal-overlay" id="solutionModal" role="dialog" aria-modal="true" aria-labelledby="solutionModalTitle" onclick="TopSheet.closeModal(event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title" id="modalTitle">Solution Details</h2>
+      <h2 class="modal-title" id="solutionModalTitle">Solution Details</h2>
       <button class="modal-close" onclick="TopSheet.closeModal()" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body" id="modalBody">
@@ -594,19 +594,19 @@ var TopSheet = (function() {
   var state = {
     solutions: [],
     filteredSolutions: [],
-    selectedSolutions: {},  // { core_id: true/false }
+    selectedSolutions: {},  // { solution_id: true/false }
     groupBy: '',            // '', 'cycle', 'phase', 'group'
     pickerOpen: false,
     showSEP: false,
     showDocs: false,
-    sortColumn: 'core_id',
+    sortColumn: 'solution_id',
     sortDirection: 'asc',
     loaded: false
   };
 
   // Column definitions
   var CORE_COLUMNS = [
-    { key: 'core_id', label: 'Solution', sticky: true, className: 'col-solution' },
+    { key: 'solution_id', label: 'Solution', sticky: true, className: 'col-solution' },
     { key: 'core_cycle', label: 'Cycle', sticky: true, className: 'col-cycle' },
     { key: 'admin_lifecycle_phase', label: 'Phase', sticky: true, className: 'col-phase' }
   ];
@@ -772,14 +772,14 @@ var TopSheet = (function() {
 
     state.filteredSolutions = state.solutions.filter(function(sol) {
       // Solution selection filter
-      if (!state.selectedSolutions[sol.core_id]) {
+      if (!state.selectedSolutions[sol.solution_id]) {
         return false;
       }
 
       // Search filter
       if (searchFilter) {
         var searchText = [
-          sol.core_id || '',
+          sol.solution_id || '',
           sol.core_official_name || '',
           sol.core_group || '',
           sol.admin_lifecycle_phase || ''
@@ -960,11 +960,11 @@ var TopSheet = (function() {
       columns.forEach(function(col) {
         var stickyClass = col.sticky ? ' sticky ' + col.className : '';
 
-        if (col.key === 'core_id') {
+        if (col.key === 'solution_id') {
           // Solution link
           html += '<td class="' + stickyClass + '">';
-          html += '<span class="solution-link" onclick="TopSheet.openSolution(\'' + escapeAttr(sol.core_id) + '\')">';
-          html += escapeHtml((sol.core_id || '').toUpperCase());
+          html += '<span class="solution-link" onclick="TopSheet.openSolution(\'' + escapeAttr(sol.solution_id) + '\')">';
+          html += escapeHtml((sol.solution_id || '').toUpperCase());
           html += '</span>';
           html += '</td>';
         } else if (col.key === 'core_cycle') {
@@ -1011,11 +1011,11 @@ var TopSheet = (function() {
 
   function openSolution(solutionId) {
     var sol = state.solutions.find(function(s) {
-      return s.core_id && s.core_id.toLowerCase() === solutionId.toLowerCase();
+      return s.solution_id && s.solution_id.toLowerCase() === solutionId.toLowerCase();
     });
     if (!sol) return;
 
-    document.getElementById('modalTitle').textContent = (sol.core_id || '').toUpperCase();
+    document.getElementById('solutionModalTitle').textContent = (sol.solution_id || '').toUpperCase();
     document.getElementById('modalBody').innerHTML = buildModalContent(sol);
     document.getElementById('solutionModal').classList.add('active');
   }
@@ -1127,12 +1127,12 @@ var TopSheet = (function() {
       var cycleA = a.core_cycle || 0;
       var cycleB = b.core_cycle || 0;
       if (cycleA !== cycleB) return cycleA - cycleB;
-      return (a.core_id || '').localeCompare(b.core_id || '');
+      return (a.solution_id || '').localeCompare(b.solution_id || '');
     });
 
     var html = '';
     sortedSolutions.forEach(function(sol) {
-      var id = sol.core_id || '';
+      var id = sol.solution_id || '';
       var cycle = sol.core_cycle ? 'C' + sol.core_cycle : '';
       html += '<label class="picker-item">';
       html += '<input type="checkbox" data-id="' + escapeAttr(id) + '" onchange="TopSheet.onSolutionToggle(this)">';
@@ -1200,7 +1200,7 @@ var TopSheet = (function() {
       // Select if admin_default_in_dashboard is 'Y' or 'y'
       var isDefault = (sol.admin_default_in_dashboard || '').toLowerCase() === 'y';
       if (isDefault) {
-        state.selectedSolutions[sol.core_id] = true;
+        state.selectedSolutions[sol.solution_id] = true;
       }
     });
 
@@ -1222,7 +1222,7 @@ var TopSheet = (function() {
   function selectAll() {
     state.selectedSolutions = {};
     state.solutions.forEach(function(sol) {
-      state.selectedSolutions[sol.core_id] = true;
+      state.selectedSolutions[sol.solution_id] = true;
     });
     saveSelection();
     updatePickerCheckboxes();
@@ -1269,10 +1269,6 @@ var TopSheet = (function() {
   };
 })();
 
-// Initialize on page load
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', TopSheet.init);
-} else {
-  TopSheet.init();
-}
+// Initialize — queued so CachedAPI is available (defined in index.html main script)
+queuePageInit(function() { TopSheet.init(); });
 </script>

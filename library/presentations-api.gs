@@ -48,7 +48,7 @@ var PLACEHOLDER_END = '}}';
  * 1. Full mode (requires presentations scope): Copies template, filters slides, replaces placeholders
  * 2. Basic mode (fallback): Just copies the template when presentations scope unavailable
  *
- * @param {string} solutionId - Solution core_id
+ * @param {string} solutionId - Solution solution_id
  * @param {string} audienceType - 'internal' | 'external'
  * @param {string} folderId - Google Drive folder ID for output (optional, defaults to root)
  * @returns {Object} { success: boolean, data?: { url, presentationId, name, mode }, error?: string }
@@ -86,7 +86,7 @@ function generatePresentation(solutionId, audienceType, folderId) {
       Logger.log('ERROR: Solution not found: ' + solutionId);
       return { success: false, error: 'Solution not found: ' + solutionId };
     }
-    Logger.log('Solution found: ' + (solution.core_official_name || solution.core_id));
+    Logger.log('Solution found: ' + (solution.core_official_name || solution.solution_id));
 
     // 4. Copy template using DriveApp (always works)
     Logger.log('Step 4: Copying template...');
@@ -181,7 +181,7 @@ function copyTemplateBasic_(templateId, solution, audienceType, folderId) {
     }
 
     // Generate name
-    var solutionName = solution.core_official_name || solution.core_id || 'Unknown';
+    var solutionName = solution.core_official_name || solution.solution_id || 'Unknown';
     var capitalizedAudience = audienceType.charAt(0).toUpperCase() + audienceType.slice(1);
     var dateStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
     var newName = solutionName + ' - ' + capitalizedAudience + ' Presentation - ' + dateStr;

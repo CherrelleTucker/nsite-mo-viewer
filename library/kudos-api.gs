@@ -52,7 +52,7 @@ function getKudosSheet_() {
   }
 
   var ss = SpreadsheetApp.openById(sheetId);
-  return ss.getSheetByName('MO-DB_Kudos') || ss.getSheets()[0];
+  return ss.getSheetByName('Kudos') || ss.getSheetByName('MO-DB_Kudos') || ss.getSheets()[0];
 }
 
 /**

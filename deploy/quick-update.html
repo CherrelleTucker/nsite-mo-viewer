@@ -351,6 +351,6 @@
     }
   };
 
-  // Initialize
-  AgendaViewer.init();
+  // Initialize — queued so platform utilities are available (defined in index.html main script)
+  queuePageInit(function() { AgendaViewer.init(); });
 </script>

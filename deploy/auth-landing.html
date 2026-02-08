@@ -377,7 +377,7 @@
           }
         })
         .withFailureHandler(function(error) {
-          showError('Sign in failed: ' + (error.message || error));
+          showError('Sign in failed. Please check your credentials and try again.');
           resetButton();
         })
         .verifyPassphraseAccess(email, passphrase);

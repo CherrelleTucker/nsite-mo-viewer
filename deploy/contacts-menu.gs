@@ -78,8 +78,7 @@ var VALID_ROLES = [
  */
 function getContactsSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheets()[0]; // First sheet
-  return sheet;
+  return ss.getSheetByName('People') || ss.getSheets()[0];
 }
 
 /**

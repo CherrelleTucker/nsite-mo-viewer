@@ -243,7 +243,7 @@ function generateRosesGapReport(options) {
   // ── Per-solution aggregation ──────────────────────────────────────────
   var solMap = {};
   solutions.forEach(function(s) {
-    solMap[s.core_id] = s;
+    solMap[s.solution_id] = s;
   });
 
   var solAgg = aggregateBySolution_(needs, solMap);
@@ -347,7 +347,7 @@ function exportRosesGapToSheet(options) {
     }
 
     var solMap = {};
-    solutions.forEach(function(s) { solMap[s.core_id] = s; });
+    solutions.forEach(function(s) { solMap[s.solution_id] = s; });
 
     var solAgg = aggregateBySolution_(needs, solMap);
     var sortedSols = solAgg.sort(function(a, b) { return b.count - a.count; });
@@ -681,7 +681,7 @@ function exportRosesGapToSheet(options) {
         description: solutions.length + ' SNWG solutions with technical specifications.',
         url: solutionsSheetUrl || 'Configure SOLUTIONS_SHEET_ID in MO-DB_Config',
         fields: [
-          { name: 'core_id', description: 'Unique solution identifier' },
+          { name: 'solution_id', description: 'Unique solution identifier' },
           { name: 'core_official_name', description: 'Full solution name' },
           { name: 'product_horiz_resolution', description: 'What the solution provides' },
           { name: 'product_temporal_freq', description: 'Data delivery frequency' }

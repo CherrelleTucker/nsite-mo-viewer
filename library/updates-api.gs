@@ -183,7 +183,7 @@ function getAllUpdates(limit, daysBack) {
 
 /**
  * Get updates for a specific solution
- * @param {string} solutionId - Solution ID (core_id) to filter by
+ * @param {string} solutionId - Solution ID (solution_id) to filter by
  * @param {number} limit - Optional limit on results
  * @param {number} daysBack - Optional days to look back (queries relevant year tabs)
  * @returns {Array} Updates for the solution

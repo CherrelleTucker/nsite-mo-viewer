@@ -49,7 +49,7 @@ function importActions() {
 
   // Target is this container spreadsheet
   var targetSS = SpreadsheetApp.getActiveSpreadsheet();
-  var targetSheet = targetSS.getSheets()[0];
+  var targetSheet = targetSS.getSheetByName('Actions') || targetSS.getSheets()[0];
 
   Logger.log('Source: ' + sourceId);
   Logger.log('Target: ' + targetSS.getName() + ' (this spreadsheet)');

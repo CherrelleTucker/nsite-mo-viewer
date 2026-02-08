@@ -1,7 +1,7 @@
 # Next Development Steps
 
-**Last Updated:** 2026-02-03
-**Current Version:** 2.3.2
+**Last Updated:** 2026-02-06
+**Current Version:** 2.5.5
 
 ---
 
@@ -9,9 +9,10 @@
 
 V2 is feature-complete with:
 - 9 viewer pages
-- 15 databases (added MO-DB_Templates, MO-DB_Parking)
+- 17 databases (added MO-DB_Templates, MO-DB_Parking, MO-DB_CommsAssets)
 - Passphrase + whitelist authentication
 - MO-APIs shared library architecture
+- White-label branding system
 - All P0 bugs resolved
 
 **V3** will focus on feature enhancements based on stakeholder feedback.
@@ -84,37 +85,107 @@ The goal is reducing mental load - what information does the team need at their 
 
 ---
 
-## 🐛 KNOWN BUGS & UI IMPROVEMENTS (2026-01-19)
+## 🚨 FULL REVIEW SUITE RESULTS (2026-02-06)
 
-**Full bug tracker:** [`docs/BUG_TRACKER.md`](docs/BUG_TRACKER.md)
+**BLOCKING: Complete these 4 sprints BEFORE building new features.**
 
-### Summary (ALL PAGES REVIEWED)
+Full review suite (15 reviews) completed 2026-02-06. All P0/P1 issues fixed during review.
+Remaining P2/P3 issues logged to `BUG_TRACKER.md` (root of nsite-mo-viewer).
 
-| Section | P0 | P1 | P2 | P3 | Total |
-|---------|----|----|----|----|-------|
-| Team-NSITE | 0 | 3 | 16 | 6 | 25 |
-| Implementation-NSITE | 0 | 6 | 7 | 2 | 15 |
-| SEP-NSITE | 0 | 4 | 12 | 7 | 23 |
-| Comms-NSITE | 0 | 9 | 15 | 8 | 32 |
-| Quick Update | 0 | 5 | 10 | 5 | 20 |
-| Contacts | 0 | 3 | 11 | 8 | 22 |
-| Reports | 0 | 0 | 7 | 7 | 14 |
-| Schedule | 0 | 2 | 4 | 3 | 9 |
-| Actions | 0 | 0 | 9 | 3 | 12 |
-| About | 0 | 0 | 4 | 6 | 10 |
-| **Total** | **0** | **32** | **95** | **55** | **182** |
+### Review Scores
 
-### Critical (P0) - All Fixed!
-All P0 bugs have been resolved:
+| Review | Score | Key Finding |
+|--------|-------|-------------|
+| 1. Security | B+ | 6 unescaped enum values in innerHTML (defense-in-depth) |
+| 2. Error Handling | B- | 20 locations show raw error.message to users |
+| 3. Performance | B+ | 3 pages missing CachedAPI entries |
+| 4. DRY | B- | 6 duplicate closeModal, 5+ formatDate variants, 4 indexOf in team.html |
+| 5. API Consistency | A- | 8 minor naming convention issues |
+| 6. State Management | C+ | Only 33% of 184 async callbacks have navigation guards |
+| 7. Accessibility | C | 20+ clickable elements lack keyboard support; modals lack ARIA roles |
+| 8. Responsive | C- | 7 fixed-column grids break on mobile; 3/7 pages have zero breakpoints |
+| 9. Loading States | A- | Only implementation.html missing spinner |
+| 10. Schema Validation | C+ | 2 tables missing from DATA_SCHEMA.md; column mismatches |
+| 11. Data Flow | A | Field names consistent end-to-end; XSS escaping thorough |
+| 12. Code Comments | B+ | Library 95%+ JSDoc; 15 HTML functions need comments |
+| 13. About Page | A- | Version/date fixed; MO-DB_Kudos missing from grid |
+| 14. Style Consistency | C | 300+ hardcoded colors; duplicate CSS in 4 pages |
+| 15. Data Connectivity | D+ | **67% of Solutions columns never surfaced in UI** |
+
+### Issue Counts
+
+| Severity | Count | Status |
+|----------|-------|--------|
+| P0/P1 | 2 | Fixed (about.html version + date) |
+| P2 | 36 | Logged — address in Sprints 1-3 |
+| P3 | 25 | Logged — address in Sprint 4 / maintenance |
+
+### Sprint 1: Data Connectivity + State Guards (Highest Impact)
+
+These changes transform the app from a status tracker into a decision-support tool.
+
+- [ ] **DATA-01/02/03**: Surface alignment data (8 cols), technical specs (8 cols), milestone doc URLs (9 cols) in Implementation/SEP detail modals
+- [ ] **DATA-04**: Surface team_ea_advocate, team_ra_rep_affiliation, team_stakeholder_list_url in solution detail modals
+- [ ] **STATE-01**: Add navigation guards to comms.html (41 unguarded async callbacks)
+- [ ] **STATE-02**: Add navigation guards + isSaving flags to contacts.html write operations
+- [ ] **STATE-03**: Add navigation guard to team.html loadActions()
+- [ ] **STATE-04**: Wire up 3 unused isSaving flags in comms.html (isSavingEvent, isSavingStory, isSubmittingNewEvent)
+- [ ] **PERF-01/02**: Add CachedAPI entries for Comms (3 calls) and Team (5 calls) uncached API calls
+
+### Sprint 2: CSS Consolidation + Accessibility ✅ COMPLETE
+
+- [x] **STYLE-01**: Removed duplicate CSS from sep/comms/team/reports/implementation/contacts (~350 lines); updated shared-page-styles.html with modal flex layout, .btn-danger/.btn-icon/.btn-full
+- [x] **STYLE-02**: Added ~30 CSS variables to styles.html; replaced hardcoded hex colors across all 7 pages (comms/team fully converted; sep/implementation/contacts/reports/schedule partially — remaining are API-required raw hex or Tailwind badge palette)
+- [x] **DRY-05**: team.html closeModal now delegates to global window.closeModal()
+- [x] **A11Y-01**: Added keyboard support to 3 comms quick-access cards (tabindex, role, onkeydown)
+- [x] **A11Y-02**: Added role="dialog", aria-modal="true", aria-labelledby to all 34 modals across 7 files
+- [x] **A11Y-03**: Added aria-label to contentSearchInput and assetsSearchInput in comms.html
+
+### Sprint 3: Responsive + Error Handling + Security ✅ COMPLETE
+
+- [x] **RESP-01/02**: Pipeline board breakpoints (1024→3col, 768→2col, 480→1col) in shared-page-styles.html; weekly-grid (1024→3col, 768→2col) and doc-status-grid (768→2col) page-specific
+- [x] **RESP-03**: Events-content grid breakpoint (768→1col) in comms.html; quick-access/story grids already use auto-fit (no fix needed)
+- [x] **RESP-04**: Table containers changed from overflow:hidden to overflow-x:auto (coverage + events tables)
+- [x] **ERR-01**: 20 raw error.message instances replaced with user-friendly messages across 11 files
+- [x] **SEC-01 through SEC-06**: All 6 unescaped values wrapped in escapeHtml() (comms.html event status/type, story status/channel; team.html source_date; schedule.html milestone status)
+- [x] **DRY-04**: 4 indexOf() !== -1 converted to includes() in team.html
+
+### Sprint 4: Documentation + Cleanup ✅ COMPLETE
+
+- [x] **SCHEMA-02**: Added 16 undocumented Contact fields (engagement tracking + About Me profiles) to DATA_SCHEMA.md
+- [x] **SCHEMA-03/04**: Added MO-DB_Outreach (19 cols, 2 enums) and MO-DB_Updates (6 cols, multi-tab) formal definitions
+- [x] **SCHEMA-05**: Documented core_application_sectors in Solutions schema with usage note
+- [x] **SCHEMA-06**: Fixed funding_type === 'Y' → funding_status === 'Funded' in solutions-api.gs
+- [x] **DRY-01**: capitalizeFirst() consolidated to global in index.html; removed from comms.html + schedule.html
+- [x] **DRY-02**: formatDate() wrappers removed from comms.html + sep.html; 22 call sites → formatDateShort()
+- [x] **COMMENT-01/02/03**: Added comments to 15 complex functions in sep.html (8) and comms.html (7)
+- [x] **ABOUT-01**: Added MO-DB_Kudos to about.html database grid (now 19 databases); version → 2.5.5
+- [x] **DATA-05**: Surfaced earthdata_background + earthdata_societal_impact in Implementation detail modal
+
+### Reference Files
+
+| File | Purpose |
+|------|---------|
+| `BUG_TRACKER.md` | All 61 findings with file:line references and fix instructions |
+| `docs/STYLE_GUIDE.md` | CSS variable and component patterns |
+| `docs/DATA_SCHEMA.md` | Database column definitions (needs updates per Sprint 4) |
+| `deploy/shared-page-styles.html` | Single source of truth for shared CSS |
+| `deploy/index.html` | Global utilities (escapeHtml, createErrorHandler, CachedAPI, navigation guards) |
+
+---
+
+## 🐛 LEGACY BUG TRACKER
+
+**Previous bug tracker:** [`docs/BUG_TRACKER.md`](docs/BUG_TRACKER.md)
+**New review findings:** [`BUG_TRACKER.md`](BUG_TRACKER.md) (root — created 2026-02-06)
+
+### Previous P0 Issues - All Fixed
 - ~~TEAM-022~~ - Fixed: Library redeployed with getDirectingDocuments
 - ~~SEP-008~~ - Fixed: Loading state added to Log Engagement button
 - ~~SEP-009~~ - Fixed: Engagement logs now clickable
 - ~~COMM-001~~ - Fixed: createEvent() added, replaced with Add Event form
 - ~~COMM-002~~ - Fixed: JS syntax corrected
 - ~~QU-001~~ - Fixed: Friendly error message when tab not found
-
-### Quick Wins (28 items, < 1 hour each)
-See `docs/BUG_TRACKER.md` → "Quick Wins" section
 
 ---
 
@@ -552,6 +623,13 @@ See `docs/BUG_TRACKER.md` → "Quick Wins" section
 - [ ] Add help documentation/tour
 - [ ] Add Glossary shared resource
 
+### Future Development: Database Instruction Sheets
+- [ ] Add an "Instructions" tab to each of the 19 databases with usage guidance, column definitions, and validation rules. Databases:
+  - DB_Access, DB_Actions, DB_Agencies, DB_Availability, DB_BugLog
+  - DB_CommsAssets, DB_Contacts, DB_Engagements, DB_Glossary, DB_Kudos
+  - DB_Meetings, DB_Milestones, DB_Needs, DB_Outreach, DB_Parking
+  - DB_Solutions, DB_Stories, DB_Templates, DB_Updates
+
 ---
 
 ## Deploy Files Reference
@@ -579,7 +657,6 @@ library/
 deploy/
 ├── Code.gs                 # Main Apps Script entry point, config keys
 ├── about.html              # Platform documentation page
-├── actions.html            # Actions-NSITE UI
 ├── agencies-api.gs         # THIN WRAPPER → MoApi.getAllAgencies(), etc.
 ├── actions-api.gs          # THIN WRAPPER → MoApi.getAllActions(), etc.
 ├── contacts.html           # Contacts Directory UI
@@ -607,7 +684,7 @@ deploy/
 ├── templates-api.gs        # THIN WRAPPER → MoApi.getAllTemplates(), etc.
 ├── parking-lot-api.gs      # THIN WRAPPER → MoApi.getAllParkingLotItems(), etc.
 ├── styles.html             # Shared CSS
-├── team.html               # Team-NSITE UI (profiles, meetings, availability, docs)
+├── team.html               # Team-NSITE UI (profiles, actions, availability, guidance, kudos, parking lot)
 ├── team-api.gs             # THIN WRAPPER → MoApi.getInternalTeam(), etc.
 └── updates-api.gs          # THIN WRAPPER → MoApi.getAllUpdates(), etc.
 ```
@@ -630,7 +707,7 @@ MO-DB_Actions:
 
 ## Data Sources Reference
 
-**13 Databases Total**
+**17 Databases Total**
 
 | Database | Google Sheet | Local Backup | Records | Status |
 |----------|--------------|--------------|---------|--------|
@@ -648,8 +725,9 @@ MO-DB_Actions:
 | MO-DB_Solutions | Yes | `MO-Viewer Databases/` | 48 solutions (64 cols) | **Schema v2** |
 | MO-DB_Stories | Yes | `MO-Viewer Databases/` | 38 stories | **NEW** |
 | MO-DB_Templates | Yes | `MO-Viewer Databases/` | 56 templates | **NEW** |
-| MO-DB_Parking | Yes | `MO-Viewer Databases/` | -- | **NEW** |
-| MO-DB_Updates | Yes | `MO-Viewer Databases/` | -- | **Ready** |
+| MO-DB_Parking | Yes | `MO-Viewer Databases/` | -- | **Active** |
+| MO-DB_CommsAssets | Yes | `MO-Viewer Databases/` | -- | **Active** |
+| MO-DB_Updates | Yes | `MO-Viewer Databases/` | -- | **Active** |
 
 **Local Database Files:** `C:\...\MO-development\database-files\MO-Viewer Databases\`
 **Source Archives:** `C:\...\MO-development\source-archives\`

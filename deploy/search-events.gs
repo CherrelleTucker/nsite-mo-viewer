@@ -250,7 +250,7 @@ function showAddFromUrlDialog() {
 // ============================================================================
 
 function addEvent(data) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Outreach') || SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 
   if (isDuplicate_(data.name)) {
@@ -329,7 +329,7 @@ function addEventFromUrl(url, sector, year) {
 }
 
 function findDuplicates() {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Outreach') || SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
   var data = sheet.getDataRange().getValues();
   var headers = data[0];
   var nameCol = headers.indexOf('name');
@@ -361,7 +361,7 @@ function findDuplicates() {
 
 function isDuplicate_(name) {
   if (!name) return false;
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Outreach') || SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
   var data = sheet.getDataRange().getValues();
   var headers = data[0];
   var nameCol = headers.indexOf('name');

@@ -22,7 +22,7 @@ function getTemplatesSheet_() {
     throw new Error('TEMPLATES_SHEET_ID not configured in MO-DB_Config');
   }
   var ss = SpreadsheetApp.openById(sheetId);
-  return ss.getSheets()[0];
+  return ss.getSheetByName('Templates') || ss.getSheets()[0];
 }
 
 /**

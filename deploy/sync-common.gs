@@ -32,11 +32,11 @@
 // The 🆕 emoji marker indicates new updates to capture from agenda documents
 var NEW_MARKER = '🆕';
 
-// Pattern to detect [core_id] in square brackets at end of text
-// Matches: "Solution Name [core_id]" or "[core_id]" alone
+// Pattern to detect [solution_id] in square brackets at end of text
+// Matches: "Solution Name [solution_id]" or "[solution_id]" alone
 // Example: "HLS (LP DAAC) [hls_ls]" captures "hls_ls"
-// The captured group (1) contains the core_id without brackets
-var CORE_ID_BRACKET_PATTERN = /\[([^\]]+)\]$/;
+// The captured group (1) contains the solution_id without brackets
+var SOLUTION_ID_BRACKET_PATTERN = /\[([^\]]+)\]$/;
 
 // Cache for config values
 var _configCache = null;
@@ -215,13 +215,13 @@ function parseUpdatesFromTableFormat_(doc, source, docUrl) {
 
           if (!item.text) continue;
 
-          // Check if line has [core_id] format (modern standard)
-          var hasCoreId = CORE_ID_BRACKET_PATTERN.test(item.text);
+          // Check if line has [solution_id] format (modern standard)
+          var hasSolutionId = SOLUTION_ID_BRACKET_PATTERN.test(item.text);
           // Legacy format: "Sub-solution Name:" (colon at end, no brackets)
-          // Used in older agendas before [core_id] format was adopted
+          // Used in older agendas before [solution_id] format was adopted
           var isLegacySubSolutionMarker = /^[A-Za-z0-9\s\-\.]+:\s*$/.test(item.text);
 
-          if (hasCoreId) {
+          if (hasSolutionId) {
             currentSolution = extractSolutionId_(item.text);
             currentSolutionNestingLevel = item.nesting;
           }
@@ -323,13 +323,13 @@ function parseUpdatesFromBody_(body, source, docUrl, meetingDate, tabName) {
 
           if (!item.text) continue;
 
-          // Check if line has [core_id] format (modern standard)
-          var hasCoreId = CORE_ID_BRACKET_PATTERN.test(item.text);
+          // Check if line has [solution_id] format (modern standard)
+          var hasSolutionId = SOLUTION_ID_BRACKET_PATTERN.test(item.text);
           // Legacy format: "Sub-solution Name:" (colon at end, no brackets)
-          // Used in older agendas before [core_id] format was adopted
+          // Used in older agendas before [solution_id] format was adopted
           var isLegacySubSolutionMarker = /^[A-Za-z0-9\s\-\.]+:\s*$/.test(item.text);
 
-          if (hasCoreId) {
+          if (hasSolutionId) {
             currentSolution = extractSolutionId_(item.text);
             currentSolutionNestingLevel = item.nesting;
           }
@@ -544,23 +544,23 @@ function extractMeetingDateFromDoc_(doc) {
 }
 
 /**
- * Extract solution identifier (core_id) from text
- * Supports: "Name [core_id]", "[core_id]", "Name (Provider)"
+ * Extract solution identifier (solution_id) from text
+ * Supports: "Name [solution_id]", "[solution_id]", "Name (Provider)"
  * @param {string} text - Raw text
- * @returns {string} The core_id or cleaned solution name
+ * @returns {string} The solution_id or cleaned solution name
  */
 function extractSolutionId_(text) {
   if (!text) return '';
 
   text = text.trim();
 
-  // Pattern 1: "Solution Name [core_id]"
+  // Pattern 1: "Solution Name [solution_id]"
   var bracketMatch = text.match(/^(.+?)\s*\[([^\]]+)\]$/);
   if (bracketMatch) {
     return bracketMatch[2].trim();
   }
 
-  // Pattern 2: "[core_id]" only
+  // Pattern 2: "[solution_id]" only
   var onlyBracketMatch = text.match(/^\[([^\]]+)\]$/);
   if (onlyBracketMatch) {
     return onlyBracketMatch[1].trim();
@@ -780,7 +780,7 @@ function loadConfigFromSheet_() {
 
   try {
     var ss = SpreadsheetApp.openById(configSheetId);
-    var sheet = ss.getSheets()[0];
+    var sheet = ss.getSheetByName('Config') || ss.getSheets()[0];
     var data = sheet.getDataRange().getValues();
 
     _configCache = {};

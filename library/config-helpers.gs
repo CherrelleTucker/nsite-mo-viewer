@@ -36,7 +36,7 @@ function loadConfigFromSheet() {
 
   try {
     var ss = SpreadsheetApp.openById(configSheetId);
-    var sheet = ss.getSheets()[0]; // First sheet
+    var sheet = ss.getSheetByName('Config') || ss.getSheets()[0];
     var data = sheet.getDataRange().getValues();
 
     _configCache = {};
@@ -86,7 +86,12 @@ function getDatabaseSheet(tableName) {
 
   try {
     var ss = SpreadsheetApp.openById(sheetId);
-    return ss.getSheets()[0]; // Each database file has one sheet
+    var tabName = DEFAULT_TAB_NAMES_[sheetIdKey];
+    if (tabName) {
+      var tab = ss.getSheetByName(tabName);
+      if (tab) return tab;
+    }
+    return ss.getSheets()[0];
   } catch (error) {
     throw new Error('Cannot open sheet for ' + tableName + ': ' + error.message);
   }
@@ -440,6 +445,36 @@ function filterByProperties(array, criteria, options) {
 }
 
 // ============================================================================
+// DEFAULT TAB NAMES — Always use getSheetByName(), never getSheets()[0]
+// ============================================================================
+
+/**
+ * Maps config keys to their primary (default) tab name.
+ * Multi-tab databases list only the primary data tab here;
+ * use loadSheetTab_() with explicit tab names for secondary tabs.
+ */
+var DEFAULT_TAB_NAMES_ = {
+  'ACCESS_SHEET_ID':       'Whitelist',
+  'ACTIONS_SHEET_ID':      'Actions',
+  'AGENCIES_SHEET_ID':     'Agencies',
+  'AVAILABILITY_SHEET_ID': 'Availability',
+  'BUGLOG_SHEET_ID':       'Backlog',
+  'COMMS_ASSETS_SHEET_ID': 'FileLog',
+  'CONTACTS_SHEET_ID':     'People',
+  'ENGAGEMENTS_SHEET_ID':  'Engagements',
+  'GLOSSARY_SHEET_ID':     'Glossary',
+  'KUDOS_SHEET_ID':        'Kudos',
+  'MEETINGS_SHEET_ID':     'Meetings',
+  'MILESTONES_SHEET_ID':   'Milestones',
+  'NEEDS_SHEET_ID':        'Needs',
+  'OUTREACH_SHEET_ID':     'Outreach',
+  'PARKING_LOT_SHEET_ID':  'ParkingLot',
+  'SOLUTIONS_SHEET_ID':    'Core',
+  'STORIES_SHEET_ID':      'Stories',
+  'TEMPLATES_SHEET_ID':    'Templates'
+};
+
+// ============================================================================
 // SHARED DATA LOADING
 // ============================================================================
 
@@ -469,7 +504,8 @@ function loadSheetData_(configKey, cacheKey) {
 
   try {
     var ss = SpreadsheetApp.openById(sheetId);
-    var sheet = ss.getSheets()[0];
+    var tabName = DEFAULT_TAB_NAMES_[configKey];
+    var sheet = tabName ? (ss.getSheetByName(tabName) || ss.getSheets()[0]) : ss.getSheets()[0];
     var data = sheet.getDataRange().getValues();
 
     if (data.length < 1) {
@@ -532,7 +568,99 @@ function getSheetForWrite_(configKey) {
   }
 
   var ss = SpreadsheetApp.openById(sheetId);
-  var sheet = ss.getSheets()[0];
+  var tabName = DEFAULT_TAB_NAMES_[configKey];
+  var sheet = tabName ? (ss.getSheetByName(tabName) || ss.getSheets()[0]) : ss.getSheets()[0];
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+  return {
+    sheet: sheet,
+    headers: headers,
+    sheetId: sheetId
+  };
+}
+
+/**
+ * Load data from a specific named tab within a multi-tab spreadsheet.
+ * Same parsing logic as loadSheetData_() but targets a named tab instead of the first sheet.
+ *
+ * @param {string} configKey - Config key for the spreadsheet ID
+ * @param {string} tabName - Name of the tab/sheet to load
+ * @param {string} [cacheKey] - Optional cache key (defaults to configKey_tabName)
+ * @returns {Array} Array of row objects with header keys
+ */
+function loadSheetTab_(configKey, tabName, cacheKey) {
+  cacheKey = cacheKey || (configKey + '_' + tabName);
+
+  if (_sheetDataCache[cacheKey]) {
+    return _sheetDataCache[cacheKey];
+  }
+
+  var sheetId = getConfigValue(configKey);
+  if (!sheetId) {
+    throw new Error(configKey + ' not configured in MO-DB_Config');
+  }
+
+  try {
+    var ss = SpreadsheetApp.openById(sheetId);
+    var sheet = ss.getSheetByName(tabName);
+    if (!sheet) {
+      throw new Error('Tab "' + tabName + '" not found in ' + configKey);
+    }
+
+    var data = sheet.getDataRange().getValues();
+
+    if (data.length < 1) {
+      _sheetDataCache[cacheKey] = [];
+      return [];
+    }
+
+    var headers = data[0];
+    var results = [];
+
+    for (var i = 1; i < data.length; i++) {
+      var row = data[i];
+      var obj = {};
+
+      headers.forEach(function(header, j) {
+        var value = row[j];
+        if (value instanceof Date) {
+          obj[header] = value.toISOString();
+        } else {
+          obj[header] = value;
+        }
+      });
+
+      results.push(obj);
+    }
+
+    _sheetDataCache[cacheKey] = results;
+    return results;
+
+  } catch (e) {
+    Logger.log('Error loading tab "' + tabName + '" for ' + configKey + ': ' + e.message);
+    throw e;
+  }
+}
+
+/**
+ * Get a specific named tab for write operations (not cached).
+ *
+ * @param {string} configKey - Config key for the spreadsheet ID
+ * @param {string} tabName - Name of the tab/sheet to write to
+ * @returns {Object} { sheet: Sheet, headers: Array, sheetId: string }
+ */
+function getSheetTabForWrite_(configKey, tabName) {
+  var sheetId = getConfigValue(configKey);
+  if (!sheetId) {
+    throw new Error(configKey + ' not configured in MO-DB_Config');
+  }
+
+  var ss = SpreadsheetApp.openById(sheetId);
+  var sheet = ss.getSheetByName(tabName);
+  if (!sheet) {
+    throw new Error('Tab "' + tabName + '" not found in ' + configKey);
+  }
+
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 
   return {

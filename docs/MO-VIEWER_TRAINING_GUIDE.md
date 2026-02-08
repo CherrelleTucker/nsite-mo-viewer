@@ -342,7 +342,7 @@ All configuration lives in MO-DB_Config. Common changes:
 |----------|------------|---------|
 | MO-DB_Config | (Script Property) | Configuration key-value pairs, sheet IDs |
 | MO-DB_Access | ACCESS_SHEET_ID | User whitelist for authentication |
-| MO-DB_Solutions | SOLUTIONS_SHEET_ID | Solution master data (core_id is primary key) |
+| MO-DB_Solutions | SOLUTIONS_SHEET_ID | Solution master data (solution_id is primary key) |
 | MO-DB_Contacts | CONTACTS_SHEET_ID | Stakeholder contacts (solution_id links to Solutions) |
 | MO-DB_Updates | UPDATES_SHEET_ID | Solution updates by year (2026, 2025, 2024, Archive) |
 | MO-DB_Engagements | ENGAGEMENTS_SHEET_ID | Contact engagement records |
@@ -504,7 +504,7 @@ Updates in meeting notes must use this format for sync to capture them:
     ■ 🆕 Another update
 ```
 
-- `[solution_id]` in square brackets links to MO-DB_Solutions.core_id
+- `[solution_id]` in square brackets links to MO-DB_Solutions.solution_id
 - 🆕 emoji marks new updates (sync scripts look for this)
 - Nested bullets are included in the update text
 
@@ -558,7 +558,7 @@ When changes span both library and web app:
 |----------|------------|---------|------------------|
 | MO-DB_Config | (Script Property) | Configuration key-value pairs, sheet IDs | Rarely |
 | MO-DB_Access | ACCESS_SHEET_ID | User whitelist for authentication | When team changes |
-| MO-DB_Solutions | SOLUTIONS_SHEET_ID | Solution master data (core_id is primary key) | Quarterly |
+| MO-DB_Solutions | SOLUTIONS_SHEET_ID | Solution master data (solution_id is primary key) | Quarterly |
 | MO-DB_Contacts | CONTACTS_SHEET_ID | Stakeholder contacts (solution_id links to Solutions) | Weekly |
 | MO-DB_Updates | UPDATES_SHEET_ID | Solution updates by year (2026, 2025, 2024, Archive) | Auto (sync) |
 | MO-DB_Engagements | ENGAGEMENTS_SHEET_ID | Contact engagement records | Auto (user logs) |
@@ -930,7 +930,7 @@ WS1 → TP4 → WS2 → TP5 → WS3 → TP6 → WS4 → TP7 → WS5 → TP8
 
 #### Sync captures wrong solution
 
-1. Check solution ID in brackets matches MO-DB_Solutions.core_id
+1. Check solution ID in brackets matches MO-DB_Solutions.solution_id
 2. Ensure only one solution ID per bullet point
 3. Verify document structure hasn't changed
 

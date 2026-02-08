@@ -1,7 +1,7 @@
 # MO-Viewer Data Schema
 
-**Version:** 2.7.0
-**Date:** 2026-02-04
+**Version:** 3.0.0
+**Date:** 2026-02-06
 **Reference:** [ARCHITECTURE.md](../ARCHITECTURE.md)
 
 ---
@@ -17,6 +17,19 @@ This document defines the unified data schema for the MO-Viewer platform. The sc
 3. **Audit Trail:** All changes tracked with timestamps and source references
 4. **Flexible Schema:** Optional fields accommodate real-world data variations
 5. **Cross-Linking:** Entities connect across viewer boundaries (solutions ↔ stakeholders ↔ stories)
+
+### Standardized Lookup IDs
+
+These are the cross-database foreign keys used throughout the system. Each database maintains a `_Lookups` tab with validated values from the source database.
+
+| Lookup ID | Source Database | Format | Example |
+|-----------|----------------|--------|---------|
+| `solution_id` | MO-DB_Solutions | `solution_id` value | `hls`, `opera_dswx` |
+| `contact_id` | MO-DB_Contacts (People tab) | `CON_` + first5 + last3 | `CON_leespa` |
+| `agency_id` | MO-DB_Agencies | Agency key | `usgs`, `noaa_nws` |
+| `need_id` | MO-DB_Needs | Need key | *(format TBD)* |
+
+Not every database uses all four lookups, but these are the standardized IDs that will be referenced across the platform.
 
 ---
 
@@ -79,12 +92,13 @@ Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across li
 #### core_ - Identity (6 columns)
 | Column | Type | Required | Description |
 |--------|------|----------|-------------|
-| `core_id` | STRING | Yes | Primary key (e.g., "hls", "opera") |
+| `solution_id` | STRING | Yes | Primary key (e.g., "hls", "opera") |
 | `core_official_name` | STRING | Yes | Full official name (e.g., "Harmonized Landsat Sentinel-2") |
 | `core_alternate_names` | STRING | No | Pipe-delimited alternate names including colloquial (e.g., "HLS \| harmonized landsat") |
 | `core_group` | STRING | No | Solution group for categorization |
 | `core_cycle` | STRING | Yes | Assessment cycle (C1, C2, C3, C4, C5, C6) |
 | `core_cycle_year` | INTEGER | No | Year of cycle (e.g., 2016, 2024) |
+| `core_application_sectors` | STRING | No | Comma-separated application sectors. Used by sector analysis functions. May not be populated in all instances. |
 
 #### funding_ - Funding Fields (3 columns)
 | Column | Type | Required | Description |
@@ -105,16 +119,22 @@ Primary table for Implementation-Viewer. Tracks all NSITE MO solutions across li
 | `admin_solution_notes` | STRING | No | Internal notes |
 | `admin_additional_resources` | STRING | No | Additional resource links |
 
-#### team_ - Team Contacts (7 columns)
+#### Team Contact FKs (7 columns)
 | Column | Type | Required | Description |
 |--------|------|----------|-------------|
-| `team_lead` | STRING | No | Solution lead name |
-| `team_lead_affiliation` | STRING | No | Lead's organization |
-| `team_ra_rep` | STRING | No | RA Representative name |
-| `team_ra_rep_affiliation` | STRING | No | RA Rep's organization |
-| `team_ea_advocate` | STRING | No | Earth Action Advocate name |
-| `team_ea_affiliation` | STRING | No | EA Advocate's organization |
+| `lead_contact_id` | STRING | No | FK to MO-DB_Contacts (solution lead) |
+| `lead_agency_id` | STRING | No | FK to MO-DB_Agencies (lead's organization) |
+| `scientist_contact_id` | STRING | No | FK to MO-DB_Contacts (project scientist) |
+| `scientist_agency_id` | STRING | No | FK to MO-DB_Agencies (scientist's organization) |
+| `ra_rep_contact_id` | STRING | No | FK to MO-DB_Contacts (RA representative) |
+| `ra_rep_agency_id` | STRING | No | FK to MO-DB_Agencies (RA rep's organization) |
+| `ea_advocate_contact_id` | STRING | No | FK to MO-DB_Contacts (Earth Action advocate) |
+| `ea_advocate_agency_id` | STRING | No | FK to MO-DB_Agencies (EA advocate's organization) |
 | `team_stakeholder_list_url` | STRING | No | URL to stakeholder list spreadsheet |
+
+**Resolved fields** (added by `enrichSolutionTeamNames_()` at API level, not stored in sheet):
+- `lead_name`, `scientist_name`, `ra_rep_name`, `ea_advocate_name` — from contact_id → Contacts
+- `lead_agency_name`, `scientist_agency_name`, `ra_rep_agency_name`, `ea_advocate_agency_name` — from agency_id → Agencies
 
 #### earthdata_ - Earthdata.nasa.gov Content (6 columns)
 | Column | Type | Required | Description |
@@ -205,13 +225,13 @@ Tracks whether deviations between stakeholder needs and solution capabilities ar
 | `docs_risk_register` | STRING | No | Risk register URL |
 
 **Indexes:**
-- Primary: `core_id`
+- Primary: `solution_id`
 - Secondary: `core_cycle`, `admin_lifecycle_phase`, `product_assigned_daac`
 
 **Example:**
 ```json
 {
-  "core_id": "hls",
+  "solution_id": "hls",
   "core_official_name": "Harmonized Landsat Sentinel-2",
   "core_alternate_names": "HLS | harmonized landsat",
   "core_cycle": "C1",
@@ -230,40 +250,69 @@ Tracks whether deviations between stakeholder needs and solution capabilities ar
 
 ### 2. CONTACTS (MO-DB_Contacts)
 
-**Status: POPULATED** - 4,221 records (423 unique contacts across 47 solutions)
+**Status: POPULATED** - Multi-tab Google Sheet (v3.0)
 
-Primary contact database for the Contacts Directory. One row per contact-solution-role relationship (denormalized for query flexibility).
+Primary contact database for the Contacts Directory. Two-tab structure:
+- **People tab** (~423 rows): One row per unique person (by email)
+- **Roles tab** (~4,221 rows): One row per person-solution-role relationship
+
+API functions use `loadPeople_()` for person-only queries (faster) or `loadContactsJoined_()` for backward-compatible joined data.
+
+#### People Tab
 
 | Column | Type | Required | Description |
 |--------|------|----------|-------------|
-| `contact_id` | STRING | Yes | Primary key (auto-generated) |
+| `contact_id` | STRING | Yes | PK: CON_ + first 5 chars of first_name + first 3 chars of last_name |
 | `first_name` | STRING | No | First name (no middle initials or honorifics) |
 | `last_name` | STRING | No | Last name (no suffixes like Ph.D., Jr.) |
-| `email` | STRING | Yes | Email address (lowercase, normalized) |
-| `primary_email` | STRING | No | Primary email for people with multiple addresses |
-| `phone` | STRING | No | Phone number (xxx-xxx-xxxx format) |
-| `department` | STRING | No | Standardized department name |
-| `agency` | STRING | No | Agency/bureau |
-| `organization` | STRING | No | Organization name |
-| `solution_id` | STRING | No | Solution ID (core_id from Solutions DB, validated via _Lookups) |
-| `role` | STRING | No | Role in solution (Primary SME, Secondary SME, Survey Submitter, etc.) |
-| `survey_year` | INTEGER | No | Year of survey participation (2016-2024) |
-| `need_id` | STRING | No | Linked need identifier |
-| `notes` | STRING | No | Free-form notes |
-| `last_updated` | DATE | Yes | Last update timestamp |
+| `email` | STRING | Yes | Email address(es), comma-separated if multiple. First value is primary. |
+| `agency_id` | STRING | No | FK to MO-DB_Agencies (via _Lookups). Resolves to agency name, department, hierarchy. |
+| `title` | STRING | No | Job title |
+| `region` | STRING | No | Geographic region |
 | | | | |
-| **Internal Team Columns** | | | |
+| **Engagement Tracking** | | | |
+| `engagement_level` | STRING | No | Could benefit, Interested, Info & Feedback, Collaborate, CoOwners |
+| `last_contact_date` | DATE | No | Date of last contact/interaction |
+| `next_scheduled_contact` | DATE | No | Next scheduled contact date |
+| | | | |
+| **SNWG Champion** | | | |
+| `champion_status` | STRING | No | Active, Prospective, Alumni, Inactive |
+| `relationship_owner` | STRING | No | Email of MO team member (FK to internal contacts) |
+| `champion_notes` | STRING | No | Free-form notes about champion relationship |
+| | | | |
+| **Internal Team** | | | |
 | `is_internal` | STRING | No | 'Y' = MO team member, blank = external stakeholder |
-| `internal_title` | STRING | No | Internal role title (e.g., "Solution Lead", "RA Representative") |
-| `internal_team` | STRING | No | Team assignment (e.g., "Implementation", "SEP", "Comms") |
-| `supervisor` | STRING | No | Supervisor name (for org chart) |
+| `internal_title` | STRING | No | Internal role title |
+| `internal_team` | STRING | No | Team assignment (Implementation, SEP, Comms) |
+| `supervisor` | STRING | No | Supervisor name |
 | `start_date` | DATE | No | When joined the MO team |
-| `active` | STRING | No | 'Y' = current team member, 'N' = former |
+| `active` | STRING | No | 'Y' = current, 'N' = former |
 | | | | |
-| **SNWG Champion Columns** | | | |
-| `champion_status` | STRING | No | SNWG Champion status: Active, Prospective, Alumni, Inactive, or empty |
-| `relationship_owner` | STRING | No | NSITE MO Connection - email of MO team member (FK to internal contacts) |
-| `champion_notes` | STRING | No | Free-form notes about champion value and relationship context |
+| **About Me** | | | |
+| `education` | STRING | No | Educational background |
+| `job_duties` | STRING | No | Job duties description |
+| `professional_skills` | STRING | No | Professional skills |
+| `non_work_skills` | STRING | No | Non-work skills and talents |
+| `hobbies` | STRING | No | Hobbies and interests |
+| `goals` | STRING | No | Personal/professional goals |
+| `relax` | STRING | No | How they relax/unwind |
+| `early_job` | STRING | No | First/early career job |
+| | | | |
+| `notes` | STRING | No | Relationship notes |
+| `last_updated` | DATE | Yes | Last update timestamp |
+
+**Dropped columns:** `phone` (removed in v3.0)
+
+#### Roles Tab
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `role_id` | STRING | Yes | PK: ROLE_xxxxx (auto-generated) |
+| `contact_id` | STRING | Yes | FK to People tab contact_id |
+| `solution_id` | STRING | Yes | FK to MO-DB_Solutions.solution_id |
+| `role` | STRING | No | Primary SME, Secondary SME, Survey Submitter, Stakeholder, etc. |
+| `survey_year` | INTEGER | No | Year of survey participation (2016-2024) |
+| `need_id` | STRING | No | Linked stakeholder need identifier |
 
 **SNWG Champion Status Values:**
 | Status | Description |
@@ -274,62 +323,52 @@ Primary contact database for the Contacts Directory. One row per contact-solutio
 | `Inactive` | Champion relationship has gone dormant |
 
 **Indexes:**
-- Primary: `contact_id`
-- Secondary: `email`, `solution_id`, `role`, `department`, `survey_year`, `is_internal`, `champion_status`, `relationship_owner`
+- People: Primary `contact_id`, Secondary `email`, `department`, `is_internal`, `champion_status`, `relationship_owner`
+- Roles: Primary `role_id`, Secondary `contact_id`, `solution_id`, `role`, `survey_year`
 
-**Data Source:** Extracted from 47 stakeholder Excel files in `DB-Solution Stakeholder Lists/`
+**Data Source:** Extracted from 47 stakeholder Excel files, migrated via `scripts/migrate_contacts_split.py`
 
-**Example (External Stakeholder):**
+**Example (People tab):**
 ```json
 {
-  "contact_id": "CON_001",
+  "contact_id": "CON_leespa",
   "first_name": "Lee",
   "last_name": "Spaulding",
   "email": "lee.spaulding@example.gov",
-  "primary_email": "lee.spaulding@example.gov",
-  "phone": "555-123-4567",
-  "department": "Department of the Interior",
-  "agency": "USGS",
-  "organization": "",
-  "solution_id": "hls",
-  "role": "Primary SME",
-  "survey_year": 2022,
-  "need_id": "",
-  "notes": "",
-  "last_updated": "2026-01-15",
-  "is_internal": "",
-  "internal_title": "",
-  "internal_team": "",
-  "supervisor": "",
-  "start_date": "",
-  "active": ""
+  "agency_id": "usgs",
+  "engagement_level": "Collaborate",
+  "champion_status": "Active",
+  "last_updated": "2026-02-06"
 }
 ```
 
-**Example (Internal Team Member):**
+**Example (Roles tab):**
 ```json
 {
-  "contact_id": "CON_500",
+  "role_id": "ROLE_00001",
+  "contact_id": "CON_leespa",
+  "solution_id": "hls",
+  "role": "Primary SME",
+  "survey_year": 2022,
+  "need_id": ""
+}
+```
+
+**Example (Internal Team Member — People tab):**
+```json
+{
+  "contact_id": "CON_janesmi",
   "first_name": "Jane",
   "last_name": "Smith",
   "email": "jane.smith@nasa.gov",
-  "primary_email": "jane.smith@nasa.gov",
-  "phone": "555-987-6543",
-  "department": "NASA",
-  "agency": "GSFC",
-  "organization": "NSITE MO",
-  "solution": "OPERA",
-  "role": "Solution Lead",
-  "survey_year": "",
-  "need_id": "",
-  "notes": "Manages OPERA solution lifecycle",
-  "last_updated": "2026-01-17",
+  "agency_id": "gsfc",
   "is_internal": "Y",
   "internal_title": "Solution Lead",
   "internal_team": "Implementation",
   "supervisor": "John Manager",
   "start_date": "2024-06-01",
-  "active": "Y"
+  "active": "Y",
+  "last_updated": "2026-02-06"
 }
 ```
 
@@ -398,7 +437,7 @@ Primary table for Comms-Viewer. Tracks communications pipeline from idea to publ
 |--------|------|----------|-------------|
 | `story_id` | STRING | Yes | Primary key (e.g., "STY_001", "HLB_001") |
 | `title` | STRING | Yes | Story title/headline |
-| `solution_id` | STRING | No | Foreign key to SOLUTIONS (core_id) |
+| `solution_id` | STRING | No | Foreign key to SOLUTIONS (solution_id) |
 | `content_type` | STRING | Yes | Content type (see ContentType enum) |
 | `status` | STRING | Yes | Pipeline status (see StoryStatus enum) |
 | `channel` | STRING | No | Target channel (see Channel enum) |
@@ -506,7 +545,8 @@ Tracks action items from all source documents.
 | `action_id` | STRING | Yes | Primary key (e.g., "ACT_001") |
 | `description` | STRING | Yes | Action item description |
 | `solution_id` | STRING | No | Foreign key to SOLUTIONS (if solution-related) |
-| `owner` | STRING | No | Person responsible |
+| `owner` | STRING | No | Person responsible (name) |
+| `assigned_to_id` | STRING | No | Assigned contact_id (CON_xxx, falls back to name) |
 | `status` | STRING | Yes | Status (open, in_progress, closed) |
 | `priority` | STRING | No | Priority (high, medium, low) |
 | `due_date` | DATE | No | Due date |
@@ -556,7 +596,7 @@ Tracks all stakeholder interactions: emails, calls, meetings, webinars, conferen
 | `participants` | STRING | No | Comma-separated list of participant emails |
 | `contact_ids` | STRING | No | Comma-separated list of contact IDs |
 | `agency_id` | STRING | No | Foreign key to MO-DB_Agencies |
-| `solution_id` | STRING | Yes | Primary solution ID (foreign key to MO-DB_Solutions.core_id) |
+| `solution_id` | STRING | Yes | Primary solution ID (foreign key to MO-DB_Solutions.solution_id) |
 | `secondary_solution_id` | STRING | No | Secondary solution ID (optional) |
 | `additional_solution_ids` | STRING | No | Comma-separated additional solution IDs (optional) |
 | `summary` | STRING | No | Detailed summary of the engagement (max 2000 chars) |
@@ -646,7 +686,86 @@ When searching for engagements by solution (e.g., in the SEP dashboard), all thr
 
 ---
 
-### 8. UPDATE_HISTORY
+### 8. OUTREACH / EVENTS (MO-DB_Outreach)
+
+**Status: ACTIVE** - Events and outreach tracking
+
+Single-tab event database for conferences, workshops, webinars, and other outreach activities.
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `event_id` | STRING | Yes | Primary key, auto-generated (EVT_timestamp) |
+| `name` | STRING | Yes | Event name |
+| `event_type` | ENUM | Yes | Event category |
+| `status` | ENUM | Yes | Event lifecycle status |
+| `start_date` | DATE | No | Event start date |
+| `end_date` | DATE | No | Event end date |
+| `location` | STRING | No | Event location |
+| `description` | STRING | No | Event description |
+| `priority` | STRING | No | Priority level |
+| `sector` | STRING | No | Priority sector |
+| `solution_ids` | STRING | No | Comma-separated solution IDs |
+| `guest_list` | STRING | No | JSON array of guest objects |
+| `actual_attendees` | STRING | No | JSON actual attendance records |
+| `contact_person` | STRING | No | Primary contact for event |
+| `notes` | STRING | No | Free-form notes |
+| `submission_deadline` | DATE | No | Abstract/proposal submission deadline |
+| `url` | STRING | No | Event website URL |
+| `created_at` | DATE | Yes | Auto-generated creation timestamp |
+| `updated_at` | DATE | No | Last update timestamp |
+
+**Event Type Values:**
+| Value | Description |
+|-------|-------------|
+| `conference` | Multi-day conference |
+| `workshop` | Interactive workshop |
+| `webinar` | Online presentation |
+| `meeting` | In-person or virtual meeting |
+| `site_visit` | On-site visit |
+| `presentation` | One-way presentation |
+| `training` | Training session |
+| `other` | Other event type |
+
+**Status Values:**
+| Value | Description |
+|-------|-------------|
+| `potential` | Event identified, not yet decided |
+| `considering` | Under evaluation |
+| `confirmed` | Confirmed participation |
+| `submitted` | Abstract/proposal submitted |
+| `attended` | Event completed |
+| `cancelled` | Event cancelled |
+
+---
+
+### 9. UPDATES (MO-DB_Updates)
+
+**Status: ACTIVE** - Solution updates synced from meeting agendas
+
+Multi-tab structure with year-based tabs (2026, 2025, 2024, Archive). Updates are synced from meeting notes via sync scripts in MO-DB_Updates container.
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `meeting_date` | DATE | Yes | Date of the meeting where update was given |
+| `solution_id` | STRING | Yes | Solution ID (FK to MO-DB_Solutions.solution_id) |
+| `update_text` | STRING | Yes | Update content text (may contain bullet points) |
+| `source_document` | STRING | No | Source document name (e.g., "Internal Planning 2026-01-29") |
+| `source_url` | STRING | No | URL to source Google Doc |
+| `created_at` | DATE | No | When synced to database |
+
+**Tab Structure:**
+| Tab Name | Content |
+|----------|---------|
+| `2026` | Current year updates |
+| `2025` | Previous year updates |
+| `2024` | Two years ago |
+| `Archive` | Older updates |
+
+**Data Source:** Synced from weekly/monthly meeting agendas via sync scripts (sync-weekly-current.gs, sync-monthly-current.gs, etc.)
+
+---
+
+### 10. UPDATE_HISTORY
 
 Audit log of all updates to any entity.
 
@@ -683,7 +802,7 @@ Audit log of all updates to any entity.
 
 ---
 
-### 9. SOLUTION_STAKEHOLDERS (Junction Table - Planned)
+### 11. SOLUTION_STAKEHOLDERS (Junction Table - Planned)
 
 Many-to-many relationship between solutions and stakeholders.
 
@@ -708,7 +827,7 @@ Many-to-many relationship between solutions and stakeholders.
 
 ---
 
-### 10. AVAILABILITY (MO-DB_Availability)
+### 12. AVAILABILITY (MO-DB_Availability)
 
 **Status: ACTIVE** - Team Viewer
 
@@ -771,7 +890,7 @@ Tracks team member availability, office closures, and travel schedules.
 
 ---
 
-### 11. MEETINGS (MO-DB_Meetings)
+### 13. MEETINGS (MO-DB_Meetings)
 
 **Status: ACTIVE** - Team Viewer
 
@@ -826,7 +945,7 @@ Tracks recurring and ad-hoc meetings for the MO team.
 
 ---
 
-### 12. GLOSSARY (MO-DB_Glossary)
+### 14. GLOSSARY (MO-DB_Glossary)
 
 **Status: ACTIVE** - Team Viewer / Shared Resource
 
@@ -861,7 +980,7 @@ Glossary of terms, acronyms, and definitions used across NSITE MO.
 
 ---
 
-### 13. KUDOS (MO-DB_Kudos)
+### 15. KUDOS (MO-DB_Kudos)
 
 **Status: ACTIVE** - Team Viewer / Peer Recognition
 
@@ -901,7 +1020,7 @@ Add `SLACK_KUDOS_WEBHOOK_URL` to MO-DB_Config with an incoming webhook URL for y
 
 ---
 
-### 14. CONFIG (MO-DB_Config)
+### 16. CONFIG (MO-DB_Config)
 
 **Status: ACTIVE** - System Configuration
 
@@ -937,7 +1056,7 @@ Central configuration store for all document IDs, sheet IDs, and system settings
 
 ---
 
-### 15. TEMPLATES (MO-DB_Templates)
+### 17. TEMPLATES (MO-DB_Templates)
 
 **Status: NEW** - Email/Meeting Templates for SEP and Comms
 
@@ -998,7 +1117,7 @@ Comprehensive email and meeting templates for stakeholder engagement and communi
 
 ---
 
-### 16. NEEDS (MO-DB_Needs)
+### 18. NEEDS (MO-DB_Needs)
 
 **Status: ACTIVE** - Schema v3 (rebuilt 2026-01-29) - Survey response data from stakeholder lists
 
@@ -1009,7 +1128,7 @@ Stores stakeholder survey responses extracted from Solution Stakeholder Lists. T
 #### Identity (4 columns)
 | Column | Type | Required | Description |
 |--------|------|----------|-------------|
-| `solution_id` | STRING | Yes | Foreign key to MO-DB_Solutions.core_id |
+| `solution_id` | STRING | Yes | Foreign key to MO-DB_Solutions.solution_id |
 | `solution` | STRING | Yes | Original survey solution name |
 | `survey_year` | INTEGER | Yes | Survey year (2016, 2018, 2020, 2022, 2024) |
 | `need_id` | STRING | No | Original survey need/requirement ID |
@@ -1106,7 +1225,7 @@ Stores stakeholder survey responses extracted from Solution Stakeholder Lists. T
 | `extracted_at` | DATE | Yes | Extraction date (YYYY-MM-DD) |
 
 **Key Relationships:**
-- `solution_id` → `MO-DB_Solutions.core_id` (many-to-one)
+- `solution_id` → `MO-DB_Solutions.solution_id` (many-to-one)
 - Survey responses can be aggregated by solution, year, department, or agency
 
 **API Functions:**
@@ -1116,7 +1235,7 @@ Stores stakeholder survey responses extracted from Solution Stakeholder Lists. T
 
 ---
 
-### 17. COMMS ASSETS (MO-DB_CommsAssets)
+### 19. COMMS ASSETS (MO-DB_CommsAssets)
 
 **Status: NEW** - Unified communications content library
 
@@ -1174,7 +1293,7 @@ Consolidates all reusable communications content: blurbs, quotes, facts, talking
 |--------|------|----------|-------------|
 | `solution_ids` | STRING | No | Comma-separated solution IDs |
 | `agency_ids` | STRING | No | Comma-separated agency IDs |
-| `contact_ids` | STRING | No | Comma-separated contact emails (for quotes/testimonials) |
+| `contact_ids` | STRING | No | Comma-separated contact_ids in CON_xxx format |
 | `tags` | STRING | No | Comma-separated tags for searchability |
 
 #### Usage Guidance (4 columns)
@@ -1206,9 +1325,9 @@ Consolidates all reusable communications content: blurbs, quotes, facts, talking
 | `source_engagement_id` | STRING | No | FK to MO-DB_Engagements (for assets promoted from event artifacts) |
 
 **Key Relationships:**
-- `solution_ids` → `MO-DB_Solutions.core_id` (many-to-many via comma-separated)
+- `solution_ids` → `MO-DB_Solutions.solution_id` (many-to-many via comma-separated)
 - `agency_ids` → `MO-DB_Agencies.agency_id` (many-to-many via comma-separated)
-- `contact_ids` → `MO-DB_Contacts.email` (many-to-many via comma-separated)
+- `contact_ids` → `MO-DB_Contacts.contact_id` (many-to-many via comma-separated CON_xxx)
 
 **API Functions:**
 - `getAllCommsAssets(limit)` - Get all assets
@@ -1225,6 +1344,77 @@ Consolidates all reusable communications content: blurbs, quotes, facts, talking
 **Backward Compatibility:**
 - `getHighlighterBlurbs()` now checks CommsAssets first, falls back to Stories
 - `getKeyMessages()` now checks CommsAssets first, falls back to Solutions columns
+
+---
+
+### 20. AGENCIES (MO-DB_Agencies)
+
+Multi-tab structure (v4.0): Departments + Agencies + Organizations.
+Hierarchy: Department → Agency → Organization.
+
+#### Departments Tab
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `department_id` | STRING | **PK** | e.g., `dep_doi` |
+| `name` | STRING | Yes | Short name (e.g., "Interior") |
+| `full_name` | STRING | No | e.g., "Department of the Interior" |
+| `abbreviation` | STRING | No | e.g., "DOI" |
+
+#### Agencies Tab
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `agency_id` | STRING | **PK** | e.g., `usgs`, `noaa_nws` |
+| `department_id` | STRING | No | FK to Departments tab |
+| `name` | STRING | Yes | Short name |
+| `full_name` | STRING | No | Full official name |
+| `abbreviation` | STRING | No | Common abbreviation |
+| `agency_type` | STRING | No | federal, state, academic, etc. |
+| `relationship_status` | STRING | No | active, prospective, inactive |
+| `geographic_scope` | STRING | No | national, regional, state |
+| `parent_agency_id` | STRING | No | FK to self (sub-agency hierarchy) |
+| `leadership_contact_id` | STRING | No | FK to MO-DB_Contacts (agency leader) |
+| `poc_contact_id` | STRING | No | FK to MO-DB_Contacts (primary point of contact) |
+| `website` | STRING | No | Agency website URL |
+| `notes` | STRING | No | Free text notes |
+| `last_updated` | DATE | No | YYYY-MM-DD |
+
+#### Organizations Tab
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `org_id` | STRING | **PK** | e.g., `org_eros` |
+| `agency_id` | STRING | Yes | FK to Agencies tab |
+| `name` | STRING | Yes | Short name |
+| `full_name` | STRING | No | Full official name |
+| `abbreviation` | STRING | No | Optional abbreviation |
+
+**Agency Resolver:**
+- `resolveAgency_(agencyId)` returns `{ agency_name, agency_abbreviation, department_name, department_abbreviation, department_id }`
+- Used by contacts-api, outreach-api, and agencies-api for agency_id → name resolution
+
+**API Functions:**
+- Department CRUD: `getAllDepartments()`, `getDepartmentById()`, `getAgenciesByDepartment()`, `createDepartment()`, `updateDepartment()`
+- Agency CRUD: `getAllAgencies()`, `getAgencyById()`, `createAgency()`, `updateAgency()`, `deleteAgency()`
+- Organization CRUD: `getAllOrganizations()`, `getOrganizationById()`, `getOrganizationsByAgency()`, `createOrganization()`, `updateOrganization()`
+- Hierarchy: `getAgencyHierarchy()` (3-level tree), `getAgencyAncestry()`
+- Search: `searchAgencies()`, `getAgenciesByType()`, `getAgenciesByRelationshipStatus()`
+
+---
+
+### 21. LOOKUPS (MO-DB_Lookups)
+
+Centralized database for all standardized lookup IDs. Each consuming database has a local `_Lookups` tab that IMPORTRANGEs from here.
+
+| Tab | Column | Source |
+|-----|--------|--------|
+| Solutions | `solution_id` | MO-DB_Solutions > Core |
+| Contacts | `contact_id` | MO-DB_Contacts > People |
+| Agencies | `agency_id` | MO-DB_Agencies > Agencies |
+| Departments | `department_id` | MO-DB_Agencies > Departments |
+| Organizations | `org_id` | MO-DB_Agencies > Organizations |
+| Needs | `need_id` | MO-DB_Needs |
 
 ---
 
@@ -1682,6 +1872,7 @@ The original SolutionFlow schema maps to this unified schema:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.8.0 | 2026-02-06 | **Schema additions**: Added 16 undocumented Contact fields (8 Engagement Tracking + 8 About Me/Personal Profile columns). Added `core_application_sectors` to Solutions. Added formal OUTREACH/EVENTS schema (section 8) and UPDATES schema (section 9). Renumbered sections 8-17 to 10-19. |
 | 2.7.0 | 2026-02-04 | **SNWG Champions**: Added 3 new columns to CONTACTS (champion_status, relationship_owner, champion_notes). Added Champion Status Values table. Updated indexes to include champion_status and relationship_owner. |
 | 2.6.0 | 2026-02-04 | **Event/Workshop Tracking**: Added 9 event columns to ENGAGEMENTS (event_date, event_name, event_status, event_location, event_url, event_owner, event_planning_doc_url, event_attendee_ids, event_artifacts). Added event_artifacts JSON structure documentation. Added source_engagement_id to COMMS_ASSETS for artifact promotion tracking. Event detection via event_date presence. |
 | 2.5.0 | 2026-02-02 | **STORIES Schema Update**: Added `background_info` (for Highlighter Blurb background sections), `hq_submission_date` (HQ portal submission tracking), `content_type` (with 7 types including `highlighter_blurb`). Added Content Types table. Renamed columns for consistency: `scheduled_date`→`target_date`, `published_date`→`publish_date`, `created_at`→`created_date`. |

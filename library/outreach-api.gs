@@ -19,7 +19,7 @@ function getOutreachSheet_() {
     throw new Error('OUTREACH_SHEET_ID not configured in MO-DB_Config');
   }
   var ss = SpreadsheetApp.openById(sheetId);
-  return ss.getSheets()[0];
+  return ss.getSheetByName('Outreach') || ss.getSheets()[0];
 }
 
 /**
@@ -910,16 +910,15 @@ function getEventGuests(eventId) {
   allContacts.forEach(function(c) {
     var email = (c.email || '').toLowerCase();
     if (guestEmails.includes(email) && !uniqueContacts[email]) {
+      var resolved = resolveAgency_(c.agency_id);
       uniqueContacts[email] = {
         email: email,
         first_name: c.first_name,
         last_name: c.last_name,
-        agency: c.agency,
-        agency_id: c.agency_id,
-        organization: c.organization,
+        agency_id: c.agency_id || '',
+        agency: resolved.agency_name || '',
+        department: resolved.department_name || '',
         title: c.title,
-        department: c.department,
-        phone: c.phone,
         // Profile fields for prep report
         education: c.education,
         job_duties: c.job_duties,
@@ -1053,7 +1052,7 @@ function getEventPrepReport(eventId) {
   // Agencies represented
   var agencyMap = {};
   guests.forEach(function(guest) {
-    var agencyName = guest.agency || guest.organization || 'Unknown';
+    var agencyName = guest.agency || 'Unknown';
     if (!agencyMap[agencyName]) {
       agencyMap[agencyName] = {
         name: agencyName,
@@ -1102,7 +1101,7 @@ function getEventPrepReport(eventId) {
     return {
       name: (guest.first_name || '') + ' ' + (guest.last_name || ''),
       email: guest.email,
-      agency: guest.agency || guest.organization,
+      agency: guest.agency || '',
       topics: topics
     };
   }).filter(function(g) {
@@ -1115,7 +1114,7 @@ function getEventPrepReport(eventId) {
       return {
         name: (g.first_name || '') + ' ' + (g.last_name || ''),
         email: g.email,
-        agency: g.agency || g.organization,
+        agency: g.agency || '',
         title: g.title,
         hobbies: g.hobbies,
         goals: g.goals,
@@ -1181,8 +1180,8 @@ function findPotentialConnections_(guests) {
       }
 
       // Check same agency
-      if (guest1.agency && guest2.agency && guest1.agency === guest2.agency) {
-        reasons.push('Same agency: ' + guest1.agency);
+      if (guest1.agency_id && guest2.agency_id && guest1.agency_id === guest2.agency_id) {
+        reasons.push('Same agency: ' + (guest1.agency || guest1.agency_id));
       }
 
       if (reasons.length > 0) {
@@ -1456,7 +1455,7 @@ function findPotentialGuestsFromEngagements_(linkedSolutions, existingGuestEmail
       var allSolutions = getSolutions ? getSolutions() : [];
       var eventNameLower = eventName.toLowerCase();
       allSolutions.forEach(function(sol) {
-        var solName = sol.core_official_name || sol.core_id || '';
+        var solName = sol.core_official_name || sol.solution_id || '';
         if (solName && eventNameLower.includes(solName.toLowerCase())) {
           solutionsToSearch.push(solName);
         }
@@ -1493,7 +1492,8 @@ function findPotentialGuestsFromEngagements_(linkedSolutions, existingGuestEmail
             potentialGuests[contactEmail] = {
               email: contactEmail,
               contact_name: '',
-              agency: eng.agency || eng.agency_id || '',
+              agency: '',
+              agency_id: eng.agency_id || '',
               solutions: [],
               engagements: [],
               engagement_count: 0,
@@ -1553,8 +1553,10 @@ function findPotentialGuestsFromEngagements_(linkedSolutions, existingGuestEmail
         pg.last_name = contact.last_name;
         pg.contact_name = (contact.first_name || '') + ' ' + (contact.last_name || '');
         pg.title = contact.title;
-        pg.agency = contact.agency || contact.organization || pg.agency;
-        pg.department = contact.department;
+        var resolved = resolveAgency_(contact.agency_id);
+        pg.agency_id = contact.agency_id || pg.agency_id || '';
+        pg.agency = resolved.agency_name || pg.agency;
+        pg.department = resolved.department_name || '';
       }
     });
   } catch (e) {

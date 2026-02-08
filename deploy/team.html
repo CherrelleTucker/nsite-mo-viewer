@@ -468,10 +468,10 @@
 </div>
 
 <!-- Add Availability Modal -->
-<div class="modal" id="addAvailabilityModal">
+<div class="modal" id="addAvailabilityModal" role="dialog" aria-modal="true" aria-labelledby="addAvailabilityModalTitle">
   <div class="modal-content modal-sm">
     <div class="modal-header">
-      <h3>Add Availability Entry</h3>
+      <h3 id="addAvailabilityModalTitle">Add Availability Entry</h3>
       <button class="modal-close" onclick="Team.closeModal('addAvailabilityModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -554,10 +554,10 @@
 </div>
 
 <!-- Add Meeting Modal -->
-<div class="modal" id="addMeetingModal">
+<div class="modal" id="addMeetingModal" role="dialog" aria-modal="true" aria-labelledby="addMeetingModalTitle">
   <div class="modal-content">
     <div class="modal-header">
-      <h3>Add Meeting</h3>
+      <h3 id="addMeetingModalTitle">Add Meeting</h3>
       <button class="modal-close" onclick="Team.closeModal('addMeetingModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -666,10 +666,10 @@
 </div>
 
 <!-- Meeting Detail Modal (for viewing/editing with artifacts) -->
-<div class="modal" id="meetingDetailModal">
+<div class="modal" id="meetingDetailModal" role="dialog" aria-modal="true" aria-labelledby="meetingDetailModalTitle">
   <div class="modal-content modal-lg">
     <div class="modal-header">
-      <h3 id="meetingDetailTitle">Meeting Details</h3>
+      <h3 id="meetingDetailModalTitle">Meeting Details</h3>
       <button class="modal-close" onclick="Team.closeModal('meetingDetailModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body" id="meetingDetailBody">
@@ -683,10 +683,10 @@
 </div>
 
 <!-- Team Member Detail Modal -->
-<div class="modal" id="memberDetailModal">
+<div class="modal" id="memberDetailModal" role="dialog" aria-modal="true" aria-labelledby="memberDetailModalTitle">
   <div class="modal-content modal-lg">
     <div class="modal-header">
-      <h3 id="memberDetailTitle">Team Member</h3>
+      <h3 id="memberDetailModalTitle">Team Member</h3>
       <button class="modal-close" onclick="Team.closeModal('memberDetailModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -779,10 +779,10 @@
 </div>
 
 <!-- Parking Lot Item Detail Modal -->
-<div class="modal" id="plItemDetailModal">
+<div class="modal" id="plItemDetailModal" role="dialog" aria-modal="true" aria-labelledby="plItemDetailModalTitle">
   <div class="modal-content modal-md">
     <div class="modal-header">
-      <h3 id="plItemDetailTitle">Item Details</h3>
+      <h3 id="plItemDetailModalTitle">Item Details</h3>
       <button class="modal-close" onclick="Team.closeModal('plItemDetailModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -873,10 +873,10 @@
 </div>
 
 <!-- Action Detail Modal -->
-<div class="modal" id="actionDetailModal">
+<div class="modal" id="actionDetailModal" role="dialog" aria-modal="true" aria-labelledby="actionDetailModalTitle">
   <div class="modal-content modal-md">
     <div class="modal-header">
-      <h3>Action Details</h3>
+      <h3 id="actionDetailModalTitle">Action Details</h3>
       <button class="modal-close" onclick="Team.closeModal('actionDetailModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body" id="actionDetailBody">
@@ -889,10 +889,10 @@
 </div>
 
 <!-- Add Action Modal -->
-<div class="modal" id="addActionModal">
+<div class="modal" id="addActionModal" role="dialog" aria-modal="true" aria-labelledby="addActionModalTitle">
   <div class="modal-content">
     <div class="modal-header">
-      <h3>Add Action</h3>
+      <h3 id="addActionModalTitle">Add Action</h3>
       <button class="modal-close" onclick="Team.closeModal('addActionModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -1194,12 +1194,12 @@
     font-weight: 500;
   }
 
-  .team-badge.Leadership { background: #e3f2fd; color: #1565c0; }
-  .team-badge.Assessment { background: #fff3e0; color: #ef6c00; }
-  .team-badge.SEP { background: #e8f5e9; color: #2e7d32; }
-  .team-badge.Comms { background: #fce4ec; color: #c2185b; }
-  .team-badge.Operations { background: #f3e5f5; color: #7b1fa2; }
-  .team-badge.Implementation { background: #e0f7fa; color: #00838f; }
+  .team-badge.Leadership { background: #e3f2fd; color: var(--color-sep); }
+  .team-badge.Assessment { background: #fff3e0; color: var(--color-cat-deep-orange); }
+  .team-badge.SEP { background: #e8f5e9; color: var(--color-success); }
+  .team-badge.Comms { background: #fce4ec; color: var(--color-cat-pink); }
+  .team-badge.Operations { background: #f3e5f5; color: var(--color-comms); }
+  .team-badge.Implementation { background: #e0f7fa; color: var(--color-cat-cyan); }
 
   /* Availability List */
   .availability-list {
@@ -1226,12 +1226,12 @@
     text-transform: uppercase;
   }
 
-  .avail-type-badge.vacation { background: #e8f5e9; color: #2e7d32; }
-  .avail-type-badge.work_travel { background: #e3f2fd; color: #1565c0; }
-  .avail-type-badge.ooo { background: #fff3e0; color: #ef6c00; }
-  .avail-type-badge.nine_80 { background: #f3e5f5; color: #7b1fa2; }
+  .avail-type-badge.vacation { background: #e8f5e9; color: var(--color-success); }
+  .avail-type-badge.work_travel { background: #e3f2fd; color: var(--color-sep); }
+  .avail-type-badge.ooo { background: #fff3e0; color: var(--color-cat-deep-orange); }
+  .avail-type-badge.nine_80 { background: #f3e5f5; color: var(--color-comms); }
   .avail-type-badge.holiday { background: #ffebee; color: #c62828; }
-  .avail-type-badge.special_event { background: #fce4ec; color: #c2185b; }
+  .avail-type-badge.special_event { background: #fce4ec; color: var(--color-cat-pink); }
 
   /* Partner tags for holidays */
   .partner-tags {
@@ -1636,12 +1636,12 @@
     font-weight: 500;
   }
 
-  .category-badge.MO { background: #e3f2fd; color: #1565c0; }
-  .category-badge.Assessment { background: #fff3e0; color: #ef6c00; }
-  .category-badge.SEP { background: #e8f5e9; color: #2e7d32; }
-  .category-badge.Comms { background: #fce4ec; color: #c2185b; }
-  .category-badge.Operations { background: #f3e5f5; color: #7b1fa2; }
-  .category-badge.Implementation { background: #e0f7fa; color: #00838f; }
+  .category-badge.MO { background: #e3f2fd; color: var(--color-sep); }
+  .category-badge.Assessment { background: #fff3e0; color: var(--color-cat-deep-orange); }
+  .category-badge.SEP { background: #e8f5e9; color: var(--color-success); }
+  .category-badge.Comms { background: #fce4ec; color: var(--color-cat-pink); }
+  .category-badge.Operations { background: #f3e5f5; color: var(--color-comms); }
+  .category-badge.Implementation { background: #e0f7fa; color: var(--color-cat-cyan); }
 
   .type-badge {
     padding: 2px 8px;
@@ -1652,73 +1652,7 @@
     color: var(--color-text-secondary);
   }
 
-  /* Buttons - matching SEP pattern */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-xs);
-    padding: var(--space-sm) var(--space-md);
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    border: none;
-  }
-  .btn svg { width: 16px; height: 16px; }
-  .btn-primary { background: var(--color-primary); color: white; }
-  .btn-primary:hover { background: var(--color-primary-dark); }
-  .btn-secondary { background: var(--color-surface-alt); color: var(--color-text); border: 1px solid var(--color-border); }
-  .btn-secondary:hover { background: var(--color-border-light); }
-  .btn-danger { background: #ef4444; color: white; border: none; }
-  .btn-danger:hover { background: #dc2626; }
-  .btn-sm { padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-xs); }
-
-  /* Modal Styles - matching SEP pattern */
-  .modal {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: var(--space-md);
-  }
-  .modal.show { display: flex; }
-  .modal-content {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    max-width: 600px;
-    width: 100%;
-    max-height: 90vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
   .modal-content.modal-sm { max-width: 450px; }
-  .modal-content.modal-lg { max-width: 900px; }
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--space-md) var(--space-lg);
-    border-bottom: 1px solid var(--color-border-light);
-    background: var(--color-surface-alt);
-  }
-  .modal-header h3 { font-size: var(--font-size-lg); font-weight: 600; margin: 0; }
-  .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--color-text-muted); }
-  .modal-close:hover { color: var(--color-text); }
-  .modal-body { padding: var(--space-lg); overflow-y: auto; }
-  .modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--space-sm);
-    padding: var(--space-md) var(--space-lg);
-    border-top: 1px solid var(--color-border-light);
-    background: var(--color-surface-alt);
-  }
 
   /* Member Detail Modal */
   .member-detail-header {
@@ -1805,7 +1739,7 @@
     border-color: rgba(46, 125, 50, 0.3);
   }
   .team-card.has-profile:hover {
-    border-color: #2e7d32;
+    border-color: var(--color-success);
   }
   .profile-badge {
     position: absolute;
@@ -1813,7 +1747,7 @@
     right: 8px;
     width: 24px;
     height: 24px;
-    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    background: linear-gradient(135deg, var(--color-cat-green), var(--color-success));
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1835,7 +1769,7 @@
     align-items: center;
     gap: var(--space-sm);
     font-size: var(--font-size-md);
-    color: #2e7d32;
+    color: var(--color-success);
     margin-bottom: var(--space-md);
   }
   .profile-section-header .material-icons {
@@ -1966,7 +1900,7 @@
 
   .kudos-header-icon {
     font-size: 48px;
-    color: #e91e63;
+    color: var(--color-cat-pink);
     animation: wiggle 2s ease-in-out infinite;
   }
 
@@ -1978,7 +1912,7 @@
   .kudos-give-header h2 {
     margin: 0;
     font-size: var(--font-size-xl);
-    color: #c2185b;
+    color: var(--color-cat-pink);
   }
 
   .kudos-give-header p {
@@ -2017,19 +1951,19 @@
   }
 
   .kudos-cat-btn.selected {
-    border-color: #e91e63;
+    border-color: var(--color-cat-pink);
     background: #fce4ec;
-    color: #c2185b;
+    color: var(--color-cat-pink);
   }
 
   .kudos-cat-btn .material-icons {
     font-size: 24px;
   }
 
-  .kudos-cat-btn[data-category="teamwork"] .material-icons { color: #2196F3; }
-  .kudos-cat-btn[data-category="innovation"] .material-icons { color: #FF9800; }
-  .kudos-cat-btn[data-category="above_and_beyond"] .material-icons { color: #9C27B0; }
-  .kudos-cat-btn[data-category="mentorship"] .material-icons { color: #4CAF50; }
+  .kudos-cat-btn[data-category="teamwork"] .material-icons { color: var(--color-cat-blue); }
+  .kudos-cat-btn[data-category="innovation"] .material-icons { color: var(--color-cat-orange); }
+  .kudos-cat-btn[data-category="above_and_beyond"] .material-icons { color: var(--color-cat-purple); }
+  .kudos-cat-btn[data-category="mentorship"] .material-icons { color: var(--color-cat-green); }
   .kudos-cat-btn[data-category="delivery"] .material-icons { color: #00BCD4; }
 
   /* Message Textarea */
@@ -2084,7 +2018,7 @@
   .btn-kudos {
     width: 100%;
     padding: var(--space-md);
-    background: linear-gradient(135deg, #e91e63, #c2185b);
+    background: linear-gradient(135deg, var(--color-cat-pink), var(--color-cat-pink));
     color: white;
     font-size: var(--font-size-md);
     font-weight: 600;
@@ -2130,7 +2064,7 @@
   }
 
   .kudos-stats-card h3 .material-icons {
-    color: #e91e63;
+    color: var(--color-cat-pink);
   }
 
   .kudos-mini-stats {
@@ -2151,7 +2085,7 @@
     display: block;
     font-size: var(--font-size-xl);
     font-weight: 700;
-    color: #e91e63;
+    color: var(--color-cat-pink);
   }
 
   .kudos-mini-stat .stat-desc {
@@ -2184,7 +2118,7 @@
     height: 20px;
     border-radius: 50%;
     background: #fce4ec;
-    color: #c2185b;
+    color: var(--color-cat-pink);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2215,7 +2149,7 @@
   }
 
   .kudos-feed-section .section-header h2 .material-icons {
-    color: #e91e63;
+    color: var(--color-cat-pink);
   }
 
   .kudos-feed {
@@ -2246,10 +2180,10 @@
     height: 100%;
   }
 
-  .kudos-card.cat-teamwork::before { background: #2196F3; }
-  .kudos-card.cat-innovation::before { background: #FF9800; }
-  .kudos-card.cat-above_and_beyond::before { background: #9C27B0; }
-  .kudos-card.cat-mentorship::before { background: #4CAF50; }
+  .kudos-card.cat-teamwork::before { background: var(--color-cat-blue); }
+  .kudos-card.cat-innovation::before { background: var(--color-cat-orange); }
+  .kudos-card.cat-above_and_beyond::before { background: var(--color-cat-purple); }
+  .kudos-card.cat-mentorship::before { background: var(--color-cat-green); }
   .kudos-card.cat-delivery::before { background: #00BCD4; }
 
   .kudos-card:hover {
@@ -2268,7 +2202,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #e91e63, #9c27b0);
+    background: linear-gradient(135deg, var(--color-cat-pink), var(--color-cat-purple));
     color: white;
     display: flex;
     align-items: center;
@@ -2287,7 +2221,7 @@
   }
 
   .kudos-names .from { color: var(--color-text-secondary); }
-  .kudos-names .to { color: #c2185b; }
+  .kudos-names .to { color: var(--color-cat-pink); }
   .kudos-names .arrow { color: var(--color-text-muted); margin: 0 4px; }
 
   .kudos-time {
@@ -2305,11 +2239,11 @@
     font-weight: 500;
   }
 
-  .kudos-category-badge.teamwork { background: #e3f2fd; color: #1565c0; }
-  .kudos-category-badge.innovation { background: #fff3e0; color: #ef6c00; }
-  .kudos-category-badge.above_and_beyond { background: #f3e5f5; color: #7b1fa2; }
-  .kudos-category-badge.mentorship { background: #e8f5e9; color: #2e7d32; }
-  .kudos-category-badge.delivery { background: #e0f7fa; color: #00838f; }
+  .kudos-category-badge.teamwork { background: #e3f2fd; color: var(--color-sep); }
+  .kudos-category-badge.innovation { background: #fff3e0; color: var(--color-cat-deep-orange); }
+  .kudos-category-badge.above_and_beyond { background: #f3e5f5; color: var(--color-comms); }
+  .kudos-category-badge.mentorship { background: #e8f5e9; color: var(--color-success); }
+  .kudos-category-badge.delivery { background: #e0f7fa; color: var(--color-cat-cyan); }
 
   .kudos-category-badge .material-icons {
     font-size: 14px;
@@ -2344,7 +2278,7 @@
 
   .kudos-card.new {
     animation: kudos-success 0.5s ease;
-    border-color: #e91e63;
+    border-color: var(--color-cat-pink);
     box-shadow: 0 0 20px rgba(233, 30, 99, 0.3);
   }
 
@@ -2445,20 +2379,20 @@
   .pl-type-btn[data-type="idea"].selected { border-color: #FFC107; background: rgba(255, 193, 7, 0.1); }
   .pl-type-btn[data-type="idea"].selected .material-icons { color: #FFC107; }
 
-  .pl-type-btn[data-type="discussion_topic"].selected { border-color: #2196F3; background: rgba(33, 150, 243, 0.1); }
-  .pl-type-btn[data-type="discussion_topic"].selected .material-icons { color: #2196F3; }
+  .pl-type-btn[data-type="discussion_topic"].selected { border-color: var(--color-cat-blue); background: rgba(33, 150, 243, 0.1); }
+  .pl-type-btn[data-type="discussion_topic"].selected .material-icons { color: var(--color-cat-blue); }
 
-  .pl-type-btn[data-type="stakeholder_connection"].selected { border-color: #4CAF50; background: rgba(76, 175, 80, 0.1); }
-  .pl-type-btn[data-type="stakeholder_connection"].selected .material-icons { color: #4CAF50; }
+  .pl-type-btn[data-type="stakeholder_connection"].selected { border-color: var(--color-cat-green); background: rgba(76, 175, 80, 0.1); }
+  .pl-type-btn[data-type="stakeholder_connection"].selected .material-icons { color: var(--color-cat-green); }
 
   .pl-type-btn[data-type="follow_up"].selected { border-color: #FF5722; background: rgba(255, 87, 34, 0.1); }
   .pl-type-btn[data-type="follow_up"].selected .material-icons { color: #FF5722; }
 
-  .pl-type-btn[data-type="process_suggestion"].selected { border-color: #9C27B0; background: rgba(156, 39, 176, 0.1); }
-  .pl-type-btn[data-type="process_suggestion"].selected .material-icons { color: #9C27B0; }
+  .pl-type-btn[data-type="process_suggestion"].selected { border-color: var(--color-cat-purple); background: rgba(156, 39, 176, 0.1); }
+  .pl-type-btn[data-type="process_suggestion"].selected .material-icons { color: var(--color-cat-purple); }
 
-  .pl-type-btn[data-type="random_info"].selected { border-color: #607D8B; background: rgba(96, 125, 139, 0.1); }
-  .pl-type-btn[data-type="random_info"].selected .material-icons { color: #607D8B; }
+  .pl-type-btn[data-type="random_info"].selected { border-color: var(--color-cat-blue-grey); background: rgba(96, 125, 139, 0.1); }
+  .pl-type-btn[data-type="random_info"].selected .material-icons { color: var(--color-cat-blue-grey); }
 
   /* Stats Card */
   .parking-lot-stats-card {
@@ -2586,11 +2520,11 @@
   }
 
   .pl-item-icon.idea { background: #FFC107; }
-  .pl-item-icon.discussion_topic { background: #2196F3; }
-  .pl-item-icon.stakeholder_connection { background: #4CAF50; }
+  .pl-item-icon.discussion_topic { background: var(--color-cat-blue); }
+  .pl-item-icon.stakeholder_connection { background: var(--color-cat-green); }
   .pl-item-icon.follow_up { background: #FF5722; }
-  .pl-item-icon.process_suggestion { background: #9C27B0; }
-  .pl-item-icon.random_info { background: #607D8B; }
+  .pl-item-icon.process_suggestion { background: var(--color-cat-purple); }
+  .pl-item-icon.random_info { background: var(--color-cat-blue-grey); }
 
   .pl-item-content {
     flex: 1;
@@ -2652,14 +2586,14 @@
 
   .pl-status-badge.new { background: #E3F2FD; color: #1976D2; }
   .pl-status-badge.discussed { background: #FFF3E0; color: #F57C00; }
-  .pl-status-badge.assigned { background: #F3E5F5; color: #7B1FA2; }
-  .pl-status-badge.in_progress { background: #E0F7FA; color: #00838F; }
+  .pl-status-badge.assigned { background: #F3E5F5; color: var(--color-comms); }
+  .pl-status-badge.in_progress { background: #E0F7FA; color: var(--color-cat-cyan); }
   .pl-status-badge.resolved { background: #E8F5E9; color: #388E3C; }
   .pl-status-badge.archived { background: #ECEFF1; color: #546E7A; }
 
   .pl-priority-badge.high { background: #FFEBEE; color: #C62828; }
-  .pl-priority-badge.medium { background: #FFF3E0; color: #EF6C00; }
-  .pl-priority-badge.low { background: #E8F5E9; color: #2E7D32; }
+  .pl-priority-badge.medium { background: #FFF3E0; color: var(--color-cat-deep-orange); }
+  .pl-priority-badge.low { background: #E8F5E9; color: var(--color-success); }
 
   /* Detail Modal */
   .pl-detail-header {
@@ -2684,10 +2618,10 @@
   }
 
   .pl-type-badge.idea { background: rgba(255, 193, 7, 0.15); color: #F57F17; }
-  .pl-type-badge.discussion_topic { background: rgba(33, 150, 243, 0.15); color: #1565C0; }
-  .pl-type-badge.stakeholder_connection { background: rgba(76, 175, 80, 0.15); color: #2E7D32; }
+  .pl-type-badge.discussion_topic { background: rgba(33, 150, 243, 0.15); color: var(--color-sep); }
+  .pl-type-badge.stakeholder_connection { background: rgba(76, 175, 80, 0.15); color: var(--color-success); }
   .pl-type-badge.follow_up { background: rgba(255, 87, 34, 0.15); color: #D84315; }
-  .pl-type-badge.process_suggestion { background: rgba(156, 39, 176, 0.15); color: #7B1FA2; }
+  .pl-type-badge.process_suggestion { background: rgba(156, 39, 176, 0.15); color: var(--color-comms); }
   .pl-type-badge.random_info { background: rgba(96, 125, 139, 0.15); color: #455A64; }
 
   .pl-detail-content {
@@ -2781,9 +2715,12 @@
     .kudos-layout { grid-template-columns: 1fr; }
     .parking-lot-layout { grid-template-columns: 1fr; }
   }
+  @media (max-width: 1024px) {
+    .weekly-grid { grid-template-columns: repeat(3, 1fr); }
+  }
   @media (max-width: 768px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
-    .weekly-grid { grid-template-columns: repeat(3, 1fr); }
+    .weekly-grid { grid-template-columns: repeat(2, 1fr); }
     .form-row { grid-template-columns: 1fr; }
     .kudos-category-picker { justify-content: center; }
     .pl-type-picker { grid-template-columns: repeat(2, 1fr); }
@@ -3190,8 +3127,10 @@
     currentAction: null,
     editingActionId: null,
     collapsedAssignees: {},
+    teamNavId: null,
 
     init: function() {
+      this.teamNavId = getNavigationId();
       this.loadData();       // Load team members + availability
       this.loadActions();    // Load actions (Capacity is default view)
       this.loadParkingLot(); // Load parking lot for stats
@@ -3203,8 +3142,9 @@
     },
 
     loadCurrentUser: function() {
-      google.script.run
-        .withSuccessHandler(function(user) {
+      CachedAPI.getCurrentUser()
+        .then(function(user) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
           window.currentUserName = user.name || 'Anonymous';
           // If user has a name, we can personalize the kudos form
           if (user.name) {
@@ -3214,15 +3154,15 @@
             }
           }
         })
-        .withFailureHandler(function(error) {
+        .catch(function(error) {
           console.error('Could not load user info:', error);
           window.currentUserName = 'Anonymous';
-        })
-        .getCurrentUserInfo();
+        });
 
       // Check if Slack is configured
       google.script.run
         .withSuccessHandler(function(isConfigured) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
           if (isConfigured) {
             var slackGroup = document.getElementById('slackOptionGroup');
             if (slackGroup) slackGroup.style.display = '';
@@ -3235,70 +3175,70 @@
     },
 
     loadData: function() {
-      // Load team members with profiles
-      google.script.run
-        .withSuccessHandler(function(data) {
+      // Load team members with profiles (cached 30min)
+      CachedAPI.getTeamMembers()
+        .then(function(data) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
           Team.members = data || [];
           Team.renderTeamProfiles();
           Team.updateStats();
           Team.populatePersonSelect();
         })
-        .withFailureHandler(handleError)
-        .getInternalTeamWithProfiles();
+        .catch(handleError);
 
-      // Load meetings
-      google.script.run
-        .withSuccessHandler(function(data) {
+      // Load meetings (cached 30min)
+      CachedAPI.getMeetings()
+        .then(function(data) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
           Team.meetings = data || [];
           Team.renderMeetings();
           Team.updateStats();
         })
-        .withFailureHandler(handleError)
-        .getAllMeetings();
+        .catch(handleError);
 
-      // Load availability
-      google.script.run
-        .withSuccessHandler(function(data) {
+      // Load availability (cached 30min)
+      CachedAPI.getAvailability()
+        .then(function(data) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
           Team.availability = data || [];
           Team.renderAvailability();
           Team.updateStats();
         })
-        .withFailureHandler(handleError)
-        .getAvailability();
+        .catch(handleError);
 
-      // Load directing documents
-      google.script.run
-        .withSuccessHandler(function(data) {
+      // Load directing documents (cached 60min)
+      CachedAPI.getDirectingDocuments()
+        .then(function(data) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
           Team.documents = data || [];
           Team.renderDocuments();
           Team.updateStats();
         })
-        .withFailureHandler(handleError)
-        .getDirectingDocuments();
+        .catch(handleError);
 
       // Load kudos
       this.loadKudos();
     },
 
     loadKudos: function() {
-      // Load recent kudos
-      google.script.run
-        .withSuccessHandler(function(data) {
+      // Load recent kudos (cached 30min)
+      CachedAPI.getKudos()
+        .then(function(data) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
           Team.kudos = data || [];
           Team.renderKudosFeed();
           Team.updateStats();
         })
-        .withFailureHandler(handleError)
-        .getAllKudos({ days: 30, limit: 50 });
+        .catch(handleError);
 
-      // Load kudos stats
-      google.script.run
-        .withSuccessHandler(function(data) {
+      // Load kudos stats (cached 30min)
+      CachedAPI.getKudosStats()
+        .then(function(data) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
           Team.kudosStats = data;
           Team.renderKudosStats();
         })
-        .withFailureHandler(handleError)
-        .getKudosStats(90);
+        .catch(handleError);
     },
 
     setupKudosForm: function() {
@@ -3379,6 +3319,7 @@
       google.script.run
         .withSuccessHandler(function(result) {
           Team.isSubmittingKudos = false;
+          CachedAPI.invalidate.kudos();
           btn.classList.remove('sending');
           btn.innerHTML = '<span class="material-icons">check</span> Sent!';
 
@@ -3411,7 +3352,7 @@
           Team.isSubmittingKudos = false;
           btn.classList.remove('sending');
           btn.innerHTML = '<span class="material-icons">send</span> Send Kudos!';
-          showError('Failed to send kudos: ' + (error.message || error));
+          showError('Could not send kudos. Please try again.');
         })
         .submitKudos(data);
     },
@@ -3668,7 +3609,7 @@
       var selectedType = typeSelect.value;
 
       var officeWideTypes = ['holiday', 'special_event'];
-      var isOfficeWide = officeWideTypes.indexOf(selectedType) !== -1;
+      var isOfficeWide = officeWideTypes.includes(selectedType);
       var isHoliday = selectedType === 'holiday';
 
       // Person select: hide for office-wide types
@@ -3782,6 +3723,10 @@
       var start = this.parseLocalDate(startDateStr);
       var end = this.parseLocalDate(endDateStr);
 
+      if (!start && !end) return '--';
+      if (!start) return months[end.getMonth()] + ' ' + end.getDate();
+      if (!end) return months[start.getMonth()] + ' ' + start.getDate();
+
       var startMonth = months[start.getMonth()];
       var startDay = start.getDate();
       var endMonth = months[end.getMonth()];
@@ -3840,7 +3785,7 @@
 
         // For office-wide events, show differently
         var officeWideTypes = ['holiday', 'special_event'];
-        var isOfficeWide = officeWideTypes.indexOf(item.type) !== -1;
+        var isOfficeWide = officeWideTypes.includes(item.type);
         var isHoliday = item.type === 'holiday';
         // Use holiday_name for holidays, notes for special events, contact_name for personal
         var nameDisplay = isHoliday
@@ -4167,7 +4112,7 @@
       if (item.partners) {
         var partners = item.partners.split(',').map(function(p) { return p.trim(); });
         document.querySelectorAll('#partnerCheckboxes input[type="checkbox"]').forEach(function(cb) {
-          cb.checked = partners.indexOf(cb.value) !== -1;
+          cb.checked = partners.includes(cb.value);
         });
       } else {
         document.querySelectorAll('#partnerCheckboxes input[type="checkbox"]').forEach(function(cb) {
@@ -4192,7 +4137,7 @@
       var m = Team.meetings.find(function(mtg) { return mtg.meeting_id === meetingId; });
       if (!m) return;
 
-      document.getElementById('meetingDetailTitle').textContent = m.name || 'Meeting Details';
+      document.getElementById('meetingDetailModalTitle').textContent = m.name || 'Meeting Details';
 
       var html = '<div class="detail-grid">' +
         '<div class="detail-field"><label>Category</label><span class="category-badge ' + (m.category || '') + '">' + escapeHtml(m.category || '--') + '</span></div>' +
@@ -4326,7 +4271,7 @@
     },
 
     closeModal: function(modalId) {
-      document.getElementById(modalId).classList.remove('show');
+      window.closeModal(modalId);
     },
 
     saveAvailability: function() {
@@ -4346,7 +4291,7 @@
 
       // Validate person for personal types
       var officeWideTypes = ['holiday', 'special_event'];
-      var isOfficeWide = officeWideTypes.indexOf(selectedType) !== -1;
+      var isOfficeWide = officeWideTypes.includes(selectedType);
       var isHoliday = selectedType === 'holiday';
 
       if (!isOfficeWide && !personSelect.value) {
@@ -4393,6 +4338,7 @@
             if (result && result.success) {
               self.editingAvailabilityId = null;
               Team.closeModal('addAvailabilityModal');
+              CachedAPI.invalidate.team();
               Team.loadData();
             } else {
               showError('Failed to update: ' + (result && result.error ? result.error : 'Unknown error'));
@@ -4403,7 +4349,7 @@
             var btn = document.getElementById('saveAvailabilityBtn');
             if (btn) btn.classList.remove('loading');
             handleError(error);
-            showError('Failed to update: ' + (error.message || error));
+            showError('Could not update entry. Please try again.');
           })
           .updateAvailability(this.editingAvailabilityId, data);
       } else {
@@ -4413,6 +4359,7 @@
             var btn = document.getElementById('saveAvailabilityBtn');
             if (btn) btn.classList.remove('loading');
             Team.closeModal('addAvailabilityModal');
+            CachedAPI.invalidate.team();
             Team.loadData();
           })
           .withFailureHandler(function(error) {
@@ -4420,7 +4367,7 @@
             var btn = document.getElementById('saveAvailabilityBtn');
             if (btn) btn.classList.remove('loading');
             handleError(error);
-            showError('Failed to save: ' + (error.message || error));
+            showError('Could not save entry. Please try again.');
           })
           .addAvailability(data);
       }
@@ -4453,7 +4400,7 @@
           var btn = document.getElementById('saveAvailabilityBtn');
           if (btn) btn.classList.remove('loading');
           handleError(error);
-          showError('Failed to delete: ' + (error.message || error));
+          showError('Could not delete entry. Please try again.');
         })
         .deleteAvailability(this.editingAvailabilityId);
     },
@@ -4499,6 +4446,7 @@
 
       google.script.run
         .withSuccessHandler(function(items) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
           Team.parkingLotItems = items || [];
           Team.renderParkingLot();
           Team.updatePLStats();
@@ -4514,6 +4462,7 @@
       // Load solutions for dropdown
       google.script.run
         .withSuccessHandler(function(solutions) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
           Team.populatePLSolutionDropdown(solutions || []);
         })
         .withFailureHandler(handleError)
@@ -4530,8 +4479,8 @@
       select.innerHTML = '<option value="">-- None --</option>';
       solutions.forEach(function(sol) {
         var opt = document.createElement('option');
-        opt.value = sol.core_id;
-        opt.textContent = (sol.core_id || '').toUpperCase() + ' - ' + (sol.core_official_name || '');
+        opt.value = sol.solution_id;
+        opt.textContent = (sol.solution_id || '').toUpperCase() + ' - ' + (sol.core_official_name || '');
         select.appendChild(opt);
       });
     },
@@ -4727,7 +4676,7 @@
       Team.currentPLItem = item;
 
       // Update modal content
-      document.getElementById('plItemDetailTitle').textContent = item.title;
+      document.getElementById('plItemDetailModalTitle').textContent = item.title;
 
       // Type badge
       var typeIcons = {
@@ -4904,6 +4853,7 @@
 
       google.script.run
         .withSuccessHandler(function(actions) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
           Team.actionsData = actions || [];
           Team.filteredActions = Team.actionsData;
           Team.applyActionsFilters();
@@ -5029,7 +4979,7 @@
             '<span class="action-status"><span class="status-dot ' + status.replace('_', '-') + '"></span>' +
             '<span class="status-text">' + Team.formatActionStatus(status) + '</span></span>' +
             (solution ? '<span class="action-solution' + (isSolution ? ' is-solution' : '') + '">' + escapeHtml(solution) + '</span>' : '') +
-            (action.source_date ? '<span class="action-source">' + action.source_date + '</span>' : '') +
+            (action.source_date ? '<span class="action-source">' + escapeHtml(action.source_date || '') + '</span>' : '') +
             '</div>';
 
           actionsDiv.appendChild(row);
@@ -5129,7 +5079,7 @@
           sourceHtml += escapeHtml(action.source_document);
         }
         if (action.source_date) {
-          sourceHtml += ' <span style="color:var(--color-text-muted);">(' + action.source_date + ')</span>';
+          sourceHtml += ' <span style="color:var(--color-text-muted);">(' + escapeHtml(action.source_date || '') + ')</span>';
         }
         sourceHtml += '</div>';
         sourceField.innerHTML = sourceHtml;
@@ -5432,6 +5382,6 @@
 
   };
 
-  // Initialize on load
-  Team.init();
+  // Initialize — queued so CachedAPI is available (defined in index.html main script)
+  queuePageInit(function() { Team.init(); });
 </script>

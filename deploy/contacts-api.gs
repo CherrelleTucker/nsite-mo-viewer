@@ -18,6 +18,14 @@ function getContactsByEmail(email) {
   return MoApi.getContactsByEmail(email);
 }
 
+function getContactById(contactId) {
+  return MoApi.getContactById(contactId);
+}
+
+function getContactsByIds(contactIds) {
+  return MoApi.getContactsByIds(contactIds);
+}
+
 function getContactsByName(firstName, lastName) {
   return MoApi.getContactsByName(firstName, lastName);
 }
@@ -191,6 +199,23 @@ function createContactForAgency(contactData) {
     return { success: false, error: auth.message };
   }
   return MoApi.createContactForAgency(contactData);
+}
+
+// Role Management (Auth Required)
+function createRole(contactId, solutionId, role, surveyYear, needId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.createRole_(contactId, solutionId, role, surveyYear, needId);
+}
+
+function removeRole(roleId) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.removeRole_(roleId);
 }
 
 // Event Participation

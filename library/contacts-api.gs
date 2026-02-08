@@ -7,44 +7,244 @@
  * Part of MO-APIs Library - shared data access layer
  * Requires: config-helpers.gs (shared utilities)
  *
- * REFACTORED: Uses shared utilities from config-helpers.gs
- * - loadSheetData_() for caching
+ * DATABASE STRUCTURE (v3.0):
+ * MO-DB_Contacts is a multi-tab Google Sheet:
+ *   - "People" tab: One row per unique person (~423 rows)
+ *   - "Roles" tab: One row per person-solution-role relationship (~4,221 rows)
+ *
+ * Uses shared utilities from config-helpers.gs:
+ * - loadSheetTab_() for tab-aware caching
  * - filterByProperty() / filterByProperties() for filtering
  * - deepCopy() for safe object copies
- * - createResult() for standardized returns
  */
 
 // ============================================================================
-// DATA ACCESS (Using shared utilities)
+// DATA ACCESS — Dual-Tab Loading
 // ============================================================================
 
 var CONTACTS_CONFIG_KEY = 'CONTACTS_SHEET_ID';
-var CONTACTS_CACHE_KEY = '_contactsCache';
+var PEOPLE_CACHE_KEY = '_peopleCache';
+var ROLES_CACHE_KEY = '_rolesCache';
+var JOINED_CACHE_KEY = '_contactsJoinedCache';
 
 /**
- * Load all contacts with caching
- * Uses shared loadSheetData_() from config-helpers.gs
+ * Load person records from the People tab.
+ * One row per unique person (by email). Contains identity, profile,
+ * engagement, champion, and internal team fields.
+ * @returns {Array} Array of person objects
+ */
+function loadPeople_() {
+  return loadSheetTab_(CONTACTS_CONFIG_KEY, 'People', PEOPLE_CACHE_KEY);
+}
+
+/**
+ * Load role records from the Roles tab.
+ * One row per person-solution-role relationship. Contains role_id,
+ * contact_id (FK to People), solution_id, role, survey_year, need_id.
+ * @returns {Array} Array of role objects
+ */
+function loadRoles_() {
+  return loadSheetTab_(CONTACTS_CONFIG_KEY, 'Roles', ROLES_CACHE_KEY);
+}
+
+/**
+ * Load joined People+Roles data (backward-compatible with old flat table).
+ * Produces one row per person-solution-role pair by joining People and Roles
+ * on contact_id. Same shape as the old single-tab loadAllContacts_().
+ * @returns {Array} Array of merged person+role objects
+ */
+function loadContactsJoined_() {
+  if (_sheetDataCache[JOINED_CACHE_KEY]) {
+    return _sheetDataCache[JOINED_CACHE_KEY];
+  }
+
+  var people = loadPeople_();
+  var roles = loadRoles_();
+
+  var peopleMap = {};
+  people.forEach(function(p) { peopleMap[p.contact_id] = p; });
+
+  var joined = [];
+  // Join: for each role, merge in the person fields
+  roles.forEach(function(r) {
+    var person = peopleMap[r.contact_id];
+    if (!person) return; // Skip orphaned roles
+    var merged = {};
+    Object.keys(person).forEach(function(k) { merged[k] = person[k]; });
+    Object.keys(r).forEach(function(k) { merged[k] = r[k]; });
+    joined.push(merged);
+  });
+
+  // Also include people with NO roles (contact-only records)
+  var peopleWithRoles = {};
+  roles.forEach(function(r) { peopleWithRoles[r.contact_id] = true; });
+  people.forEach(function(p) {
+    if (!peopleWithRoles[p.contact_id]) {
+      var copy = {};
+      Object.keys(p).forEach(function(k) { copy[k] = p[k]; });
+      copy.solution_id = '';
+      copy.role = '';
+      copy.survey_year = '';
+      copy.need_id = '';
+      copy.role_id = '';
+      joined.push(copy);
+    }
+  });
+
+  _sheetDataCache[JOINED_CACHE_KEY] = joined;
+  return joined;
+}
+
+/**
+ * Backward-compatible alias — returns joined People+Roles data.
+ * @returns {Array} Same as loadContactsJoined_()
  */
 function loadAllContacts_() {
-  return loadSheetData_(CONTACTS_CONFIG_KEY, CONTACTS_CACHE_KEY);
+  return loadContactsJoined_();
 }
 
 /**
- * Clear contacts cache
+ * Clear all contacts caches (People, Roles, and joined).
  */
 function clearContactsCache_() {
-  clearSheetDataCache(CONTACTS_CACHE_KEY);
+  clearSheetDataCache(PEOPLE_CACHE_KEY);
+  clearSheetDataCache(ROLES_CACHE_KEY);
+  clearSheetDataCache(JOINED_CACHE_KEY);
 }
 
 /**
- * Get contacts sheet for write operations
- * Uses shared getSheetForWrite_() from config-helpers.gs
- * @returns {Sheet} The contacts sheet
+ * Get the People tab sheet for write operations.
+ * @returns {Object} { sheet, headers, sheetId }
  */
-function getContactsSheet_() {
-  var sheetInfo = getSheetForWrite_(CONTACTS_CONFIG_KEY);
-  return sheetInfo.sheet;
+function getPeopleSheetForWrite_() {
+  return getSheetTabForWrite_(CONTACTS_CONFIG_KEY, 'People');
 }
+
+/**
+ * Get the Roles tab sheet for write operations.
+ * @returns {Object} { sheet, headers, sheetId }
+ */
+function getRolesSheetForWrite_() {
+  return getSheetTabForWrite_(CONTACTS_CONFIG_KEY, 'Roles');
+}
+
+/**
+ * Create a role assignment (add person to a solution).
+ * @param {string} contactId - Contact ID (FK to People tab)
+ * @param {string} solutionId - Solution ID
+ * @param {string} role - Role type (Primary SME, Secondary SME, etc.)
+ * @param {string} surveyYear - Survey year (optional)
+ * @param {string} needId - Need ID (optional)
+ * @returns {Object} {success, role_id, error}
+ */
+function createRole_(contactId, solutionId, role, surveyYear, needId) {
+  try {
+    if (!contactId || !solutionId) {
+      return { success: false, error: 'contact_id and solution_id are required' };
+    }
+
+    var sheetInfo = getRolesSheetForWrite_();
+    var sheet = sheetInfo.sheet;
+    var headers = sheetInfo.headers;
+
+    var roleId = 'ROLE_' + new Date().getTime();
+    var roleData = {
+      role_id: roleId,
+      contact_id: contactId,
+      solution_id: solutionId,
+      role: role || '',
+      survey_year: surveyYear || '',
+      need_id: needId || ''
+    };
+
+    var newRow = headers.map(function(header) {
+      return roleData[header] !== undefined ? roleData[header] : '';
+    });
+
+    sheet.appendRow(newRow);
+    clearContactsCache_();
+
+    return { success: true, role_id: roleId };
+  } catch (e) {
+    Logger.log('Error in createRole_: ' + e);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Remove a role assignment by role_id.
+ * @param {string} roleId - Role ID to remove
+ * @returns {Object} {success, error}
+ */
+function removeRole_(roleId) {
+  try {
+    if (!roleId) {
+      return { success: false, error: 'role_id is required' };
+    }
+
+    var sheetInfo = getRolesSheetForWrite_();
+    var sheet = sheetInfo.sheet;
+    var headers = sheetInfo.headers;
+
+    var roleIdColIndex = headers.indexOf('role_id');
+    if (roleIdColIndex === -1) {
+      return { success: false, error: 'role_id column not found in Roles tab' };
+    }
+
+    var data = sheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][roleIdColIndex] === roleId) {
+        sheet.deleteRow(i + 1);
+        clearContactsCache_();
+        return { success: true };
+      }
+    }
+
+    return { success: false, error: 'Role not found: ' + roleId };
+  } catch (e) {
+    Logger.log('Error in removeRole_: ' + e);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Check if a comma-separated field contains a specific value.
+ * Used for email, department, agency, organization fields that
+ * may store multiple values (e.g. "user@a.gov, user@b.gov").
+ * @param {string} fieldValue - Comma-separated field value
+ * @param {string} searchValue - Value to find
+ * @returns {boolean}
+ */
+function containsValue_(fieldValue, searchValue) {
+  if (!fieldValue || !searchValue) return false;
+  var values = fieldValue.toString().split(',');
+  var target = searchValue.toLowerCase().trim();
+  for (var i = 0; i < values.length; i++) {
+    if (values[i].trim().toLowerCase() === target) return true;
+  }
+  return false;
+}
+
+/**
+ * Get the primary (first) value from a comma-separated field.
+ * @param {string} fieldValue - Comma-separated field value
+ * @returns {string} First value, trimmed
+ */
+function primaryValue_(fieldValue) {
+  if (!fieldValue) return '';
+  return fieldValue.toString().split(',')[0].trim();
+}
+
+// Fields that belong in the People tab (for write routing)
+var PEOPLE_FIELDS_ = [
+  'first_name', 'last_name', 'agency_id',
+  'title', 'region', 'engagement_level',
+  'last_contact_date', 'next_scheduled_contact',
+  'champion_status', 'relationship_owner', 'champion_notes',
+  'is_internal', 'internal_title', 'internal_team', 'supervisor', 'start_date', 'active',
+  'education', 'job_duties', 'professional_skills', 'non_work_skills',
+  'hobbies', 'goals', 'relax', 'early_job', 'notes', 'last_updated'
+];
 
 // ============================================================================
 // CORE QUERY FUNCTIONS (Using shared filterByProperty)
@@ -92,7 +292,44 @@ function getContactsBySolution(solutionId, exactMatch) {
  * @returns {Array} All records for this email
  */
 function getContactsByEmail(email) {
-  return filterByProperty(loadAllContacts_(), 'email', email, true);
+  if (!email) return [];
+  var people = loadPeople_();
+  var results = people.filter(function(c) {
+    return containsValue_(c.email, email);
+  });
+  return deepCopy(results);
+}
+
+/**
+ * Get a single contact by contact_id
+ * @param {string} contactId - Contact ID (CON_xxx format)
+ * @returns {Object|null} Contact object or null
+ */
+function getContactById(contactId) {
+  if (!contactId) return null;
+  var people = loadPeople_();
+  for (var i = 0; i < people.length; i++) {
+    if (people[i].contact_id === contactId) {
+      return deepCopy(people[i]);
+    }
+  }
+  return null;
+}
+
+/**
+ * Get multiple contacts by contact_id array
+ * @param {Array} contactIds - Array of contact IDs
+ * @returns {Array} Matching contacts
+ */
+function getContactsByIds(contactIds) {
+  if (!contactIds || !contactIds.length) return [];
+  var people = loadPeople_();
+  var idSet = {};
+  contactIds.forEach(function(id) { idSet[id] = true; });
+  var results = people.filter(function(c) {
+    return c.contact_id && idSet[c.contact_id];
+  });
+  return deepCopy(results);
 }
 
 /**
@@ -105,7 +342,7 @@ function getContactsByName(firstName, lastName) {
   var criteria = {};
   if (firstName) criteria.first_name = firstName;
   if (lastName) criteria.last_name = lastName;
-  return filterByProperties(loadAllContacts_(), criteria, { exactMatch: false });
+  return filterByProperties(loadPeople_(), criteria, { exactMatch: false });
 }
 
 /**
@@ -123,7 +360,7 @@ function getContactsByRole(role) {
  * @returns {Array} Matching contacts
  */
 function getContactsByDepartment(department) {
-  return filterByProperty(loadAllContacts_(), 'department', department, false);
+  return filterByProperty(loadPeople_(), 'department', department, false);
 }
 
 /**
@@ -132,7 +369,7 @@ function getContactsByDepartment(department) {
  * @returns {Array} Matching contacts
  */
 function getContactsByAgency(agency) {
-  return filterByProperty(loadAllContacts_(), 'agency', agency, false);
+  return filterByProperty(loadPeople_(), 'agency', agency, false);
 }
 
 /**
@@ -163,7 +400,7 @@ function getContactsMultiFilter(criteria) {
   // Map criteria to database field names and define match types
   var dbCriteria = {};
   var exactFields = ['role', 'survey_year']; // These need exact match
-  var partialFields = ['solution_id', 'department', 'agency', 'first_name', 'last_name'];
+  var partialFields = ['solution_id', 'first_name', 'last_name'];
 
   // Rename firstName/lastName to database column names
   if (criteria.firstName) dbCriteria.first_name = criteria.firstName;
@@ -171,13 +408,16 @@ function getContactsMultiFilter(criteria) {
   if (criteria.year) dbCriteria.survey_year = criteria.year;
   if (criteria.solution_id) dbCriteria.solution_id = criteria.solution_id;
   if (criteria.role) dbCriteria.role = criteria.role;
-  if (criteria.department) dbCriteria.department = criteria.department;
-  if (criteria.agency) dbCriteria.agency = criteria.agency;
+
+  // Department/agency filtering via agency_id → resolveAgency_()
+  var deptFilter = criteria.department ? criteria.department.toLowerCase() : '';
+  var agencyFilter = criteria.agency ? criteria.agency.toLowerCase() : '';
 
   // Custom filter to handle mixed exact/partial matching
   var contacts = loadAllContacts_();
   var results = contacts.filter(function(c) {
-    return Object.keys(dbCriteria).every(function(field) {
+    // Check standard field criteria
+    var passesFieldCriteria = Object.keys(dbCriteria).every(function(field) {
       var searchValue = dbCriteria[field];
       if (!searchValue) return true;
 
@@ -192,6 +432,15 @@ function getContactsMultiFilter(criteria) {
         ? normalizedItem === normalizedSearch
         : normalizedItem.includes(normalizedSearch);
     });
+    if (!passesFieldCriteria) return false;
+
+    // Check department/agency via resolveAgency_()
+    if (deptFilter || agencyFilter) {
+      var resolved = resolveAgency_(c.agency_id);
+      if (deptFilter && !(resolved.department_name || '').toLowerCase().includes(deptFilter)) return false;
+      if (agencyFilter && !(resolved.agency_name || '').toLowerCase().includes(agencyFilter)) return false;
+    }
+    return true;
   });
 
   return deepCopy(results);
@@ -207,19 +456,18 @@ function getUniqueContacts(contacts) {
 
   var emailMap = {};
   allContacts.forEach(function(c) {
-    var email = c.email;
+    var email = primaryValue_(c.email);
     if (!email) return;
 
     if (!emailMap[email]) {
+      var resolved = resolveAgency_(c.agency_id);
       emailMap[email] = {
-        email: email,
+        email: c.email,
         first_name: c.first_name || '',
         last_name: c.last_name || '',
-        primary_email: c.primary_email || '',
-        phone: c.phone || '',
-        department: c.department || '',
-        agency: c.agency || '',
-        organization: c.organization || '',
+        agency_id: c.agency_id || '',
+        department: resolved.department_name || '',
+        agency: resolved.agency_name || '',
         // Champion fields
         champion_status: c.champion_status || '',
         relationship_owner: c.relationship_owner || '',
@@ -268,11 +516,14 @@ function getMailingList(solutionPattern) {
   var unique = getUniqueContacts(filtered);
 
   return unique.map(function(c) {
+    var resolved = resolveAgency_(c.agency_id);
     return {
       first_name: c.first_name,
       last_name: c.last_name,
       email: c.email,
-      department: c.department
+      agency_id: c.agency_id || '',
+      department: resolved.department_name || '',
+      agency: resolved.agency_name || ''
     };
   });
 }
@@ -287,23 +538,32 @@ function getMailingList(solutionPattern) {
  * @returns {Array} Solutions with role info
  */
 function getContactSolutions(email) {
-  var contacts = getContactsByEmail(email);
+  // Find person in People tab
+  var people = loadPeople_();
+  var person = null;
+  for (var i = 0; i < people.length; i++) {
+    if (containsValue_(people[i].email, email)) {
+      person = people[i];
+      break;
+    }
+  }
+  if (!person) return [];
 
+  // Get their roles from Roles tab
+  var roles = loadRoles_();
   var solutions = {};
-  contacts.forEach(function(c) {
-    var sol = c.solution_id;
+  roles.forEach(function(r) {
+    if (r.contact_id !== person.contact_id) return;
+    var sol = r.solution_id;
+    if (!sol) return;
     if (!solutions[sol]) {
-      solutions[sol] = {
-        solution_id: sol,
-        roles: [],
-        years: []
-      };
+      solutions[sol] = { solution_id: sol, roles: [], years: [] };
     }
-    if (c.role && !solutions[sol].roles.includes(c.role)) {
-      solutions[sol].roles.push(c.role);
+    if (r.role && !solutions[sol].roles.includes(r.role)) {
+      solutions[sol].roles.push(r.role);
     }
-    if (c.survey_year && !solutions[sol].years.includes(c.survey_year)) {
-      solutions[sol].years.push(c.survey_year);
+    if (r.survey_year && !solutions[sol].years.includes(r.survey_year)) {
+      solutions[sol].years.push(r.survey_year);
     }
   });
 
@@ -318,7 +578,7 @@ function getContactSolutions(email) {
  * @returns {Array} Contacts involved in ALL specified solutions
  */
 function getContactsAcrossSolutions(solutionNames) {
-  var contacts = loadAllContacts_();
+  var joined = loadContactsJoined_();
 
   // Get unique emails per solution
   var solutionEmails = {};
@@ -326,11 +586,12 @@ function getContactsAcrossSolutions(solutionNames) {
     solutionEmails[sol] = [];
   });
 
-  contacts.forEach(function(c) {
+  joined.forEach(function(c) {
+    var pEmail = primaryValue_(c.email);
     solutionNames.forEach(function(sol) {
       if (c.solution_id && normalizeString(c.solution_id).includes(normalizeString(sol))) {
-        if (!solutionEmails[sol].includes(c.email)) {
-          solutionEmails[sol].push(c.email);
+        if (pEmail && !solutionEmails[sol].includes(pEmail)) {
+          solutionEmails[sol].push(pEmail);
         }
       }
     });
@@ -345,10 +606,12 @@ function getContactsAcrossSolutions(solutionNames) {
     });
   }
 
-  // Get full contact info
+  // Build results from joined data (includes solution info)
   var results = [];
   allEmails.forEach(function(email) {
-    var contactRecords = getContactsByEmail(email);
+    var contactRecords = joined.filter(function(c) {
+      return containsValue_(c.email, email);
+    });
     if (contactRecords.length > 0) {
       var unique = getUniqueContacts(contactRecords)[0];
       results.push(unique);
@@ -364,15 +627,15 @@ function getContactsAcrossSolutions(solutionNames) {
  * @returns {Array} Related contacts with shared solution info
  */
 function getRelatedContacts(email) {
-  var myContacts = getContactsByEmail(email);
-  var mySolutions = myContacts.map(function(c) { return c.solution_id; });
+  // Get this person's solutions from Roles tab
+  var mySolutions = getContactSolutions(email).map(function(s) { return s.solution_id; });
 
-  var allContacts = loadAllContacts_();
+  var joined = loadContactsJoined_();
   var relatedEmails = {};
 
-  allContacts.forEach(function(c) {
-    if (c.email === email) return; // Skip self
-    if (mySolutions.includes(c.solution_id)) {
+  joined.forEach(function(c) {
+    if (containsValue_(c.email, email)) return; // Skip self
+    if (c.solution_id && mySolutions.includes(c.solution_id)) {
       if (!relatedEmails[c.email]) {
         relatedEmails[c.email] = {
           email: c.email,
@@ -393,7 +656,6 @@ function getRelatedContacts(email) {
     return r;
   });
 
-  // Sort by most shared solutions
   results.sort(function(a, b) {
     return b.shared_count - a.shared_count;
   });
@@ -418,9 +680,14 @@ function getContactStats() {
   var years = {};
 
   contacts.forEach(function(c) {
-    if (c.email) uniqueEmails[c.email] = true;
+    if (c.email) uniqueEmails[primaryValue_(c.email)] = true;
     if (c.solution_id) solutions[c.solution_id] = (solutions[c.solution_id] || 0) + 1;
-    if (c.department) departments[c.department] = (departments[c.department] || 0) + 1;
+    // Resolve department from agency_id
+    if (c.agency_id) {
+      var resolved = resolveAgency_(c.agency_id);
+      var deptName = resolved.department_name || 'Unknown';
+      departments[deptName] = (departments[deptName] || 0) + 1;
+    }
     if (c.role) roles[c.role] = (roles[c.role] || 0) + 1;
     if (c.survey_year) years[c.survey_year] = (years[c.survey_year] || 0) + 1;
   });
@@ -506,17 +773,20 @@ function getDepartmentParticipation() {
   var depts = {};
 
   contacts.forEach(function(c) {
-    if (!c.department) return;
-    if (!depts[c.department]) {
-      depts[c.department] = {
-        department: c.department,
+    if (!c.agency_id) return;
+    var resolved = resolveAgency_(c.agency_id);
+    var deptName = resolved.department_name;
+    if (!deptName) return;
+    if (!depts[deptName]) {
+      depts[deptName] = {
+        department: deptName,
         unique_emails: {},
         solutions: {}
       };
     }
-    depts[c.department].unique_emails[c.email] = true;
+    if (c.email) depts[deptName].unique_emails[primaryValue_(c.email)] = true;
     if (c.solution_id) {
-      depts[c.department].solutions[c.solution_id] = true;
+      depts[deptName].solutions[c.solution_id] = true;
     }
   });
 
@@ -537,7 +807,7 @@ function getDepartmentParticipation() {
 
 /**
  * Get stakeholder summary for a solution (for dashboard cards)
- * @param {string} solutionId - Solution ID (core_id)
+ * @param {string} solutionId - Solution ID (solution_id)
  * @returns {Object} Summary stats and key contacts
  */
 function getSolutionStakeholderSummary(solutionId) {
@@ -569,7 +839,10 @@ function getSolutionStakeholderSummary(solutionId) {
     total_contacts: unique.length,
     by_role: byRole,
     primary_smes: primarySMEs.slice(0, 5),
-    departments: [...new Set(contacts.map(function(c) { return c.department; }).filter(Boolean))]
+    departments: [...new Set(contacts.map(function(c) {
+      if (!c.agency_id) return '';
+      return resolveAgency_(c.agency_id).department_name || '';
+    }).filter(Boolean))]
   };
 }
 
@@ -630,11 +903,8 @@ var CHAMPION_STATUSES = {
  * @returns {Array} Contacts in this touchpoint stage
  */
 function getContactsByTouchpoint(touchpoint) {
-  var contacts = loadAllContacts_();
-  var results = contacts.filter(function(c) {
-    return c.touchpoint_status === touchpoint;
-  });
-  return deepCopy(results);
+  // touchpoint_status field removed in v4.0 — return empty
+  return [];
 }
 
 /**
@@ -656,11 +926,8 @@ function getContactsByEngagementLevel(level) {
  * @returns {Array} Contacts in this phase
  */
 function getContactsByLifecyclePhase(phase) {
-  var contacts = loadAllContacts_();
-  var results = contacts.filter(function(c) {
-    return c.lifecycle_phase === phase;
-  });
-  return deepCopy(results);
+  // lifecycle_phase field removed in v4.0 — return empty
+  return [];
 }
 
 /**
@@ -668,20 +935,8 @@ function getContactsByLifecyclePhase(phase) {
  * @returns {Object} Count of contacts in each touchpoint
  */
 function getTouchpointPipelineCounts() {
-  var contacts = loadAllContacts_();
-  var counts = {
-    T4: 0, W1: 0, W2: 0, T5: 0, T6: 0, T7: 0, T8: 0, unassigned: 0
-  };
-
-  contacts.forEach(function(c) {
-    if (c.touchpoint_status && counts.hasOwnProperty(c.touchpoint_status)) {
-      counts[c.touchpoint_status]++;
-    } else {
-      counts.unassigned++;
-    }
-  });
-
-  return counts;
+  // touchpoint_status field removed in v4.0 — return zeroes
+  return { T4: 0, W1: 0, W2: 0, T5: 0, T6: 0, T7: 0, T8: 0, unassigned: 0 };
 }
 
 /**
@@ -741,7 +996,8 @@ function getContactsOverdueFollowUp() {
  * @returns {Object} {success: boolean, error?: string}
  */
 function updateContactTouchpoint(email, touchpoint) {
-  return updateContactField_(email, 'touchpoint_status', touchpoint);
+  // touchpoint_status field removed in v4.0 — no-op
+  return { success: true };
 }
 
 /**
@@ -785,35 +1041,40 @@ function updateContactField_(email, fieldName, value) {
       return { success: false, error: 'Email is required' };
     }
 
-    var sheet = getContactsSheet_();
-    var data = sheet.getDataRange().getValues();
-    var headers = data[0];
+    // Route to correct tab based on field type
+    var isPeopleField = PEOPLE_FIELDS_.includes(fieldName) || fieldName === 'email' || fieldName === 'contact_id';
+    var sheetInfo = isPeopleField ? getPeopleSheetForWrite_() : getRolesSheetForWrite_();
+    var sheet = sheetInfo.sheet;
+    var headers = sheetInfo.headers;
 
     var emailColIndex = headers.indexOf('email');
     var fieldColIndex = headers.indexOf(fieldName);
 
-    if (emailColIndex === -1) {
-      return { success: false, error: 'email column not found in database' };
+    if (emailColIndex === -1 && isPeopleField) {
+      return { success: false, error: 'email column not found in People tab' };
     }
     if (fieldColIndex === -1) {
-      return { success: false, error: fieldName + ' column not found in database' };
+      return { success: false, error: fieldName + ' column not found in ' + (isPeopleField ? 'People' : 'Roles') + ' tab' };
     }
 
-    var updated = false;
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][emailColIndex] && data[i][emailColIndex].toLowerCase() === email.toLowerCase()) {
-        sheet.getRange(i + 1, fieldColIndex + 1).setValue(value);
-        updated = true;
-        // Don't break - update all rows for this email
+    // People tab: find by email (one row per person)
+    if (isPeopleField) {
+      var data = sheet.getDataRange().getValues();
+      var updated = false;
+      for (var i = 1; i < data.length; i++) {
+        if (containsValue_(data[i][emailColIndex], email)) {
+          sheet.getRange(i + 1, fieldColIndex + 1).setValue(value);
+          updated = true;
+          break; // People tab has one row per email
+        }
+      }
+      if (!updated) {
+        return { success: false, error: 'Contact not found: ' + email };
       }
     }
 
-    if (updated) {
-      clearContactsCache_(); // Clear cache
-      return { success: true };
-    } else {
-      return { success: false, error: 'Contact not found: ' + email };
-    }
+    clearContactsCache_();
+    return { success: true };
   } catch (e) {
     Logger.log('Error in updateContactField_: ' + e);
     return { success: false, error: 'Failed to update contact: ' + e.message };
@@ -830,30 +1091,23 @@ function updateContactField_(email, fieldName, value) {
  * @returns {Array} Matching contacts
  */
 function searchContacts(query) {
-  var contacts = loadAllContacts_();
   if (!query || query.length < 2) return [];
-
+  var people = loadPeople_();
   var queryLower = query.toLowerCase();
 
-  var results = contacts.filter(function(c) {
+  var results = people.filter(function(c) {
     var fullName = ((c.first_name || '') + ' ' + (c.last_name || '')).toLowerCase();
     var email = (c.email || '').toLowerCase();
-    var org = (c.organization || '').toLowerCase();
+    var resolved = resolveAgency_(c.agency_id);
+    var agencyName = (resolved.agency_name || '').toLowerCase();
 
     return fullName.includes(queryLower) ||
            email.includes(queryLower) ||
-           org.includes(queryLower);
+           agencyName.includes(queryLower);
   });
 
-  // Remove duplicates by email
-  var seen = {};
-  var unique = results.filter(function(c) {
-    if (!c.email || seen[c.email.toLowerCase()]) return false;
-    seen[c.email.toLowerCase()] = true;
-    return true;
-  });
-
-  return deepCopy(unique.slice(0, 50));
+  // People tab is already unique by email — no dedup needed
+  return deepCopy(results.slice(0, 50));
 }
 
 /**
@@ -878,27 +1132,28 @@ function updateContactAgency(email, agencyId) {
  */
 function createContact(contactData) {
   try {
-    // Validate required fields
     if (!contactData.email) {
       return { success: false, error: 'Email is required' };
     }
-    // First name and last name are optional for quick add
 
-    var sheet = getContactsSheet_();
-    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    var sheetInfo = getPeopleSheetForWrite_();
+    var sheet = sheetInfo.sheet;
+    var headers = sheetInfo.headers;
 
-    // Generate contact_id
-    var contactId = 'CON_' + new Date().getTime();
+    // Generate contact_id: CON_ + first 5 chars of first name + first 3 chars of last name
+    var firstName = (contactData.first_name || '').trim();
+    var lastName = (contactData.last_name || '').trim();
+    var contactId = 'CON_' + firstName.substring(0, 5).toLowerCase() + lastName.substring(0, 3).toLowerCase();
     contactData.contact_id = contactId;
-    contactData.created_at = new Date().toISOString();
+    contactData.last_updated = new Date().toISOString().split('T')[0];
 
     // Normalize email
     contactData.email = contactData.email.toLowerCase().trim();
 
-    // Check if email already exists
-    var contacts = loadAllContacts_();
-    var existing = contacts.find(function(c) {
-      return c.email && c.email.toLowerCase() === contactData.email;
+    // Check if email already exists in People tab
+    var people = loadPeople_();
+    var existing = people.find(function(c) {
+      return containsValue_(c.email, contactData.email);
     });
 
     if (existing) {
@@ -912,13 +1167,13 @@ function createContact(contactData) {
       };
     }
 
-    // Build row from headers
+    // Build row from People tab headers
     var newRow = headers.map(function(header) {
       return contactData[header] !== undefined ? contactData[header] : '';
     });
 
     sheet.appendRow(newRow);
-    clearContactsCache_(); // Clear cache
+    clearContactsCache_();
 
     return {
       success: true,
@@ -939,37 +1194,39 @@ function createContact(contactData) {
  */
 function createContactForAgency(contactData) {
   try {
-    var sheet = getContactsSheet_();
-    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    var sheetInfo = getPeopleSheetForWrite_();
+    var sheet = sheetInfo.sheet;
+    var headers = sheetInfo.headers;
 
-    // Generate contact_id
-    var contactId = 'CON_' + new Date().getTime();
+    // Generate contact_id: CON_ + first 5 chars of first name + first 3 chars of last name
+    var firstName = (contactData.first_name || '').trim();
+    var lastName = (contactData.last_name || '').trim();
+    var contactId = 'CON_' + firstName.substring(0, 5).toLowerCase() + lastName.substring(0, 3).toLowerCase();
     contactData.contact_id = contactId;
-    contactData.created_at = new Date().toISOString();
+    contactData.last_updated = new Date().toISOString().split('T')[0];
 
     // Normalize email
     if (contactData.email) {
       contactData.email = contactData.email.toLowerCase().trim();
     }
 
-    // Check if email already exists
-    var contacts = loadAllContacts_();
-    var existing = contacts.find(function(c) {
-      return c.email && c.email.toLowerCase() === contactData.email;
+    // Check if email already exists in People tab
+    var people = loadPeople_();
+    var existing = people.find(function(c) {
+      return containsValue_(c.email, contactData.email);
     });
     if (existing) {
-      // Update existing contact's agency instead
       updateContactField_(contactData.email, 'agency_id', contactData.agency_id);
       return { success: true, message: 'Updated existing contact', contact_id: existing.contact_id };
     }
 
-    // Build row from headers
+    // Build row from People tab headers
     var newRow = headers.map(function(header) {
       return contactData[header] !== undefined ? contactData[header] : '';
     });
 
     sheet.appendRow(newRow);
-    clearContactsCache_(); // Clear cache
+    clearContactsCache_();
 
     return { success: true, contact_id: contactId };
   } catch (e) {
@@ -982,36 +1239,14 @@ function createContactForAgency(contactData) {
  * @returns {Object} Comprehensive SEP statistics
  */
 function getSEPPipelineOverview() {
-  var contacts = loadAllContacts_();
-
-  // Get unique contacts
-  var uniqueEmails = {};
-  contacts.forEach(function(c) {
-    if (c.email) uniqueEmails[c.email] = c;
-  });
-  var uniqueContacts = Object.values(uniqueEmails);
-
-  // Touchpoint counts
-  var touchpointCounts = { T4: 0, W1: 0, W2: 0, T5: 0, T6: 0, T7: 0, T8: 0 };
-  uniqueContacts.forEach(function(c) {
-    if (c.touchpoint_status && touchpointCounts.hasOwnProperty(c.touchpoint_status)) {
-      touchpointCounts[c.touchpoint_status]++;
-    }
-  });
+  // People tab is already one row per person — no dedup needed
+  var people = loadPeople_();
 
   // Engagement level counts
   var engagementCounts = {};
-  uniqueContacts.forEach(function(c) {
+  people.forEach(function(c) {
     if (c.engagement_level) {
       engagementCounts[c.engagement_level] = (engagementCounts[c.engagement_level] || 0) + 1;
-    }
-  });
-
-  // Lifecycle phase counts
-  var phaseCounts = {};
-  uniqueContacts.forEach(function(c) {
-    if (c.lifecycle_phase) {
-      phaseCounts[c.lifecycle_phase] = (phaseCounts[c.lifecycle_phase] || 0) + 1;
     }
   });
 
@@ -1025,7 +1260,7 @@ function getSEPPipelineOverview() {
   var overdueFollowUp = 0;
   var thisWeekFollowUp = 0;
 
-  uniqueContacts.forEach(function(c) {
+  people.forEach(function(c) {
     if (c.next_scheduled_contact) {
       var nextDate = new Date(c.next_scheduled_contact);
       if (nextDate < today) {
@@ -1038,11 +1273,9 @@ function getSEPPipelineOverview() {
   });
 
   return {
-    total_contacts: uniqueContacts.length,
-    total_agencies: countUniqueAgencies_(uniqueContacts),
-    touchpoint_pipeline: touchpointCounts,
+    total_contacts: people.length,
+    total_agencies: countUniqueAgencies_(people),
     engagement_levels: engagementCounts,
-    lifecycle_phases: phaseCounts,
     follow_ups: {
       overdue: overdueFollowUp,
       this_week: thisWeekFollowUp,
@@ -1059,7 +1292,6 @@ function countUniqueAgencies_(contacts) {
   var agencies = {};
   contacts.forEach(function(c) {
     if (c.agency_id) agencies[c.agency_id] = true;
-    else if (c.agency) agencies[c.agency] = true;
   });
   return Object.keys(agencies).length;
 }
@@ -1071,28 +1303,26 @@ function countUniqueAgencies_(contacts) {
 function getSEPPipelineContacts() {
   var contacts = loadAllContacts_();
 
-  // Dedupe by email and extract SEP-relevant data
+  // Dedupe by primary email and extract SEP-relevant data
   var emailMap = {};
   contacts.forEach(function(c) {
-    var email = c.email;
+    var email = primaryValue_(c.email);
     if (!email) return;
 
     if (!emailMap[email]) {
+      var resolved = resolveAgency_(c.agency_id);
       emailMap[email] = {
-        email: email,
+        email: c.email,
         first_name: c.first_name,
         last_name: c.last_name,
-        department: c.department,
-        agency: c.agency,
-        agency_id: c.agency_id,
+        agency_id: c.agency_id || '',
+        department: resolved.department_name || '',
+        agency: resolved.agency_name || '',
         title: c.title,
         region: c.region,
-        touchpoint_status: c.touchpoint_status,
-        lifecycle_phase: c.lifecycle_phase,
         engagement_level: c.engagement_level,
         last_contact_date: c.last_contact_date,
         next_scheduled_contact: c.next_scheduled_contact,
-        relationship_notes: c.relationship_notes,
         // Champion fields
         champion_status: c.champion_status,
         relationship_owner: c.relationship_owner,
@@ -1109,11 +1339,11 @@ function getSEPPipelineContacts() {
 
   var results = Object.values(emailMap);
 
-  // Sort by touchpoint then by name
-  var touchpointOrder = ['T4', 'W1', 'W2', 'T5', 'T6', 'T7', 'T8'];
+  // Sort by engagement level then by name
+  var levelOrder = ['CoOwners', 'Collaborate', 'Info & Feedback', 'Interested', 'Could benefit'];
   results.sort(function(a, b) {
-    var aOrder = touchpointOrder.indexOf(a.touchpoint_status);
-    var bOrder = touchpointOrder.indexOf(b.touchpoint_status);
+    var aOrder = levelOrder.indexOf(a.engagement_level);
+    var bOrder = levelOrder.indexOf(b.engagement_level);
     if (aOrder === -1) aOrder = 99;
     if (bOrder === -1) bOrder = 99;
     if (aOrder !== bOrder) return aOrder - bOrder;
@@ -1183,17 +1413,15 @@ function getChampionStatusOptions() {
  * @returns {Array} Contacts with this champion status
  */
 function getChampions(status) {
-  var contacts = loadAllContacts_();
+  var people = loadPeople_();
   var results;
 
   if (status) {
-    // Filter by specific status
-    results = contacts.filter(function(c) {
+    results = people.filter(function(c) {
       return c.champion_status === status;
     });
   } else {
-    // Return all champions (any non-empty status)
-    results = contacts.filter(function(c) {
+    results = people.filter(function(c) {
       return c.champion_status && c.champion_status.trim() !== '';
     });
   }
@@ -1207,10 +1435,10 @@ function getChampions(status) {
  * @returns {Array} Contacts owned by this team member
  */
 function getChampionsByOwner(ownerEmail) {
-  var contacts = loadAllContacts_();
+  var people = loadPeople_();
   var emailLower = (ownerEmail || '').toLowerCase().trim();
 
-  var results = contacts.filter(function(c) {
+  var results = people.filter(function(c) {
     return c.relationship_owner &&
            c.relationship_owner.toLowerCase().trim() === emailLower;
   });
@@ -1223,8 +1451,8 @@ function getChampionsByOwner(ownerEmail) {
  * @returns {Object} Statistics about champions by status and owner
  */
 function getChampionStats() {
-  var contacts = loadAllContacts_();
-  var champions = contacts.filter(function(c) {
+  var people = loadPeople_();
+  var champions = people.filter(function(c) {
     return c.champion_status && c.champion_status.trim() !== '';
   });
 

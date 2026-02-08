@@ -231,7 +231,7 @@ function getConfigSheet_() {
     throw new Error('CONFIG_SHEET_ID not set in script properties. Go to Project Settings > Script Properties and add CONFIG_SHEET_ID with the MO-DB_Config sheet ID.');
   }
   var ss = SpreadsheetApp.openById(configSheetId);
-  return ss.getSheets()[0]; // First sheet contains config
+  return ss.getSheetByName('Config') || ss.getSheets()[0];
 }
 
 /**

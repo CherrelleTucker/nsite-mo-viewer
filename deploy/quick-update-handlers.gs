@@ -638,7 +638,7 @@ function getSolutionNames() {
     var solutionsSheetId = getConfigValue('SOLUTIONS_SHEET_ID');
     if (solutionsSheetId) {
       var ss = SpreadsheetApp.openById(solutionsSheetId);
-      var sheet = ss.getSheets()[0];
+      var sheet = ss.getSheetByName('Core') || ss.getSheets()[0];
       var data = sheet.getDataRange().getValues();
 
       // Find solution_id column (should be first column)

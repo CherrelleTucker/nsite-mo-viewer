@@ -1,42 +1,211 @@
 /**
  * MO-APIs Library - Agencies API
  * ===============================
- * Organization hierarchy and agency profile management
- * for the Stakeholder Engagement Pipeline
+ * Organization hierarchy and agency profile management.
+ * Three-level hierarchy: Departments → Agencies → Organizations
+ *
+ * DATABASE STRUCTURE (v4.0):
+ * MO-DB_Agencies is a multi-tab Google Sheet:
+ *   - "Departments" tab: One row per federal department (~15 rows)
+ *   - "Agencies" tab: One row per agency with department_id FK (~45 rows)
+ *   - "Organizations" tab: One row per sub-unit with agency_id FK (variable)
  *
  * Part of MO-APIs Library - shared data access layer
  * Requires: config-helpers.gs, contacts-api.gs (for getAgencyContacts)
  */
 
 // ============================================================================
-// CONFIGURATION
+// DATA ACCESS — Multi-Tab Loading
 // ============================================================================
 
-// Uses shared utilities from config-helpers.gs:
-// - loadSheetData_() for cached data loading
-// - getSheetForWrite_() for write operations
-// - filterByProperty(), countByField(), getById() for queries
-// - deepCopy() for safe object copying
+var AGENCIES_CONFIG_KEY = 'AGENCIES_SHEET_ID';
 
 /**
- * Load all agencies into memory for fast querying
- * Uses shared loadSheetData_() with filtering for valid records
+ * Load all departments from the Departments tab.
+ * @returns {Array} Department records
+ */
+function loadDepartments_() {
+  return loadSheetTab_(AGENCIES_CONFIG_KEY, 'Departments', '_departmentsCache');
+}
+
+/**
+ * Load all agencies from the Agencies tab.
+ * Filters to only records with a valid agency_id.
+ * @returns {Array} Agency records
  */
 function loadAllAgencies_() {
-  var allData = loadSheetData_('AGENCIES_SHEET_ID', '_agencies');
-  // Filter to only include records with agency_id
+  var allData = loadSheetTab_(AGENCIES_CONFIG_KEY, 'Agencies', '_agenciesCache');
   return allData.filter(function(a) { return a.agency_id; });
 }
 
 /**
- * Clear agencies cache (call after mutations)
+ * Load all organizations from the Organizations tab.
+ * @returns {Array} Organization records
+ */
+function loadOrganizations_() {
+  return loadSheetTab_(AGENCIES_CONFIG_KEY, 'Organizations', '_organizationsCache');
+}
+
+/**
+ * Clear all agencies caches (Departments, Agencies, Organizations, resolver).
  */
 function clearAgenciesCache_() {
-  clearSheetDataCache('_agencies');
+  clearSheetDataCache('_departmentsCache');
+  clearSheetDataCache('_agenciesCache');
+  clearSheetDataCache('_organizationsCache');
+  clearSheetDataCache('_agencyResolverCache');
 }
 
 // ============================================================================
-// CORE CRUD OPERATIONS
+// AGENCY RESOLVER — Central lookup for agency_id → display names
+// ============================================================================
+
+/**
+ * Build cached lookup map: agency_id → { agency_name, department_name, ... }
+ * Used by contacts-api, outreach-api, and other APIs to resolve agency_id FKs
+ * to human-readable names without loading the full agencies database.
+ * @returns {Object} Map of agency_id → resolved info
+ */
+function buildAgencyResolver_() {
+  var cacheKey = '_agencyResolverCache';
+  if (_sheetDataCache[cacheKey]) return _sheetDataCache[cacheKey];
+
+  var agencies = loadAllAgencies_();
+
+  // Build lookup map by agency_id for parent resolution
+  var agencyMap = {};
+  agencies.forEach(function(a) { agencyMap[a.agency_id] = a; });
+
+  var resolver = {};
+  agencies.forEach(function(a) {
+    // Walk parent_department_id to find the top-level parent ("department")
+    var parent = agencyMap[a.parent_department_id] || {};
+    resolver[a.agency_id] = {
+      agency_name: a.name || a.full_name || '',
+      agency_abbreviation: a.abbreviation || '',
+      agency_full_name: a.full_name || '',
+      department_name: parent.name || parent.full_name || '',
+      department_abbreviation: parent.abbreviation || '',
+      department_id: a.parent_department_id || ''
+    };
+  });
+
+  _sheetDataCache[cacheKey] = resolver;
+  return resolver;
+}
+
+/**
+ * Resolve a single agency_id to display info.
+ * @param {string} agencyId - Agency ID to resolve
+ * @returns {Object} { agency_name, agency_abbreviation, department_name, department_abbreviation, department_id }
+ */
+function resolveAgency_(agencyId) {
+  if (!agencyId) return { agency_name: '', department_name: '', agency_abbreviation: '', department_abbreviation: '', department_id: '' };
+  var resolver = buildAgencyResolver_();
+  return resolver[agencyId] || { agency_name: '', department_name: '', agency_abbreviation: '', department_abbreviation: '', department_id: '' };
+}
+
+// ============================================================================
+// DEPARTMENT CRUD
+// ============================================================================
+
+/**
+ * Get all departments
+ * @returns {Array} All department records
+ */
+function getAllDepartments() {
+  return deepCopy(loadDepartments_());
+}
+
+/**
+ * Get department by ID
+ * @param {string} departmentId - Department ID
+ * @returns {Object|null} Department record or null
+ */
+function getDepartmentById(departmentId) {
+  return getById(loadDepartments_(), 'department_id', departmentId);
+}
+
+/**
+ * Get agencies belonging to a department
+ * @param {string} departmentId - Department ID
+ * @returns {Array} Agencies in this department
+ */
+function getAgenciesByDepartment(departmentId) {
+  return filterByProperty(loadAllAgencies_(), 'parent_department_id', departmentId, true);
+}
+
+/**
+ * Create a new department
+ * @param {Object} deptData - Department data
+ * @returns {Object} {success, data, error}
+ */
+function createDepartment(deptData) {
+  try {
+    if (!deptData.name || !String(deptData.name).trim()) {
+      return { success: false, error: 'Department name is required' };
+    }
+
+    var sheetInfo = getSheetTabForWrite_(AGENCIES_CONFIG_KEY, 'Departments');
+    var sheet = sheetInfo.sheet;
+    var headers = sheetInfo.headers;
+
+    if (!deptData.department_id) {
+      var abbr = (deptData.abbreviation || deptData.name || '').substring(0, 5).toLowerCase();
+      deptData.department_id = 'DEP_' + abbr;
+    }
+
+    var newRow = headers.map(function(header) {
+      return deptData[header] !== undefined ? deptData[header] : '';
+    });
+
+    sheet.appendRow(newRow);
+    clearAgenciesCache_();
+
+    return { success: true, data: deptData };
+  } catch (e) {
+    Logger.log('Error in createDepartment: ' + e.message);
+    return { success: false, error: 'Failed to create department: ' + e.message };
+  }
+}
+
+/**
+ * Update a department
+ * @param {string} departmentId - Department ID
+ * @param {Object} updates - Fields to update
+ * @returns {Object} {success, data, error}
+ */
+function updateDepartment(departmentId, updates) {
+  try {
+    if (!departmentId) {
+      return { success: false, error: 'Department ID is required' };
+    }
+
+    var sheetInfo = getSheetTabForWrite_(AGENCIES_CONFIG_KEY, 'Departments');
+    var sheet = sheetInfo.sheet;
+    var headers = sheetInfo.headers;
+
+    var rowIndex = findRowByField_(sheet, headers, 'department_id', departmentId);
+    if (rowIndex === -1) {
+      return { success: false, error: 'Department not found: ' + departmentId };
+    }
+
+    headers.forEach(function(header, colIndex) {
+      if (updates.hasOwnProperty(header) && header !== 'department_id') {
+        sheet.getRange(rowIndex, colIndex + 1).setValue(updates[header]);
+      }
+    });
+
+    clearAgenciesCache_();
+    return { success: true, data: getDepartmentById(departmentId) };
+  } catch (e) {
+    Logger.log('Error in updateDepartment: ' + e.message);
+    return { success: false, error: 'Failed to update department: ' + e.message };
+  }
+}
+
+// ============================================================================
+// AGENCY CRUD (updated for multi-tab)
 // ============================================================================
 
 /**
@@ -44,8 +213,7 @@ function clearAgenciesCache_() {
  * @returns {Array} All agency records
  */
 function getAllAgencies() {
-  var agencies = loadAllAgencies_();
-  return deepCopy(agencies);
+  return deepCopy(loadAllAgencies_());
 }
 
 /**
@@ -60,30 +228,26 @@ function getAgencyById(agencyId) {
 /**
  * Create a new agency
  * @param {Object} agencyData - Agency data
- * @returns {Object} {success: boolean, data?: Object, error?: string}
+ * @returns {Object} {success, data, error}
  */
 function createAgency(agencyData) {
   try {
-    // Validate required fields
     if (!agencyData.name || !String(agencyData.name).trim()) {
       return { success: false, error: 'Agency name is required' };
     }
 
-    var sheetInfo = getSheetForWrite_('AGENCIES_SHEET_ID');
+    var sheetInfo = getSheetTabForWrite_(AGENCIES_CONFIG_KEY, 'Agencies');
     var sheet = sheetInfo.sheet;
     var headers = sheetInfo.headers;
 
-    // Generate agency_id if not provided
     if (!agencyData.agency_id) {
       agencyData.agency_id = 'AGY_' + new Date().getTime();
     }
 
-    // Set timestamps
     var now = new Date().toISOString();
     agencyData.created_at = now;
     agencyData.updated_at = now;
 
-    // Build row from headers
     var newRow = headers.map(function(header) {
       return agencyData[header] !== undefined ? agencyData[header] : '';
     });
@@ -102,7 +266,7 @@ function createAgency(agencyData) {
  * Update an existing agency
  * @param {string} agencyId - Agency ID to update
  * @param {Object} updates - Fields to update
- * @returns {Object} {success: boolean, data?: Object, error?: string}
+ * @returns {Object} {success, data, error}
  */
 function updateAgency(agencyId, updates) {
   try {
@@ -110,20 +274,17 @@ function updateAgency(agencyId, updates) {
       return { success: false, error: 'Agency ID is required' };
     }
 
-    var sheetInfo = getSheetForWrite_('AGENCIES_SHEET_ID');
+    var sheetInfo = getSheetTabForWrite_(AGENCIES_CONFIG_KEY, 'Agencies');
     var sheet = sheetInfo.sheet;
     var headers = sheetInfo.headers;
 
-    // Find row to update using shared utility
     var rowIndex = findRowByField_(sheet, headers, 'agency_id', agencyId);
     if (rowIndex === -1) {
       return { success: false, error: 'Agency not found: ' + agencyId };
     }
 
-    // Update timestamp
     updates.updated_at = new Date().toISOString();
 
-    // Update cells (rowIndex is already 1-indexed from findRowByField_)
     headers.forEach(function(header, colIndex) {
       if (updates.hasOwnProperty(header) && header !== 'agency_id' && header !== 'created_at') {
         sheet.getRange(rowIndex, colIndex + 1).setValue(updates[header]);
@@ -143,7 +304,7 @@ function updateAgency(agencyId, updates) {
 /**
  * Delete an agency
  * @param {string} agencyId - Agency ID to delete
- * @returns {Object} {success: boolean, error?: string}
+ * @returns {Object} {success, error}
  */
 function deleteAgency(agencyId) {
   try {
@@ -151,11 +312,10 @@ function deleteAgency(agencyId) {
       return { success: false, error: 'Agency ID is required' };
     }
 
-    var sheetInfo = getSheetForWrite_('AGENCIES_SHEET_ID');
+    var sheetInfo = getSheetTabForWrite_(AGENCIES_CONFIG_KEY, 'Agencies');
     var sheet = sheetInfo.sheet;
     var headers = sheetInfo.headers;
 
-    // Find row using shared utility
     var rowIndex = findRowByField_(sheet, headers, 'agency_id', agencyId);
     if (rowIndex === -1) {
       return { success: false, error: 'Agency not found: ' + agencyId };
@@ -171,11 +331,113 @@ function deleteAgency(agencyId) {
 }
 
 // ============================================================================
-// HIERARCHY QUERIES
+// ORGANIZATION CRUD
 // ============================================================================
 
 /**
- * Get root-level agencies (no parent)
+ * Get all organizations
+ * @returns {Array} All organization records
+ */
+function getAllOrganizations() {
+  return deepCopy(loadOrganizations_());
+}
+
+/**
+ * Get organization by ID
+ * @param {string} orgId - Organization ID
+ * @returns {Object|null} Organization record or null
+ */
+function getOrganizationById(orgId) {
+  return getById(loadOrganizations_(), 'org_id', orgId);
+}
+
+/**
+ * Get organizations belonging to an agency
+ * @param {string} agencyId - Agency ID
+ * @returns {Array} Organizations under this agency
+ */
+function getOrganizationsByAgency(agencyId) {
+  return filterByProperty(loadOrganizations_(), 'agency_id', agencyId, true);
+}
+
+/**
+ * Create a new organization
+ * @param {Object} orgData - Organization data
+ * @returns {Object} {success, data, error}
+ */
+function createOrganization(orgData) {
+  try {
+    if (!orgData.name || !String(orgData.name).trim()) {
+      return { success: false, error: 'Organization name is required' };
+    }
+    if (!orgData.agency_id) {
+      return { success: false, error: 'agency_id is required' };
+    }
+
+    var sheetInfo = getSheetTabForWrite_(AGENCIES_CONFIG_KEY, 'Organizations');
+    var sheet = sheetInfo.sheet;
+    var headers = sheetInfo.headers;
+
+    if (!orgData.org_id) {
+      var abbr = (orgData.abbreviation || orgData.name || '').substring(0, 8).toLowerCase().replace(/\s+/g, '');
+      orgData.org_id = 'ORG_' + abbr;
+    }
+
+    var newRow = headers.map(function(header) {
+      return orgData[header] !== undefined ? orgData[header] : '';
+    });
+
+    sheet.appendRow(newRow);
+    clearAgenciesCache_();
+
+    return { success: true, data: orgData };
+  } catch (e) {
+    Logger.log('Error in createOrganization: ' + e.message);
+    return { success: false, error: 'Failed to create organization: ' + e.message };
+  }
+}
+
+/**
+ * Update an organization
+ * @param {string} orgId - Organization ID
+ * @param {Object} updates - Fields to update
+ * @returns {Object} {success, data, error}
+ */
+function updateOrganization(orgId, updates) {
+  try {
+    if (!orgId) {
+      return { success: false, error: 'Organization ID is required' };
+    }
+
+    var sheetInfo = getSheetTabForWrite_(AGENCIES_CONFIG_KEY, 'Organizations');
+    var sheet = sheetInfo.sheet;
+    var headers = sheetInfo.headers;
+
+    var rowIndex = findRowByField_(sheet, headers, 'org_id', orgId);
+    if (rowIndex === -1) {
+      return { success: false, error: 'Organization not found: ' + orgId };
+    }
+
+    headers.forEach(function(header, colIndex) {
+      if (updates.hasOwnProperty(header) && header !== 'org_id') {
+        sheet.getRange(rowIndex, colIndex + 1).setValue(updates[header]);
+      }
+    });
+
+    clearAgenciesCache_();
+    return { success: true, data: getOrganizationById(orgId) };
+  } catch (e) {
+    Logger.log('Error in updateOrganization: ' + e.message);
+    return { success: false, error: 'Failed to update organization: ' + e.message };
+  }
+}
+
+// ============================================================================
+// HIERARCHY QUERIES — 3-level: Departments → Agencies → Organizations
+// ============================================================================
+
+/**
+ * Get root-level agencies (no parent_agency_id within the Agencies tab)
  * @returns {Array} Top-level agencies
  */
 function getRootAgencies() {
@@ -196,67 +458,69 @@ function getSubAgencies(parentId) {
 }
 
 /**
- * Get full agency hierarchy as a tree structure
- * @returns {Array} Hierarchical agency tree
+ * Get full 3-level hierarchy: Departments → Agencies → Organizations
+ * @returns {Array} Hierarchical tree with departments at root
  */
 function getAgencyHierarchy() {
   var agencies = loadAllAgencies_();
 
-  // Build lookup map
+  // Build map of all agencies by agency_id
   var agencyMap = {};
   agencies.forEach(function(a) {
     agencyMap[a.agency_id] = deepCopy(a);
     agencyMap[a.agency_id].children = [];
   });
 
-  // Build tree
+  // Build tree: attach children to parents via parent_department_id
   var roots = [];
   agencies.forEach(function(a) {
-    if (a.parent_agency_id && agencyMap[a.parent_agency_id]) {
-      agencyMap[a.parent_agency_id].children.push(agencyMap[a.agency_id]);
+    if (a.parent_department_id && agencyMap[a.parent_department_id]) {
+      agencyMap[a.parent_department_id].children.push(agencyMap[a.agency_id]);
     } else {
       roots.push(agencyMap[a.agency_id]);
     }
   });
 
-  // Sort roots and children by name
+  // Sort everything by name
   function sortByName(arr) {
     arr.sort(function(a, b) {
       return (a.name || '').localeCompare(b.name || '');
     });
-    arr.forEach(function(item) {
-      if (item.children && item.children.length > 0) {
-        sortByName(item.children);
-      }
-    });
   }
 
   sortByName(roots);
+  roots.forEach(function(node) {
+    sortByName(node.children);
+    node.children.forEach(function(child) {
+      sortByName(child.children);
+    });
+  });
 
   return roots;
 }
 
 /**
- * Get agency ancestry (path to root)
+ * Get agency ancestry (path from agency up to department)
  * @param {string} agencyId - Agency ID
- * @returns {Array} Array of agencies from current to root
+ * @returns {Array} Array from [agency, ...parent agencies, department]
  */
 function getAgencyAncestry(agencyId) {
   var agencies = loadAllAgencies_();
   var agencyMap = {};
-  agencies.forEach(function(a) {
-    agencyMap[a.agency_id] = a;
-  });
+  agencies.forEach(function(a) { agencyMap[a.agency_id] = a; });
 
   var ancestry = [];
   var current = agencyMap[agencyId];
+  var visited = {};
 
-  while (current) {
+  // Walk up the parent_department_id chain
+  while (current && !visited[current.agency_id]) {
+    visited[current.agency_id] = true;
     ancestry.push(deepCopy(current));
-    if (current.parent_agency_id && agencyMap[current.parent_agency_id]) {
-      current = agencyMap[current.parent_agency_id];
+    if (current.parent_department_id && agencyMap[current.parent_department_id]) {
+      current = agencyMap[current.parent_department_id];
     } else {
-      current = null;
+      break;
     }
   }
 
@@ -313,16 +577,17 @@ function getAgenciesByGeographicScope(scope) {
 }
 
 // ============================================================================
-// CONTACT INTEGRATION
+// CONTACT INTEGRATION — Uses People tab (agency_id FK)
 // ============================================================================
 
 /**
- * Get contacts associated with an agency
+ * Get contacts associated with an agency.
+ * Queries the People tab directly (agency_id is a person-level field).
  * @param {string} agencyId - Agency ID
- * @returns {Array} Contacts linked to this agency
+ * @returns {Array} People linked to this agency
  */
 function getAgencyContacts(agencyId) {
-  return filterByProperty(loadAllContacts_(), 'agency_id', agencyId, true);
+  return filterByProperty(loadPeople_(), 'agency_id', agencyId, true);
 }
 
 /**
@@ -332,22 +597,19 @@ function getAgencyContacts(agencyId) {
  */
 function getAgencyStats(agencyId) {
   var agencies = loadAllAgencies_();
-  var allContacts = loadAllContacts_();
+  var people = loadPeople_();
 
   function calcStats(agency) {
-    var agencyContacts = allContacts.filter(function(c) {
-      return c.agency_id === agency.agency_id;
+    var agencyPeople = people.filter(function(p) {
+      return p.agency_id === agency.agency_id;
     });
-
-    // Use shared utilities for deduplication and counting
-    var uniqueContacts = deduplicateByField(agencyContacts, 'email', true);
 
     return {
       agency_id: agency.agency_id,
       agency_name: agency.name,
-      total_contacts: uniqueContacts.length,
-      by_touchpoint: countByField(agencyContacts, 'touchpoint_status'),
-      by_engagement: countByField(agencyContacts, 'engagement_level')
+      parent_department_id: agency.parent_department_id || '',
+      total_contacts: agencyPeople.length,
+      by_engagement: countByField(agencyPeople, 'engagement_level')
     };
   }
 
@@ -357,10 +619,7 @@ function getAgencyStats(agencyId) {
     return calcStats(agency);
   }
 
-  // Return stats for all agencies
-  return agencies.map(function(a) {
-    return calcStats(a);
-  });
+  return agencies.map(function(a) { return calcStats(a); });
 }
 
 // ============================================================================
@@ -373,9 +632,13 @@ function getAgencyStats(agencyId) {
  */
 function getAgenciesOverview() {
   var agencies = loadAllAgencies_();
+  var departments = loadDepartments_();
+  var organizations = loadOrganizations_();
 
   return {
+    total_departments: departments.length,
     total_agencies: agencies.length,
+    total_organizations: organizations.length,
     root_agencies: agencies.filter(function(a) { return !a.parent_agency_id; }).length,
     by_type: countByField(agencies, 'type'),
     by_relationship_status: countByField(agencies, 'relationship_status'),
@@ -389,7 +652,6 @@ function getAgenciesOverview() {
 
 /**
  * Get engagement statistics for an agency
- * Aggregates engagements from all contacts at this agency
  * @param {string} agencyId - Agency ID
  * @returns {Object} Engagement stats with heat status
  */
@@ -411,7 +673,6 @@ function getAgencyEngagementStats(agencyId) {
 
   var engagements = loadAllEngagements_();
 
-  // Filter engagements involving any contact at this agency
   var agencyEngagements = engagements.filter(function(e) {
     if (!e.participants) return false;
     var participants = e.participants.split(',').map(function(p) { return p.trim().toLowerCase(); });
@@ -427,31 +688,25 @@ function getAgencyEngagementStats(agencyId) {
     }
   });
 
-  // Calculate days since last engagement
   var daysSince = null;
   if (lastDate) {
-    var now = new Date();
-    daysSince = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24));
+    daysSince = Math.floor((new Date() - lastDate) / (1000 * 60 * 60 * 24));
   }
 
-  // Determine heat status
   var heatStatus = 'cold';
   if (daysSince !== null) {
     if (daysSince <= 30) heatStatus = 'hot';
     else if (daysSince <= 90) heatStatus = 'warm';
   }
 
-  // Use shared utility for activity_type counting
   var byType = countByField(agencyEngagements, 'activity_type');
 
-  // Complex aggregation for comma-separated and derived fields
   var bySolution = {};
   var byMonth = {};
   var solutionsSet = {};
   var engagedContactEmails = {};
 
   agencyEngagements.forEach(function(e) {
-    // Handle solution_id (can be comma-separated for multiple)
     var solIds = e.solution_id || '';
     if (solIds) {
       solIds.split(',').forEach(function(sid) {
@@ -462,12 +717,10 @@ function getAgencyEngagementStats(agencyId) {
         }
       });
     }
-    // Count by month (YYYY-MM format)
     if (e.date) {
       var monthKey = e.date.substring(0, 7);
       byMonth[monthKey] = (byMonth[monthKey] || 0) + 1;
     }
-    // Track which contacts have engagements
     if (e.participants) {
       e.participants.split(',').forEach(function(p) {
         var email = p.trim().toLowerCase();
@@ -493,7 +746,6 @@ function getAgencyEngagementStats(agencyId) {
 
 /**
  * Get engagement timeline for an agency
- * Returns all engagements involving contacts at this agency
  * @param {string} agencyId - Agency ID
  * @param {number} limit - Max results (default 50)
  * @returns {Array} Engagements sorted by date descending
@@ -503,19 +755,15 @@ function getAgencyEngagementTimeline(agencyId, limit) {
   var contacts = getAgencyContacts(agencyId);
   var contactEmails = contacts.map(function(c) { return (c.email || '').toLowerCase(); });
 
-  if (contactEmails.length === 0) {
-    return [];
-  }
+  if (contactEmails.length === 0) return [];
 
   var engagements = loadAllEngagements_();
 
-  // Filter and enrich with contact info
   var agencyEngagements = engagements.filter(function(e) {
     if (!e.participants) return false;
     var participants = e.participants.split(',').map(function(p) { return p.trim().toLowerCase(); });
     return participants.some(function(p) { return contactEmails.includes(p); });
   }).map(function(e) {
-    // Add matched contacts info
     var matchedContacts = [];
     if (e.participants) {
       var participants = e.participants.split(',').map(function(p) { return p.trim().toLowerCase(); });
@@ -524,7 +772,7 @@ function getAgencyEngagementTimeline(agencyId, limit) {
         if (contact) {
           matchedContacts.push({
             email: contact.email,
-            name: contact.first_name + ' ' + contact.last_name
+            name: (contact.first_name || '') + ' ' + (contact.last_name || '')
           });
         }
       });
@@ -546,7 +794,6 @@ function getContactSolutionTags(email) {
   var emailLower = (email || '').toLowerCase();
 
   var solutionsSet = {};
-
   engagements.forEach(function(e) {
     if (!e.participants || !e.solution_id) return;
     var participants = e.participants.split(',').map(function(p) { return p.trim().toLowerCase(); });
@@ -567,7 +814,6 @@ function getAgencyContactsWithTags(agencyId) {
   var contacts = getAgencyContacts(agencyId);
   var engagements = loadAllEngagements_();
 
-  // Build email -> solutions map
   var emailToSolutions = {};
   engagements.forEach(function(e) {
     if (!e.participants || !e.solution_id) return;
@@ -578,7 +824,6 @@ function getAgencyContactsWithTags(agencyId) {
     });
   });
 
-  // Add tags to contacts
   contacts.forEach(function(c) {
     var emailLower = (c.email || '').toLowerCase();
     c.solution_tags = emailToSolutions[emailLower] ? Object.keys(emailToSolutions[emailLower]) : [];
@@ -589,16 +834,14 @@ function getAgencyContactsWithTags(agencyId) {
 
 /**
  * Get cross-agency network data for visualization
- * Shows how an agency connects to other agencies through shared solution engagements
  * @param {string} agencyId - Starting agency ID
  * @returns {Object} Network data with nodes and edges
  */
 function getCrossAgencyNetwork(agencyId) {
-  var allContacts = loadAllContacts_();
+  var allContacts = loadPeople_();
   var engagements = loadAllEngagements_();
   var allAgencies = loadAllAgencies_();
 
-  // Build lookup maps
   var emailToContact = {};
   var emailToAgency = {};
   allContacts.forEach(function(c) {
@@ -613,12 +856,9 @@ function getCrossAgencyNetwork(agencyId) {
 
   var agencyById = {};
   allAgencies.forEach(function(a) {
-    if (a.agency_id) {
-      agencyById[a.agency_id] = a;
-    }
+    if (a.agency_id) agencyById[a.agency_id] = a;
   });
 
-  // Get starting agency contacts
   var startAgencyContacts = allContacts.filter(function(c) {
     return c.agency_id === agencyId;
   });
@@ -627,7 +867,6 @@ function getCrossAgencyNetwork(agencyId) {
     if (c.email) startContactEmails[c.email.toLowerCase()] = true;
   });
 
-  // Build email -> solutions and solution -> emails maps
   var emailToSolutions = {};
   var solutionToEmails = {};
   engagements.forEach(function(e) {
@@ -642,7 +881,6 @@ function getCrossAgencyNetwork(agencyId) {
     });
   });
 
-  // Find solutions the starting agency's contacts engaged with
   var startAgencySolutions = {};
   Object.keys(startContactEmails).forEach(function(email) {
     if (emailToSolutions[email]) {
@@ -652,7 +890,6 @@ function getCrossAgencyNetwork(agencyId) {
     }
   });
 
-  // Find all contacts who engaged with those solutions (across all agencies)
   var connectedEmails = {};
   Object.keys(startAgencySolutions).forEach(function(solId) {
     if (solutionToEmails[solId]) {
@@ -662,14 +899,12 @@ function getCrossAgencyNetwork(agencyId) {
     }
   });
 
-  // Build network nodes and edges
   var nodes = [];
   var edges = [];
   var addedAgencies = {};
   var addedContacts = {};
   var addedSolutions = {};
 
-  // Add starting agency node
   var startAgency = agencyById[agencyId];
   if (startAgency) {
     nodes.push({
@@ -682,7 +917,6 @@ function getCrossAgencyNetwork(agencyId) {
     addedAgencies[agencyId] = true;
   }
 
-  // Process all connected contacts
   Object.keys(connectedEmails).forEach(function(email) {
     var contact = emailToContact[email];
     var contactAgencyId = emailToAgency[email];
@@ -691,7 +925,6 @@ function getCrossAgencyNetwork(agencyId) {
     var contactName = ((contact.first_name || '') + ' ' + (contact.last_name || '')).trim() || email;
     var isStartAgency = startContactEmails[email];
 
-    // Add contact node
     if (!addedContacts[email]) {
       nodes.push({
         id: 'contact_' + email,
@@ -703,7 +936,6 @@ function getCrossAgencyNetwork(agencyId) {
       addedContacts[email] = true;
     }
 
-    // Add contact's agency if not start agency
     if (contactAgencyId && !addedAgencies[contactAgencyId]) {
       var contactAgency = agencyById[contactAgencyId];
       if (contactAgency) {
@@ -718,7 +950,6 @@ function getCrossAgencyNetwork(agencyId) {
       }
     }
 
-    // Edge: contact -> agency
     if (contactAgencyId) {
       edges.push({
         from: 'contact_' + email,
@@ -727,10 +958,8 @@ function getCrossAgencyNetwork(agencyId) {
       });
     }
 
-    // Add solution nodes and edges for this contact
     if (emailToSolutions[email]) {
       Object.keys(emailToSolutions[email]).forEach(function(solId) {
-        // Only include solutions that connect to the start agency
         if (!startAgencySolutions[solId]) return;
 
         if (!addedSolutions[solId]) {
@@ -743,7 +972,6 @@ function getCrossAgencyNetwork(agencyId) {
           addedSolutions[solId] = true;
         }
 
-        // Edge: contact -> solution
         edges.push({
           from: 'contact_' + email,
           to: 'solution_' + solId,
@@ -770,7 +998,7 @@ function getCrossAgencyNetwork(agencyId) {
  * @returns {boolean} True if active
  */
 function isAgencyActive(agency) {
-  if (!agency.status) return true; // Default to active if no status
+  if (!agency.status) return true;
   var status = String(agency.status).toLowerCase();
   return status === 'active' || status === '';
 }

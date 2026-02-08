@@ -364,7 +364,7 @@ function validateUserAccess(email, sheetId) {
 
   try {
     var ss = SpreadsheetApp.openById(sheetId);
-    var sheet = ss.getSheets()[0];
+    var sheet = ss.getSheetByName('Whitelist') || ss.getSheets()[0];
     var data = sheet.getDataRange().getValues();
 
     // Find column indices
@@ -511,14 +511,14 @@ function globalSearch(query) {
         var sol = solutions[i];
         var searchText = [
           sol.core_official_name || '',
-          sol.core_id || '',
+          sol.solution_id || '',
           sol.earthdata_purpose || '',
           sol.core_group || '',
           sol.core_alternate_names || ''
         ].join(' ').toLowerCase();
         if (searchText.includes(queryLower)) {
           results.solutions.push({
-            core_id: sol.core_id || '',
+            solution_id: sol.solution_id || '',
             core_official_name: sol.core_official_name || '',
             admin_lifecycle_phase: sol.admin_lifecycle_phase || '',
             core_group: sol.core_group || ''
@@ -1384,7 +1384,7 @@ function logFeedbackToSheet_(feedback) {
 
   try {
     var ss = SpreadsheetApp.openById(sheetId);
-    var sheet = ss.getSheetByName('Bugs') || ss.getSheets()[0];
+    var sheet = ss.getSheetByName('Backlog') || ss.getSheetByName('Bugs') || ss.getSheets()[0];
 
     // Generate bug ID based on existing rows
     var lastRow = sheet.getLastRow();

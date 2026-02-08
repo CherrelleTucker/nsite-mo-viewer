@@ -1,13 +1,13 @@
 # Solution Lookup Implementation Guide
 
 **Date:** 2026-01-23
-**Purpose:** Standardize solution identification across all MO databases using `core_id` from MO-DB_Solutions
+**Purpose:** Standardize solution identification across all MO databases using `solution_id` from MO-DB_Solutions
 
 ---
 
 ## Overview
 
-All databases that reference solutions need a `_Lookups` tab that pulls valid `core_id` values from MO-DB_Solutions. This enables:
+All databases that reference solutions need a `_Lookups` tab that pulls valid `solution_id` values from MO-DB_Solutions. This enables:
 - Data validation dropdowns for solution selection
 - Consistent solution IDs across all databases
 - Easier cross-database queries and reporting
@@ -16,9 +16,9 @@ All databases that reference solutions need a `_Lookups` tab that pulls valid `c
 
 ## Source of Truth
 
-**MO-DB_Solutions** contains the master list of solutions with `core_id` as the primary key.
+**MO-DB_Solutions** contains the master list of solutions with `solution_id` as the primary key.
 
-Example `core_id` values: `hls`, `opera`, `vlm`, `nisar-sm`, `dswx`, `dist`, etc.
+Example `solution_id` values: `hls`, `opera`, `vlm`, `nisar-sm`, `dswx`, `dist`, etc.
 
 ---
 
@@ -46,7 +46,7 @@ Example `core_id` values: `hls`, `opera`, `vlm`, `nisar-sm`, `dswx`, `dist`, etc
 1. Open the database spreadsheet
 2. Click the **+** button to add a new tab
 3. Rename the tab to `_Lookups`
-4. In cell **A1**, enter: `core_id`
+4. In cell **A1**, enter: `solution_id`
 5. In cell **A2**, enter this formula:
 
 ```
@@ -77,10 +77,10 @@ Replace `SOLUTIONS_SHEET_ID` with the actual sheet ID from MO-DB_Config.
 **Current state:** `solution` column contains free text solution names
 
 **Changes:**
-1. Add `_Lookups` tab with `core_id` values
+1. Add `_Lookups` tab with `solution_id` values
 2. Add a new column `solution_id` next to existing `solution` column
 3. Add data validation to `solution_id` column
-4. Migrate existing data: Use VLOOKUP to map solution names to core_id
+4. Migrate existing data: Use VLOOKUP to map solution names to solution_id
 5. After verification, hide (don't delete) the old `solution` column
 
 **Migration formula (temporary column):**
@@ -97,9 +97,9 @@ Replace `SOLUTIONS_SHEET_ID` with the actual sheet ID from MO-DB_Config.
 - `solution` column (contains solution names)
 
 **Changes:**
-1. Add `_Lookups` tab with `core_id` values
+1. Add `_Lookups` tab with `solution_id` values
 2. Add data validation to `solution_id` column
-3. Verify existing `solution_id` values match `core_id` format
+3. Verify existing `solution_id` values match `solution_id` format
 4. Keep `solution` column as display name (denormalized for convenience)
 
 ---
@@ -109,9 +109,9 @@ Replace `SOLUTIONS_SHEET_ID` with the actual sheet ID from MO-DB_Config.
 **Current state:** `solution_ids` column (comma-separated)
 
 **Changes:**
-1. Add `_Lookups` tab with `core_id` values
+1. Add `_Lookups` tab with `solution_id` values
 2. For single-solution engagements: Add data validation
-3. For multi-solution engagements: Document that values should be comma-separated `core_id` values
+3. For multi-solution engagements: Document that values should be comma-separated `solution_id` values
 
 **Note:** Google Sheets data validation doesn't support multiple comma-separated values, but the lookup provides a reference.
 
@@ -124,9 +124,9 @@ Replace `SOLUTIONS_SHEET_ID` with the actual sheet ID from MO-DB_Config.
 - `solution_name` column
 
 **Changes:**
-1. Add `_Lookups` tab with `core_id` values
+1. Add `_Lookups` tab with `solution_id` values
 2. Add data validation to `solution_id` column
-3. Verify existing IDs match `core_id` format
+3. Verify existing IDs match `solution_id` format
 4. Keep `solution_name` for display purposes
 
 ---
@@ -136,7 +136,7 @@ Replace `SOLUTIONS_SHEET_ID` with the actual sheet ID from MO-DB_Config.
 **Current state:** Check existing schema
 
 **Changes:**
-1. Add `_Lookups` tab with `core_id` values
+1. Add `_Lookups` tab with `solution_id` values
 2. Add `solution_id` column if not present
 3. Add data validation to solution column
 
@@ -147,9 +147,9 @@ Replace `SOLUTIONS_SHEET_ID` with the actual sheet ID from MO-DB_Config.
 **Current state:** `solution_names` column (comma-separated names)
 
 **Changes:**
-1. Add `_Lookups` tab with `core_id` values
+1. Add `_Lookups` tab with `solution_id` values
 2. **Rename** `solution_names` to `solution_ids`
-3. Migrate existing data from names to `core_id` values
+3. Migrate existing data from names to `solution_id` values
 4. Add data validation (for single-solution events)
 
 ---
@@ -161,8 +161,8 @@ Replace `SOLUTIONS_SHEET_ID` with the actual sheet ID from MO-DB_Config.
 - `solution_names` column (comma-separated)
 
 **Changes:**
-1. Add `_Lookups` tab with `core_id` values
-2. Verify `solution_ids` contains valid `core_id` values
+1. Add `_Lookups` tab with `solution_id` values
+2. Verify `solution_ids` contains valid `solution_id` values
 3. **Delete** `solution_names` column (redundant - names can be looked up from Solutions DB)
 4. Add data validation to `solution_ids` (for single-solution stories)
 
@@ -173,9 +173,9 @@ Replace `SOLUTIONS_SHEET_ID` with the actual sheet ID from MO-DB_Config.
 **Current state:** `solution` column (free text names)
 
 **Changes:**
-1. Add `_Lookups` tab with `core_id` values
+1. Add `_Lookups` tab with `solution_id` values
 2. Add `solution_id` column
-3. Migrate existing solution names to `core_id` values
+3. Migrate existing solution names to `solution_id` values
 4. Add data validation to `solution_id` column
 5. Hide (don't delete) old `solution` column after migration
 
@@ -207,10 +207,10 @@ After updating the sheets, the following API files need updates to use the new c
 After implementation, verify:
 
 - [ ] Each database has a `_Lookups` tab
-- [ ] `_Lookups!A:A` contains current `core_id` values from Solutions
+- [ ] `_Lookups!A:A` contains current `solution_id` values from Solutions
 - [ ] IMPORTRANGE is connected and updating
 - [ ] Data validation is set on solution columns
-- [ ] Existing data has been migrated to `core_id` format
+- [ ] Existing data has been migrated to `solution_id` format
 - [ ] API code has been updated for renamed columns
 - [ ] Deploy updated API files to MO-APIs Library
 - [ ] Test engagement logging in SEP-NSITE page

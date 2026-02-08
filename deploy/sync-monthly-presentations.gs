@@ -732,7 +732,7 @@ function syncUpdatesToDatabase_(updates) {
   }
 
   var ss = SpreadsheetApp.openById(updatesSheetId);
-  var sheet = ss.getSheets()[0]; // First sheet
+  var sheet = ss.getSheetByName('2026') || ss.getSheets()[0];
   var data = sheet.getDataRange().getValues();
   var headers = data[0];
 
@@ -844,7 +844,7 @@ function loadConfigFromSheet_() {
 
   try {
     var ss = SpreadsheetApp.openById(configSheetId);
-    var sheet = ss.getSheets()[0];
+    var sheet = ss.getSheetByName('Config') || ss.getSheets()[0];
     var data = sheet.getDataRange().getValues();
 
     _configCache = {};

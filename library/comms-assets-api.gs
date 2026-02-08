@@ -16,9 +16,9 @@
  * - connection: Relationships between solutions and agencies/users
  *
  * Multi-value fields (comma-separated):
- * - solution_ids: Links to MO-DB_Solutions.core_id
+ * - solution_ids: Links to MO-DB_Solutions.solution_id
  * - agency_ids: Links to MO-DB_Agencies.agency_id
- * - contact_ids: Links to MO-DB_Contacts.email (primary key)
+ * - contact_ids: Links to MO-DB_Contacts.contact_id (CON_xxx format)
  * - tags: Thematic areas and keywords
  */
 
@@ -39,7 +39,8 @@ function loadAllCommsAssets_() {
     return [];
   }
 
-  var sheet = SpreadsheetApp.openById(sheetId).getSheets()[0];
+  var ss = SpreadsheetApp.openById(sheetId);
+  var sheet = ss.getSheetByName('FileLog') || ss.getSheets()[0];
   var data = sheet.getDataRange().getValues();
   var headers = data[0];
 
@@ -72,7 +73,8 @@ function getCommsAssetsSheet_() {
   if (!sheetId) {
     throw new Error('COMMS_ASSETS_SHEET_ID not configured');
   }
-  return SpreadsheetApp.openById(sheetId).getSheets()[0];
+  var ss = SpreadsheetApp.openById(sheetId);
+  return ss.getSheetByName('FileLog') || ss.getSheets()[0];
 }
 
 // ============================================================================
@@ -1114,7 +1116,7 @@ function getKeyMessagesFromAssets(solutionId) {
 
   // Build legacy format
   return {
-    core_id: solutionId,
+    solution_id: solutionId,
     comms_key_messages: talkingPoints.map(function(a) { return a.content; }).join('\n\n'),
     comms_focus_type: talkingPoints.length > 0 ? talkingPoints[0].tags : '',
     comms_industry: connections.map(function(a) { return a.content; }).join('\n\n'),

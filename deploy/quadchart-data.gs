@@ -94,7 +94,7 @@ function getQuadrantUpdates_(daysBack, defaultOnly) {
   // Format for display
   var items = updated.map(function(sol) {
     return {
-      solution: sol.core_id,
+      solution: sol.solution_id,
       cycle: 'C' + (sol.core_cycle || '?'),
       phase: sol.admin_lifecycle_phase || '',
       summary: sol.earthdata_status_summary || sol.earthdata_purpose || '',
@@ -147,7 +147,7 @@ function getQuadrantMilestones_(daysAhead, defaultOnly) {
           msDate.setHours(0, 0, 0, 0);
           if (msDate >= today && msDate <= futureDate) {
             milestones.push({
-              solution: sol.core_id,
+              solution: sol.solution_id,
               cycle: 'C' + (sol.core_cycle || '?'),
               type: ms.type,
               date: msDate,
@@ -218,10 +218,10 @@ function getQuadrantActions_(defaultOnly) {
       var actionText = extractActionText_(text);
       if (actionText) {
         items.push({
-          solution: sol.core_id,
+          solution: sol.solution_id,
           cycle: 'C' + (sol.core_cycle || '?'),
           action: actionText,
-          owner: sol.team_lead || '',
+          owner: sol.lead_name || '',
           priority: 'medium'
         });
       }
@@ -328,7 +328,7 @@ function getQuadrantDecisions_(defaultOnly) {
 
     if (decisions.length > 0) {
       items.push({
-        solution: sol.core_id,
+        solution: sol.solution_id,
         cycle: 'C' + (sol.core_cycle || '?'),
         phase: sol.admin_lifecycle_phase || '',
         decisions: decisions,

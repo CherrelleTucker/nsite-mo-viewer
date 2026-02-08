@@ -30,7 +30,7 @@ function loadAllMilestones_() {
     }
 
     var ss = SpreadsheetApp.openById(sheetId);
-    var sheet = ss.getSheets()[0];
+    var sheet = ss.getSheetByName('Milestones') || ss.getSheets()[0];
     var data = sheet.getDataRange().getValues();
 
     if (data.length <= 1) return [];

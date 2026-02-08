@@ -447,8 +447,8 @@ var Schedule = (function() {
     }
 
     return {
-      solution_id: sol.core_id,
-      solution_name: sol.core_id || sol.core_id,
+      solution_id: sol.solution_id,
+      solution_name: sol.solution_id || sol.solution_id,
       cycle: sol.core_cycle,
       type: type,
       label: label,
@@ -553,7 +553,7 @@ var Schedule = (function() {
     // Filter solutions (for gantt view)
     state.filteredSolutions = state.solutions.filter(function(sol) {
       if (cycleFilter && String(sol.core_cycle) !== cycleFilter) return false;
-      var name = (sol.core_id || sol.core_id || '').toLowerCase();
+      var name = (sol.solution_id || sol.solution_id || '').toLowerCase();
       if (searchFilter && name.indexOf(searchFilter) === -1) return false;
       // Must have at least two dates to show on gantt
       var dates = [sol.milestone_atp_date, sol.milestone_f2i_date, sol.milestone_orr_date, sol.milestone_closeout_date].filter(function(d) { return !!d; });
@@ -611,7 +611,7 @@ var Schedule = (function() {
         html += '<span class="timeline-solution-name">' + escapeHtml(m.solution_name) + '</span>';
         html += '<span class="timeline-solution-cycle">C' + m.cycle + '</span>';
         html += '</span>';
-        html += '<span class="timeline-status status-' + m.status + '">' + capitalizeFirst(m.status) + '</span>';
+        html += '<span class="timeline-status status-' + escapeHtml(m.status) + '">' + escapeHtml(capitalizeFirst(m.status)) + '</span>';
         html += '</div>';
       });
 
@@ -654,14 +654,14 @@ var Schedule = (function() {
       var f2i = parseDate(sol.milestone_f2i_date);
       var orr = parseDate(sol.milestone_orr_date);
       var closeout = parseDate(sol.milestone_closeout_date);
-      var name = sol.core_id || sol.core_id;
+      var name = sol.solution_id || sol.solution_id;
       var cycle = 'C' + sol.core_cycle;
 
       // Formulation phase: ATP → F2I
       if (atp && f2i) {
         var pct = calculateProgress(atp, f2i, today);
         rows.push([
-          sol.core_id + '_form',
+          sol.solution_id + '_form',
           name + ' - Formulation',
           cycle,
           atp,
@@ -675,9 +675,9 @@ var Schedule = (function() {
       // Implementation phase: F2I → ORR
       if (f2i && orr) {
         var pct = calculateProgress(f2i, orr, today);
-        var dep = (atp && f2i) ? sol.core_id + '_form' : null;
+        var dep = (atp && f2i) ? sol.solution_id + '_form' : null;
         rows.push([
-          sol.core_id + '_impl',
+          sol.solution_id + '_impl',
           name + ' - Implementation',
           cycle,
           f2i,
@@ -691,9 +691,9 @@ var Schedule = (function() {
       // Operations phase: ORR → Closeout
       if (orr && closeout) {
         var pct = calculateProgress(orr, closeout, today);
-        var dep = (f2i && orr) ? sol.core_id + '_impl' : null;
+        var dep = (f2i && orr) ? sol.solution_id + '_impl' : null;
         rows.push([
-          sol.core_id + '_ops',
+          sol.solution_id + '_ops',
           name + ' - Operations',
           cycle,
           orr,
@@ -746,9 +746,7 @@ var Schedule = (function() {
     return Math.round((elapsed / total) * 100);
   }
 
-  function capitalizeFirst(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
+  // capitalizeFirst — uses global from index.html
 
   // escapeHtml() - uses global from index.html
 
@@ -811,14 +809,6 @@ var Schedule = (function() {
   };
 })();
 
-// Initialize
-if (typeof google !== 'undefined' && google.script) {
-  Schedule.init();
-} else {
-  document.addEventListener('DOMContentLoaded', function() {
-    if (typeof google !== 'undefined' && google.script) {
-      Schedule.init();
-    }
-  });
-}
+// Initialize — queued so CachedAPI is available (defined in index.html main script)
+queuePageInit(function() { Schedule.init(); });
 </script>

@@ -171,10 +171,10 @@
 </div>
 
 <!-- Solution Detail Modal -->
-<div class="modal-overlay" id="solutionModal" onclick="Implementation.closeModal(event)">
+<div class="modal-overlay" id="solutionModal" role="dialog" aria-modal="true" aria-labelledby="solutionModalTitle" onclick="Implementation.closeModal(event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title" id="modalTitle">Solution Details</h2>
+      <h2 class="modal-title" id="solutionModalTitle">Solution Details</h2>
       <button class="modal-close" onclick="Implementation.closeModal()" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body" id="modalBody">
@@ -184,10 +184,10 @@
 </div>
 
 <!-- Team Folder Upload Dialog -->
-<div class="modal-overlay" id="uploadModal" onclick="Implementation.closeUploadModal(event)">
+<div class="modal-overlay" id="uploadModal" role="dialog" aria-modal="true" aria-labelledby="uploadModalTitle" onclick="Implementation.closeUploadModal(event)">
   <div class="modal-content upload-modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">
+      <h2 class="modal-title" id="uploadModalTitle">
         <span class="material-icons">upload_file</span>
         Share with Implementation Team
       </h2>
@@ -256,6 +256,19 @@
   </div>
 </div>
 
+<!-- Contact Detail Modal -->
+<div class="modal-overlay" id="contactDetailModal" role="dialog" aria-modal="true" aria-labelledby="contactDetailModalTitle" onclick="Implementation.closeContactModal(event)">
+  <div class="modal-content" style="max-width: 480px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="contactDetailModalTitle">Contact Details</h2>
+      <button class="modal-close" onclick="Implementation.closeContactModal()" aria-label="Close dialog">&times;</button>
+    </div>
+    <div class="modal-body" id="contactModalBody">
+      <div class="loading-state"><span class="loading-spinner"></span> Looking up contact...</div>
+    </div>
+  </div>
+</div>
+
 <!-- Implementation-NSITE Styles -->
 <style>
   /* Page accent color for shared styles */
@@ -263,6 +276,15 @@
     --page-accent: var(--color-implementation);
     max-width: 1600px;
     margin: 0 auto;
+  }
+
+  .clickable-name {
+    color: var(--page-accent);
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .clickable-name:hover {
+    opacity: 0.8;
   }
 
   /* Dashboard Top Row */
@@ -308,7 +330,7 @@
   .stat-item.stat-orange .stat-value { color: var(--color-warning); }
 
   /* Milestones Panel */
-  .milestones-panel { border-top: 3px solid #10b981; }
+  .milestones-panel { border-top: 3px solid var(--color-phase-operations); }
 
   .milestones-tracker {
     display: flex;
@@ -324,7 +346,7 @@
     padding: var(--space-xs) var(--space-sm);
     background: rgba(16, 185, 129, 0.08);
     border-radius: var(--radius-sm);
-    border-left: 3px solid #10b981;
+    border-left: 3px solid var(--color-phase-operations);
     cursor: pointer;
     transition: all var(--transition-fast);
   }
@@ -335,7 +357,7 @@
     font-family: monospace;
     font-size: var(--font-size-xs);
     font-weight: 700;
-    color: #10b981;
+    color: var(--color-phase-operations);
     background: rgba(16, 185, 129, 0.2);
     padding: 2px 6px;
     border-radius: var(--radius-sm);
@@ -344,7 +366,7 @@
   }
 
   .milestone-label { flex: 1; font-size: var(--font-size-sm); color: var(--color-text-secondary); }
-  .milestone-count { font-size: var(--font-size-sm); font-weight: 600; color: #10b981; }
+  .milestone-count { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-phase-operations); }
 
   /* Document Administration Panel */
   .docs-panel { border-top: 3px solid var(--color-warning); }
@@ -376,8 +398,8 @@
     color: var(--color-text-muted);
   }
 
-  .doc-status.status-complete { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-  .doc-status.status-in-work { background: rgba(249, 115, 22, 0.15); color: #f97316; }
+  .doc-status.status-complete { background: rgba(16, 185, 129, 0.15); color: var(--color-phase-operations); }
+  .doc-status.status-in-work { background: rgba(249, 115, 22, 0.15); color: var(--color-phase-formulation); }
   .doc-status.status-not-started { background: var(--color-surface); color: var(--color-text-muted); }
 
   /* Document Status Grid (modal) */
@@ -385,6 +407,9 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: var(--space-sm);
+  }
+  @media (max-width: 768px) {
+    .doc-status-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
   .doc-status-row {
@@ -408,9 +433,64 @@
     font-weight: 500;
   }
 
-  .doc-badge-complete { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-  .doc-badge-in-work { background: rgba(249, 115, 22, 0.15); color: #f97316; }
+  .doc-badge-complete { background: rgba(16, 185, 129, 0.15); color: var(--color-phase-operations); }
+  .doc-badge-in-work { background: rgba(249, 115, 22, 0.15); color: var(--color-phase-formulation); }
   .doc-badge-not-started { background: var(--color-surface); color: var(--color-text-muted); }
+
+  .doc-link-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--color-phase-operations);
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .doc-link-badge:hover { background: rgba(16, 185, 129, 0.25); }
+
+  /* Alignment Assessment Grid */
+  .alignment-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-xs);
+  }
+  .alignment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+  }
+  .alignment-badge {
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+  .alignment-badge-acceptable { background: rgba(16, 185, 129, 0.15); color: var(--color-phase-operations); }
+  .alignment-badge-gap { background: rgba(239, 68, 68, 0.15); color: var(--color-danger-light); }
+  .alignment-badge-na { background: var(--color-surface); color: var(--color-text-muted); }
+
+  /* Collapsible section toggle */
+  .section-toggle {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    user-select: none;
+  }
+  .section-toggle .material-icons {
+    transition: transform 0.2s;
+    font-size: 18px;
+  }
+  .section-toggle.collapsed .material-icons { transform: rotate(-90deg); }
+  .section-collapsible { overflow: hidden; transition: max-height 0.3s ease; }
+  .section-collapsible.collapsed { max-height: 0; margin: 0; padding: 0; }
 
   /* Tracking Summary Row */
   .tracking-summary-row {
@@ -601,10 +681,10 @@
   }
 
   .solution-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
-  .solution-card.phase-operational { border-left-color: #10b981; }
-  .solution-card.phase-implementation { border-left-color: #3b82f6; }
-  .solution-card.phase-formulation { border-left-color: #f97316; }
-  .solution-card.phase-pre-formulation { border-left-color: #eab308; }
+  .solution-card.phase-operational { border-left-color: var(--color-phase-operations); }
+  .solution-card.phase-implementation { border-left-color: var(--color-phase-implementation); }
+  .solution-card.phase-formulation { border-left-color: var(--color-phase-formulation); }
+  .solution-card.phase-pre-formulation { border-left-color: var(--color-phase-pre-formulation); }
 
   .solution-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-sm); }
   .solution-name { font-weight: 600; font-size: var(--font-size-md); color: var(--color-text); cursor: pointer; }
@@ -617,7 +697,7 @@
   .phase-formulation { background: #ffedd5; color: #c2410c; }
   .phase-implementation { background: #dbeafe; color: #1d4ed8; }
   .phase-operational { background: #dcfce7; color: #15803d; }
-  .phase-completed { background: #f1f5f9; color: #475569; }
+  .phase-completed { background: #f1f5f9; color: var(--color-phase-completed); }
 
   .solution-meta { display: flex; gap: var(--space-md); font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-sm); flex-wrap: wrap; }
   .solution-meta-item { display: flex; align-items: center; gap: var(--space-xs); }
@@ -656,33 +736,7 @@
   .solution-action-btn svg { width: 14px; height: 14px; }
 
   /* Modal */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: var(--space-md);
-  }
-
-  .modal-overlay.active { display: flex; }
-
-  .modal-content {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    max-width: 800px;
-    width: 100%;
-    max-height: 90vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
+  .modal-content { max-width: 800px; }
 
   .modal-header {
     display: flex;
@@ -942,11 +996,11 @@
     font-size: 12px;
   }
 
-  .activity-source-updates { background: #e3f2fd; color: #1565c0; }
-  .activity-source-engagements { background: #e8f5e9; color: #2e7d32; }
-  .activity-source-actions { background: #fff3e0; color: #e65100; }
-  .activity-source-stories { background: #f3e5f5; color: #7b1fa2; }
-  .activity-source-milestones { background: #fce4ec; color: #c2185b; }
+  .activity-source-updates { background: #e3f2fd; color: var(--color-sep); }
+  .activity-source-engagements { background: #e8f5e9; color: var(--color-success); }
+  .activity-source-actions { background: #fff3e0; color: var(--color-actions); }
+  .activity-source-stories { background: #f3e5f5; color: var(--color-comms); }
+  .activity-source-milestones { background: #fce4ec; color: var(--color-milestones); }
 
   .activity-list {
     display: flex;
@@ -965,11 +1019,11 @@
     font-size: var(--font-size-sm);
   }
 
-  .activity-type-update { border-left-color: #1565c0; }
-  .activity-type-engagement { border-left-color: #2e7d32; }
-  .activity-type-action { border-left-color: #e65100; }
-  .activity-type-story { border-left-color: #7b1fa2; }
-  .activity-type-milestone { border-left-color: #c2185b; }
+  .activity-type-update { border-left-color: var(--color-sep); }
+  .activity-type-engagement { border-left-color: var(--color-success); }
+  .activity-type-action { border-left-color: var(--color-actions); }
+  .activity-type-story { border-left-color: var(--color-comms); }
+  .activity-type-milestone { border-left-color: var(--color-milestones); }
 
   .activity-icon {
     display: flex;
@@ -982,11 +1036,11 @@
     opacity: 0.7;
   }
 
-  .activity-type-update .activity-icon .material-icons { color: #1565c0; }
-  .activity-type-engagement .activity-icon .material-icons { color: #2e7d32; }
-  .activity-type-action .activity-icon .material-icons { color: #e65100; }
-  .activity-type-story .activity-icon .material-icons { color: #7b1fa2; }
-  .activity-type-milestone .activity-icon .material-icons { color: #c2185b; }
+  .activity-type-update .activity-icon .material-icons { color: var(--color-sep); }
+  .activity-type-engagement .activity-icon .material-icons { color: var(--color-success); }
+  .activity-type-action .activity-icon .material-icons { color: var(--color-actions); }
+  .activity-type-story .activity-icon .material-icons { color: var(--color-comms); }
+  .activity-type-milestone .activity-icon .material-icons { color: var(--color-milestones); }
 
   .activity-content {
     display: flex;
@@ -1687,10 +1741,10 @@ var Implementation = (function() {
           sessionStorage.removeItem('openSolutionId');
           // Find and open the solution
           var sol = state.solutions.find(function(s) {
-            return s.core_id && s.core_id.toLowerCase() === openSolutionId.toLowerCase();
+            return s.solution_id && s.solution_id.toLowerCase() === openSolutionId.toLowerCase();
           });
           if (sol) {
-            setTimeout(function() { openDetailModal(sol.core_id); }, 100);
+            setTimeout(function() { openDetailModal(sol.solution_id); }, 100);
           }
         }
       })
@@ -1759,16 +1813,16 @@ var Implementation = (function() {
     otherList.innerHTML = '';
 
     // Sort solutions by ID - filter out invalid entries first
-    var validSolutions = state.solutions.filter(function(s) { return s && s.core_id; });
+    var validSolutions = state.solutions.filter(function(s) { return s && s.solution_id; });
     var sortedSolutions = validSolutions.sort(function(a, b) {
-      return (a.core_id || '').localeCompare(b.core_id || '');
+      return (a.solution_id || '').localeCompare(b.solution_id || '');
     });
 
     sortedSolutions.forEach(function(sol) {
       var isActive = isActivelyManaged(sol);
       var html = '<label class="picker-item">';
-      html += '<input type="checkbox" id="picker_' + sol.core_id + '" onchange="Implementation.onSolutionToggle(\'' + sol.core_id + '\')">';
-      html += '<span class="picker-item-label">' + escapeHtml((sol.core_id || '').toUpperCase()) + '</span>';
+      html += '<input type="checkbox" id="picker_' + sol.solution_id + '" onchange="Implementation.onSolutionToggle(\'' + sol.solution_id + '\')">';
+      html += '<span class="picker-item-label">' + escapeHtml((sol.solution_id || '').toUpperCase()) + '</span>';
       html += '<span class="picker-item-cycle">C' + sol.core_cycle + '</span>';
       html += '</label>';
 
@@ -1802,11 +1856,11 @@ var Implementation = (function() {
   function selectActiveSolutions() {
     state.selectedSolutions = {};
     state.solutions.forEach(function(sol) {
-      var checkbox = document.getElementById('picker_' + sol.core_id);
+      var checkbox = document.getElementById('picker_' + sol.solution_id);
       if (checkbox) {
         var isActive = isActivelyManaged(sol);
         checkbox.checked = isActive;
-        state.selectedSolutions[sol.core_id] = isActive;
+        state.selectedSolutions[sol.solution_id] = isActive;
       }
     });
     updatePickerLabel();
@@ -1816,10 +1870,10 @@ var Implementation = (function() {
   function selectAllSolutions() {
     state.selectedSolutions = {};
     state.solutions.forEach(function(sol) {
-      var checkbox = document.getElementById('picker_' + sol.core_id);
+      var checkbox = document.getElementById('picker_' + sol.solution_id);
       if (checkbox) {
         checkbox.checked = true;
-        state.selectedSolutions[sol.core_id] = true;
+        state.selectedSolutions[sol.solution_id] = true;
       }
     });
     updatePickerLabel();
@@ -1829,7 +1883,7 @@ var Implementation = (function() {
   function clearSolutionSelection() {
     state.selectedSolutions = {};
     state.solutions.forEach(function(sol) {
-      var checkbox = document.getElementById('picker_' + sol.core_id);
+      var checkbox = document.getElementById('picker_' + sol.solution_id);
       if (checkbox) {
         checkbox.checked = false;
       }
@@ -2012,22 +2066,44 @@ var Implementation = (function() {
 
   function renderDocStatusRow(label, value) {
     var status = getDocStatus(value);
-    var statusText = '--';
-    var statusClass = '';
+    var badgeHtml = '';
 
     if (status === 'complete') {
-      // In schema v2, we have URLs not dates, so just show "Complete"
-      statusText = 'Complete';
-      statusClass = 'doc-badge-complete';
+      var url = String(value).trim();
+      badgeHtml = '<a href="' + escapeAttr(url) + '" target="_blank" class="doc-link-badge">' +
+        '<span class="material-icons" style="font-size: 14px; margin-right: 2px;">open_in_new</span>View</a>';
     } else {
-      statusText = '--';
-      statusClass = 'doc-badge-not-started';
+      badgeHtml = '<span class="doc-badge doc-badge-not-started">--</span>';
     }
 
     return '<div class="doc-status-row">' +
       '<span class="doc-status-label">' + escapeHtml(label) + '</span>' +
-      '<span class="doc-badge ' + statusClass + '">' + statusText + '</span>' +
+      badgeHtml +
       '</div>';
+  }
+
+  function getAlignmentBadgeClass(value) {
+    if (!value) return 'alignment-badge-na';
+    var v = String(value).trim().toLowerCase();
+    if (v === 'acceptable') return 'alignment-badge-acceptable';
+    if (v === 'gap') return 'alignment-badge-gap';
+    return 'alignment-badge-na';
+  }
+
+  function renderAlignmentItem(label, value) {
+    var displayVal = value ? String(value).trim() : 'N/A';
+    var badgeClass = getAlignmentBadgeClass(value);
+    return '<div class="alignment-item">' +
+      '<span>' + escapeHtml(label) + '</span>' +
+      '<span class="alignment-badge ' + badgeClass + '">' + escapeHtml(displayVal) + '</span>' +
+      '</div>';
+  }
+
+  function toggleCollapsibleSection(sectionId) {
+    var content = document.getElementById(sectionId);
+    var toggle = content ? content.previousElementSibling : null;
+    if (content) content.classList.toggle('collapsed');
+    if (toggle) toggle.classList.toggle('collapsed');
   }
 
   function updateTrackingStats() {
@@ -2095,13 +2171,13 @@ var Implementation = (function() {
 
     state.filteredSolutions = state.solutions.filter(function(sol) {
       // Solution picker filter - only show selected solutions (with grouping support)
-      if (!isSolutionSelectedWithGrouping(sol.core_id)) return false;
+      if (!isSolutionSelectedWithGrouping(sol.solution_id)) return false;
       if (cycleFilter && String(sol.core_cycle) !== cycleFilter) return false;
       if (phaseFilter && sol.admin_lifecycle_phase !== phaseFilter) return false;
       if (groupFilter && sol.core_group !== groupFilter) return false;
       if (daacFilter && sol.product_assigned_daac !== daacFilter) return false;
       if (searchFilter) {
-        var searchable = [sol.core_id, sol.core_id, sol.core_official_name, sol.team_lead, sol.core_group, sol.earthdata_purpose, sol.product_assigned_daac].join(' ').toLowerCase();
+        var searchable = [sol.solution_id, sol.solution_id, sol.core_official_name, sol.lead_name, sol.core_group, sol.earthdata_purpose, sol.product_assigned_daac].join(' ').toLowerCase();
         if (searchable.indexOf(searchFilter) === -1) return false;
       }
       return true;
@@ -2170,7 +2246,7 @@ return;
 
     // Header
     html += '<div class="solution-card-header"><div>';
-    html += '<div class="solution-name" onclick="Implementation.showDetail(\'' + escapeAttr(sol.core_id) + '\')">' + escapeHtml((sol.core_id || '').toUpperCase()) + '</div>';
+    html += '<div class="solution-name" onclick="Implementation.showDetail(\'' + escapeAttr(sol.solution_id) + '\')">' + escapeHtml((sol.solution_id || '').toUpperCase()) + '</div>';
     html += '</div><div class="solution-badges">';
     html += '<span class="phase-badge ' + phaseClass + '">' + escapeHtml(sol.admin_lifecycle_phase || 'Unknown') + '</span>';
     html += '</div></div>';
@@ -2181,9 +2257,9 @@ return;
     html += '</div>';
 
     // Lead
-    if (sol.team_lead) {
-      html += '<div class="solution-lead"><strong>Lead:</strong> ' + escapeHtml(sol.team_lead);
-      if (sol.team_lead_affiliation) html += ' <span style="opacity:0.7">(' + escapeHtml(truncateText(sol.team_lead_affiliation, 30)) + ')</span>';
+    if (sol.lead_name) {
+      html += '<div class="solution-lead"><strong>Lead:</strong> ' + escapeHtml(sol.lead_name);
+      if (sol.lead_agency_name) html += ' <span style="opacity:0.7">(' + escapeHtml(truncateText(sol.lead_agency_name, 30)) + ')</span>';
       html += '</div>';
     }
 
@@ -2205,7 +2281,7 @@ return;
     if (sol.admin_drive_folder) html += '<a href="' + escapeHtml(sol.admin_drive_folder) + '" target="_blank" class="solution-action-btn"><span class="material-icons">folder</span>Drive</a>';
     if (sol.earthdata_solution_page_url) html += '<a href="' + escapeHtml(sol.earthdata_solution_page_url) + '" target="_blank" class="solution-action-btn"><span class="material-icons">open_in_new</span>Earthdata</a>';
     if (sol.docs_project_plan) html += '<a href="' + escapeHtml(sol.docs_project_plan) + '" target="_blank" class="solution-action-btn"><span class="material-icons">description</span>Plan</a>';
-    html += '<button class="solution-action-btn" onclick="Implementation.showDetail(\'' + escapeAttr(sol.core_id) + '\')"><span class="material-icons">info</span>Details</button>';
+    html += '<button class="solution-action-btn" onclick="Implementation.showDetail(\'' + escapeAttr(sol.solution_id) + '\')"><span class="material-icons">info</span>Details</button>';
     html += '</div></div>';
 
     return html;
@@ -2228,10 +2304,10 @@ return;
   }
 
   function showDetail(solutionId) {
-    var sol = state.solutions.find(function(s) { return s.core_id === solutionId; });
+    var sol = state.solutions.find(function(s) { return s.solution_id === solutionId; });
     if (!sol) return;
 
-    document.getElementById('modalTitle').textContent = (sol.core_id || '').toUpperCase();
+    document.getElementById('solutionModalTitle').textContent = (sol.solution_id || '').toUpperCase();
 
     // Build milestone data from solution fields (instant - no API call)
     var milestoneData = buildMilestoneData(sol);
@@ -2250,7 +2326,7 @@ return;
         console.error('Failed to load stakeholders:', error);
         updateStakeholdersSection(null);
       })
-      .getSolutionStakeholderSummary(sol.core_id || sol.core_official_name);
+      .getSolutionStakeholderSummary(sol.solution_id || sol.core_official_name);
 
     // Load recent activity (updates section when complete)
     google.script.run
@@ -2261,7 +2337,7 @@ return;
         console.error('Failed to load activity:', error);
         updateActivitySection(null);
       })
-      .getSolutionRecentActivity(sol.core_id, 30);
+      .getSolutionRecentActivity(sol.solution_id, 30);
   }
 
   // Update stakeholders section when data arrives
@@ -2467,7 +2543,7 @@ return;
     html += '<div class="detail-section-title">Per-Solution Tracking</div>';
     html += '<div class="detail-row"><span class="detail-label">DAAC Assignment</span><span class="detail-value">' + escapeHtml(sol.product_assigned_daac || 'TBD') + '</span></div>';
     // Stakeholder List - link to Contacts page filtered by solution
-    var solutionName = sol.core_id || sol.core_official_name || '';
+    var solutionName = sol.solution_id || sol.core_official_name || '';
     var stakeholderValue = '<span onclick="Implementation.viewSolutionContacts(\'' + escapeAttr(solutionName) + '\')" style="color: var(--color-primary); cursor: pointer; text-decoration: underline;">View Contacts</span>';
     html += '<div class="detail-row"><span class="detail-label">Stakeholder List</span><span class="detail-value">' + stakeholderValue + '</span></div>';
     html += '</div>';
@@ -2479,15 +2555,42 @@ return;
 
     html += '<div class="detail-section">';
     html += '<div class="detail-section-title">Team</div>';
-    html += '<div class="detail-row"><span class="detail-label">Solution Lead</span><span class="detail-value">' + escapeHtml(sol.team_lead || 'TBD') + '</span></div>';
-    html += '<div class="detail-row"><span class="detail-label">Affiliation</span><span class="detail-value">' + escapeHtml(sol.team_lead_affiliation || '-') + '</span></div>';
-    html += '<div class="detail-row"><span class="detail-label">RA Representative</span><span class="detail-value">' + escapeHtml(sol.team_ra_rep || '-') + '</span></div>';
+    var leadRef = sol.lead_contact_id;
+    var leadDisplay = sol.lead_name || '';
+    html += '<div class="detail-row"><span class="detail-label">Solution Lead</span><span class="detail-value">' + (leadRef ? '<span class="clickable-name" onclick="Implementation.showContactDetail(\'' + escapeAttr(leadRef) + '\', \'' + escapeAttr(leadDisplay) + '\')">' + escapeHtml(leadDisplay) + '</span>' : (leadDisplay || 'TBD')) + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Affiliation</span><span class="detail-value">' + escapeHtml(sol.lead_agency_name || '-') + '</span></div>';
+    var sciRef = sol.scientist_contact_id;
+    var sciDisplay = sol.scientist_name || '';
+    html += '<div class="detail-row"><span class="detail-label">Project Scientist</span><span class="detail-value">' + (sciRef ? '<span class="clickable-name" onclick="Implementation.showContactDetail(\'' + escapeAttr(sciRef) + '\', \'' + escapeAttr(sciDisplay) + '\')">' + escapeHtml(sciDisplay) + '</span>' : (sciDisplay || '-')) + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Scientist Affiliation</span><span class="detail-value">' + escapeHtml(sol.scientist_agency_name || '-') + '</span></div>';
+    var raRepRef = sol.ra_rep_contact_id;
+    var raRepDisplay = sol.ra_rep_name || '';
+    html += '<div class="detail-row"><span class="detail-label">RA Representative</span><span class="detail-value">' + (raRepRef ? '<span class="clickable-name" onclick="Implementation.showContactDetail(\'' + escapeAttr(raRepRef) + '\', \'' + escapeAttr(raRepDisplay) + '\')">' + escapeHtml(raRepDisplay) + '</span>' : (raRepDisplay || '-')) + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">RA Rep Affiliation</span><span class="detail-value">' + escapeHtml(sol.ra_rep_agency_name || '-') + '</span></div>';
+    var eaRef = sol.ea_advocate_contact_id;
+    var eaDisplay = sol.ea_advocate_name || '';
+    html += '<div class="detail-row"><span class="detail-label">EA Advocate</span><span class="detail-value">' + (eaRef ? '<span class="clickable-name" onclick="Implementation.showContactDetail(\'' + escapeAttr(eaRef) + '\', \'' + escapeAttr(eaDisplay) + '\')">' + escapeHtml(eaDisplay) + '</span>' : (eaDisplay || '-')) + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">EA Affiliation</span><span class="detail-value">' + escapeHtml(sol.ea_advocate_agency_name || '-') + '</span></div>';
     html += '</div>';
 
     html += '<div class="detail-section">';
     html += '<div class="detail-section-title">Purpose</div>';
     html += '<div class="detail-text">' + formatTextWithLinks(sol.earthdata_purpose || 'No description available.') + '</div>';
     html += '</div>';
+
+    if (sol.earthdata_background) {
+      html += '<div class="detail-section">';
+      html += '<div class="detail-section-title">Background</div>';
+      html += '<div class="detail-text">' + formatTextWithLinks(sol.earthdata_background) + '</div>';
+      html += '</div>';
+    }
+
+    if (sol.earthdata_societal_impact) {
+      html += '<div class="detail-section">';
+      html += '<div class="detail-section-title">Societal Impact</div>';
+      html += '<div class="detail-text">' + formatTextWithLinks(sol.earthdata_societal_impact) + '</div>';
+      html += '</div>';
+    }
 
     html += '<div class="detail-section">';
     html += '<div class="detail-section-title">Status Summary</div>';
@@ -2528,7 +2631,7 @@ return;
     if (sol.product_data_products) html += '<a href="' + escapeHtml(sol.product_data_products) + '" target="_blank" class="solution-action-btn"><span class="material-icons">table_chart</span>Data Products</a>';
     // Share with Team button - only show if team folder is configured
     if (sol.admin_shared_team_folder) {
-      html += '<button class="share-team-btn" onclick="Implementation.openUploadModal(\'' + escapeAttr(sol.core_id) + '\', \'' + escapeAttr(sol.admin_shared_team_folder) + '\')">';
+      html += '<button class="share-team-btn" onclick="Implementation.openUploadModal(\'' + escapeAttr(sol.solution_id) + '\', \'' + escapeAttr(sol.admin_shared_team_folder) + '\')">';
       html += '<span class="material-icons">upload_file</span>Share with Team';
       html += '</button>';
     }
@@ -2543,11 +2646,68 @@ return;
     html += renderDocStatusRow('IPA', sol.docs_ipa);
     html += renderDocStatusRow('ICD', sol.docs_icd);
     html += renderDocStatusRow('TTA', sol.docs_tta);
+    html += renderDocStatusRow('ATP Presentation', sol.milestone_atp_presentation_url);
     html += renderDocStatusRow('ATP Memo', sol.milestone_atp_memo_url);
+    html += renderDocStatusRow('F2I Presentation', sol.milestone_f2i_presentation_url);
     html += renderDocStatusRow('F2I Memo', sol.milestone_f2i_memo_url);
+    html += renderDocStatusRow('ORR Presentation', sol.milestone_orr_presentation_url);
     html += renderDocStatusRow('ORR Memo', sol.milestone_orr_memo_url);
+    html += renderDocStatusRow('Closeout Presentation', sol.milestone_closeout_presentation_url);
     html += renderDocStatusRow('Closeout Memo', sol.milestone_closeout_memo_url);
+    html += renderDocStatusRow('Deep Dive', sol.milestone_deep_dive_presentation_url);
     html += '</div></div>';
+
+    // Need Alignment Assessment section - collapsible
+    var hasAlignment = sol.alignment_horiz_resolution || sol.alignment_temporal_freq ||
+      sol.alignment_geo_domain || sol.alignment_latency || sol.alignment_spectral_bands ||
+      sol.alignment_vertical_resolution;
+    if (hasAlignment) {
+      html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
+      html += '<div class="detail-section-title section-toggle" onclick="Implementation.toggleCollapsibleSection(\'alignmentContent\')">';
+      html += '<span class="material-icons">expand_more</span> Need Alignment Assessment</div>';
+      html += '<div id="alignmentContent" class="section-collapsible">';
+      html += '<div class="alignment-grid">';
+      html += renderAlignmentItem('Horizontal Resolution', sol.alignment_horiz_resolution);
+      html += renderAlignmentItem('Temporal Frequency', sol.alignment_temporal_freq);
+      html += renderAlignmentItem('Geographic Domain', sol.alignment_geo_domain);
+      html += renderAlignmentItem('Latency', sol.alignment_latency);
+      html += renderAlignmentItem('Spectral Bands', sol.alignment_spectral_bands);
+      html += renderAlignmentItem('Vertical Resolution', sol.alignment_vertical_resolution);
+      html += '</div>';
+      if (sol.alignment_notes) {
+        html += '<div class="detail-row" style="margin-top: var(--space-sm);"><span class="detail-label">Notes</span><span class="detail-value">' + escapeHtml(sol.alignment_notes) + '</span></div>';
+      }
+      if (sol.alignment_last_reviewed) {
+        html += '<div class="detail-row"><span class="detail-label">Last Reviewed</span><span class="detail-value">' + escapeHtml(sol.alignment_last_reviewed) + '</span></div>';
+      }
+      html += '</div></div>';
+    }
+
+    // Technical Specifications section - collapsible
+    var hasTechSpecs = sol.product_platform || sol.product_temporal_freq ||
+      sol.product_horiz_resolution || sol.product_geo_domain || sol.product_latency ||
+      sol.product_spectral_bands || sol.product_vertical_resolution;
+    if (hasTechSpecs) {
+      html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
+      html += '<div class="detail-section-title section-toggle" onclick="Implementation.toggleCollapsibleSection(\'techSpecsContent\')">';
+      html += '<span class="material-icons">expand_more</span> Technical Specifications</div>';
+      html += '<div id="techSpecsContent" class="section-collapsible">';
+      var specFields = [
+        { label: 'Platform/Sensor', field: 'product_platform' },
+        { label: 'Temporal Frequency', field: 'product_temporal_freq' },
+        { label: 'Horizontal Resolution', field: 'product_horiz_resolution' },
+        { label: 'Geographic Domain', field: 'product_geo_domain' },
+        { label: 'Latency', field: 'product_latency' },
+        { label: 'Spectral Bands', field: 'product_spectral_bands' },
+        { label: 'Vertical Resolution', field: 'product_vertical_resolution' }
+      ];
+      specFields.forEach(function(spec) {
+        if (sol[spec.field]) {
+          html += '<div class="detail-row"><span class="detail-label">' + spec.label + '</span><span class="detail-value">' + escapeHtml(String(sol[spec.field])) + '</span></div>';
+        }
+      });
+      html += '</div></div>';
+    }
 
     // Milestones section - INSTANT (calculated from solution data)
     html += '<div class="detail-section" style="margin-top: var(--space-lg);">';
@@ -2816,6 +2976,102 @@ return;
     // Close modal and navigate to contacts
     closeModal();
     navigateTo('contacts');
+  }
+
+  function showContactDetail(nameOrId, fallbackName) {
+    if (!nameOrId) return;
+    var modal = document.getElementById('contactDetailModal');
+    var body = document.getElementById('contactModalBody');
+    body.innerHTML = '<div class="loading-state"><span class="loading-spinner"></span> Looking up contact...</div>';
+    modal.classList.add('active');
+
+    if (nameOrId.indexOf('CON_') === 0) {
+      // Look up by contact_id
+      var titleEl = document.getElementById('contactDetailModalTitle');
+      titleEl.textContent = fallbackName || 'Loading...';
+      google.script.run
+        .withSuccessHandler(function(contact) {
+          if (!contact) {
+            // CON_ ID not found — fall back to name-based lookup
+            if (fallbackName) {
+              lookupContactByName_(fallbackName, body);
+              return;
+            }
+            body.innerHTML = '<p class="text-muted">Contact not found.</p>';
+            return;
+          }
+          var displayName = (contact.first_name || '') + ' ' + (contact.last_name || '');
+          titleEl.textContent = displayName;
+          renderContactDetailBody_(contact, [contact], body);
+        })
+        .withFailureHandler(function(error) {
+          // API error — fall back to name-based lookup
+          if (fallbackName) {
+            lookupContactByName_(fallbackName, body);
+            return;
+          }
+          body.innerHTML = '<p class="text-muted">Could not load contact details.</p>';
+        })
+        .getContactById(nameOrId);
+    } else {
+      // Name-based lookup
+      document.getElementById('contactDetailModalTitle').textContent = nameOrId;
+      lookupContactByName_(nameOrId, body);
+    }
+  }
+
+  function lookupContactByName_(name, body) {
+    document.getElementById('contactDetailModalTitle').textContent = name;
+    var parts = name.trim().split(/\s+/);
+    var firstName = parts[0] || '';
+    var lastName = parts.length > 1 ? parts[parts.length - 1] : '';
+
+    google.script.run
+      .withSuccessHandler(function(contacts) {
+        if (!contacts || !contacts.length) {
+          body.innerHTML = '<p class="text-muted">Contact "' + escapeHtml(name) + '" not found in the database.</p>';
+          return;
+        }
+        renderContactDetailBody_(contacts[0], contacts, body);
+      })
+      .withFailureHandler(function(error) {
+        body.innerHTML = '<p class="text-muted">Could not look up contact.</p>';
+      })
+      .getContactsByName(firstName, lastName);
+  }
+
+  function renderContactDetailBody_(contact, allRecords, body) {
+    var initials = ((contact.first_name || '')[0] || '') + ((contact.last_name || '')[0] || '');
+    var html = '<div class="contact-detail-header" style="display:flex; gap:var(--space-md); align-items:center; margin-bottom:var(--space-md);">';
+    html += '<div style="width:48px; height:48px; border-radius:50%; background:var(--page-accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:16px;">' + initials.toUpperCase() + '</div>';
+    html += '<div>';
+    html += '<div style="font-weight:600; font-size:var(--font-size-lg);">' + escapeHtml((contact.first_name || '') + ' ' + (contact.last_name || '')) + '</div>';
+    if (contact.title) html += '<div style="color:var(--color-text-muted);">' + escapeHtml(contact.title) + '</div>';
+    html += '</div></div>';
+
+    var solutions = [];
+    var roles = [];
+    allRecords.forEach(function(c) {
+      if (c.solution_id && !solutions.includes(c.solution_id)) solutions.push(c.solution_id);
+      if (c.role && !roles.includes(c.role)) roles.push(c.role);
+    });
+
+    html += '<div class="detail-section" style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-sm);">';
+    if (contact.contact_id) html += '<div><span class="detail-label">Contact ID</span><div>' + escapeHtml(contact.contact_id) + '</div></div>';
+    if (contact.email) html += '<div><span class="detail-label">Email</span><div><a href="mailto:' + escapeHtml(contact.email) + '">' + escapeHtml(contact.email) + '</a></div></div>';
+    if (contact.department) html += '<div><span class="detail-label">Department</span><div>' + escapeHtml(contact.department) + '</div></div>';
+    if (contact.agency) html += '<div><span class="detail-label">Agency</span><div>' + escapeHtml(contact.agency) + '</div></div>';
+    if (contact.organization) html += '<div><span class="detail-label">Organization</span><div>' + escapeHtml(contact.organization) + '</div></div>';
+    if (roles.length) html += '<div><span class="detail-label">Roles</span><div>' + escapeHtml(roles.join(', ')) + '</div></div>';
+    if (solutions.length) html += '<div style="grid-column: 1 / -1;"><span class="detail-label">Solutions (' + solutions.length + ')</span><div>' + escapeHtml(solutions.join(', ')) + '</div></div>';
+    html += '</div>';
+
+    body.innerHTML = html;
+  }
+
+  function closeContactModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('contactDetailModal').classList.remove('active');
   }
 
   function escapeAttr(text) {
@@ -3114,8 +3370,11 @@ return;
     clearSolutionSelection: clearSolutionSelection,
     toggleExtendedUpdates: toggleExtendedUpdates,
     toggleStatusSummary: toggleStatusSummary,
+    toggleCollapsibleSection: toggleCollapsibleSection,
     toggleActivityDesc: toggleActivityDesc,
     viewSolutionContacts: viewSolutionContacts,
+    showContactDetail: showContactDetail,
+    closeContactModal: closeContactModal,
     // Team folder upload
     openUploadModal: openUploadModal,
     closeUploadModal: closeUploadModal,
@@ -3126,20 +3385,6 @@ return;
   };
 })();
 
-// Initialize
-if (typeof google !== 'undefined' && google.script) {
-  Implementation.init();
-} else {
-  document.addEventListener('DOMContentLoaded', function() {
-    if (typeof google !== 'undefined' && google.script) {
-      Implementation.init();
-    } else {
-      setTimeout(function() {
-        if (typeof google !== 'undefined' && google.script) {
-          Implementation.init();
-        }
-      }, 500);
-    }
-  });
-}
+// Initialize — queued so CachedAPI is available (defined in index.html main script)
+queuePageInit(function() { Implementation.init(); });
 </script>

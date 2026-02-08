@@ -71,7 +71,7 @@
         <div class="content-search-header">
           <div class="content-search-box">
             <span class="material-icons">search</span>
-            <input type="text" id="contentSearchInput" placeholder="What do you need content about?" oninput="COMMS.searchContent(this.value)">
+            <input type="text" id="contentSearchInput" placeholder="What do you need content about?" oninput="COMMS.searchContent(this.value)" aria-label="Search content">
           </div>
           <div class="content-filters">
             <label>Browse by Solution:</label>
@@ -90,17 +90,17 @@
           <!-- Default: Quick Access Cards -->
           <div class="content-quick-access" id="contentQuickAccess">
             <div class="quick-access-grid">
-              <div class="quick-access-card" onclick="COMMS.showRecentBlurbs()">
+              <div class="quick-access-card" onclick="COMMS.showRecentBlurbs()" tabindex="0" role="button" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
                 <span class="material-icons">history</span>
                 <h4>Recent Blurbs</h4>
                 <p>Latest HQ updates and highlights</p>
               </div>
-              <div class="quick-access-card" onclick="COMMS.showMostUsed()">
+              <div class="quick-access-card" onclick="COMMS.showMostUsed()" tabindex="0" role="button" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
                 <span class="material-icons">trending_up</span>
                 <h4>Most Used</h4>
                 <p>Frequently copied content</p>
               </div>
-              <div class="quick-access-card" onclick="COMMS.showByType()">
+              <div class="quick-access-card" onclick="COMMS.showByType()" tabindex="0" role="button" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
                 <span class="material-icons">category</span>
                 <h4>By Type</h4>
                 <p>Browse talking points, facts, quotes</p>
@@ -170,7 +170,7 @@
             </select>
             <div class="assets-search-box">
               <span class="material-icons">search</span>
-              <input type="text" id="assetsSearchInput" placeholder="Search assets..." oninput="COMMS.filterAssets()">
+              <input type="text" id="assetsSearchInput" placeholder="Search assets..." oninput="COMMS.filterAssets()" aria-label="Search assets">
             </div>
           </div>
           <button class="btn btn-primary" onclick="COMMS.toggleUploadDropzone()">
@@ -272,7 +272,7 @@
     </div>
 
     <!-- Asset Detail Modal -->
-    <div class="modal-overlay" id="assetDetailModal" style="display: none;">
+    <div class="modal-overlay" id="assetDetailModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="assetDetailTitle">
       <div class="modal-content asset-detail-modal">
         <div class="modal-header">
           <h2 id="assetDetailTitle">Asset Preview</h2>
@@ -896,10 +896,10 @@
 </div>
 
 <!-- Story Detail Modal -->
-<div class="modal-overlay" id="storyModal" onclick="COMMS.closeModal('storyModal', event)">
+<div class="modal-overlay" id="storyModal" onclick="COMMS.closeModal('storyModal', event)" role="dialog" aria-modal="true" aria-labelledby="storyModalTitle">
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title" id="modalStoryTitle">Story Details</h2>
+      <h2 class="modal-title" id="storyModalTitle">Story Details</h2>
       <button class="modal-close" onclick="COMMS.closeModal('storyModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body" id="storyModalBody">
@@ -909,7 +909,7 @@
 </div>
 
 <!-- Create/Edit Story Modal -->
-<div class="modal-overlay" id="editStoryModal" onclick="COMMS.closeModal('editStoryModal', event)">
+<div class="modal-overlay" id="editStoryModal" onclick="COMMS.closeModal('editStoryModal', event)" role="dialog" aria-modal="true" aria-labelledby="editStoryModalTitle">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title" id="editStoryModalTitle">New Story</h2>
@@ -1106,10 +1106,10 @@
 </div>
 
 <!-- Add Event Modal -->
-<div class="modal-overlay" id="addEventModal" onclick="COMMS.closeModal('addEventModal', event)">
+<div class="modal-overlay" id="addEventModal" onclick="COMMS.closeModal('addEventModal', event)" role="dialog" aria-modal="true" aria-labelledby="addEventModalTitle">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Add New Event</h2>
+      <h2 class="modal-title" id="addEventModalTitle">Add New Event</h2>
       <button class="modal-close" onclick="COMMS.closeModal('addEventModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -1183,10 +1183,10 @@
 </div>
 
 <!-- Event Detail Modal (Tabbed) -->
-<div class="modal-overlay" id="eventModal" onclick="COMMS.closeModal('eventModal', event)">
+<div class="modal-overlay" id="eventModal" onclick="COMMS.closeModal('eventModal', event)" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle">
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title" id="modalEventName">Event Details</h2>
+      <h2 class="modal-title" id="eventModalTitle">Event Details</h2>
       <button class="modal-close" onclick="COMMS.closeModal('eventModal')" aria-label="Close dialog">&times;</button>
     </div>
     <!-- Modal Tabs -->
@@ -1258,10 +1258,10 @@
 </div>
 
 <!-- New Contact from Event Modal -->
-<div class="modal-overlay" id="newContactFromEventModal" onclick="COMMS.closeModal('newContactFromEventModal', event)">
+<div class="modal-overlay" id="newContactFromEventModal" onclick="COMMS.closeModal('newContactFromEventModal', event)" role="dialog" aria-modal="true" aria-labelledby="newContactFromEventModalTitle">
   <div class="modal-content modal-md" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Add New Contact</h2>
+      <h2 class="modal-title" id="newContactFromEventModalTitle">Add New Contact</h2>
       <button class="modal-close" onclick="COMMS.closeModal('newContactFromEventModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -1310,10 +1310,10 @@
 </div>
 
 <!-- Presentation Builder Modal -->
-<div class="modal-overlay" id="presentationBuilderModal" onclick="COMMS.closeModal('presentationBuilderModal', event)">
+<div class="modal-overlay" id="presentationBuilderModal" onclick="COMMS.closeModal('presentationBuilderModal', event)" role="dialog" aria-modal="true" aria-labelledby="presentationBuilderModalTitle">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Presentation Builder</h2>
+      <h2 class="modal-title" id="presentationBuilderModalTitle">Presentation Builder</h2>
       <button class="modal-close" onclick="COMMS.closeModal('presentationBuilderModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -1392,7 +1392,7 @@
 </div>
 
 <!-- Add Comms Asset Modal -->
-<div class="modal-overlay" id="addAssetModal" onclick="COMMS.closeModal('addAssetModal', event)">
+<div class="modal-overlay" id="addAssetModal" onclick="COMMS.closeModal('addAssetModal', event)" role="dialog" aria-modal="true" aria-labelledby="addAssetModalTitle">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title" id="addAssetModalTitle">Add Communications Asset</h2>
@@ -1623,10 +1623,10 @@
 </div>
 
 <!-- Add Contact for Asset Modal (Quick Add) -->
-<div class="modal-overlay" id="addContactForAssetModal" onclick="COMMS.closeModal('addContactForAssetModal', event)">
+<div class="modal-overlay" id="addContactForAssetModal" onclick="COMMS.closeModal('addContactForAssetModal', event)" role="dialog" aria-modal="true" aria-labelledby="addContactForAssetModalTitle">
   <div class="modal-content modal-sm" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Quick Add Contact</h2>
+      <h2 class="modal-title" id="addContactForAssetModalTitle">Quick Add Contact</h2>
       <button class="modal-close" onclick="COMMS.closeModal('addContactForAssetModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -2493,11 +2493,11 @@
   /* Comms Pipeline Customizations */
 
   /* Comms dot colors (story status) */
-  .dot-idea { background: #9E9E9E; }
-  .dot-research { background: #2196F3; }
-  .dot-draft { background: #FF9800; }
-  .dot-review { background: #9C27B0; }
-  .dot-published { background: #4CAF50; }
+  .dot-idea { background: var(--color-pipeline-idea); }
+  .dot-research { background: var(--color-cat-blue); }
+  .dot-draft { background: var(--color-cat-orange); }
+  .dot-review { background: var(--color-cat-purple); }
+  .dot-published { background: var(--color-cat-green); }
 
   /* Comms column customizations */
   .comms-viewer .pipeline-column { min-width: 200px; }
@@ -2756,11 +2756,11 @@
     text-transform: uppercase;
     font-weight: 500;
   }
-  .card-type.type-web_content { background: rgba(33, 150, 243, 0.1); color: #2196F3; }
-  .card-type.type-social_media { background: rgba(0, 150, 136, 0.1); color: #009688; }
-  .card-type.type-external_mention { background: rgba(96, 125, 139, 0.1); color: #607D8B; }
-  .card-type.type-nugget { background: rgba(255, 152, 0, 0.1); color: #FF9800; }
-  .card-type.type-key_date { background: rgba(244, 67, 54, 0.1); color: #F44336; }
+  .card-type.type-web_content { background: rgba(33, 150, 243, 0.1); color: var(--color-cat-blue); }
+  .card-type.type-social_media { background: rgba(0, 150, 136, 0.1); color: var(--color-cat-teal); }
+  .card-type.type-external_mention { background: rgba(96, 125, 139, 0.1); color: var(--color-cat-blue-grey); }
+  .card-type.type-nugget { background: rgba(255, 152, 0, 0.1); color: var(--color-cat-orange); }
+  .card-type.type-key_date { background: rgba(244, 67, 54, 0.1); color: var(--color-cat-red); }
   .card-type.type-highlighter_blurb { background: rgba(103, 58, 183, 0.1); color: #673AB7; }
   .card-date { font-size: var(--font-size-xs); color: var(--color-text-muted); }
   .card-title {
@@ -2852,7 +2852,7 @@
   }
   .opportunity-icon svg { width: 16px; height: 16px; }
   .opportunity-icon.milestone { background: rgba(76, 175, 80, 0.1); color: var(--color-success); }
-  .opportunity-icon.t8 { background: rgba(33, 150, 243, 0.1); color: #2196F3; }
+  .opportunity-icon.t8 { background: rgba(33, 150, 243, 0.1); color: var(--color-cat-blue); }
   .opportunity-info { flex: 1; min-width: 0; }
   .opportunity-title { font-weight: 500; font-size: var(--font-size-sm); margin-bottom: 2px; }
   .opportunity-desc { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
@@ -2918,7 +2918,7 @@
     background: var(--color-surface);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
-    overflow: hidden;
+    overflow-x: auto;
   }
   .coverage-table {
     width: 100%;
@@ -3106,45 +3106,9 @@
     cursor: pointer;
     white-space: nowrap;
   }
-  .comms-due-action:hover { background: #6a1b9a; }
+  .comms-due-action:hover { background: var(--color-comms); }
 
-  /* Modal & Forms */
-  .modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: var(--space-md);
-  }
-  .modal-overlay.active { display: flex; }
-  .modal-content {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    max-width: 600px;
-    width: 100%;
-    max-height: 90vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-  .modal-content.modal-lg { max-width: 900px; }
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--space-md) var(--space-lg);
-    border-bottom: 1px solid var(--color-border-light);
-    background: var(--color-surface-alt);
-  }
-  .modal-title { font-size: var(--font-size-lg); font-weight: 600; margin: 0; }
-  .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--color-text-muted); }
-  .modal-close:hover { color: var(--color-text); }
-  .modal-body { padding: var(--space-lg); overflow-y: auto; }
-
+  /* Forms */
   .form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); }
   .form-group { margin-bottom: var(--space-md); }
   .form-group-wide { grid-column: span 3; }
@@ -3162,26 +3126,6 @@
     border-color: var(--color-comms);
   }
   .form-actions { display: flex; justify-content: flex-end; gap: var(--space-sm); margin-top: var(--space-md); }
-
-  /* Buttons */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-xs);
-    padding: var(--space-sm) var(--space-md);
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    border: none;
-  }
-  .btn svg { width: 16px; height: 16px; }
-  .btn-primary { background: var(--color-comms); color: white; }
-  .btn-primary:hover { background: #6a1b9a; }
-  .btn-secondary { background: var(--color-surface-alt); color: var(--color-text); border: 1px solid var(--color-border); }
-  .btn-secondary:hover { background: var(--color-border-light); }
-  .btn-sm { padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-xs); }
 
   /* Events View */
   .events-layout { display: flex; flex-direction: column; gap: var(--space-md); }
@@ -3206,6 +3150,9 @@
     font-size: var(--font-size-sm);
   }
   .events-content { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
+  @media (max-width: 768px) {
+    .events-content { grid-template-columns: 1fr; }
+  }
   .events-panel {
     background: var(--color-surface);
     border-radius: var(--radius-md);
@@ -3299,7 +3246,7 @@
     background: var(--color-surface);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
-    overflow: hidden;
+    overflow-x: auto;
   }
   .events-table {
     width: 100%;
@@ -3945,7 +3892,7 @@
     background: rgba(255, 152, 0, 0.1);
   }
   .blurb-card.blurb-submitted {
-    border-left-color: #4CAF50;
+    border-left-color: var(--color-cat-green);
     opacity: 0.8;
   }
   .blurb-content {
@@ -4110,10 +4057,10 @@
     border-radius: 50%;
     display: inline-block;
   }
-  .blurb-status-dot.dot-idea { background: #9E9E9E; }
-  .blurb-status-dot.dot-drafting { background: #FF9800; }
-  .blurb-status-dot.dot-review { background: #9C27B0; }
-  .blurb-status-dot.dot-published { background: #4CAF50; }
+  .blurb-status-dot.dot-idea { background: var(--color-pipeline-idea); }
+  .blurb-status-dot.dot-drafting { background: var(--color-cat-orange); }
+  .blurb-status-dot.dot-review { background: var(--color-cat-purple); }
+  .blurb-status-dot.dot-published { background: var(--color-cat-green); }
   .blurb-status-dot.dot-due { background: #F57C00; animation: pulse 1.5s infinite; }
   @keyframes pulse {
     0%, 100% { opacity: 1; }
@@ -4296,9 +4243,9 @@
     color: white;
     font-weight: 500;
   }
-  .focus-science { background: #2196F3; }
-  .focus-operations { background: #4CAF50; }
-  .focus-applications { background: #9C27B0; }
+  .focus-science { background: var(--color-cat-blue); }
+  .focus-operations { background: var(--color-cat-green); }
+  .focus-applications { background: var(--color-cat-purple); }
   .message-card-body {
     padding: var(--space-md);
   }
@@ -4837,10 +4784,10 @@
     font-size: var(--font-size-xs);
     border: 1px solid var(--color-border-light);
   }
-  .prep-topic-tag.hobby { border-left: 3px solid #4CAF50; }
-  .prep-topic-tag.icebreaker { border-left: 3px solid #FF9800; }
-  .prep-topic-tag.professional { border-left: 3px solid #2196F3; }
-  .prep-topic-tag.personal { border-left: 3px solid #9C27B0; }
+  .prep-topic-tag.hobby { border-left: 3px solid var(--color-cat-green); }
+  .prep-topic-tag.icebreaker { border-left: 3px solid var(--color-cat-orange); }
+  .prep-topic-tag.professional { border-left: 3px solid var(--color-cat-blue); }
+  .prep-topic-tag.personal { border-left: 3px solid var(--color-cat-purple); }
   .prep-topic-tag.skill { border-left: 3px solid #00BCD4; }
   .prep-topic-tag.work { border-left: 3px solid var(--color-comms); }
 
@@ -5083,67 +5030,52 @@ var COMMS = (function() {
 
   function loadStories() {
     var navId = commsNavId;
-    google.script.run
-      .withSuccessHandler(function(stories) {
-        // Abandon if user navigated away
-        if (!isNavigationCurrent(navId)) {
-          console.log('[Comms] Abandoning stories load - user navigated away');
-          return;
-        }
+    CachedAPI.getCommsStories()
+      .then(function(stories) {
+        if (!isNavigationCurrent(navId)) return;
         state.stories = stories || [];
         renderPipeline();
       })
-      .withFailureHandler(function(error) {
+      .catch(function(error) {
         if (!isNavigationCurrent(navId)) return;
         console.error('Failed to load stories:', error);
         showPipelineError('Failed to load stories');
-      })
-      .getPipelineStoriesForUI();
+      });
   }
 
   function loadOpportunities() {
     var navId = commsNavId;
-    google.script.run
-      .withSuccessHandler(function(opportunities) {
-        // Abandon if user navigated away
-        if (!isNavigationCurrent(navId)) {
-          console.log('[Comms] Abandoning opportunities load - user navigated away');
-          return;
-        }
+    CachedAPI.getCommsOpportunities()
+      .then(function(opportunities) {
+        if (!isNavigationCurrent(navId)) return;
         state.opportunities = opportunities;
         renderOpportunities();
       })
-      .withFailureHandler(function(error) {
+      .catch(function(error) {
         if (!isNavigationCurrent(navId)) return;
         console.error('Failed to load opportunities:', error);
         document.getElementById('opportunitiesPanel').innerHTML =
           '<div class="empty-state"><p>Could not load opportunities</p></div>';
-      })
-      .detectStoryOpportunities();
+      });
   }
 
   function loadCoverage() {
     var navId = commsNavId;
-    google.script.run
-      .withSuccessHandler(function(coverage) {
-        // Abandon if user navigated away
-        if (!isNavigationCurrent(navId)) {
-          console.log('[Comms] Abandoning coverage load - user navigated away');
-          return;
-        }
+    CachedAPI.getCommsCoverage()
+      .then(function(coverage) {
+        if (!isNavigationCurrent(navId)) return;
         state.coverage = coverage;
         renderCoverageGaps();
         renderCoverageView();
       })
-      .withFailureHandler(function(error) {
+      .catch(function(error) {
         if (!isNavigationCurrent(navId)) return;
         console.error('Failed to load coverage:', error);
         var panel = document.getElementById('coverageGapsPanel');
         if (panel) {
           panel.innerHTML = '<div class="empty-state"><p>Could not load coverage data</p></div>';
         }
-      })
-      .getCoverageAnalysis(90);
+      });
   }
 
   function renderStats(overview) {
@@ -5219,7 +5151,7 @@ var COMMS = (function() {
     };
     var channelIcon = channelIcons[story.channel] || 'description';
 
-    var dateStr = story.target_date ? formatDate(story.target_date) : (story.idea_date ? formatDate(story.idea_date) : '');
+    var dateStr = story.target_date ? formatDateShort(story.target_date) : (story.idea_date ? formatDateShort(story.idea_date) : '');
 
     var priorityClass = story.priority === 'high' ? 'priority-high' : (story.priority === 'low' ? 'priority-low' : '');
 
@@ -5378,7 +5310,7 @@ var COMMS = (function() {
       html += '<td>' + escapeHtml(sol.phase || '--') + '</td>';
       html += '<td>' + (sol.total_stories || 0) + '</td>';
       html += '<td>' + (sol.recent_stories || 0) + '</td>';
-      html += '<td>' + (sol.last_story_date ? formatDate(sol.last_story_date) : '--') + '</td>';
+      html += '<td>' + (sol.last_story_date ? formatDateShort(sol.last_story_date) : '--') + '</td>';
       html += '<td>' + (sol.days_since_story != null ? sol.days_since_story : '--') + '</td>';
       html += '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>';
       html += '<td><button class="btn btn-sm btn-secondary" onclick="COMMS.suggestStory(\'' + escapeAttr(solId) + '\')">+ Story</button></td>';
@@ -5597,17 +5529,17 @@ var COMMS = (function() {
     if (!quickAccess) return;
 
     quickAccess.innerHTML = '<div class="quick-access-grid">' +
-      '<div class="quick-access-card" onclick="COMMS.showRecentBlurbs()">' +
+      '<div class="quick-access-card" onclick="COMMS.showRecentBlurbs()" tabindex="0" role="button" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">' +
         '<span class="material-icons">history</span>' +
         '<h4>Recent Blurbs</h4>' +
         '<p>Latest HQ updates and highlights</p>' +
       '</div>' +
-      '<div class="quick-access-card" onclick="COMMS.showMostUsed()">' +
+      '<div class="quick-access-card" onclick="COMMS.showMostUsed()" tabindex="0" role="button" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">' +
         '<span class="material-icons">trending_up</span>' +
         '<h4>Most Used</h4>' +
         '<p>Frequently copied content</p>' +
       '</div>' +
-      '<div class="quick-access-card" onclick="COMMS.showByType()">' +
+      '<div class="quick-access-card" onclick="COMMS.showByType()" tabindex="0" role="button" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">' +
         '<span class="material-icons">category</span>' +
         '<h4>By Type</h4>' +
         '<p>Browse talking points, facts, quotes</p>' +
@@ -5615,9 +5547,8 @@ var COMMS = (function() {
     '</div>';
   }
 
-  /**
-   * Populate the Content solution dropdown
-   */
+  // Populates the solution filter dropdown in the Content tab using CachedAPI.getSolutions().
+  // Also triggers populateAssetSolutionFilter() to keep the Assets tab filter in sync.
   function populateContentSolutionDropdown() {
     var select = document.getElementById('contentSolutionSelect');
     if (!select) return;
@@ -5632,8 +5563,8 @@ var COMMS = (function() {
         select.innerHTML = '<option value="">All Solutions</option>';
         solutions.forEach(function(sol) {
           var opt = document.createElement('option');
-          opt.value = sol.core_id;
-          opt.textContent = sol.core_official_name || sol.core_id;
+          opt.value = sol.solution_id;
+          opt.textContent = sol.core_official_name || sol.solution_id;
           select.appendChild(opt);
         });
 
@@ -5643,9 +5574,9 @@ var COMMS = (function() {
       .catch(handleError);
   }
 
-  /**
-   * Search content by query (debounced, client-side when possible)
-   */
+  // Main search handler for the Content tab. Toggles between quick-access and search-results
+  // panels based on query length. Debounces the actual search (200ms) and delegates to
+  // performContentSearch which does client-side filtering or falls back to API.
   function searchContent(query) {
     state.content.searchQuery = query;
 
@@ -5768,7 +5699,7 @@ var COMMS = (function() {
     // Update title
     var titleEl = document.getElementById('solutionContentTitle');
     var solutions = state.assetForm.solutions || [];
-    var sol = solutions.find(function(s) { return s.core_id === solutionId; });
+    var sol = solutions.find(function(s) { return s.solution_id === solutionId; });
     if (titleEl) titleEl.textContent = sol ? sol.core_official_name : solutionId;
 
     // Client-side filter if content is loaded
@@ -5936,9 +5867,9 @@ var COMMS = (function() {
       .searchWhatToSay(solutionId);
   }
 
-  /**
-   * Show recent blurbs (client-side if available)
-   */
+  // Displays recently captured blurbs in the search results panel, sorted by date descending.
+  // Uses client-side filtering on state.content.allContent when loaded; falls back to API.
+  // Limited to the 20 most recent blurb-type items.
   function showRecentBlurbs() {
     var searchInput = document.getElementById('contentSearchInput');
     if (searchInput) searchInput.value = '';
@@ -5995,9 +5926,9 @@ var COMMS = (function() {
       .getHighlighterBlurbsFromAssets(20);
   }
 
-  /**
-   * Show most used content (client-side if available)
-   */
+  // Displays most frequently used content items, sorted by use_count descending.
+  // Filters out items with zero usage. Groups results by type for display.
+  // Uses client-side data when loaded; falls back to API summary endpoint.
   function showMostUsed() {
     var searchInput = document.getElementById('contentSearchInput');
     if (searchInput) searchInput.value = '';
@@ -6053,9 +5984,8 @@ var COMMS = (function() {
       .getCommsAssetsSummary();
   }
 
-  /**
-   * Show content by type (quick links)
-   */
+  // Quick-access action that focuses the search input and updates placeholder text
+  // to guide the user to search by content type (blurb, quote, fact, etc.).
   function showByType() {
     // For now, just load all content and let user search
     var searchInput = document.getElementById('contentSearchInput');
@@ -6148,15 +6078,15 @@ var COMMS = (function() {
     select.innerHTML = '<option value="">All Solutions</option>';
     solutions.forEach(function(sol) {
       var opt = document.createElement('option');
-      opt.value = sol.core_id;
-      opt.textContent = sol.core_official_name || sol.core_id;
+      opt.value = sol.solution_id;
+      opt.textContent = sol.core_official_name || sol.solution_id;
       select.appendChild(opt);
     });
   }
 
-  /**
-   * Filter assets based on type, solution, and search
-   */
+  // Multi-criteria filter for the Assets tab. Applies type filter (checks both asset_file_type
+  // and legacy asset_type fields), solution filter (substring match on comma-separated solution_ids),
+  // and free-text search across title, content, tags, and solution_ids.
   function filterAssets() {
     var typeFilter = document.getElementById('assetTypeFilter');
     var solutionFilter = document.getElementById('assetSolutionFilter');
@@ -6219,9 +6149,9 @@ var COMMS = (function() {
     grid.innerHTML = html;
   }
 
-  /**
-   * Render a single asset card
-   */
+  // Renders a single asset card with thumbnail preview. For Google Drive URLs, extracts the
+  // file ID via regex (25+ alphanumeric/hyphen chars) to build an iframe preview.
+  // Falls back to a material icon based on file type if no valid Drive URL is found.
   function renderAssetCard(asset) {
     var thumbnailHtml = '';
 
@@ -6508,8 +6438,8 @@ var COMMS = (function() {
       solutionSelect.innerHTML = '<option value="">Select solution...</option>';
       solutions.forEach(function(sol) {
         var opt = document.createElement('option');
-        opt.value = sol.core_id;
-        opt.textContent = sol.core_official_name || sol.core_id;
+        opt.value = sol.solution_id;
+        opt.textContent = sol.core_official_name || sol.solution_id;
         solutionSelect.appendChild(opt);
       });
     }
@@ -6613,7 +6543,7 @@ var COMMS = (function() {
       .withFailureHandler(function(error) {
         console.error('Upload failure:', error);
         if (progressFill) progressFill.style.width = '100%';
-        var errorMsg = error.message || 'Upload failed';
+        var errorMsg = 'Upload failed. Please try again.';
         if (statusEl) {
           statusEl.textContent = errorMsg;
           statusEl.className = 'upload-status error';
@@ -6749,7 +6679,7 @@ var COMMS = (function() {
           : 'COMMS.showStoryDetail(\'' + escapeAttr(story.story_id) + '\')';
         return '<div class="priority-story-item" onclick="' + onclick + '">' +
           '<div class="priority-story-title">' + escapeHtml(story.title) + '</div>' +
-          '<div class="priority-story-meta">' + escapeHtml(story.solution_id || 'No solution') + ' • ' + capitalizeFirst(story.status || 'unknown') + '</div>' +
+          '<div class="priority-story-meta">' + escapeHtml(story.solution_id || 'No solution') + ' • ' + escapeHtml(capitalizeFirst(story.status || 'unknown')) + '</div>' +
           '</div>';
       }).join('');
     }
@@ -7118,9 +7048,9 @@ var COMMS = (function() {
     var addOptions = '<option value="">+ Add solution...</option>';
 
     state.assetForm.solutions.forEach(function(sol) {
-      var name = sol.core_official_name || sol.core_id;
-      options += '<option value="' + escapeHtml(sol.core_id) + '">' + escapeHtml(name) + '</option>';
-      addOptions += '<option value="' + escapeHtml(sol.core_id) + '">' + escapeHtml(name) + '</option>';
+      var name = sol.core_official_name || sol.solution_id;
+      options += '<option value="' + escapeHtml(sol.solution_id) + '">' + escapeHtml(name) + '</option>';
+      addOptions += '<option value="' + escapeHtml(sol.solution_id) + '">' + escapeHtml(name) + '</option>';
     });
 
     primarySelect.innerHTML = options;
@@ -7175,7 +7105,7 @@ var COMMS = (function() {
     }
 
     var html = state.assetForm.selectedSolutions.map(function(id) {
-      var sol = state.assetForm.solutions.find(function(s) { return s.core_id === id; });
+      var sol = state.assetForm.solutions.find(function(s) { return s.solution_id === id; });
       var name = sol ? (sol.core_official_name || id) : id;
       return '<span class="asset-solution-tag">' +
         escapeHtml(name) +
@@ -7650,7 +7580,7 @@ var COMMS = (function() {
 
       return '<div class="message-card">' +
         '<div class="message-card-header">' +
-          '<h3 class="message-solution-name">' + escapeHtml(sol.core_official_name || sol.core_id) + '</h3>' +
+          '<h3 class="message-solution-name">' + escapeHtml(sol.core_official_name || sol.solution_id) + '</h3>' +
           focusBadge +
         '</div>' +
         '<div class="message-card-body">' +
@@ -7768,7 +7698,7 @@ var COMMS = (function() {
     var filtered = messagesState.solutions.filter(function(sol) {
       var searchText = [
         sol.core_official_name,
-        sol.core_id,
+        sol.solution_id,
         sol.comms_key_messages,
         sol.comms_science,
         sol.comms_agency_impact,
@@ -7805,7 +7735,7 @@ var COMMS = (function() {
   }
 
   function renderStoryDetailModal(story) {
-    document.getElementById('modalStoryTitle').textContent = story.title || 'Story Details';
+    document.getElementById('storyModalTitle').textContent = story.title || 'Story Details';
 
     var typeNames = {
       'story': 'Impact Story',
@@ -7876,7 +7806,7 @@ var COMMS = (function() {
       // Look up solution name
       var solutionDisplay = story.solution_id;
       if (state.solutions) {
-        var sol = state.solutions.find(function(s) { return s.core_id === story.solution_id; });
+        var sol = state.solutions.find(function(s) { return s.solution_id === story.solution_id; });
         if (sol) solutionDisplay = sol.core_official_name || story.solution_id;
       }
       html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">SOLUTION</div>';
@@ -7885,7 +7815,7 @@ var COMMS = (function() {
 
     if (story.channel) {
       html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">CHANNEL</div>';
-      html += '<div style="font-size: var(--font-size-sm);">' + capitalizeFirst(story.channel) + '</div></div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(capitalizeFirst(story.channel || '')) + '</div></div>';
     }
 
     if (story.author) {
@@ -7905,28 +7835,28 @@ var COMMS = (function() {
 
     if (story.target_date) {
       html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">TARGET DATE</div>';
-      html += '<div style="font-size: var(--font-size-sm);">' + formatDate(story.target_date) + '</div></div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + formatDateShort(story.target_date) + '</div></div>';
     }
 
     if (story.publish_date) {
       html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">PUBLISH DATE</div>';
-      html += '<div style="font-size: var(--font-size-sm);">' + formatDate(story.publish_date) + '</div></div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + formatDateShort(story.publish_date) + '</div></div>';
     }
 
     if (story.idea_date) {
       html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">CREATED</div>';
-      html += '<div style="font-size: var(--font-size-sm);">' + formatDate(story.idea_date) + '</div></div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + formatDateShort(story.idea_date) + '</div></div>';
     }
 
     if (story.last_updated) {
       html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">LAST UPDATED</div>';
-      html += '<div style="font-size: var(--font-size-sm);">' + formatDate(story.last_updated) + '</div></div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + formatDateShort(story.last_updated) + '</div></div>';
     }
 
     // HQ Submission date for blurbs
     if (isBlurb && story.hq_submission_date) {
       html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">SUBMITTED TO HQ</div>';
-      html += '<div style="font-size: var(--font-size-sm); color: var(--color-success);">' + formatDate(story.hq_submission_date) + '</div></div>';
+      html += '<div style="font-size: var(--font-size-sm); color: var(--color-success);">' + formatDateShort(story.hq_submission_date) + '</div></div>';
     }
 
     html += '</div>';
@@ -7974,7 +7904,7 @@ var COMMS = (function() {
     if (story.status !== 'published') {
       var nextStatus = getNextStatus(story.status);
       if (nextStatus) {
-        var nextLabel = (isBlurb && nextStatus === 'published') ? 'Submit to HQ' : ('Move to ' + capitalizeFirst(nextStatus));
+        var nextLabel = (isBlurb && nextStatus === 'published') ? 'Submit to HQ' : ('Move to ' + escapeHtml(capitalizeFirst(nextStatus)));
         html += '<button class="btn btn-secondary" id="advanceStatusBtn" onclick="COMMS.advanceStatus(\'' + escapeAttr(story.story_id) + '\', \'' + nextStatus + '\')"><span class="material-icons">arrow_forward</span> ' + nextLabel + '</button>';
       }
     }
@@ -8163,6 +8093,7 @@ var COMMS = (function() {
             return;
           }
           closeModal('editStoryModal');
+          CachedAPI.invalidate.comms();
           loadStories();
           loadOverview();
           showSuccess('Story updated successfully!');
@@ -8183,6 +8114,7 @@ var COMMS = (function() {
             return;
           }
           closeModal('editStoryModal');
+          CachedAPI.invalidate.comms();
           loadStories();
           loadOverview();
           showSuccess('Story created successfully!');
@@ -8324,7 +8256,7 @@ var COMMS = (function() {
           html += '<div class="target-item" onclick="COMMS.showStoryDetail(\'' + escapeAttr(t.story_id) + '\')">';
           html += '<div class="target-info">';
           html += '<div class="target-title">' + escapeHtml(t.title || 'Untitled') + '</div>';
-          html += '<div class="target-date">' + formatDate(t.target_date) + '</div>';
+          html += '<div class="target-date">' + formatDateShort(t.target_date) + '</div>';
           html += '</div></div>';
         });
 
@@ -8433,13 +8365,16 @@ var COMMS = (function() {
   // ============================================
 
   function loadEvents() {
+    var navId = commsNavId;
     google.script.run
       .withSuccessHandler(function(events) {
+        if (!isNavigationCurrent(navId)) return;
         state.events = events || [];
         renderEventsStats();
         renderEventsView();
       })
       .withFailureHandler(function(error) {
+        if (!isNavigationCurrent(navId)) return;
         console.error('Failed to load events:', error);
         document.getElementById('eventsTableBody').innerHTML =
           '<tr><td colspan="7" class="empty-state">Failed to load events</td></tr>';
@@ -8449,10 +8384,12 @@ var COMMS = (function() {
     // Also load overview for stats
     google.script.run
       .withSuccessHandler(function(overview) {
+        if (!isNavigationCurrent(navId)) return;
         state.eventsOverview = overview;
         renderEventsStats();
       })
       .withFailureHandler(function(error) {
+        if (!isNavigationCurrent(navId)) return;
         console.error('Failed to load events overview:', error);
       })
       .getOutreachOverview();
@@ -8516,14 +8453,14 @@ var COMMS = (function() {
     };
     var icon = typeIcons[event.event_type] || 'calendar';
 
-    var statusClass = event.status || 'potential';
+    var statusClass = escapeHtml(event.status || 'potential');
 
     var html = '<div class="event-card" onclick="COMMS.showEventDetail(\'' + escapeAttr(event.event_id) + '\')">';
 
     // Header: type icon + status
     html += '<div class="event-card-header">';
     html += '<span class="event-type-icon"><span class="material-icons">' + icon + '</span></span>';
-    html += '<span class="event-status ' + statusClass + '">' + (event.status || 'potential') + '</span>';
+    html += '<span class="event-status ' + statusClass + '">' + statusClass + '</span>';
     html += '</div>';
 
     // Title
@@ -8534,7 +8471,7 @@ var COMMS = (function() {
     if (hasDetails) {
       html += '<div class="event-card-details">';
       if (event.start_date) {
-        html += '<div class="event-card-date"><span class="material-icons">event</span>' + formatDate(event.start_date) + '</div>';
+        html += '<div class="event-card-date"><span class="material-icons">event</span>' + formatDateShort(event.start_date) + '</div>';
       }
       if (event.location) {
         html += '<div class="event-card-location"><span class="material-icons">place</span>' + escapeHtml(event.location.substring(0, 35)) + '</div>';
@@ -8571,7 +8508,7 @@ var COMMS = (function() {
 
     var html = '';
     events.slice(0, 50).forEach(function(e) {
-      var statusClass = 'status-' + (e.status || 'potential');
+      var statusClass = 'status-' + escapeHtml(e.status || 'potential');
       var typeIcons = {
         'conference': 'users',
         'workshop': 'tool',
@@ -8583,10 +8520,10 @@ var COMMS = (function() {
 
       html += '<tr onclick="COMMS.showEventDetail(\'' + escapeAttr(e.event_id) + '\')" style="cursor: pointer;">';
       html += '<td><strong>' + escapeHtml(e.name) + '</strong></td>';
-      html += '<td><span class="material-icons">' + icon + '</span> ' + capitalizeFirst(e.event_type || 'event') + '</td>';
-      html += '<td>' + (e.start_date ? formatDate(e.start_date) : '--') + '</td>';
+      html += '<td><span class="material-icons">' + icon + '</span> ' + escapeHtml(capitalizeFirst(e.event_type || 'event')) + '</td>';
+      html += '<td>' + (e.start_date ? formatDateShort(e.start_date) : '--') + '</td>';
       html += '<td>' + escapeHtml(e.location || '--').substring(0, 25) + '</td>';
-      html += '<td><span class="event-status ' + (e.status || 'potential') + '">' + (e.status || 'potential') + '</span></td>';
+      html += '<td><span class="event-status ' + escapeHtml(e.status || 'potential') + '">' + escapeHtml(e.status || 'potential') + '</span></td>';
       html += '<td>' + escapeHtml(e.team_members || '--').substring(0, 20) + '</td>';
       html += '<td>';
       if (e.event_url) {
@@ -8660,7 +8597,7 @@ var COMMS = (function() {
       })
       .getEventGuests(event.event_id);
 
-    document.getElementById('modalEventName').textContent = event.name || 'Event Details';
+    document.getElementById('eventModalTitle').textContent = event.name || 'Event Details';
 
     // Render the view mode content
     renderEventViewMode(event);
@@ -8669,15 +8606,15 @@ var COMMS = (function() {
   function renderEventViewMode(event) {
     currentEventDetail = event;
 
-    var statusClass = event.status || 'potential';
+    var statusClass = escapeHtml(event.status || 'potential');
 
     var html = '<div class="event-detail">';
 
     // Header with type, status, and edit/delete buttons
     html += '<div class="event-detail-header">';
     html += '<div class="event-detail-meta">';
-    html += '<span class="event-type-label">' + capitalizeFirst(event.event_type || 'Event') + '</span>';
-    html += '<span class="event-status ' + statusClass + '">' + (event.status || 'potential') + '</span>';
+    html += '<span class="event-type-label">' + escapeHtml(capitalizeFirst(event.event_type || 'Event')) + '</span>';
+    html += '<span class="event-status ' + statusClass + '">' + statusClass + '</span>';
     html += '</div>';
     html += '<div class="event-detail-actions">';
     html += '<button class="btn btn-sm btn-secondary" onclick="COMMS.showEventEditForm()" aria-label="Edit event"><span class="material-icons" aria-hidden="true">edit</span></button>';
@@ -8690,9 +8627,9 @@ var COMMS = (function() {
 
     if (event.start_date) {
       html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">DATE</div>';
-      html += '<div style="font-size: var(--font-size-sm);">' + formatDate(event.start_date);
+      html += '<div style="font-size: var(--font-size-sm);">' + formatDateShort(event.start_date);
       if (event.end_date && event.end_date !== event.start_date) {
-        html += ' - ' + formatDate(event.end_date);
+        html += ' - ' + formatDateShort(event.end_date);
       }
       html += '</div></div>';
     }
@@ -8704,7 +8641,7 @@ var COMMS = (function() {
 
     if (event.deadline) {
       html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">DEADLINE</div>';
-      html += '<div style="font-size: var(--font-size-sm);">' + formatDate(event.deadline) + '</div></div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + formatDateShort(event.deadline) + '</div></div>';
     }
 
     if (event.sector) {
@@ -8729,7 +8666,7 @@ var COMMS = (function() {
 
     if (event.priority) {
       html += '<div><div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 2px;">PRIORITY</div>';
-      html += '<div style="font-size: var(--font-size-sm);">' + capitalizeFirst(event.priority) + '</div></div>';
+      html += '<div style="font-size: var(--font-size-sm);">' + escapeHtml(capitalizeFirst(event.priority)) + '</div></div>';
     }
 
     html += '</div>';
@@ -8977,7 +8914,7 @@ var COMMS = (function() {
           state.events[idx] = result.data;
         }
         // Update modal title (check element exists)
-        var modalTitle = document.getElementById('modalEventName');
+        var modalTitle = document.getElementById('eventModalTitle');
         if (modalTitle) {
           modalTitle.textContent = result.data.name || 'Event Details';
         }
@@ -8986,6 +8923,7 @@ var COMMS = (function() {
         if (modal && modal.classList.contains('active')) {
           renderEventViewMode(result.data);
         }
+        CachedAPI.invalidate.comms();
         loadEvents(); // Refresh the events list
       })
       .withFailureHandler(function(error) {
@@ -9009,6 +8947,7 @@ var COMMS = (function() {
       .withSuccessHandler(function(result) {
         if (result && result.success) {
           closeModal('eventModal');
+          CachedAPI.invalidate.comms();
           loadEvents();
           showSuccess('Event deleted');
         } else {
@@ -9049,6 +8988,7 @@ var COMMS = (function() {
           return;
         }
         closeModal('eventModal');
+        CachedAPI.invalidate.comms();
         loadEvents();
         // Show brief success notification
         var statusNames = { confirmed: 'confirmed', cancelled: 'declined', attended: 'marked as attended' };
@@ -9123,6 +9063,7 @@ var COMMS = (function() {
         submitBtn.textContent = 'Add Event';
         if (result && result.success && result.data) {
           closeModal('addEventModal');
+          CachedAPI.invalidate.comms();
           loadEvents();
         } else {
           showError(result && result.error ? result.error : 'Failed to create event');
@@ -9138,15 +9079,7 @@ var COMMS = (function() {
   }
 
   // ============================================
-  // Utility functions
-  function formatDate(dateStr) {
-    return window.formatDateShort(dateStr);
-  }
-
-  function capitalizeFirst(str) {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
+  // Utility functions — capitalizeFirst and formatDateShort are globals from index.html
 
   // escapeHtml() and escapeAttr() - use globals from index.html
 
@@ -9586,7 +9519,7 @@ var COMMS = (function() {
       .withFailureHandler(function(error) {
         exportBtn.disabled = false;
         exportBtn.innerHTML = originalText;
-        showError('Export failed: ' + error.message);
+        showError('Export failed. Please try again.');
       })
       .exportPrepReportToDoc(currentEventId);
   }
@@ -9842,17 +9775,17 @@ var COMMS = (function() {
       .withSuccessHandler(function(solutions) {
         presentationState.solutions = solutions || [];
 
-        // Sort alphabetically by core_id
+        // Sort alphabetically by solution_id
         var sorted = solutions.slice().sort(function(a, b) {
-          var idA = (a.core_id || '').toLowerCase();
-          var idB = (b.core_id || '').toLowerCase();
+          var idA = (a.solution_id || '').toLowerCase();
+          var idB = (b.solution_id || '').toLowerCase();
           return idA.localeCompare(idB);
         });
 
         var html = '<option value="">-- Select Solution --</option>';
         sorted.forEach(function(sol) {
-          // Display core_id as readable acronym
-          html += '<option value="' + escapeAttr(sol.core_id) + '">' + escapeHtml(sol.core_id) + '</option>';
+          // Display solution_id as readable acronym
+          html += '<option value="' + escapeAttr(sol.solution_id) + '">' + escapeHtml(sol.solution_id) + '</option>';
         });
         select.innerHTML = html;
       })
@@ -9918,7 +9851,7 @@ var COMMS = (function() {
       .withFailureHandler(function(error) {
         presentationState.isGenerating = false;
         document.getElementById('presentationLoading').style.display = 'none';
-        document.getElementById('presentationErrorMessage').textContent = error.message || 'An unexpected error occurred';
+        document.getElementById('presentationErrorMessage').textContent = 'Could not generate presentation. Please try again.';
         document.getElementById('presentationError').style.display = 'block';
       })
       .generatePresentation(solutionId, audienceType, null);
@@ -10061,12 +9994,6 @@ var COMMS = (function() {
   };
 })();
 
-// Initialize
-if (typeof google !== 'undefined' && google.script) {
-  COMMS.init();
-} else {
-  document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() { COMMS.init(); }, 500);
-  });
-}
+// Initialize — queued so CachedAPI is available (defined in index.html main script)
+queuePageInit(function() { COMMS.init(); });
 </script>

@@ -132,6 +132,15 @@ function getActionsByAssignee(assignee) {
 }
 
 /**
+ * Get actions assigned to a specific contact by contact_id
+ * @param {string} contactId - Contact ID (CON_xxx)
+ * @returns {Array} Filtered actions
+ */
+function getActionsByAssigneeId(contactId) {
+  return filterByProperty(getAllActions(), 'assigned_to_id', contactId, true);
+}
+
+/**
  * Get open (non-done) actions
  * @returns {Array} Open actions
  */
@@ -380,7 +389,7 @@ function validateActionData_(data, isUpdate) {
   }
 
   // Pass through other safe fields with sanitization
-  var safeFields = ['source_document', 'source_url', 'category', 'solution_id', 'created_by'];
+  var safeFields = ['source_document', 'source_url', 'category', 'solution_id', 'created_by', 'assigned_to_id'];
   safeFields.forEach(function(field) {
     if (data[field] !== undefined) {
       var value = String(data[field]).trim();
@@ -441,6 +450,8 @@ function createAction(actionData) {
           return sanitized.status || 'not_started';
         case 'assigned_to':
           return sanitized.assigned_to || '';
+        case 'assigned_to_id':
+          return sanitized.assigned_to_id || '';
         case 'task':
           return sanitized.task || '';
         case 'due_date':

@@ -20,7 +20,7 @@ function getStoriesSheet_() {
     throw new Error('STORIES_SHEET_ID not configured in MO-DB_Config');
   }
   var ss = SpreadsheetApp.openById(sheetId);
-  return ss.getSheets()[0];
+  return ss.getSheetByName('Stories') || ss.getSheets()[0];
 }
 
 /**
@@ -406,7 +406,7 @@ function getStoriesByContentType(contentType) {
 
 /**
  * Get stories by solution
- * @param {string} solutionId - Solution ID (core_id from Solutions DB)
+ * @param {string} solutionId - Solution ID (solution_id from Solutions DB)
  * @returns {Array} Stories for this solution
  */
 function getStoriesBySolution(solutionId) {
@@ -481,8 +481,8 @@ function getCoverageAnalysis(days) {
   var solutionCoverage = {};
 
   allSolutions.forEach(function(sol) {
-    // Schema v2: use core_id as the solution_id, core_official_name as display name
-    var solId = sol.core_id || '';
+    // Schema v2: use solution_id as the solution_id, core_official_name as display name
+    var solId = sol.solution_id || '';
     var solName = sol.core_official_name || sol.solution_name || sol.name || solId;
     if (!solId) return;
 
@@ -507,7 +507,7 @@ function getCoverageAnalysis(days) {
 
     // Find solution name from master list by ID
     var solName = solId;
-    var sol = allSolutions.find(function(solution) { return solution.core_id === solId; });
+    var sol = allSolutions.find(function(solution) { return solution.solution_id === solId; });
     if (sol) {
       solName = sol.core_official_name || sol.solution_name || solId;
     }
@@ -614,8 +614,8 @@ function detectStoryOpportunities() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     solutions.forEach(function(sol) {
-      // Schema v2: use core_id, core_official_name, milestone_*_date columns
-      var solId = sol.core_id || '';
+      // Schema v2: use solution_id, core_official_name, milestone_*_date columns
+      var solId = sol.solution_id || '';
       var solName = sol.core_official_name || sol.solution_name || sol.name || solId;
 
       // Check ATP (Authority to Proceed)

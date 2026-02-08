@@ -3,9 +3,41 @@
  * ===========================
  * Delegates to MoApi library for Agencies data access.
  * Full implementation in: library/agencies-api.gs
+ *
+ * DATABASE STRUCTURE (v4.0):
+ * MO-DB_Agencies: Multi-tab (Departments + Agencies + Organizations)
  */
 
-// Core CRUD Operations
+// Department CRUD
+function getAllDepartments() {
+  return MoApi.getAllDepartments();
+}
+
+function getDepartmentById(departmentId) {
+  return MoApi.getDepartmentById(departmentId);
+}
+
+function getAgenciesByDepartment(departmentId) {
+  return MoApi.getAgenciesByDepartment(departmentId);
+}
+
+function createDepartment(deptData) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.createDepartment(deptData);
+}
+
+function updateDepartment(departmentId, updates) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.updateDepartment(departmentId, updates);
+}
+
+// Agency CRUD
 function getAllAgencies() {
   return MoApi.getAllAgencies();
 }
@@ -36,6 +68,40 @@ function deleteAgency(agencyId) {
     return { success: false, error: auth.message };
   }
   return MoApi.deleteAgency(agencyId);
+}
+
+// Organization CRUD
+function getAllOrganizations() {
+  return MoApi.getAllOrganizations();
+}
+
+function getOrganizationById(orgId) {
+  return MoApi.getOrganizationById(orgId);
+}
+
+function getOrganizationsByAgency(agencyId) {
+  return MoApi.getOrganizationsByAgency(agencyId);
+}
+
+function createOrganization(orgData) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.createOrganization(orgData);
+}
+
+function updateOrganization(orgId, updates) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.updateOrganization(orgId, updates);
+}
+
+// Agency Resolver (read-only — no auth needed)
+function resolveAgency(agencyId) {
+  return MoApi.resolveAgency_(agencyId);
 }
 
 // Hierarchy Queries

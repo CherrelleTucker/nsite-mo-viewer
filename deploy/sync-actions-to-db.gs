@@ -555,7 +555,7 @@ function loadConfigFromSheet_() {
 
   try {
     var ss = SpreadsheetApp.openById(configSheetId);
-    var sheet = ss.getSheets()[0]; // First sheet
+    var sheet = ss.getSheetByName('Config') || ss.getSheets()[0];
     var data = sheet.getDataRange().getValues();
 
     _configCache = {};

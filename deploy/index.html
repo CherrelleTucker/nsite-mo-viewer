@@ -78,6 +78,27 @@
   <!-- Navigation -->
   <?!= includeWithData('navigation', {activePage: activePage, branding: branding}); ?>
 
+  <!-- Core utilities needed by page scripts (must load before page includes) -->
+  <script>
+    // Platform stub — full Platform object defined in main script below
+    var Platform = window.Platform || { navigationId: 0 };
+    function getNavigationId() { return Platform.navigationId; }
+    function isNavigationCurrent(navId) { return navId === Platform.navigationId; }
+
+    // Deferred init queue — pages call queuePageInit() instead of directly calling init().
+    // The main script block (below content area) flushes this queue after DataCache,
+    // CachedAPI, and all other utilities are defined.
+    var _pageInitQueue = [];
+    function queuePageInit(initFn) {
+      if (typeof CachedAPI !== 'undefined') {
+        // Main script already loaded — run immediately
+        initFn();
+      } else {
+        _pageInitQueue.push(initFn);
+      }
+    }
+  </script>
+
   <!-- Main Content Area -->
   <main class="main-content" id="main-content">
     <div class="content-wrapper" id="contentArea">
@@ -127,10 +148,10 @@
   </footer>
 
   <!-- Feedback Modal -->
-  <div class="modal-overlay" id="feedbackModal" onclick="closeFeedbackModal(event)">
+  <div class="modal-overlay" id="feedbackModal" role="dialog" aria-modal="true" aria-labelledby="feedbackModalTitle" onclick="closeFeedbackModal(event)">
     <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <h2 class="modal-title">Send Feedback</h2>
+        <h2 class="modal-title" id="feedbackModalTitle">Send Feedback</h2>
         <button class="modal-close" onclick="closeFeedbackModal()" aria-label="Close dialog">&times;</button>
       </div>
       <div class="modal-body">
@@ -404,8 +425,16 @@
         agencies: 60,       // Agency hierarchy rarely changes
         sepInit: 15,        // SEP data includes recent engagements
         commsOverview: 15,  // Stories/events may update
+        commsStories: 15,   // Pipeline stories update during edits
+        commsOpportunities: 15, // Story opportunities
+        commsCoverage: 15,  // Coverage analysis
         teamMembers: 30,    // Team info moderately stable
-        meetings: 30        // Meeting schedule
+        meetings: 30,       // Meeting schedule
+        currentUser: 60,    // User info rarely changes
+        availability: 30,   // Availability updates moderately
+        directingDocs: 60,  // Documents rarely change
+        kudos: 30,          // Kudos may be added during session
+        kudosStats: 30      // Stats change with kudos
       },
 
       /**
@@ -535,6 +564,142 @@
       },
 
       /**
+       * Get comms pipeline stories (cached)
+       * @param {boolean} forceRefresh - Skip cache and fetch fresh
+       * @returns {Promise<Array>}
+       */
+      getCommsStories: function(forceRefresh) {
+        if (forceRefresh) DataCache.clear('commsStories');
+        return DataCache.get('commsStories', function() {
+          return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getPipelineStoriesForUI();
+          });
+        }, this.TTL.commsStories);
+      },
+
+      /**
+       * Get comms story opportunities (cached)
+       * @param {boolean} forceRefresh - Skip cache and fetch fresh
+       * @returns {Promise<Array>}
+       */
+      getCommsOpportunities: function(forceRefresh) {
+        if (forceRefresh) DataCache.clear('commsOpportunities');
+        return DataCache.get('commsOpportunities', function() {
+          return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .detectStoryOpportunities();
+          });
+        }, this.TTL.commsOpportunities);
+      },
+
+      /**
+       * Get comms coverage analysis (cached)
+       * @param {boolean} forceRefresh - Skip cache and fetch fresh
+       * @returns {Promise<Object>}
+       */
+      getCommsCoverage: function(forceRefresh) {
+        if (forceRefresh) DataCache.clear('commsCoverage');
+        return DataCache.get('commsCoverage', function() {
+          return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getCoverageAnalysis(90);
+          });
+        }, this.TTL.commsCoverage);
+      },
+
+      /**
+       * Get current user info (cached)
+       * @param {boolean} forceRefresh - Skip cache and fetch fresh
+       * @returns {Promise<Object>}
+       */
+      getCurrentUser: function(forceRefresh) {
+        if (forceRefresh) DataCache.clear('currentUser');
+        return DataCache.get('currentUser', function() {
+          return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getCurrentUserInfo();
+          });
+        }, this.TTL.currentUser);
+      },
+
+      /**
+       * Get team availability (cached)
+       * @param {boolean} forceRefresh - Skip cache and fetch fresh
+       * @returns {Promise<Array>}
+       */
+      getAvailability: function(forceRefresh) {
+        if (forceRefresh) DataCache.clear('availability');
+        return DataCache.get('availability', function() {
+          return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getAvailability();
+          });
+        }, this.TTL.availability);
+      },
+
+      /**
+       * Get directing documents (cached)
+       * @param {boolean} forceRefresh - Skip cache and fetch fresh
+       * @returns {Promise<Array>}
+       */
+      getDirectingDocuments: function(forceRefresh) {
+        if (forceRefresh) DataCache.clear('directingDocs');
+        return DataCache.get('directingDocs', function() {
+          return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getDirectingDocuments();
+          });
+        }, this.TTL.directingDocs);
+      },
+
+      /**
+       * Get recent kudos (cached)
+       * @param {boolean} forceRefresh - Skip cache and fetch fresh
+       * @returns {Promise<Array>}
+       */
+      getKudos: function(forceRefresh) {
+        if (forceRefresh) DataCache.clear('kudos');
+        return DataCache.get('kudos', function() {
+          return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getAllKudos({ days: 30, limit: 50 });
+          });
+        }, this.TTL.kudos);
+      },
+
+      /**
+       * Get kudos statistics (cached)
+       * @param {boolean} forceRefresh - Skip cache and fetch fresh
+       * @returns {Promise<Object>}
+       */
+      getKudosStats: function(forceRefresh) {
+        if (forceRefresh) DataCache.clear('kudosStats');
+        return DataCache.get('kudosStats', function() {
+          return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getKudosStats(90);
+          });
+        }, this.TTL.kudosStats);
+      },
+
+      /**
        * Invalidate caches related to a specific data type
        * Call after save/update operations
        */
@@ -549,6 +714,22 @@
         },
         engagements: function() {
           DataCache.clear('sepInit');  // SEP init includes recent engagements
+        },
+        comms: function() {
+          DataCache.clear('commsOverview');
+          DataCache.clear('commsStories');
+          DataCache.clear('commsOpportunities');
+          DataCache.clear('commsCoverage');
+        },
+        team: function() {
+          DataCache.clear('teamMembers');
+          DataCache.clear('availability');
+          DataCache.clear('directingDocs');
+          DataCache.clear('currentUser');
+        },
+        kudos: function() {
+          DataCache.clear('kudos');
+          DataCache.clear('kudosStats');
         },
         all: function() {
           DataCache.clearAll();
@@ -1141,10 +1322,10 @@
     function renderSearchItem(item, groupType, index) {
       var html = '';
       if (groupType === 'solutions') {
-        var label = escapeHtml(item.core_id || item.core_official_name);
+        var label = escapeHtml(item.solution_id || item.core_official_name);
         var subtitle = [item.admin_lifecycle_phase, item.core_group].filter(Boolean).join(' · ');
         if (subtitle) label += ' <span class="search-item-meta">(' + escapeHtml(subtitle) + ')</span>';
-        html = '<li class="search-item" data-group="solutions" data-index="' + index + '" onclick="goToSearchResult(\'implementation\', \'' + escapeHtml(item.core_id || '') + '\')">' + label + '</li>';
+        html = '<li class="search-item" data-group="solutions" data-index="' + index + '" onclick="goToSearchResult(\'implementation\', \'' + escapeHtml(item.solution_id || '') + '\')">' + label + '</li>';
       } else if (groupType === 'contacts') {
         var name = escapeHtml(item.full_name || (item.first_name + ' ' + item.last_name));
         if (item.organization) name += ' <span class="search-item-meta">(' + escapeHtml(item.organization) + ')</span>';
@@ -1249,6 +1430,15 @@
       URL.revokeObjectURL(url);
 
       showToast('Exported ' + data.length + ' rows to ' + filename + '.csv', 'success');
+    }
+
+    // ========================================================================
+    // STRING UTILITIES
+    // ========================================================================
+
+    function capitalizeFirst(str) {
+      if (!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
     // ========================================================================
@@ -1388,7 +1578,7 @@
         .withFailureHandler(function(error) {
           btn.innerHTML = originalHtml;
           btn.disabled = false;
-          showToast('Error sending feedback: ' + error.message, 'error');
+          showToast('Could not send feedback. Please try again.', 'error');
         })
         .submitFeedback(feedback);
     }
@@ -1697,6 +1887,26 @@
     window.showError = function(message, duration) {
       return showToast(message, 'error', duration || 8000);
     };
+
+    // ========================================================================
+    // FLUSH DEFERRED PAGE INIT QUEUE
+    // ========================================================================
+    // Page scripts (server-side includes above) queue their init calls
+    // because DataCache/CachedAPI aren't defined yet when they execute.
+    // Now that everything is defined, run them.
+    (function() {
+      if (window._pageInitQueue && _pageInitQueue.length > 0) {
+        console.log('[Platform] Flushing ' + _pageInitQueue.length + ' queued page init(s)');
+        for (var i = 0; i < _pageInitQueue.length; i++) {
+          try {
+            _pageInitQueue[i]();
+          } catch (e) {
+            console.error('[Platform] Page init error:', e);
+          }
+        }
+        _pageInitQueue = [];
+      }
+    })();
 
   </script>
 </body>

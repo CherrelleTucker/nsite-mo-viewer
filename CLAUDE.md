@@ -1,6 +1,6 @@
 # Claude Code Instructions for MO-Viewer
 
-**Version:** 2.5.3 | **Updated:** 2026-02-05 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
+**Version:** 4.0.1 | **Updated:** 2026-02-08 | **Repository:** https://github.com/CherrelleTucker/nsite-mo-viewer
 
 ---
 
@@ -55,7 +55,7 @@ Updates in agendas should use:
     ■ 🆕 Update text captured by sync
 ```
 
-- `[solution_id]` in square brackets links to MO-DB_Solutions.core_id
+- `[solution_id]` in square brackets links to MO-DB_Solutions.solution_id
 - 🆕 emoji marks new updates to capture
 - Nested bullets are included in update text
 
@@ -264,8 +264,8 @@ Users can click the refresh icon in the navigation bar to:
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  MO-DB_Config      │ Configuration key-value pairs, sheet IDs               │
 │  MO-DB_Access      │ User whitelist for authentication                      │
-│  MO-DB_Solutions   │ Solution master data (core_id is primary key)          │
-│  MO-DB_Contacts    │ Stakeholder contacts (solution_id links to Solutions)  │
+│  MO-DB_Solutions   │ Solution master data (solution_id is primary key)      │
+│  MO-DB_Contacts    │ Multi-tab: People + Roles (stakeholder contacts)       │
 │  MO-DB_Updates     │ Solution updates by year (2026, 2025, 2024, Archive)   │
 │  MO-DB_Engagements │ Contact engagement records                              │
 │  MO-DB_Agencies    │ Agency/organization master data                         │
@@ -345,7 +345,7 @@ Users can click the refresh icon in the navigation bar to:
 | MO-DB_Contacts | `email` | contacts-api.gs | All contact queries |
 | MO-DB_Updates | `solution_id` | updates-api.gs | `getUpdatesBySolution()` |
 | MO-DB_Updates | `meeting_date` | updates-api.gs | Date filtering |
-| MO-DB_Solutions | `core_id` | solutions-api.gs | Primary key for solutions |
+| MO-DB_Solutions | `solution_id` | solutions-api.gs | Primary key for solutions |
 
 ### Response Size Limits
 
@@ -451,6 +451,8 @@ When making significant changes, update ALL relevant files:
 
 9. **Creating duplicate directories** - NEVER create `core/`, `instance-*/`, or similar directories. The `deploy/` folder is the SINGLE SOURCE OF TRUTH. White-labeling is done via MO-DB_Config configuration, not code copies. (Learned 2026-02-05: obsolete directories caused major sync issues)
 
+10. **Using getSheets()[0] instead of getSheetByName()** - NEVER access tabs by index. All databases have `_Lookups` tabs that can shift tab order. Always use `ss.getSheetByName('TabName')`. See the Database Reference table for correct tab names.
+
 ---
 
 ## Testing
@@ -521,7 +523,7 @@ var displayDate = new Date(isoDate).toLocaleDateString('en-US', {
 
 When syncing earthdata.nasa.gov content to MO-DB_Solutions, use `earthdata-solutions-content.json` as the source. Sub-projects inherit from parent solutions:
 
-| core_id Pattern | Earthdata Source |
+| solution_id Pattern | Earthdata Source |
 |-----------------|------------------|
 | `hls_*` (except hls_ll, hls_vi) | HLS |
 | `opera_*` | Respective OPERA product |
@@ -772,22 +774,30 @@ nsite-mo-viewer/
 
 ## Database Reference
 
-| Database | Config Key | Purpose |
-|----------|------------|---------|
-| MO-DB_Solutions | SOLUTIONS_SHEET_ID | Solution metadata |
-| MO-DB_Contacts | CONTACTS_SHEET_ID | Stakeholder contacts |
-| MO-DB_Updates | UPDATES_SHEET_ID | Updates by year (2026, 2025, 2024, Archive) |
-| MO-DB_Agencies | AGENCIES_SHEET_ID | Organization hierarchy |
-| MO-DB_Engagements | ENGAGEMENTS_SHEET_ID | Interaction logging |
-| MO-DB_Outreach | OUTREACH_SHEET_ID | Events and conferences |
-| MO-DB_Actions | ACTIONS_SHEET_ID | Action items |
-| MO-DB_Team | TEAM_SHEET_ID | Team members |
-| MO-DB_Meetings | MEETINGS_SHEET_ID | Recurring meetings |
-| MO-DB_Templates | TEMPLATES_SHEET_ID | Email/meeting templates for SEP & Comms |
-| MO-DB_Parking | PARKING_LOT_SHEET_ID | Ideas, topics, follow-ups capture |
-| MO-DB_CommsAssets | COMMS_ASSETS_SHEET_ID | Unified comms content (blurbs, quotes, facts, talking points) |
-| MO-DB_Access | ACCESS_SHEET_ID | Auth whitelist |
-| MO-DB_Config | (Script Property) | All configuration |
+**CRITICAL: Always use `getSheetByName('TabName')`, NEVER `getSheets()[0]`.** Tab order can shift when `_Lookups` or other tabs are added. The centralized `DEFAULT_TAB_NAMES_` map in `config-helpers.gs` defines the primary tab name for each config key.
+
+| Database | Config Key | Primary Tab | Other Tabs |
+|----------|------------|-------------|------------|
+| MO-DB_Access | ACCESS_SHEET_ID | Whitelist | _Lookups |
+| MO-DB_Actions | ACTIONS_SHEET_ID | Actions | _Lookups |
+| MO-DB_Agencies | AGENCIES_SHEET_ID | Agencies | Departments, Organizations, _Lookups |
+| MO-DB_Availability | AVAILABILITY_SHEET_ID | Availability | _Lookups |
+| MO-DB_BugLog | BUGLOG_SHEET_ID | Backlog | _Lookups |
+| MO-DB_CommsAssets | COMMS_ASSETS_SHEET_ID | FileLog | _Lookups |
+| MO-DB_Contacts | CONTACTS_SHEET_ID | People | Roles, _Lookups |
+| MO-DB_Engagements | ENGAGEMENTS_SHEET_ID | Engagements | _Lookups |
+| MO-DB_Glossary | GLOSSARY_SHEET_ID | Glossary | _Lookups |
+| MO-DB_Kudos | KUDOS_SHEET_ID | Kudos | _Lookups |
+| MO-DB_Meetings | MEETINGS_SHEET_ID | Meetings | _Lookups |
+| MO-DB_Milestones | MILESTONES_SHEET_ID | Milestones | _Lookups |
+| MO-DB_Needs | NEEDS_SHEET_ID | Needs | _Lookups |
+| MO-DB_Outreach | OUTREACH_SHEET_ID | Outreach | _Lookups |
+| MO-DB_Parking | PARKING_LOT_SHEET_ID | ParkingLot | _Lookups, Statuses, ItemTypes, Priorities |
+| MO-DB_Solutions | SOLUTIONS_SHEET_ID | Core | Comms, Milestones, _Lookups |
+| MO-DB_Stories | STORIES_SHEET_ID | Stories | _Lookups |
+| MO-DB_Templates | TEMPLATES_SHEET_ID | Templates | _Lookups, Categories, Phases, Placeholders |
+| MO-DB_Updates | UPDATES_SHEET_ID | 2026 | 2025, 2024, Archive, _Lookups |
+| MO-DB_Config | (Script Property) | Config | — |
 
 ---
 

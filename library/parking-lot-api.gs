@@ -22,7 +22,7 @@ function getParkingLotSheet_() {
     throw new Error('PARKING_LOT_SHEET_ID not configured in MO-DB_Config');
   }
   var ss = SpreadsheetApp.openById(sheetId);
-  return ss.getSheets()[0];
+  return ss.getSheetByName('ParkingLot') || ss.getSheets()[0];
 }
 
 /**

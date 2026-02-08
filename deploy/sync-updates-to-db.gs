@@ -75,8 +75,8 @@ var UPDATE_SOURCES = {
 // The :new: emoji marker
 var NEW_MARKER = '🆕';
 
-// Pattern to detect [core_id] in square brackets
-var CORE_ID_BRACKET_PATTERN = /\[([^\]]+)\]$/;
+// Pattern to detect [solution_id] in square brackets
+var SOLUTION_ID_BRACKET_PATTERN = /\[([^\]]+)\]$/;
 
 // Cache for config values
 var _configCache = null;
@@ -390,7 +390,7 @@ function parseUpdatesFromBody_(body, source, docUrl, meetingDate, tabName) {
           }
         }
 
-        // Track current solution - items with [core_id] set the solution directly
+        // Track current solution - items with [solution_id] set the solution directly
         var currentSolution = null;
         var currentSolutionNestingLevel = null;
 
@@ -399,14 +399,14 @@ function parseUpdatesFromBody_(body, source, docUrl, meetingDate, tabName) {
 
           if (!item.text) continue;
 
-          // Check if this item has a [core_id] marker
-          var hasCoreId = CORE_ID_BRACKET_PATTERN.test(item.text);
+          // Check if this item has a [solution_id] marker
+          var hasSolutionId = SOLUTION_ID_BRACKET_PATTERN.test(item.text);
 
           // Check if this item is a legacy sub-solution marker (ends with ":")
           var isLegacySubSolutionMarker = /^[A-Za-z0-9\s\-\.]+:\s*$/.test(item.text);
 
-          // Items with [core_id] become the current solution at any nesting level
-          if (hasCoreId) {
+          // Items with [solution_id] become the current solution at any nesting level
+          if (hasSolutionId) {
             currentSolution = extractSolutionName_(item.text);
             currentSolutionNestingLevel = item.nesting;
           }
@@ -500,7 +500,7 @@ function parseUpdatesFromBodyParagraph_(body, source, docUrl, meetingDate, tabNa
     }
   }
 
-  // Track current solution - items with [core_id] set the solution directly
+  // Track current solution - items with [solution_id] set the solution directly
   var currentSolution = null;
   var currentSolutionNestingLevel = null;
 
@@ -509,21 +509,21 @@ function parseUpdatesFromBodyParagraph_(body, source, docUrl, meetingDate, tabNa
 
     if (!elem.text) continue;
 
-    // Check if this item has a [core_id] marker
-    var hasCoreId = CORE_ID_BRACKET_PATTERN.test(elem.text);
+    // Check if this item has a [solution_id] marker
+    var hasSolutionId = SOLUTION_ID_BRACKET_PATTERN.test(elem.text);
 
     // Check if this item is a legacy sub-solution marker (ends with ":")
     var isLegacySubSolutionMarker = elem.type === 'list_item' && /^[A-Za-z0-9\s\-\.]+:\s*$/.test(elem.text);
 
-    // Headings set the solution (grouping or with [core_id])
+    // Headings set the solution (grouping or with [solution_id])
     if (elem.isHeading) {
       currentSolution = extractSolutionName_(elem.text);
       currentSolutionNestingLevel = 0;
       continue;
     }
 
-    // Items with [core_id] become the current solution at any nesting level
-    if (hasCoreId) {
+    // Items with [solution_id] become the current solution at any nesting level
+    if (hasSolutionId) {
       currentSolution = extractSolutionName_(elem.text);
       currentSolutionNestingLevel = elem.nesting;
       continue;
@@ -659,14 +659,14 @@ function parseUpdatesFromTableFormat_(doc, source, docUrl, docName) {
 
           if (!item.text) continue;
 
-          // Check if this item has a [core_id] marker
-          var hasCoreId = CORE_ID_BRACKET_PATTERN.test(item.text);
+          // Check if this item has a [solution_id] marker
+          var hasSolutionId = SOLUTION_ID_BRACKET_PATTERN.test(item.text);
 
           // Check if this item is a legacy sub-solution marker (ends with ":")
           var isLegacySubSolutionMarker = /^[A-Za-z0-9\s\-\.]+:\s*$/.test(item.text);
 
-          // Items with [core_id] become the current solution at any nesting level
-          if (hasCoreId) {
+          // Items with [solution_id] become the current solution at any nesting level
+          if (hasSolutionId) {
             currentSolution = extractSolutionName_(item.text);
             currentSolutionNestingLevel = item.nesting;
           }
@@ -814,7 +814,7 @@ function parseUpdatesFromParagraphFormat_(doc, source, docUrl, docName) {
     }
   }
 
-  // Track current solution - items with [core_id] set the solution directly
+  // Track current solution - items with [solution_id] set the solution directly
   var currentSolutionNestingLevel = null;
 
   // Second pass: process elements and capture :new: updates with children
@@ -823,21 +823,21 @@ function parseUpdatesFromParagraphFormat_(doc, source, docUrl, docName) {
 
     if (!elem.text) continue;
 
-    // Check if this item has a [core_id] marker
-    var hasCoreId = CORE_ID_BRACKET_PATTERN.test(elem.text);
+    // Check if this item has a [solution_id] marker
+    var hasSolutionId = SOLUTION_ID_BRACKET_PATTERN.test(elem.text);
 
     // Check if this item is a legacy sub-solution marker (ends with ":")
     var isLegacySubSolutionMarker = elem.type === 'list_item' && /^[A-Za-z0-9\s\-\.]+:\s*$/.test(elem.text);
 
-    // Headings set the solution (grouping or with [core_id])
+    // Headings set the solution (grouping or with [solution_id])
     if (elem.isHeading) {
       currentSolution = extractSolutionName_(elem.text);
       currentSolutionNestingLevel = 0;
       continue;
     }
 
-    // Items with [core_id] become the current solution at any nesting level
-    if (hasCoreId) {
+    // Items with [solution_id] become the current solution at any nesting level
+    if (hasSolutionId) {
       currentSolution = extractSolutionName_(elem.text);
       currentSolutionNestingLevel = elem.nesting;
       continue;
@@ -1082,32 +1082,32 @@ function extractMeetingDateFromDoc_(doc) {
 /**
  * Extract solution identifier from text
  * Supports formats:
- * 1. "Solution Name [core_id]" - extracts core_id from square brackets (preferred)
+ * 1. "Solution Name [solution_id]" - extracts solution_id from square brackets (preferred)
  * 2. "Solution Name (Provider)" - removes provider info in parentheses, returns solution name
  * 3. "Solution Name" - returns as-is
  *
- * Square brackets are used for core_id to avoid confusion with provider info in parentheses.
- * Database core_id pattern: lowercase letters, numbers, underscores, hyphens, dots
+ * Square brackets are used for solution_id to avoid confusion with provider info in parentheses.
+ * Database solution_id pattern: lowercase letters, numbers, underscores, hyphens, dots
  * Examples: aq_gmao, hls_vi, opera_dswx, aq_pm2.5, 3d-topo
  *
  * @param {string} text - Raw text like "GMAO [aq_gmao]" or "PBL (JPL)" or "Air Quality"
- * @returns {string} The core_id if found in brackets, otherwise the cleaned solution name
+ * @returns {string} The solution_id if found in brackets, otherwise the cleaned solution name
  */
 function extractSolutionName_(text) {
   if (!text) return '';
 
   text = text.trim();
 
-  // Check for core_id in square brackets [core_id]
-  // Pattern 1: "Solution Name [core_id]" - text before brackets
+  // Check for solution_id in square brackets [solution_id]
+  // Pattern 1: "Solution Name [solution_id]" - text before brackets
   var bracketMatch = text.match(/^(.+?)\s*\[([^\]]+)\]$/);
   if (bracketMatch) {
-    var coreId = bracketMatch[2].trim();
-    // Return the core_id directly
-    return coreId;
+    var solId = bracketMatch[2].trim();
+    // Return the solution_id directly
+    return solId;
   }
 
-  // Pattern 2: "[core_id]" - just the brackets with no preceding text
+  // Pattern 2: "[solution_id]" - just the brackets with no preceding text
   var onlyBracketMatch = text.match(/^\[([^\]]+)\]$/);
   if (onlyBracketMatch) {
     return onlyBracketMatch[1].trim();
@@ -1252,7 +1252,7 @@ function loadConfigFromSheet_() {
 
   try {
     var ss = SpreadsheetApp.openById(configSheetId);
-    var sheet = ss.getSheets()[0]; // First sheet
+    var sheet = ss.getSheetByName('Config') || ss.getSheets()[0];
     var data = sheet.getDataRange().getValues();
 
     _configCache = {};

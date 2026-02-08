@@ -726,66 +726,6 @@
     flex-shrink: 0;
   }
 
-  /* Buttons */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-xs);
-    padding: var(--space-sm) var(--space-md);
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    border: none;
-  }
-
-  .btn svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  .btn-primary {
-    background: var(--color-primary);
-    color: white;
-  }
-
-  .btn-primary:hover {
-    background: var(--color-primary-light);
-  }
-
-  .btn-secondary {
-    background: var(--color-surface);
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-  }
-
-  .btn-secondary:hover {
-    background: var(--color-surface-alt);
-  }
-
-  .btn-sm {
-    padding: var(--space-xs) var(--space-sm);
-    font-size: var(--font-size-xs);
-  }
-
-  .btn-icon {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    color: var(--color-text-secondary);
-    border-radius: var(--radius-sm);
-  }
-
-  .btn-icon:hover {
-    background: var(--color-surface-alt);
-    color: var(--color-text);
-  }
-
   /* Preview Panel */
   .preview-panel {
     background: var(--color-surface);
@@ -1512,7 +1452,7 @@
       alignmentSolutions.forEach(function(sol) {
         var isDefault = (sol.admin_default_in_dashboard || '').toString().trim().toUpperCase() === 'Y';
         if (isDefault) {
-          alignmentSelectedSolutions[sol.core_id] = true;
+          alignmentSelectedSolutions[sol.solution_id] = true;
         }
       });
     }
@@ -1538,9 +1478,9 @@
       activeList.innerHTML = '';
       otherList.innerHTML = '';
 
-      // Sort by core_id
+      // Sort by solution_id
       var sorted = alignmentSolutions.slice().sort(function(a, b) {
-        return (a.core_id || '').localeCompare(b.core_id || '');
+        return (a.solution_id || '').localeCompare(b.solution_id || '');
       });
 
       // If no selections exist yet, pre-select defaults
@@ -1553,11 +1493,11 @@
         // Normalize value like Implementation does
         var isDefault = (sol.admin_default_in_dashboard || '').toString().trim().toUpperCase() === 'Y';
         // Check if this solution should be checked (from stored selections)
-        var isChecked = !!alignmentSelectedSolutions[sol.core_id];
+        var isChecked = !!alignmentSelectedSolutions[sol.solution_id];
 
         var html = '<label class="picker-item">';
-        html += '<input type="checkbox" id="alignPicker_' + sol.core_id + '"' + (isChecked ? ' checked' : '') + ' onchange="Reports.onAlignmentSolutionToggle(\'' + sol.core_id + '\')">';
-        html += '<span class="picker-item-label">' + escapeHtml((sol.core_id || '').toUpperCase()) + '</span>';
+        html += '<input type="checkbox" id="alignPicker_' + sol.solution_id + '"' + (isChecked ? ' checked' : '') + ' onchange="Reports.onAlignmentSolutionToggle(\'' + sol.solution_id + '\')">';
+        html += '<span class="picker-item-label">' + escapeHtml((sol.solution_id || '').toUpperCase()) + '</span>';
         html += '<span class="picker-item-cycle">C' + (sol.core_cycle || '?') + '</span>';
         html += '</label>';
 
@@ -1606,8 +1546,8 @@
       alignmentSelectedSolutions = {};
       alignmentSolutions.forEach(function(sol) {
         var isDefault = (sol.admin_default_in_dashboard || '').toString().trim().toUpperCase() === 'Y';
-        alignmentSelectedSolutions[sol.core_id] = isDefault;
-        var checkbox = document.getElementById('alignPicker_' + sol.core_id);
+        alignmentSelectedSolutions[sol.solution_id] = isDefault;
+        var checkbox = document.getElementById('alignPicker_' + sol.solution_id);
         if (checkbox) checkbox.checked = isDefault;
       });
       updateAlignmentPickerLabel();
@@ -1621,8 +1561,8 @@
       }
       alignmentSelectedSolutions = {};
       alignmentSolutions.forEach(function(sol) {
-        alignmentSelectedSolutions[sol.core_id] = true;
-        var checkbox = document.getElementById('alignPicker_' + sol.core_id);
+        alignmentSelectedSolutions[sol.solution_id] = true;
+        var checkbox = document.getElementById('alignPicker_' + sol.solution_id);
         if (checkbox) checkbox.checked = true;
       });
       updateAlignmentPickerLabel();
@@ -1636,7 +1576,7 @@
       }
       alignmentSelectedSolutions = {};
       alignmentSolutions.forEach(function(sol) {
-        var checkbox = document.getElementById('alignPicker_' + sol.core_id);
+        var checkbox = document.getElementById('alignPicker_' + sol.solution_id);
         if (checkbox) checkbox.checked = false;
       });
       updateAlignmentPickerLabel();
@@ -2817,14 +2757,14 @@
         .withSuccessHandler(function(solutions) {
           var select = document.getElementById('updatesReportSolution');
           if (select && solutions) {
-            // Sort alphabetically by core_id
+            // Sort alphabetically by solution_id
             solutions.sort(function(a, b) {
-              return (a.core_id || '').localeCompare(b.core_id || '');
+              return (a.solution_id || '').localeCompare(b.solution_id || '');
             });
             solutions.forEach(function(sol) {
               var option = document.createElement('option');
-              option.value = sol.core_id;
-              option.textContent = sol.core_id;
+              option.value = sol.solution_id;
+              option.textContent = sol.solution_id;
               select.appendChild(option);
             });
           }
@@ -2971,7 +2911,7 @@
             selectEl.style.background = originalBg;
           }, 2000);
           console.error('Error updating alignment:', error);
-          showError(error.message);
+          showError('Report generation failed. Please try again.');
         })
         .updateAlignmentDecision(solutionId, characteristic, decision, null);
     }

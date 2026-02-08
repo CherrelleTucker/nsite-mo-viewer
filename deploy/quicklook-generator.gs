@@ -50,7 +50,7 @@ function generateQuickLookData(options) {
       var cycleA = parseInt(a.core_cycle) || 99;
       var cycleB = parseInt(b.core_cycle) || 99;
       if (cycleA !== cycleB) return cycleA - cycleB;
-      return (a.core_id || '').localeCompare(b.core_id || '');
+      return (a.solution_id || '').localeCompare(b.solution_id || '');
     });
 
     // Define headers matching Quick Look format
@@ -71,7 +71,7 @@ function generateQuickLookData(options) {
     // Build rows
     var rows = solutions.map(function(sol) {
       return [
-        sol.core_id || '',
+        sol.solution_id || '',
         'C' + (sol.core_cycle || '?'),
         sol.admin_lifecycle_phase || '',
         formatMilestoneDate(sol.milestone_atp_date),
@@ -536,7 +536,7 @@ function exportDetailedMilestonesToSheet(options) {
       ['   Description:', 'Master solution database maintained by MO team'],
       ['', ''],
       ['   Key Fields Used (Schema v2):', ''],
-      ['   - core_id: Solution identifier', ''],
+      ['   - solution_id: Solution identifier', ''],
       ['   - core_cycle: Project cycle (1-6)', ''],
       ['   - admin_lifecycle_phase: Current lifecycle phase', ''],
       ['   - milestone_atp_date, milestone_f2i_date, etc.: Milestone dates', ''],

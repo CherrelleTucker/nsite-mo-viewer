@@ -32,6 +32,10 @@ function getActionsByAssignee(assignee) {
   return MoApi.getActionsByAssignee(assignee);
 }
 
+function getActionsByAssigneeId(contactId) {
+  return MoApi.getActionsByAssigneeId(contactId);
+}
+
 function getOpenActions() {
   return MoApi.getOpenActions();
 }

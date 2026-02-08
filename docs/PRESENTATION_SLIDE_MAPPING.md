@@ -127,10 +127,10 @@ Add `{{field_name}}` placeholders anywhere in your slides where you want solutio
 | Placeholder | Replaced With |
 |-------------|---------------|
 | `{{core_official_name}}` | Solution name |
-| `{{core_id}}` | Solution ID |
+| `{{solution_id}}` | Solution ID |
 | `{{earthdata_purpose}}` | Purpose/description |
 | `{{earthdata_societal_impact}}` | Impact statement |
-| `{{team_lead}}` | Project lead |
+| `{{lead_name}}` | Project lead (resolved from lead_contact_id) |
 | `{{GENERATED_DATE}}` | Today's date (full) |
 | `{{GENERATED_YEAR}}` | Current year |
 

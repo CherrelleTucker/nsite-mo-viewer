@@ -16,71 +16,44 @@
 // ============================================================================
 
 /**
- * Cache for internal team data
- */
-var _internalTeamCache = null;
-
-/**
- * Get all internal team members
+ * Get all internal team members from the People tab of MO-DB_Contacts.
+ * Uses loadPeople_() which loads by tab name (not index), avoiding issues
+ * when _Lookups or other tabs shift the tab order.
  * @returns {Array} Array of internal team member objects
  */
 function getInternalTeam() {
-  if (_internalTeamCache !== null) {
-    return deepCopy(_internalTeamCache);
-  }
-
   try {
-    var sheetId = getConfigValue('CONTACTS_SHEET_ID');
-    if (!sheetId) {
-      Logger.log('CONTACTS_SHEET_ID not configured');
-      return [];
-    }
+    var people = loadPeople_();
 
-    var ss = SpreadsheetApp.openById(sheetId);
-    var sheet = ss.getSheets()[0];
-    var data = sheet.getDataRange().getValues();
-
-    if (data.length < 2) return [];
-
-    var headers = data[0];
-    var results = [];
-
-    // Find column indices
-    var colMap = {};
-    headers.forEach(function(h, i) {
-      colMap[h] = i;
+    // Filter to internal team members (is_internal = 'Y')
+    var internal = people.filter(function(p) {
+      var val = String(p.is_internal || '').toUpperCase();
+      return val === 'Y' || val === 'YES' || val === 'TRUE';
     });
 
-    for (var i = 1; i < data.length; i++) {
-      var row = data[i];
-      var isInternal = row[colMap['is_internal']];
-
-      if (isInternal === true || isInternal === 'TRUE' || isInternal === 1) {
-        // Check if profile fields exist
-        var hasProfile = !!(row[colMap['education']] || row[colMap['hobbies']] || row[colMap['goals']]);
-
-        results.push({
-          contact_id: row[colMap['contact_id']] || '',
-          first_name: row[colMap['first_name']] || '',
-          last_name: row[colMap['last_name']] || '',
-          email: row[colMap['email']] || '',
-          internal_title: row[colMap['internal_title']] || '',
-          internal_team: row[colMap['internal_team']] || '',
-          supervisor: row[colMap['supervisor']] || '',
-          active: row[colMap['active']] !== false,
-          // Profile fields (About Me) - read directly from contacts
-          has_profile: hasProfile,
-          education: row[colMap['education']] || '',
-          job_duties: row[colMap['job_duties']] || '',
-          professional_skills: row[colMap['professional_skills']] || '',
-          non_work_skills: row[colMap['non_work_skills']] || '',
-          hobbies: row[colMap['hobbies']] || '',
-          goals: row[colMap['goals']] || '',
-          relax: row[colMap['relax']] || '',
-          early_job: row[colMap['early_job']] || ''
-        });
-      }
-    }
+    // Map to team member objects with profile fields
+    var results = internal.map(function(p) {
+      var hasProfile = !!(p.education || p.hobbies || p.goals);
+      return {
+        contact_id: p.contact_id || '',
+        first_name: p.first_name || '',
+        last_name: p.last_name || '',
+        email: p.email || '',
+        internal_title: p.internal_title || '',
+        internal_team: p.internal_team || '',
+        supervisor: p.supervisor || '',
+        active: p.active !== false && String(p.active || '').toUpperCase() !== 'FALSE',
+        has_profile: hasProfile,
+        education: p.education || '',
+        job_duties: p.job_duties || '',
+        professional_skills: p.professional_skills || '',
+        non_work_skills: p.non_work_skills || '',
+        hobbies: p.hobbies || '',
+        goals: p.goals || '',
+        relax: p.relax || '',
+        early_job: p.early_job || ''
+      };
+    });
 
     // Sort by team, then last name
     results.sort(function(a, b) {
@@ -90,7 +63,6 @@ function getInternalTeam() {
       return (a.last_name || '').localeCompare(b.last_name || '');
     });
 
-    _internalTeamCache = results;
     return deepCopy(results);
   } catch (e) {
     Logger.log('Error in getInternalTeam: ' + e);
@@ -149,7 +121,7 @@ function getAvailabilitySheet_() {
     throw new Error('AVAILABILITY_SHEET_ID not configured');
   }
   var ss = SpreadsheetApp.openById(sheetId);
-  return ss.getSheets()[0];
+  return ss.getSheetByName('Availability') || ss.getSheets()[0];
 }
 
 /**
@@ -210,16 +182,23 @@ function getAvailability() {
 }
 
 /**
- * Get availability by contact name
- * @param {string} contactName - Contact name to filter by
+ * Get availability by contact_id or contact name
+ * @param {string} contactIdentifier - Contact ID (CON_xxx) or contact name
  * @returns {Array} Matching availability entries
  */
-function getAvailabilityByContact(contactName) {
+function getAvailabilityByContact(contactIdentifier) {
   var avail = loadAllAvailability_();
-  var nameLower = contactName.toLowerCase();
-  var results = avail.filter(function(a) {
-    return a.contact_name && a.contact_name.toLowerCase().includes(nameLower);
-  });
+  var results;
+  if (contactIdentifier && contactIdentifier.indexOf('CON_') === 0) {
+    results = avail.filter(function(a) {
+      return a.contact_id === contactIdentifier;
+    });
+  } else {
+    var nameLower = (contactIdentifier || '').toLowerCase();
+    results = avail.filter(function(a) {
+      return a.contact_name && a.contact_name.toLowerCase().includes(nameLower);
+    });
+  }
   return deepCopy(results);
 }
 
@@ -375,7 +354,7 @@ function getMeetingsSheet_() {
     throw new Error('MEETINGS_SHEET_ID not configured');
   }
   var ss = SpreadsheetApp.openById(sheetId);
-  return ss.getSheets()[0];
+  return ss.getSheetByName('Meetings') || ss.getSheets()[0];
 }
 
 /**
@@ -618,7 +597,7 @@ function getGlossarySheet_() {
     throw new Error('GLOSSARY_SHEET_ID not configured');
   }
   var ss = SpreadsheetApp.openById(sheetId);
-  return ss.getSheets()[0];
+  return ss.getSheetByName('Glossary') || ss.getSheets()[0];
 }
 
 /**
@@ -1156,7 +1135,7 @@ function getEmailTemplates() {
 
   try {
     var ss = SpreadsheetApp.openById(sheetId);
-    var sheet = ss.getSheets()[0];
+    var sheet = ss.getSheetByName('Templates') || ss.getSheets()[0];
     var data = sheet.getDataRange().getValues();
 
     if (data.length < 2) return [];

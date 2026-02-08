@@ -33,7 +33,7 @@ function getAllNeeds() {
     var sheetId = getConfigValue('NEEDS_SHEET_ID');
     if (sheetId) {
       ss = SpreadsheetApp.openById(sheetId);
-      sheet = ss.getSheets()[0];
+      sheet = ss.getSheetByName('Needs') || ss.getSheets()[0];
       Logger.log('Using NEEDS_SHEET_ID: ' + sheetId);
     }
 
@@ -93,22 +93,22 @@ function getAllNeeds() {
 /**
  * Match solution from MO-DB_Solutions to needs in MO-DB_Needs
  *
- * Primary matching: need.solution_id === solution.core_id (direct match)
+ * Primary matching: need.solution_id === solution.solution_id (direct match)
  * Fallback matching: Parse solution name from parentheses or text patterns
  *
  * MO-DB_Solutions uses (Schema v2):
- *   - core_id: Primary identifier (e.g., "hls", "opera-dist")
+ *   - solution_id: Primary identifier (e.g., "hls", "opera-dist")
  *
  * MO-DB_Needs uses (Schema v3 - rebuilt 2026-01-29):
- *   - solution_id: Foreign key to MO-DB_Solutions.core_id (e.g., "hls")
+ *   - solution_id: Foreign key to MO-DB_Solutions.solution_id (e.g., "hls")
  *   - solution: Full survey name for display
  */
 function matchSolutionToNeeds_(solution, allNeeds) {
   // Support both object and string input
   var solId, solName, altNames;
   if (typeof solution === 'object') {
-    solId = (solution.core_id || '').toLowerCase().trim();
-    solName = (solution.core_id || '').toLowerCase().trim();
+    solId = (solution.solution_id || '').toLowerCase().trim();
+    solName = (solution.solution_id || '').toLowerCase().trim();
     // Get alternate names from solution if available
     altNames = (solution.core_alternate_names || '').toLowerCase().split('|').map(function(n) { return n.trim(); }).filter(function(n) { return n; });
   } else {
@@ -121,10 +121,10 @@ function matchSolutionToNeeds_(solution, allNeeds) {
 
   return allNeeds.filter(function(need) {
     // PRIMARY: Direct solution_id match (preferred method - Schema v3)
-    var needSolutionId = (need.solution_id || need.core_id || '').toLowerCase().trim();
+    var needSolutionId = (need.solution_id || need.solution_id || '').toLowerCase().trim();
     if (needSolutionId && solId && needSolutionId === solId) return true;
 
-    // FALLBACK: Parse solution name if core_id not set
+    // FALLBACK: Parse solution name if solution_id not set
     var needSol = (need.solution || '').toLowerCase().trim();
     if (!needSol) return false;
 
@@ -134,10 +134,10 @@ function matchSolutionToNeeds_(solution, allNeeds) {
     var needAbbrev = parenMatch ? parenMatch[1].toLowerCase().trim() : null;
 
     // 1. EXACT match on parenthesized abbreviation
-    // "(HLS)" matches core_id "hls" exactly
+    // "(HLS)" matches solution_id "hls" exactly
     if (needAbbrev && solId && needAbbrev === solId) return true;
 
-    // 2. core_id ends with the abbreviation (handles "opera_dist" matching "(DIST)")
+    // 2. solution_id ends with the abbreviation (handles "opera_dist" matching "(DIST)")
     if (needAbbrev && solId) {
       // Check if solId ends with _abbrev or -abbrev
       if (solId.endsWith('_' + needAbbrev) || solId.endsWith('-' + needAbbrev)) return true;
@@ -170,7 +170,7 @@ function matchSolutionToNeeds_(solution, allNeeds) {
       if (needSol.includes(solName)) return true;
     }
 
-    // 6. core_id match in need's solution text (only for very specific IDs)
+    // 6. solution_id match in need's solution text (only for very specific IDs)
     // e.g., "global-et" (9 chars) appearing in the need's solution text
     if (solId && solId.length >= 8 && needSol.includes(solId)) return true;
 
@@ -223,7 +223,7 @@ function generateNeedAlignmentReport(options) {
         idSet[id.toLowerCase()] = true;
       });
       solutions = solutions.filter(function(s) {
-        return idSet[(s.core_id || '').toLowerCase()];
+        return idSet[(s.solution_id || '').toLowerCase()];
       });
     } else if (options.defaultOnly) {
       // Only apply defaultOnly if no specific IDs provided
@@ -236,11 +236,11 @@ function generateNeedAlignmentReport(options) {
 
     // Build alignment data for each solution
     var alignments = solutions.map(function(sol) {
-      // Use core_id as primary identifier
-      var solId = sol.core_id || '';
+      // Use solution_id as primary identifier
+      var solId = sol.solution_id || '';
       var solName = solId;
 
-      // Get needs for this solution using core_id-based matching
+      // Get needs for this solution using solution_id-based matching
       var solutionNeeds = matchSolutionToNeeds_(sol, allNeeds);
 
       // Debug: log matching results
@@ -281,7 +281,7 @@ function generateNeedAlignmentReport(options) {
 
       return {
         solution_id: solId,
-        solution: solName,  // core_id
+        solution: solName,  // solution_id
         officialName: sol.core_official_name || solId.toUpperCase(),  // Display name
         fullName: sol.core_official_name || '',  // Keep for backwards compat
         cycle: 'C' + (sol.core_cycle || '?'),
@@ -711,7 +711,7 @@ function calculateAlignmentSummary_(alignments) {
 
 /**
  * Update alignment decision for a solution characteristic
- * @param {string} solutionId - Solution core_id
+ * @param {string} solutionId - Solution solution_id
  * @param {string} characteristic - Characteristic key (horiz_resolution, temporal_freq, etc.)
  * @param {string} decision - Decision value (Acceptable, Gap, N/A)
  * @param {string} notes - Optional notes
@@ -725,18 +725,18 @@ function updateAlignmentDecision(solutionId, characteristic, decision, notes) {
     }
 
     var ss = SpreadsheetApp.openById(sheetId);
-    var sheet = ss.getSheets()[0];
+    var sheet = ss.getSheetByName('Core') || ss.getSheets()[0];
     var data = sheet.getDataRange().getValues();
     var headers = data[0];
 
     // Find column indices
-    var coreIdCol = headers.indexOf('core_id');
+    var solutionIdCol = headers.indexOf('solution_id');
     var alignmentCol = headers.indexOf('alignment_' + characteristic);
     var notesCol = headers.indexOf('alignment_notes');
     var reviewedCol = headers.indexOf('alignment_last_reviewed');
 
-    if (coreIdCol === -1) {
-      return { success: false, error: 'core_id column not found' };
+    if (solutionIdCol === -1) {
+      return { success: false, error: 'solution_id column not found' };
     }
     if (alignmentCol === -1) {
       return { success: false, error: 'alignment_' + characteristic + ' column not found' };
@@ -745,7 +745,7 @@ function updateAlignmentDecision(solutionId, characteristic, decision, notes) {
     // Find the solution row
     var rowIndex = -1;
     for (var i = 1; i < data.length; i++) {
-      if (String(data[i][coreIdCol]).toLowerCase().trim() === solutionId.toLowerCase().trim()) {
+      if (String(data[i][solutionIdCol]).toLowerCase().trim() === solutionId.toLowerCase().trim()) {
         rowIndex = i + 1; // 1-indexed for sheet
         break;
       }
@@ -790,7 +790,7 @@ function updateAlignmentDecision(solutionId, characteristic, decision, notes) {
 
 /**
  * Bulk update alignment decisions for a solution
- * @param {string} solutionId - Solution core_id
+ * @param {string} solutionId - Solution solution_id
  * @param {Object} decisions - Object with characteristic keys and decision values
  * @param {string} notes - Optional notes for all updates
  * @returns {Object} Result with success status
@@ -812,15 +812,15 @@ function updateAlignmentDecisions(solutionId, decisions, notes) {
     try {
       var sheetId = getConfigValue('SOLUTIONS_SHEET_ID');
       var ss = SpreadsheetApp.openById(sheetId);
-      var sheet = ss.getSheets()[0];
+      var sheet = ss.getSheetByName('Core') || ss.getSheets()[0];
       var data = sheet.getDataRange().getValues();
       var headers = data[0];
-      var coreIdCol = headers.indexOf('core_id');
+      var solutionIdCol = headers.indexOf('solution_id');
       var notesCol = headers.indexOf('alignment_notes');
 
       if (notesCol !== -1) {
         for (var i = 1; i < data.length; i++) {
-          if (String(data[i][coreIdCol]).toLowerCase().trim() === solutionId.toLowerCase().trim()) {
+          if (String(data[i][solutionIdCol]).toLowerCase().trim() === solutionId.toLowerCase().trim()) {
             sheet.getRange(i + 1, notesCol + 1).setValue(notes);
             break;
           }
@@ -937,8 +937,8 @@ function generateStakeholderCoverageReport(options) {
     // Identify coverage gaps
     var solutionCoverage = {};
     solutions.forEach(function(s) {
-      solutionCoverage[s.core_id] = {
-        solution: s.core_id,
+      solutionCoverage[s.solution_id] = {
+        solution: s.solution_id,
         cycle: s.core_cycle,
         phase: s.admin_lifecycle_phase,
         departments: [],
@@ -1081,7 +1081,7 @@ function generateEngagementFunnelReport(options) {
 
     solutions.forEach(function(sol) {
       var solContacts = contacts.filter(function(c) {
-        return c.solution === sol.core_id;
+        return c.solution === sol.solution_id;
       });
 
       var hasPrimarySME = solContacts.some(function(c) {
@@ -1090,7 +1090,7 @@ function generateEngagementFunnelReport(options) {
 
       if (!hasPrimarySME && solContacts.length > 0) {
         solutionsNeedingSMEs.push({
-          solution: sol.core_id,
+          solution: sol.solution_id,
           cycle: sol.core_cycle,
           phase: sol.admin_lifecycle_phase,
           submitterCount: solContacts.filter(function(c) {
@@ -1159,8 +1159,8 @@ function generateDepartmentReachReport(options) {
     var matrix = {};
 
     solutions.forEach(function(sol) {
-      matrix[sol.core_id] = {
-        solution: sol.core_id,
+      matrix[sol.solution_id] = {
+        solution: sol.solution_id,
         fullName: sol.core_official_name || '',
         cycle: 'C' + (sol.core_cycle || '?'),
         phase: sol.admin_lifecycle_phase || '',
@@ -1297,9 +1297,9 @@ function getSolutionContent_() {
     var contentMap = {};
 
     solutions.forEach(function(sol) {
-      var key = sol.core_id;
+      var key = sol.solution_id;
       contentMap[key] = {
-        name: sol.core_official_name || sol.core_id || '',
+        name: sol.core_official_name || sol.solution_id || '',
         purpose_mission: sol.earthdata_purpose || sol.earthdata_status_summary || '',
         societal_impact: sol.earthdata_societal_impact || '',
         solution_characteristics: {
@@ -1462,8 +1462,8 @@ function diagnoseNeedAlignment() {
   solutions.forEach(function(sol) {
     var matched = matchSolutionToNeeds_(sol, allNeeds);
     matchSummary.push({
-      name: sol.core_id,
-      id: sol.core_id,
+      name: sol.solution_id,
+      id: sol.solution_id,
       altNames: sol.core_alternate_names || '',
       count: matched.length,
       matchedTo: matched.length > 0 ? matched[0].solution : null
@@ -1829,7 +1829,7 @@ function exportNeedAlignmentToSheet(options) {
       ['   Description:', 'Solution specifications from NASA ESD'],
       ['', ''],
       ['   Key Fields Used (Schema v2):', ''],
-      ['   - core_id: Unique identifier for matching', ''],
+      ['   - solution_id: Unique identifier for matching', ''],
       ['   - core_official_name: Full solution name', ''],
       ['   - product_horiz_resolution: What the solution provides', ''],
       ['   - product_temporal_freq: Data delivery frequency', ''],
@@ -1843,14 +1843,14 @@ function exportNeedAlignmentToSheet(options) {
       ['How survey responses are matched to solutions:', ''],
       ['', ''],
       ['1. Parenthetical Match (Primary)', ''],
-      ['   Survey "Harmonized Landsat and Sentinel-2 (HLS)" matches core_id "hls"', ''],
-      ['   Looks for core_id in parentheses at end of survey solution field', ''],
+      ['   Survey "Harmonized Landsat and Sentinel-2 (HLS)" matches solution_id "hls"', ''],
+      ['   Looks for solution_id in parentheses at end of survey solution field', ''],
       ['', ''],
       ['2. Exact Match', ''],
-      ['   Survey solution field exactly equals core_id', ''],
+      ['   Survey solution field exactly equals solution_id', ''],
       ['', ''],
       ['3. Substring Match (min 3 characters)', ''],
-      ['   core_id appears within the survey solution field', ''],
+      ['   solution_id appears within the survey solution field', ''],
       ['   Example: "HLS" found in "HLS Data Products"', ''],
       ['', ''],
       ['═══════════════════════════════════════════════════════════════════════', ''],

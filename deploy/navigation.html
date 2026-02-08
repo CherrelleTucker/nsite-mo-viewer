@@ -127,7 +127,7 @@
       .withFailureHandler(function(error) {
         icon.style.animation = '';
         btn.disabled = false;
-        showToast('Refresh failed: ' + error.message, 'error');
+        showToast('Refresh failed. Please try again.', 'error');
       })
       .getPageHTML(currentPage);
   }

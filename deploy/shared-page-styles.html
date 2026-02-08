@@ -361,6 +361,38 @@ a:focus-visible {
   font-size: var(--font-size-xs);
 }
 
+.btn-danger {
+  background: var(--color-danger-light);
+  color: white;
+  border: none;
+}
+
+.btn-danger:hover {
+  background: var(--color-danger-dark);
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.btn-icon:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+.btn-full {
+  width: 100%;
+  justify-content: center;
+}
+
 /* ==========================================================================
    FORM STYLES (shared)
    ========================================================================== */
@@ -472,13 +504,13 @@ a:focus-visible {
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
-  padding: var(--space-xl);
+  padding: var(--space-md);
   overflow-y: auto;
 }
 
 .modal-overlay.active {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
 }
 
@@ -488,7 +520,10 @@ a:focus-visible {
   box-shadow: var(--shadow-lg);
   max-width: 600px;
   width: 100%;
-  margin-top: 5vh;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   animation: modal-slide-in 0.2s ease-out;
 }
 
@@ -501,7 +536,7 @@ a:focus-visible {
 }
 
 .modal-content.modal-lg {
-  max-width: 800px;
+  max-width: 900px;
 }
 
 @keyframes modal-slide-in {
@@ -547,6 +582,7 @@ a:focus-visible {
 
 .modal-body {
   padding: var(--space-lg);
+  overflow-y: auto;
 }
 
 .modal-footer {
@@ -571,7 +607,8 @@ a:focus-visible {
   justify-content: center;
 }
 
-.modal.active {
+.modal.active,
+.modal.show {
   display: flex;
 }
 
@@ -718,6 +755,15 @@ a:focus-visible {
   gap: var(--space-sm);
   overflow-x: auto;
   padding-bottom: var(--space-sm);
+}
+@media (max-width: 1024px) {
+  .pipeline-board { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 768px) {
+  .pipeline-board { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .pipeline-board { grid-template-columns: 1fr; }
 }
 
 .pipeline-column {

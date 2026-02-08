@@ -8,7 +8,7 @@
       <div class="view-toggle">
         <button class="view-btn active" data-view="dashboard" onclick="SEP.setView('dashboard')">
           <span class="material-icons">dashboard</span>
-          <span>Dashboard</span>
+          <span>Engagements</span>
         </button>
         <button class="view-btn" data-view="solutions" onclick="SEP.setView('solutions')">
           <span class="material-icons">grid_view</span>
@@ -244,7 +244,7 @@
 </div>
 
 <!-- Solution Detail Modal -->
-<div class="modal-overlay" id="solutionModal" onclick="SEP.closeModal('solutionModal', event)">
+<div class="modal-overlay" id="solutionModal" role="dialog" aria-modal="true" aria-labelledby="modalSolutionName" onclick="SEP.closeModal('solutionModal', event)">
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title" id="modalSolutionName">Solution Details</h2>
@@ -257,10 +257,10 @@
 </div>
 
 <!-- Log Engagement Modal -->
-<div class="modal-overlay" id="engagementModal" onclick="SEP.closeModal('engagementModal', event)">
+<div class="modal-overlay" id="engagementModal" role="dialog" aria-modal="true" aria-labelledby="engagementModalTitle" onclick="SEP.closeModal('engagementModal', event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Log Engagement</h2>
+      <h2 class="modal-title" id="engagementModalTitle">Log Engagement</h2>
       <button class="modal-close" onclick="SEP.closeModal('engagementModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -421,7 +421,7 @@
 </div>
 
 <!-- Contact Detail Modal -->
-<div class="modal-overlay" id="contactModal" onclick="SEP.closeModal('contactModal', event)">
+<div class="modal-overlay" id="contactModal" role="dialog" aria-modal="true" aria-labelledby="modalContactName" onclick="SEP.closeModal('contactModal', event)">
   <div class="modal-content modal-md" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title" id="modalContactName">Contact Details</h2>
@@ -434,10 +434,10 @@
 </div>
 
 <!-- Engagement Detail Modal -->
-<div class="modal-overlay" id="engagementDetailModal" onclick="SEP.closeModal('engagementDetailModal', event)">
+<div class="modal-overlay" id="engagementDetailModal" role="dialog" aria-modal="true" aria-labelledby="engagementDetailModalTitle" onclick="SEP.closeModal('engagementDetailModal', event)">
   <div class="modal-content modal-md" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Engagement Details</h2>
+      <h2 class="modal-title" id="engagementDetailModalTitle">Engagement Details</h2>
       <button class="modal-close" onclick="SEP.closeModal('engagementDetailModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body" id="engagementDetailContent">
@@ -447,10 +447,10 @@
 </div>
 
 <!-- All Engagements Modal -->
-<div class="modal-overlay" id="allEngagementsModal" onclick="SEP.closeModal('allEngagementsModal', event)">
+<div class="modal-overlay" id="allEngagementsModal" role="dialog" aria-modal="true" aria-labelledby="allEngagementsModalTitle" onclick="SEP.closeModal('allEngagementsModal', event)">
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">All Engagements</h2>
+      <h2 class="modal-title" id="allEngagementsModalTitle">All Engagements</h2>
       <button class="modal-close" onclick="SEP.closeModal('allEngagementsModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -494,7 +494,7 @@
 </div>
 
 <!-- Contact Engagement History Modal -->
-<div class="modal-overlay" id="contactHistoryModal" onclick="SEP.closeModal('contactHistoryModal', event)">
+<div class="modal-overlay" id="contactHistoryModal" role="dialog" aria-modal="true" aria-labelledby="contactHistoryTitle" onclick="SEP.closeModal('contactHistoryModal', event)">
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title" id="contactHistoryTitle">Engagement History</h2>
@@ -507,10 +507,10 @@
 </div>
 
 <!-- Link Contact Modal -->
-<div class="modal-overlay" id="linkContactModal" onclick="SEP.closeModal('linkContactModal', event)">
+<div class="modal-overlay" id="linkContactModal" role="dialog" aria-modal="true" aria-labelledby="linkContactModalTitle" onclick="SEP.closeModal('linkContactModal', event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Add Contact to <span id="linkContactAgencyName">Agency</span></h2>
+      <h2 class="modal-title" id="linkContactModalTitle">Add Contact to <span id="linkContactAgencyName">Agency</span></h2>
       <button class="modal-close" onclick="SEP.closeModal('linkContactModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -561,10 +561,10 @@
 </div>
 
 <!-- Quick Add Contact Modal (from engagement form) -->
-<div class="modal-overlay" id="quickAddContactModal" onclick="SEP.closeModal('quickAddContactModal', event)">
+<div class="modal-overlay" id="quickAddContactModal" role="dialog" aria-modal="true" aria-labelledby="quickAddContactModalTitle" onclick="SEP.closeModal('quickAddContactModal', event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Add New Contact</h2>
+      <h2 class="modal-title" id="quickAddContactModalTitle">Add New Contact</h2>
       <button class="modal-close" onclick="SEP.closeModal('quickAddContactModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -605,10 +605,10 @@
 </div>
 
 <!-- Email Template Modal -->
-<div class="modal-overlay" id="emailTemplateModal" onclick="SEP.closeModal('emailTemplateModal', event)">
+<div class="modal-overlay" id="emailTemplateModal" role="dialog" aria-modal="true" aria-labelledby="emailTemplateModalTitle" onclick="SEP.closeModal('emailTemplateModal', event)">
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Compose Email</h2>
+      <h2 class="modal-title" id="emailTemplateModalTitle">Compose Email</h2>
       <button class="modal-close" onclick="SEP.closeModal('emailTemplateModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -667,10 +667,10 @@
 </div>
 
 <!-- Add Artifact Modal -->
-<div class="modal-overlay" id="addArtifactModal" onclick="SEP.closeModal('addArtifactModal', event)">
+<div class="modal-overlay" id="addArtifactModal" role="dialog" aria-modal="true" aria-labelledby="addArtifactModalTitle" onclick="SEP.closeModal('addArtifactModal', event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Add Artifact</h2>
+      <h2 class="modal-title" id="addArtifactModalTitle">Add Artifact</h2>
       <button class="modal-close" onclick="SEP.closeModal('addArtifactModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -705,10 +705,10 @@
 </div>
 
 <!-- Promote Artifact Modal -->
-<div class="modal-overlay" id="promoteArtifactModal" onclick="SEP.closeModal('promoteArtifactModal', event)">
+<div class="modal-overlay" id="promoteArtifactModal" role="dialog" aria-modal="true" aria-labelledby="promoteArtifactModalTitle" onclick="SEP.closeModal('promoteArtifactModal', event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Promote to Comms Asset</h2>
+      <h2 class="modal-title" id="promoteArtifactModalTitle">Promote to Comms Asset</h2>
       <button class="modal-close" onclick="SEP.closeModal('promoteArtifactModal')" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -795,23 +795,23 @@
   }
   .event-status-badge.status-planning {
     background: rgba(33, 150, 243, 0.15);
-    color: #1976D2;
+    color: var(--color-type-email);
   }
   .event-status-badge.status-confirmed {
     background: rgba(76, 175, 80, 0.15);
-    color: #388E3C;
+    color: var(--color-type-meeting);
   }
   .event-status-badge.status-completed {
     background: rgba(156, 39, 176, 0.15);
-    color: #7B1FA2;
+    color: var(--color-comms);
   }
   .event-status-badge.status-postponed {
     background: rgba(255, 152, 0, 0.15);
-    color: #F57C00;
+    color: var(--color-type-training);
   }
   .event-status-badge.status-cancelled {
     background: rgba(244, 67, 54, 0.15);
-    color: #D32F2F;
+    color: var(--color-danger);
   }
 
   /* Header filter (cycle dropdown in page header) */
@@ -890,8 +890,8 @@
   }
 
   /* SEP dot colors */
-  .dot-ws { background: #7B1FA2; } /* Purple for Working Sessions */
-  .dot-tp { background: #1565C0; } /* Blue for Touchpoints */
+  .dot-ws { background: var(--color-comms); } /* Purple for Working Sessions */
+  .dot-tp { background: var(--color-sep); } /* Blue for Touchpoints */
 
   /* SEP pipeline columns (compact for summary) */
   .sep-viewer .pipeline-column { max-height: 250px; }
@@ -913,7 +913,7 @@
   /* Drag and drop states */
   .pipeline-column.drag-over {
     background: #e8f5e9;
-    outline: 2px dashed #4CAF50;
+    outline: 2px dashed var(--color-cat-green);
     outline-offset: -2px;
   }
   .pipeline-card.dragging {
@@ -939,12 +939,12 @@
     font-size: var(--font-size-xs);
     font-weight: 500;
   }
-  .date-ws { color: #7B1FA2; }
-  .date-tp { color: #1565C0; }
+  .date-ws { color: var(--color-comms); }
+  .date-tp { color: var(--color-sep); }
 
   /* Card border colors based on current milestone */
-  .pipeline-card.card-ws { border-left-color: #7B1FA2; }
-  .pipeline-card.card-tp { border-left-color: #1565C0; }
+  .pipeline-card.card-ws { border-left-color: var(--color-comms); }
+  .pipeline-card.card-tp { border-left-color: var(--color-sep); }
   .card-org { font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-bottom: 4px; }
   .card-solutions {
     font-size: var(--font-size-xs);
@@ -1168,7 +1168,7 @@
   .agency-logo {
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, var(--color-sep), #60a5fa);
+    background: linear-gradient(135deg, var(--color-sep), var(--color-gradient-light));
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
@@ -1270,7 +1270,7 @@
     font-size: var(--font-size-xs);
     font-weight: 600;
   }
-  .heat-indicator.heat-hot { background: #fecaca; color: #dc2626; }
+  .heat-indicator.heat-hot { background: #fecaca; color: var(--color-danger-dark); }
   .heat-indicator.heat-warm { background: #fed7aa; color: #ea580c; }
   .heat-indicator.heat-cold { background: #e0e7ff; color: #4f46e5; }
   .heat-indicator .material-icons { font-size: 12px; }
@@ -1326,7 +1326,7 @@
   .contact-avatar-sm {
     width: 28px;
     height: 28px;
-    background: linear-gradient(135deg, var(--color-sep), #60a5fa);
+    background: linear-gradient(135deg, var(--color-sep), var(--color-gradient-light));
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1369,7 +1369,7 @@
   .contact-search-avatar {
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, var(--color-sep), #60a5fa);
+    background: linear-gradient(135deg, var(--color-sep), var(--color-gradient-light));
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1489,8 +1489,8 @@
   .timeline-contacts { font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-top: 2px; }
 
   /* Agency Tree Heat Map */
-  .agency-item.heat-hot { background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444; }
-  .agency-item.heat-warm { background: rgba(249, 115, 22, 0.08); border-left: 3px solid #f97316; }
+  .agency-item.heat-hot { background: rgba(239, 68, 68, 0.08); border-left: 3px solid var(--color-danger-light); }
+  .agency-item.heat-warm { background: rgba(249, 115, 22, 0.08); border-left: 3px solid var(--color-phase-formulation); }
   .agency-item.heat-cold { border-left: 3px solid transparent; }
   .agency-item .heat-dot {
     width: 6px;
@@ -1499,8 +1499,8 @@
     margin-left: auto;
     flex-shrink: 0;
   }
-  .heat-dot.hot { background: #ef4444; }
-  .heat-dot.warm { background: #f97316; }
+  .heat-dot.hot { background: var(--color-danger-light); }
+  .heat-dot.warm { background: var(--color-phase-formulation); }
   .heat-dot.cold { background: #94a3b8; }
 
   /* Agency Detail Tabs */
@@ -1591,7 +1591,7 @@
   .metric-card.metric-engagements::before { background: var(--color-sep); }
   .metric-card.metric-contacts::before { background: #22c55e; }
   .metric-card.metric-solutions::before { background: #f59e0b; }
-  .metric-card.metric-heat::before { background: #ef4444; }
+  .metric-card.metric-heat::before { background: var(--color-danger-light); }
   .metric-value { font-size: var(--font-size-xxl); font-weight: 700; color: var(--color-text); line-height: 1.2; }
   .metric-label { font-size: var(--font-size-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
   .metric-trend {
@@ -1602,7 +1602,7 @@
     margin-top: 4px;
   }
   .metric-trend.up { color: #22c55e; }
-  .metric-trend.down { color: #ef4444; }
+  .metric-trend.down { color: var(--color-danger-light); }
   .metric-trend.neutral { color: var(--color-text-muted); }
   .metric-trend .material-icons { font-size: 12px; }
 
@@ -1626,7 +1626,7 @@
   .contact-avatar-md {
     width: 36px;
     height: 36px;
-    background: linear-gradient(135deg, var(--color-sep), #60a5fa);
+    background: linear-gradient(135deg, var(--color-sep), var(--color-gradient-light));
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1679,7 +1679,7 @@
     color: white;
   }
   .contact-action-btn.contact-action-remove:hover {
-    background: #ef4444;
+    background: var(--color-danger-light);
     color: white;
   }
   .contact-action-btn .material-icons { font-size: 16px; }
@@ -1753,7 +1753,7 @@
     background: var(--color-sep);
   }
   .legend-node.solution-node {
-    background: #10b981;
+    background: var(--color-phase-operations);
     border-radius: var(--radius-sm);
   }
   .network-graph {
@@ -1787,48 +1787,11 @@
     height: 10px;
     border-radius: 2px;
   }
-  .legend-dot.agency { background: #1565c0; border-radius: 0; transform: rotate(45deg); width: 8px; height: 8px; }
+  .legend-dot.agency { background: var(--color-sep); border-radius: 0; transform: rotate(45deg); width: 8px; height: 8px; }
   .legend-dot.contact { background: #0ea5e9; border-radius: 50%; }
-  .legend-dot.solution { background: #10b981; }
+  .legend-dot.solution { background: var(--color-phase-operations); }
 
-  /* Modal & Forms */
-  .modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: var(--space-md);
-  }
-  .modal-overlay.active { display: flex; }
-  .modal-content {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    max-width: 600px;
-    width: 100%;
-    max-height: 90vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-  .modal-content.modal-md { max-width: 600px; }
-  .modal-content.modal-lg { max-width: 900px; }
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--space-md) var(--space-lg);
-    border-bottom: 1px solid var(--color-border-light);
-    background: var(--color-surface-alt);
-  }
-  .modal-title { font-size: var(--font-size-lg); font-weight: 600; margin: 0; }
-  .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--color-text-muted); }
-  .modal-close:hover { color: var(--color-text); }
-  .modal-body { padding: var(--space-lg); overflow-y: auto; }
-
+  /* Forms */
   .form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); }
   .form-group { margin-bottom: var(--space-md); }
   .form-group label { display: block; font-size: var(--font-size-sm); font-weight: 500; margin-bottom: var(--space-xs); }
@@ -1878,27 +1841,6 @@
   }
   .form-actions { display: flex; justify-content: flex-end; gap: var(--space-sm); margin-top: var(--space-md); }
 
-  /* Buttons */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-xs);
-    padding: var(--space-sm) var(--space-md);
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    border: none;
-  }
-  .btn svg { width: 16px; height: 16px; }
-  .btn-primary { background: var(--color-sep); color: white; }
-  .btn-primary:hover { background: var(--color-primary-dark); }
-  .btn-secondary { background: var(--color-surface-alt); color: var(--color-text); border: 1px solid var(--color-border); }
-  .btn-secondary:hover { background: var(--color-border-light); }
-  .btn-danger { background: #ef4444; color: white; border: none; }
-  .btn-danger:hover { background: #dc2626; }
-  .btn-sm { padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-xs); }
   .btn-sm .material-icons { font-size: 16px; }
   .engagement-detail-actions { display: flex; gap: var(--space-xs); }
 
@@ -2090,7 +2032,7 @@
   .contact-avatar {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, var(--color-sep), #60a5fa);
+    background: linear-gradient(135deg, var(--color-sep), var(--color-gradient-light));
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -2144,7 +2086,7 @@
   .solution-avatar {
     width: 64px;
     height: 64px;
-    background: linear-gradient(135deg, var(--color-sep), #60a5fa);
+    background: linear-gradient(135deg, var(--color-sep), var(--color-gradient-light));
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
@@ -2176,9 +2118,9 @@
     position: relative;
   }
   .milestone-item.completed { background: rgba(46, 125, 50, 0.1); }
-  .milestone-item.milestone-ws .milestone-marker { background: #7B1FA2; }
-  .milestone-item.milestone-tp .milestone-marker { background: #1565C0; }
-  .milestone-item.completed .milestone-marker { background: #2E7D32; }
+  .milestone-item.milestone-ws .milestone-marker { background: var(--color-comms); }
+  .milestone-item.milestone-tp .milestone-marker { background: var(--color-sep); }
+  .milestone-item.completed .milestone-marker { background: var(--color-success); }
   .milestone-marker {
     width: 28px;
     height: 28px;
@@ -2221,7 +2163,7 @@
     font-size: var(--font-size-sm);
     font-weight: 600;
   }
-  .outreach-list { max-height: 200px; overflow-y: auto; }
+  .outreach-list { }
   .outreach-item {
     display: flex;
     align-items: center;
@@ -2547,6 +2489,8 @@
   }
   .team-member .material-icons { font-size: 16px; color: var(--color-text-muted); }
   .team-role { color: var(--color-text-muted); font-size: var(--font-size-xs); }
+  .clickable-name { color: var(--page-accent); cursor: pointer; text-decoration: underline; }
+  .clickable-name:hover { opacity: 0.8; }
   .detail-stakeholders { display: flex; flex-direction: column; gap: 6px; }
   .detail-stakeholder {
     display: flex;
@@ -2843,7 +2787,7 @@ var SEP = (function() {
         renderPipeline();
 
         // Full solutions list
-        state.solutions = (data.solutions || []).filter(function(s) { return s && s.core_id; });
+        state.solutions = (data.solutions || []).filter(function(s) { return s && s.solution_id; });
         populateSolutionDropdown();
         renderPipeline();
         renderOverviewTable();
@@ -2917,6 +2861,8 @@ var SEP = (function() {
     }
   }
 
+  // Fetches all contacts via CachedAPI and stores in state.allContacts.
+  // Used by the contact picker in engagement forms for search and auto-complete.
   function loadAllContacts(navId) {
     // Use CachedAPI for contacts (60 min TTL, shared across pages)
     CachedAPI.getContacts()
@@ -2996,6 +2942,9 @@ var SEP = (function() {
     }, 200);
   }
 
+  // Handles contact selection from the search dropdown. Adds contact to selectedContacts
+  // state (case-insensitive duplicate check), updates the UI chips, and syncs the hidden
+  // participants field used for form submission.
   function selectContact(email) {
     var emailLower = email.toLowerCase();
     var contact = state.allContacts.find(function(c) {
@@ -3026,6 +2975,8 @@ var SEP = (function() {
     updateParticipantsField();
   }
 
+  // Renders the list of selected contacts as removable chips (name + close icon).
+  // Each chip shows the contact's name (or email as fallback) with a remove button.
   function renderSelectedContacts() {
     var container = document.getElementById('selectedContacts');
     if (!container) return;
@@ -3062,6 +3013,9 @@ var SEP = (function() {
   // RELATED ENGAGEMENTS PICKER
   // ========================================================================
 
+  // Searches loaded engagements by subject or summary text for the related-engagements picker.
+  // Excludes already-selected engagements and the engagement currently being edited.
+  // Returns up to 10 matches displayed as clickable dropdown items.
   function searchRelatedEngagements(query) {
     var resultsEl = document.getElementById('relatedEngagementResults');
     if (!query || query.length < 2) {
@@ -3087,7 +3041,7 @@ var SEP = (function() {
       resultsEl.innerHTML = '<div class="contact-result-item" style="color: var(--color-text-muted);">No engagements found</div>';
     } else {
       var html = results.map(function(e) {
-        var dateStr = e.date ? formatDate(e.date) : '';
+        var dateStr = e.date ? formatDateShort(e.date) : '';
         return '<div class="contact-result-item" onmousedown="SEP.selectRelatedEngagement(\'' + escapeAttr(e.engagement_id) + '\')">' +
           '<div class="contact-result-name">' + escapeHtml(e.subject || 'No subject') + '</div>' +
           '<div class="contact-result-details">' + dateStr + ' - ' + escapeHtml(e.activity_type || '') + '</div>' +
@@ -3290,6 +3244,8 @@ var SEP = (function() {
       .getSEPDashboardStats();
   }
 
+  // Loads solution data via two parallel API calls: milestone-grouped data for the pipeline
+  // view, and the full solutions list for dropdowns and the overview table.
   function loadSolutionsWithProgress() {
     // Load solutions grouped by SEP milestone
     google.script.run
@@ -3306,7 +3262,7 @@ var SEP = (function() {
     // Load full solutions list (has complete data including dates)
     google.script.run
       .withSuccessHandler(function(solutions) {
-        state.solutions = (solutions || []).filter(function(s) { return s && s.core_id; });
+        state.solutions = (solutions || []).filter(function(s) { return s && s.solution_id; });
         populateSolutionDropdown();
         // Re-render pipeline to show dates now that full data is available
         renderPipeline();
@@ -3318,10 +3274,12 @@ var SEP = (function() {
       .getSolutions();
   }
 
+  // Sorts solutions alphabetically by solution_id and populates three select dropdowns:
+  // primary solution (required), secondary solution (optional), and additional solutions.
   function populateSolutionDropdown() {
     // Sort solutions for all dropdowns
     var sorted = state.solutions.slice().sort(function(a, b) {
-      return (a.core_id || '').localeCompare(b.core_id || '');
+      return (a.solution_id || '').localeCompare(b.solution_id || '');
     });
 
     // Primary solution dropdown (required)
@@ -3330,8 +3288,8 @@ var SEP = (function() {
       primarySelect.innerHTML = '<option value="">-- Select Primary Solution --</option>';
       sorted.forEach(function(sol) {
         var opt = document.createElement('option');
-        opt.value = sol.core_id;
-        opt.textContent = sol.core_id.toUpperCase() + ' - ' + (sol.core_official_name || '');
+        opt.value = sol.solution_id;
+        opt.textContent = sol.solution_id.toUpperCase() + ' - ' + (sol.core_official_name || '');
         primarySelect.appendChild(opt);
       });
     }
@@ -3342,8 +3300,8 @@ var SEP = (function() {
       secondarySelect.innerHTML = '<option value="">-- None --</option>';
       sorted.forEach(function(sol) {
         var opt = document.createElement('option');
-        opt.value = sol.core_id;
-        opt.textContent = sol.core_id.toUpperCase() + ' - ' + (sol.core_official_name || '');
+        opt.value = sol.solution_id;
+        opt.textContent = sol.solution_id.toUpperCase() + ' - ' + (sol.core_official_name || '');
         secondarySelect.appendChild(opt);
       });
     }
@@ -3354,13 +3312,15 @@ var SEP = (function() {
       additionalSelect.innerHTML = '<option value="">+ Add solution...</option>';
       sorted.forEach(function(sol) {
         var opt = document.createElement('option');
-        opt.value = sol.core_id;
-        opt.textContent = sol.core_id.toUpperCase() + ' - ' + (sol.core_official_name || '');
+        opt.value = sol.solution_id;
+        opt.textContent = sol.solution_id.toUpperCase() + ' - ' + (sol.core_official_name || '');
         additionalSelect.appendChild(opt);
       });
     }
   }
 
+  // Adds a solution to the additional solutions list for multi-solution engagements.
+  // Prevents duplicates by checking against primary, secondary, and existing additional selections.
   function addAdditionalSolution(solutionId) {
     if (!solutionId) return;
 
@@ -3398,8 +3358,8 @@ var SEP = (function() {
 
     var html = '';
     state.additionalSolutions.forEach(function(solutionId) {
-      var sol = state.solutions.find(function(s) { return s.core_id === solutionId; });
-      var name = sol ? (sol.core_id.toUpperCase() + ' - ' + (sol.core_official_name || '')) : solutionId;
+      var sol = state.solutions.find(function(s) { return s.solution_id === solutionId; });
+      var name = sol ? (sol.solution_id.toUpperCase() + ' - ' + (sol.core_official_name || '')) : solutionId;
       html += '<span class="solution-tag">';
       html += '<span class="solution-tag-name">' + escapeHtml(name) + '</span>';
       html += '<span class="solution-tag-remove material-icons" onclick="SEP.removeAdditionalSolution(\'' + escapeAttr(solutionId) + '\')">close</span>';
@@ -3488,6 +3448,9 @@ var SEP = (function() {
     renderOverviewTable();
   }
 
+  // Renders the SEP overview table showing only sep_active solutions (or all if filter set).
+  // Handles boolean coercion for sep_active (true/'TRUE'/'true'). Calculates last/next
+  // milestones and comms-due status (overdue after 30 days since last engagement).
   function renderOverviewTable() {
     var tbody = document.getElementById('overviewTableBody');
     var countEl = document.getElementById('overviewCount');
@@ -3505,7 +3468,7 @@ var SEP = (function() {
       return sepActive === true || sepActive === 'TRUE' || sepActive === 'true';
     });
     var sorted = filtered.slice().sort(function(a, b) {
-      return (a.core_id || '').localeCompare(b.core_id || '');
+      return (a.solution_id || '').localeCompare(b.solution_id || '');
     });
     if (sorted.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">No solutions match filter</td></tr>';
@@ -3544,7 +3507,7 @@ var SEP = (function() {
 
       var lastEng = null;
       if (state.engagements && state.engagements.length > 0) {
-        lastEng = state.engagements.find(function(e) { return e.solution_id === sol.core_id; });
+        lastEng = state.engagements.find(function(e) { return e.solution_id === sol.solution_id; });
       }
       var lastEngDate = lastEng ? formatShortDate(lastEng.date) : '--';
       var commsDue = '--';
@@ -3575,8 +3538,8 @@ var SEP = (function() {
         milestoneDisplay = '→ ' + nextMsStr;
       }
 
-      html += '<tr onclick="SEP.showSolutionDetail(\'' + escapeAttr(sol.core_id) + '\')">';
-      html += '<td>' + escapeHtml(sol.core_id.toUpperCase()) + '</td>';
+      html += '<tr onclick="SEP.showSolutionDetail(\'' + escapeAttr(sol.solution_id) + '\')">';
+      html += '<td>' + escapeHtml(sol.solution_id.toUpperCase()) + '</td>';
       html += '<td>' + escapeHtml(milestoneDisplay) + '</td>';
       html += '<td>' + lastEngDate + '</td>';
       html += '<td class="' + commsDueClass + '">' + commsDue + '</td>';
@@ -3594,7 +3557,7 @@ var SEP = (function() {
       return;
     }
     var sorted = state.solutions.slice().sort(function(a, b) {
-      return (a.core_id || '').localeCompare(b.core_id || '');
+      return (a.solution_id || '').localeCompare(b.solution_id || '');
     });
     var html = '';
     sorted.forEach(function(sol) { html += renderQuadCard(sol); });
@@ -3608,7 +3571,7 @@ var SEP = (function() {
     ['tp4', 'tp5', 'tp6', 'tp7', 'tp8'].forEach(function(tp) { if (sol[tp + '_completed_date']) tpCompleted++; });
     var allSolEngagements = [];
     if (state.engagements && state.engagements.length > 0) {
-      allSolEngagements = state.engagements.filter(function(e) { return e.solution_id === sol.core_id; });
+      allSolEngagements = state.engagements.filter(function(e) { return e.solution_id === sol.solution_id; });
     }
     var uniqueContacts = {};
     allSolEngagements.forEach(function(eng) {
@@ -3645,10 +3608,10 @@ var SEP = (function() {
     }
     var html = '<div class="quad-card">';
     html += '<div class="quad-header"><div class="quad-header-main">';
-    html += '<span class="quad-id">' + escapeHtml(sol.core_id) + '</span>';
+    html += '<span class="quad-id">' + escapeHtml(sol.solution_id) + '</span>';
     html += '<span class="milestone-badge">' + escapeHtml(milestone) + '</span>';
     html += '</div>';
-    html += '<button class="btn btn-sm btn-icon" onclick="event.stopPropagation(); SEP.logEngagementForSolution(\'' + escapeAttr(sol.core_id) + '\')" aria-label="Log engagement for this solution"><span class="material-icons" aria-hidden="true">add</span></button>';
+    html += '<button class="btn btn-sm btn-icon" onclick="event.stopPropagation(); SEP.logEngagementForSolution(\'' + escapeAttr(sol.solution_id) + '\')" aria-label="Log engagement for this solution"><span class="material-icons" aria-hidden="true">add</span></button>';
     html += '</div>';
     html += '<div class="quad-name">' + escapeHtml(sol.core_official_name || '') + '</div>';
     html += '<div class="quad-stats-row">';
@@ -3712,8 +3675,8 @@ var SEP = (function() {
       var seen = {};
       var allSolutions = [];
       wsSolutions.concat(tpSolutions).forEach(function(sol) {
-        if (!seen[sol.core_id]) {
-          seen[sol.core_id] = true;
+        if (!seen[sol.solution_id]) {
+          seen[sol.solution_id] = true;
           // Determine current milestone for this solution
           sol._currentMilestone = getCurrentMilestone(sol);
           allSolutions.push(sol);
@@ -3722,7 +3685,7 @@ var SEP = (function() {
 
       // Sort by ID
       allSolutions.sort(function(a, b) {
-        return (a.core_id || '').localeCompare(b.core_id || '');
+        return (a.solution_id || '').localeCompare(b.solution_id || '');
       });
 
       if (countEl) countEl.textContent = allSolutions.length;
@@ -3812,8 +3775,8 @@ var SEP = (function() {
     }
 
     var html = solutions.map(function(sol) {
-      var displayName = sol.core_official_name || sol.core_id;
-      return '<div class="outreach-item" onclick="SEP.showSolutionDetail(\'' + escapeAttr(sol.core_id) + '\')">' +
+      var displayName = sol.core_official_name || sol.solution_id;
+      return '<div class="outreach-item" onclick="SEP.showSolutionDetail(\'' + escapeAttr(sol.solution_id) + '\')">' +
         '<span class="outreach-name">' + escapeHtml(displayName) + '</span>' +
         '<span class="outreach-count-badge">' + (sol.engagement_count || 0) + '</span>' +
         '</div>';
@@ -3867,7 +3830,7 @@ var SEP = (function() {
     var fullSol = null;
     if (state.solutions && state.solutions.length > 0) {
       fullSol = state.solutions.find(function(s) {
-        return s.core_id === sol.core_id;
+        return s.solution_id === sol.solution_id;
       });
     }
 
@@ -3883,12 +3846,12 @@ var SEP = (function() {
     var borderClass = currentMs.startsWith('ws') ? 'card-ws' : 'card-tp';
 
     var html = '<div class="pipeline-card ' + borderClass + '" draggable="true" ' +
-      'data-solution-id="' + escapeAttr(sol.core_id) + '" ' +
-      'title="' + escapeAttr(sol.core_official_name || sol.core_id) + '" ' +
-      'ondragstart="SEP.handleDragStart(event, \'' + escapeAttr(sol.core_id) + '\')" ' +
+      'data-solution-id="' + escapeAttr(sol.solution_id) + '" ' +
+      'title="' + escapeAttr(sol.core_official_name || sol.solution_id) + '" ' +
+      'ondragstart="SEP.handleDragStart(event, \'' + escapeAttr(sol.solution_id) + '\')" ' +
       'ondragend="SEP.handleDragEnd(event)" ' +
-      'onclick="SEP.showSolutionDetail(\'' + escapeAttr(sol.core_id) + '\')">';
-    html += '<div class="card-id">' + escapeHtml(sol.core_id) + '</div>';
+      'onclick="SEP.showSolutionDetail(\'' + escapeAttr(sol.solution_id) + '\')">';
+    html += '<div class="card-id">' + escapeHtml(sol.solution_id) + '</div>';
 
     // Show milestone dates
     html += '<div class="card-dates">';
@@ -3979,10 +3942,10 @@ var SEP = (function() {
     var html = '<div class="drop-dialog">';
     html += '<p>Move <strong>' + escapeHtml(solutionId) + '</strong> to:</p>';
     html += '<div class="drop-options">';
-    html += '<button class="btn btn-sm" style="background: #7B1FA2; color: white;" onclick="SEP.setMilestoneDate(\'' + escapeAttr(solutionId) + '\', \'' + column.ws + '\')">';
+    html += '<button class="btn btn-sm" style="background: var(--color-comms); color: white;" onclick="SEP.setMilestoneDate(\'' + escapeAttr(solutionId) + '\', \'' + column.ws + '\')">';
     html += wsLabel + (wsDate ? ' (' + formatShortDate(wsDate) + ')' : ' (set date)');
     html += '</button>';
-    html += '<button class="btn btn-sm" style="background: #1565C0; color: white;" onclick="SEP.setMilestoneDate(\'' + escapeAttr(solutionId) + '\', \'' + column.tp + '\')">';
+    html += '<button class="btn btn-sm" style="background: var(--color-sep); color: white;" onclick="SEP.setMilestoneDate(\'' + escapeAttr(solutionId) + '\', \'' + column.tp + '\')">';
     html += tpLabel + (tpDate ? ' (' + formatShortDate(tpDate) + ')' : ' (set date)');
     html += '</button>';
     html += '</div>';
@@ -4024,16 +3987,16 @@ var SEP = (function() {
         loadSolutionsWithProgress();
       })
       .withFailureHandler(function(error) {
-        showError('Failed to update milestone: ' + error.message);
+        showError('Could not update milestone. Please try again.');
       })
       .updateSolutionSEPMilestone(solutionId, milestone, dateStr);
   }
 
   function findSolutionById(solutionId) {
-    var solution = state.solutions.find(function(s) { return s.core_id === solutionId; });
+    var solution = state.solutions.find(function(s) { return s.solution_id === solutionId; });
     if (!solution) {
       for (var ms in state.solutionsByMilestone) {
-        var found = (state.solutionsByMilestone[ms] || []).find(function(s) { return s.core_id === solutionId; });
+        var found = (state.solutionsByMilestone[ms] || []).find(function(s) { return s.solution_id === solutionId; });
         if (found) { solution = found; break; }
       }
     }
@@ -4046,11 +4009,11 @@ var SEP = (function() {
 
   function showSolutionDetail(solutionId) {
     // Find solution in state
-    var solution = state.solutions.find(function(s) { return s.core_id === solutionId; });
+    var solution = state.solutions.find(function(s) { return s.solution_id === solutionId; });
     if (!solution) {
       // Try to find in milestone groups
       for (var ms in state.solutionsByMilestone) {
-        var found = (state.solutionsByMilestone[ms] || []).find(function(s) { return s.core_id === solutionId; });
+        var found = (state.solutionsByMilestone[ms] || []).find(function(s) { return s.solution_id === solutionId; });
         if (found) { solution = found; break; }
       }
     }
@@ -4060,7 +4023,7 @@ var SEP = (function() {
     }
 
     state.selectedSolution = solution;
-    document.getElementById('modalSolutionName').textContent = solution.core_id.toUpperCase();
+    document.getElementById('modalSolutionName').textContent = solution.solution_id.toUpperCase();
 
     var html = renderSolutionDetailContent(solution);
     document.getElementById('solutionModalBody').innerHTML = html;
@@ -4107,7 +4070,7 @@ var SEP = (function() {
     // Get engagements for this solution
     var solEngagements = [];
     if (state.engagements && state.engagements.length > 0) {
-      solEngagements = state.engagements.filter(function(e) { return e.solution_id === sol.core_id; });
+      solEngagements = state.engagements.filter(function(e) { return e.solution_id === sol.solution_id; });
     }
 
     // Get stakeholders assigned to this solution (from contacts database), deduplicated by email
@@ -4115,7 +4078,7 @@ var SEP = (function() {
     if (state.allContacts && state.allContacts.length > 0) {
       var seenEmails = {};
       state.allContacts.filter(function(c) {
-        return c.solution_id && c.solution_id.toLowerCase() === sol.core_id.toLowerCase();
+        return c.solution_id && c.solution_id.toLowerCase() === sol.solution_id.toLowerCase();
       }).forEach(function(c) {
         var key = (c.email || c.contact_id || '').toLowerCase();
         if (key && !seenEmails[key]) {
@@ -4180,7 +4143,7 @@ var SEP = (function() {
 
     // 1. Name
     html += '<div class="detail-header">';
-    html += '<div class="detail-title">' + escapeHtml(sol.core_official_name || sol.core_id) + '</div>';
+    html += '<div class="detail-title">' + escapeHtml(sol.core_official_name || sol.solution_id) + '</div>';
     html += '</div>';
 
     // 2. Cycle & Phase
@@ -4193,7 +4156,7 @@ var SEP = (function() {
     html += '<div class="detail-section">';
     html += '<div class="detail-section-header">';
     html += '<span class="detail-section-title">Recent Engagements</span>';
-    html += '<button class="btn btn-sm btn-primary" onclick="SEP.logEngagementForSolution(\'' + escapeAttr(sol.core_id) + '\')"><span class="material-icons">add</span> Log</button>';
+    html += '<button class="btn btn-sm btn-primary" onclick="SEP.logEngagementForSolution(\'' + escapeAttr(sol.solution_id) + '\')"><span class="material-icons">add</span> Log</button>';
     html += '</div>';
     if (solEngagements.length === 0) {
       html += '<div class="detail-empty">No engagements logged yet</div>';
@@ -4218,7 +4181,7 @@ var SEP = (function() {
         } else if (eng.subject) {
           participantDisplay = eng.subject;
         }
-        html += '<div class="detail-engagement clickable" onclick="SEP.showEngagementFromSolution(\'' + escapeAttr(sol.core_id) + '\', ' + idx + ')">';
+        html += '<div class="detail-engagement clickable" onclick="SEP.showEngagementFromSolution(\'' + escapeAttr(sol.solution_id) + '\', ' + idx + ')">';
         html += '<span class="eng-date">' + formatShortDate(eng.date) + '</span>';
         html += '<span class="eng-contact">' + escapeHtml(participantDisplay) + '</span>';
         html += '<span class="eng-type">' + escapeHtml(eng.activity_type || '') + '</span>';
@@ -4235,10 +4198,32 @@ var SEP = (function() {
     // 4. Team
     html += '<div class="detail-section">';
     html += '<div class="detail-section-title">Team</div>';
-    if (sol.team_lead || sol.team_ra_rep) {
+    var leadRef = sol.lead_contact_id;
+    var leadDisplay = sol.lead_name || '';
+    var raRepRef = sol.ra_rep_contact_id;
+    var raRepDisplay = sol.ra_rep_name || '';
+    var eaRef = sol.ea_advocate_contact_id;
+    var eaDisplay = sol.ea_advocate_name || '';
+    var sciRef = sol.scientist_contact_id;
+    var sciDisplay = sol.scientist_name || '';
+    if (leadRef || raRepRef || eaRef || sciRef) {
       html += '<div class="detail-team">';
-      if (sol.team_lead) html += '<div class="team-member"><span class="material-icons">person</span>' + escapeHtml(sol.team_lead) + ' <span class="team-role">(Lead)</span></div>';
-      if (sol.team_ra_rep) html += '<div class="team-member"><span class="material-icons">person</span>' + escapeHtml(sol.team_ra_rep) + ' <span class="team-role">(RA Rep)</span></div>';
+      if (leadRef) {
+        html += '<div class="team-member"><span class="material-icons">person</span><span class="clickable-name" onclick="SEP.showContactDetail(\'' + escapeAttr(leadRef) + '\', \'' + escapeAttr(leadDisplay) + '\')">' + escapeHtml(leadDisplay) + '</span> <span class="team-role">(Lead)</span></div>';
+        if (sol.lead_agency_name) html += '<div class="team-member" style="padding-left: 28px; font-size: var(--font-size-sm); color: var(--color-text-muted);">' + escapeHtml(sol.lead_agency_name) + '</div>';
+      }
+      if (sciRef) {
+        html += '<div class="team-member"><span class="material-icons">science</span><span class="clickable-name" onclick="SEP.showContactDetail(\'' + escapeAttr(sciRef) + '\', \'' + escapeAttr(sciDisplay) + '\')">' + escapeHtml(sciDisplay) + '</span> <span class="team-role">(Scientist)</span></div>';
+        if (sol.scientist_agency_name) html += '<div class="team-member" style="padding-left: 28px; font-size: var(--font-size-sm); color: var(--color-text-muted);">' + escapeHtml(sol.scientist_agency_name) + '</div>';
+      }
+      if (raRepRef) {
+        html += '<div class="team-member"><span class="material-icons">person</span><span class="clickable-name" onclick="SEP.showContactDetail(\'' + escapeAttr(raRepRef) + '\', \'' + escapeAttr(raRepDisplay) + '\')">' + escapeHtml(raRepDisplay) + '</span> <span class="team-role">(RA Rep)</span></div>';
+        if (sol.ra_rep_agency_name) html += '<div class="team-member" style="padding-left: 28px; font-size: var(--font-size-sm); color: var(--color-text-muted);">' + escapeHtml(sol.ra_rep_agency_name) + '</div>';
+      }
+      if (eaRef) {
+        html += '<div class="team-member"><span class="material-icons">person</span><span class="clickable-name" onclick="SEP.showContactDetail(\'' + escapeAttr(eaRef) + '\', \'' + escapeAttr(eaDisplay) + '\')">' + escapeHtml(eaDisplay) + '</span> <span class="team-role">(EA Advocate)</span></div>';
+        if (sol.ea_advocate_agency_name) html += '<div class="team-member" style="padding-left: 28px; font-size: var(--font-size-sm); color: var(--color-text-muted);">' + escapeHtml(sol.ea_advocate_agency_name) + '</div>';
+      }
       html += '</div>';
     } else {
       html += '<div class="detail-empty">No team assigned</div>';
@@ -4250,7 +4235,7 @@ var SEP = (function() {
     html += '<div class="detail-section-header">';
     html += '<span class="detail-section-title">Stakeholders (' + solutionContacts.length + ')</span>';
     if (solutionContacts.length > 0) {
-      html += '<button class="btn btn-sm btn-secondary" onclick="SEP.emailSolutionStakeholders(\'' + escapeAttr(sol.core_id) + '\')"><span class="material-icons">email</span> Email All</button>';
+      html += '<button class="btn btn-sm btn-secondary" onclick="SEP.emailSolutionStakeholders(\'' + escapeAttr(sol.solution_id) + '\')"><span class="material-icons">email</span> Email All</button>';
     }
     html += '</div>';
     if (solutionContacts.length === 0) {
@@ -4360,7 +4345,7 @@ var SEP = (function() {
       html += '<div class="milestone-label">' + milestoneLabels[ms] + '</div>';
       html += '<div class="milestone-name">' + milestoneNames[ms] + '</div>';
       html += '<div class="milestone-date-row">';
-      html += '<input type="date" class="milestone-date-input" value="' + (dateValue ? formatDateForInput(dateValue) : '') + '" onchange="SEP.updateMilestoneDate(\'' + escapeAttr(sol.core_id) + '\', \'' + ms + '\', this.value)">';
+      html += '<input type="date" class="milestone-date-input" value="' + (dateValue ? formatDateForInput(dateValue) : '') + '" onchange="SEP.updateMilestoneDate(\'' + escapeAttr(sol.solution_id) + '\', \'' + ms + '\', this.value)">';
       if (urlValue) {
         html += '<a href="' + escapeAttr(urlValue) + '" target="_blank" class="milestone-link"><span class="material-icons">link</span></a>';
       }
@@ -4676,7 +4661,7 @@ return;
     html += '<div class="metric-card metric-heat">';
     var heatIcon = stats.heat_status === 'hot' ? 'whatshot' : (stats.heat_status === 'warm' ? 'wb_sunny' : 'ac_unit');
     var heatLabel = stats.heat_status === 'hot' ? 'Hot' : (stats.heat_status === 'warm' ? 'Warm' : 'Cold');
-    html += '<div class="metric-value"><span class="material-icons" style="font-size: 24px; color: ' + (stats.heat_status === 'hot' ? '#ef4444' : stats.heat_status === 'warm' ? '#f97316' : '#6366f1') + ';">' + heatIcon + '</span></div>';
+    html += '<div class="metric-value"><span class="material-icons" style="font-size: 24px; color: ' + (stats.heat_status === 'hot' ? 'var(--color-danger-light)' : stats.heat_status === 'warm' ? 'var(--color-phase-formulation)' : 'var(--color-info)') + ';">' + heatIcon + '</span></div>';
     html += '<div class="metric-label">' + heatLabel + '</div>';
     if (stats.last_engagement_date) {
       html += '<div class="metric-trend neutral">' + stats.days_since_last + ' days ago</div>';
@@ -4712,9 +4697,11 @@ return;
       html += '<div class="detail-item"><div class="detail-label">Data Interests</div>';
       html += '<div class="detail-value">' + escapeHtml(agency.data_interests) + '</div></div>';
     }
-    if (agency.poc_name) {
+    if (agency.poc_contact_id) {
+      var pocContact = (state.contacts || []).find(function(c) { return c.contact_id === agency.poc_contact_id; });
+      var pocName = pocContact ? ((pocContact.first_name || '') + ' ' + (pocContact.last_name || '')).trim() : agency.poc_contact_id;
       html += '<div class="detail-item"><div class="detail-label">Primary POC</div>';
-      html += '<div class="detail-value">' + escapeHtml(agency.poc_name) + '</div></div>';
+      html += '<div class="detail-value">' + escapeHtml(pocName) + '</div></div>';
     }
     if (agency.successor_agency_id) {
       html += '<div class="detail-item"><div class="detail-label">Successor Agency</div>';
@@ -4783,14 +4770,14 @@ return;
         // Look up readable solution name
         var solutionDisplay = '';
         if (e.solution_id && state.solutions) {
-          var sol = state.solutions.find(function(s) { return s.core_id === e.solution_id; });
+          var sol = state.solutions.find(function(s) { return s.solution_id === e.solution_id; });
           solutionDisplay = sol ? (sol.core_official_name || e.solution_id) : e.solution_id;
         }
         html += '<div class="timeline-item" style="cursor: pointer;" onclick="SEP.showAgencyEngagementDetail(' + idx + ')">';
         html += '<div class="timeline-icon"><span class="material-icons">' + icon + '</span></div>';
         html += '<div class="timeline-content">';
         html += '<div class="timeline-subject">' + escapeHtml(e.subject || e.activity_type || 'Engagement') + '</div>';
-        html += '<div class="timeline-meta">' + formatDate(e.date) + ' • ' + escapeHtml(e.activity_type || '') + (solutionDisplay ? ' • ' + escapeHtml(solutionDisplay) : '') + '</div>';
+        html += '<div class="timeline-meta">' + formatDateShort(e.date) + ' • ' + escapeHtml(e.activity_type || '') + (solutionDisplay ? ' • ' + escapeHtml(solutionDisplay) : '') + '</div>';
         if (e.matched_contacts && e.matched_contacts.length > 0) {
           var names = e.matched_contacts.map(function(c) { return c.name; }).join(', ');
           html += '<div class="timeline-contacts">' + escapeHtml(names) + '</div>';
@@ -4974,7 +4961,7 @@ return;
           saveBtn.textContent = 'Save';
         }
         if (cancelBtn) cancelBtn.disabled = false;
-        showError('Failed to save notes: ' + error.message);
+        showError('Could not save notes. Please try again.');
       })
       .updateAgency(agencyId, { agency_notes: notes });
   }
@@ -5355,7 +5342,7 @@ return;
       html += '<div class="engagement-icon"><span class="material-icons">' + icon + '</span></div>';
       html += '<div class="engagement-info">';
       html += '<div class="engagement-subject">' + escapeHtml(e.subject || 'No subject') + '</div>';
-      html += '<div class="engagement-meta">' + formatDate(e.date) + ' - ' + escapeHtml(e.activity_type || 'Unknown') + '</div>';
+      html += '<div class="engagement-meta">' + formatDateShort(e.date) + ' - ' + escapeHtml(e.activity_type || 'Unknown') + '</div>';
       html += '</div></div>';
     });
 
@@ -5391,17 +5378,40 @@ return;
     });
   }
 
-  function showContactDetail(email) {
-    // Try to find contact in currentAgencyContacts first, then fall back to contacts
+  function showContactDetail(emailOrId, fallbackName) {
     var contact = null;
-    if (state.currentAgencyContacts && state.currentAgencyContacts.length > 0) {
-      contact = state.currentAgencyContacts.find(function(c) { return c.email === email; });
-    }
-    if (!contact && state.contacts && state.contacts.length > 0) {
-      contact = state.contacts.find(function(c) { return c.email === email; });
+    if (emailOrId && emailOrId.indexOf('CON_') === 0) {
+      // Look up by contact_id
+      if (state.currentAgencyContacts && state.currentAgencyContacts.length > 0) {
+        contact = state.currentAgencyContacts.find(function(c) { return c.contact_id === emailOrId; });
+      }
+      if (!contact && state.contacts && state.contacts.length > 0) {
+        contact = state.contacts.find(function(c) { return c.contact_id === emailOrId; });
+      }
+      // CON_ ID not found locally — fall back to name-based search
+      if (!contact && fallbackName) {
+        return showContactDetail(fallbackName);
+      }
+    } else {
+      // Try email lookup first
+      if (state.currentAgencyContacts && state.currentAgencyContacts.length > 0) {
+        contact = state.currentAgencyContacts.find(function(c) { return c.email === emailOrId; });
+      }
+      if (!contact && state.contacts && state.contacts.length > 0) {
+        contact = state.contacts.find(function(c) { return c.email === emailOrId; });
+      }
+      // Try name-based lookup if email didn't match
+      if (!contact && emailOrId) {
+        var nameLower = emailOrId.toLowerCase();
+        var allContacts = (state.contacts || []).concat(state.currentAgencyContacts || []);
+        contact = allContacts.find(function(c) {
+          var full = ((c.first_name || '') + ' ' + (c.last_name || '')).trim().toLowerCase();
+          return full === nameLower;
+        });
+      }
     }
     if (!contact) {
-      showError('Contact not found');
+      showError('Contact "' + (fallbackName || emailOrId) + '" not found');
       return;
     }
 
@@ -5414,7 +5424,9 @@ return;
     html += '<div class="contact-avatar">' + initials.toUpperCase() + '</div>';
     html += '<div class="contact-detail-info">';
     html += '<div class="contact-detail-name">' + escapeHtml((contact.first_name || '') + ' ' + (contact.last_name || '')) + '</div>';
-    html += '<div class="contact-detail-email"><a href="mailto:' + escapeHtml(contact.email) + '">' + escapeHtml(contact.email) + '</a></div>';
+    if (contact.email) {
+      html += '<div class="contact-detail-email"><a href="mailto:' + escapeHtml(contact.email) + '">' + escapeHtml(contact.email) + '</a></div>';
+    }
     if (contact.department || contact.agency) {
       html += '<div class="contact-detail-org">' + escapeHtml(contact.department || '') + (contact.agency ? ' / ' + escapeHtml(contact.agency) : '') + '</div>';
     }
@@ -5450,7 +5462,7 @@ return;
     html += '</select></div></div>';
 
     // Last Contact - Display only
-    html += '<div class="detail-item"><div class="detail-label">Last Contact</div><div class="detail-value">' + (contact.last_contact_date ? formatDate(contact.last_contact_date) : '--') + '</div></div>';
+    html += '<div class="detail-item"><div class="detail-label">Last Contact</div><div class="detail-value">' + (contact.last_contact_date ? formatDateShort(contact.last_contact_date) : '--') + '</div></div>';
 
     // Next Scheduled - Inline Editable
     html += '<div class="detail-item"><div class="detail-label">Next Scheduled</div><div class="detail-value inline-edit-group">';
@@ -5696,9 +5708,7 @@ return;
     }
   }
 
-  function formatDate(dateStr) {
-    return window.formatDateShort(dateStr);
-  }
+  // formatDateShort — uses global from index.html
 
   /**
    * Convert simple markdown to HTML for display
@@ -6171,7 +6181,7 @@ return;
     // Helper function to look up solution name
     function getSolutionName(solutionId) {
       if (!solutionId || !state.solutions) return null;
-      var sol = state.solutions.find(function(s) { return s.core_id === solutionId; });
+      var sol = state.solutions.find(function(s) { return s.solution_id === solutionId; });
       return sol ? (sol.core_official_name || solutionId) : solutionId;
     }
 
@@ -6214,9 +6224,9 @@ return;
     var agencyDisplay = e.agency_id ? (getAgencyName(e.agency_id) || e.agency_id) : '--';
 
     html += '<div class="engagement-detail-grid">';
-    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Date</div><div class="engagement-detail-value">' + (e.date ? formatDate(e.date) : '--') + '</div></div>';
+    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Date</div><div class="engagement-detail-value">' + (e.date ? formatDateShort(e.date) : '--') + '</div></div>';
     html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Direction</div><div class="engagement-detail-value">' + escapeHtml(e.direction || '--') + '</div></div>';
-    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Follow-up</div><div class="engagement-detail-value">' + (e.follow_up_date ? formatDate(e.follow_up_date) : '--') + '</div></div>';
+    html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Follow-up</div><div class="engagement-detail-value">' + (e.follow_up_date ? formatDateShort(e.follow_up_date) : '--') + '</div></div>';
     html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Agency</div><div class="engagement-detail-value">' + escapeHtml(agencyDisplay) + '</div></div>';
     // Touchpoint reference (SEP workflow stage)
     if (e.touchpoint_reference) {
@@ -6303,7 +6313,7 @@ return;
       html += '<div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm);"><span class="material-icons" style="color: var(--color-sep);">event</span><strong>Event Details</strong></div>';
 
       html += '<div class="engagement-detail-grid">';
-      html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Event Date</div><div class="engagement-detail-value">' + formatDate(e.event_date) + '</div></div>';
+      html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Event Date</div><div class="engagement-detail-value">' + formatDateShort(e.event_date) + '</div></div>';
       html += '<div class="engagement-detail-item"><div class="engagement-detail-label">Status</div><div class="engagement-detail-value"><span class="event-status-badge status-' + (e.event_status || 'planning').toLowerCase() + '">' + escapeHtml(e.event_status || 'Planning') + '</span></div></div>';
       if (e.event_name) {
         html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Event Name</div><div class="engagement-detail-value">' + escapeHtml(e.event_name) + '</div></div>';
@@ -6378,7 +6388,7 @@ return;
           if (!artifact.comms_asset_id) {
             html += '<button class="btn btn-sm btn-secondary" onclick="SEP.showPromoteArtifactModal(\'' + escapeAttr(e.engagement_id) + '\', ' + idx + ')" title="Promote to Comms Asset"><span class="material-icons">publish</span></button>';
           } else {
-            html += '<span class="badge" style="background: rgba(46, 125, 50, 0.1); color: #2E7D32; font-size: var(--font-size-xs);"><span class="material-icons" style="font-size: 12px;">check</span> Promoted</span>';
+            html += '<span class="badge" style="background: rgba(46, 125, 50, 0.1); color: var(--color-success); font-size: var(--font-size-xs);"><span class="material-icons" style="font-size: 12px;">check</span> Promoted</span>';
           }
           html += '<button class="btn btn-sm btn-danger" onclick="SEP.removeArtifact(\'' + escapeAttr(e.engagement_id) + '\', ' + idx + ')" title="Remove"><span class="material-icons">delete</span></button>';
           html += '</div>';
@@ -6478,10 +6488,10 @@ return;
     html += '<option value="">-- Select Solution --</option>';
     if (state.solutions) {
       state.solutions.slice().sort(function(a, b) {
-        return (a.core_id || '').localeCompare(b.core_id || '');
+        return (a.solution_id || '').localeCompare(b.solution_id || '');
       }).forEach(function(sol) {
-        var selected = (e.solution_id === sol.core_id) ? ' selected' : '';
-        html += '<option value="' + escapeAttr(sol.core_id) + '"' + selected + '>' + escapeHtml(sol.core_id.toUpperCase() + ' - ' + (sol.core_official_name || '')) + '</option>';
+        var selected = (e.solution_id === sol.solution_id) ? ' selected' : '';
+        html += '<option value="' + escapeAttr(sol.solution_id) + '"' + selected + '>' + escapeHtml(sol.solution_id.toUpperCase() + ' - ' + (sol.core_official_name || '')) + '</option>';
       });
     }
     html += '</select>';
@@ -6500,10 +6510,10 @@ return;
     html += '<option value="">-- None --</option>';
     if (state.solutions) {
       state.solutions.slice().sort(function(a, b) {
-        return (a.core_id || '').localeCompare(b.core_id || '');
+        return (a.solution_id || '').localeCompare(b.solution_id || '');
       }).forEach(function(sol) {
-        var selected = (e.secondary_solution_id === sol.core_id) ? ' selected' : '';
-        html += '<option value="' + escapeAttr(sol.core_id) + '"' + selected + '>' + escapeHtml(sol.core_id.toUpperCase() + ' - ' + (sol.core_official_name || '')) + '</option>';
+        var selected = (e.secondary_solution_id === sol.solution_id) ? ' selected' : '';
+        html += '<option value="' + escapeAttr(sol.solution_id) + '"' + selected + '>' + escapeHtml(sol.solution_id.toUpperCase() + ' - ' + (sol.core_official_name || '')) + '</option>';
       });
     }
     html += '</select>';
@@ -6932,8 +6942,8 @@ return;
     if (state.solutions && state.solutions.length > 0) {
       state.solutions.forEach(function(sol) {
         var opt = document.createElement('option');
-        opt.value = sol.core_id;
-        opt.textContent = sol.core_official_name || sol.core_id;
+        opt.value = sol.solution_id;
+        opt.textContent = sol.core_official_name || sol.solution_id;
         opt.dataset.description = sol.core_description || '';
         solutionSelect.appendChild(opt);
       });
@@ -7049,6 +7059,10 @@ return;
 
   function openInEmailClient() {
     var to = document.getElementById('emailTo').value;
+    if (!to || !to.trim()) {
+      showToast('No email address provided', 'warning');
+      return;
+    }
     var subject = document.getElementById('emailSubject').value;
     var body = document.getElementById('emailBody').value;
 
@@ -7114,7 +7128,7 @@ return;
       .withFailureHandler(function(error) {
         btn.disabled = false;
         btn.innerHTML = originalHtml;
-        showError(error.message);
+        showError('Operation failed. Please try again.');
       })
       .createEngagement(engagement);
   }
@@ -7201,10 +7215,10 @@ return;
     if (state.solutions && state.solutions.length > 0) {
       state.solutions.forEach(function(s) {
         var opt = document.createElement('option');
-        opt.value = s.core_id;
-        opt.textContent = s.core_official_name || s.core_id;
+        opt.value = s.solution_id;
+        opt.textContent = s.core_official_name || s.solution_id;
         opt.dataset.description = s.core_description || '';
-        if (s.core_id === solutionId) {
+        if (s.solution_id === solutionId) {
           opt.selected = true;
         }
         solutionSelect.appendChild(opt);
@@ -7533,12 +7547,6 @@ return;
   };
 })();
 
-// Initialize
-if (typeof google !== 'undefined' && google.script) {
-  SEP.init();
-} else {
-  document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() { SEP.init(); }, 500);
-  });
-}
+// Initialize — queued so CachedAPI is available (defined in index.html main script)
+queuePageInit(function() { SEP.init(); });
 </script>

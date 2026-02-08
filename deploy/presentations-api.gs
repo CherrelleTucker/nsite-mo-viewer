@@ -10,7 +10,7 @@
 /**
  * Generate a customized presentation from template
  *
- * @param {string} solutionId - Solution core_id
+ * @param {string} solutionId - Solution solution_id
  * @param {string} audienceType - 'internal' | 'external'
  * @param {string} folderId - Google Drive folder ID for output (optional, defaults to root)
  * @returns {Object} { success: boolean, data?: { url, presentationId, name }, error?: string }

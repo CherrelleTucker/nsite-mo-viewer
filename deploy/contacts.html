@@ -141,10 +141,10 @@
 </div>
 
 <!-- Contact Detail Modal -->
-<div class="modal-overlay" id="contactModal" onclick="Contacts.closeModal(event)">
+<div class="modal-overlay" id="contactModal" role="dialog" aria-modal="true" aria-labelledby="contactModalTitle" onclick="Contacts.closeModal(event)">
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title" id="modalContactName">Contact Details</h2>
+      <h2 class="modal-title" id="contactModalTitle">Contact Details</h2>
       <button class="modal-close" onclick="Contacts.closeModal()" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body" id="modalBody">
@@ -154,10 +154,10 @@
 </div>
 
 <!-- Add Contact Modal -->
-<div class="modal-overlay" id="addContactModal" onclick="Contacts.closeAddModal(event)">
+<div class="modal-overlay" id="addContactModal" role="dialog" aria-modal="true" aria-labelledby="addContactModalTitle" onclick="Contacts.closeAddModal(event)">
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Add New Contact</h2>
+      <h2 class="modal-title" id="addContactModalTitle">Add New Contact</h2>
       <button class="modal-close" onclick="Contacts.closeAddModal()" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
@@ -179,10 +179,6 @@
             <div class="form-group">
               <label for="newEmail">Email <span class="required">*</span></label>
               <input type="email" id="newEmail" name="email" required placeholder="name@agency.gov">
-            </div>
-            <div class="form-group">
-              <label for="newPhone">Phone</label>
-              <input type="tel" id="newPhone" name="phone" placeholder="(555) 555-5555">
             </div>
           </div>
         </div>
@@ -756,31 +752,7 @@
   .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
   /* Modal */
-  .modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: var(--space-md);
-  }
-
-  .modal-overlay.active { display: flex; }
-
-  .modal-content {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    max-width: 700px;
-    width: 100%;
-    max-height: 90vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-
+  .modal-content { max-width: 700px; }
   .modal-content.modal-lg { max-width: 900px; }
 
   .modal-header {
@@ -809,7 +781,7 @@
   .contact-avatar {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, var(--color-primary), #60a5fa);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-gradient-light));
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1186,7 +1158,8 @@ var Contacts = (function() {
     pageSize: 24,
     view: 'cards',
     searchTimeout: null,
-    currentContactEmail: null
+    currentContactEmail: null,
+    isSaving: false
   };
 
   function init() {
@@ -1229,8 +1202,16 @@ var Contacts = (function() {
           }
         }
 
+
         applyFilters();
         updateMultiSolutionStat();
+
+        // Check for deep link: #contact=CON_xxx
+        var hash = window.location.hash;
+        if (hash && hash.indexOf('#contact=') === 0) {
+          var deepLinkId = decodeURIComponent(hash.replace('#contact=', ''));
+          showDetail(deepLinkId);
+        }
       })
       .catch(function(error) {
         if (navId && !isNavigationCurrent(navId)) return;
@@ -1603,14 +1584,19 @@ renderPagination();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function showDetail(email) {
-    var normalizedEmail = (email || '').toLowerCase().trim();
-    var contact = state.allContacts.find(function(c) { return c.email === normalizedEmail; });
+  function showDetail(emailOrId) {
+    var contact = null;
+    if (emailOrId && emailOrId.indexOf('CON_') === 0) {
+      contact = state.allContacts.find(function(c) { return c.contact_id === emailOrId; });
+    } else {
+      var normalizedEmail = (emailOrId || '').toLowerCase().trim();
+      contact = state.allContacts.find(function(c) { return c.email === normalizedEmail; });
+    }
     if (!contact) return;
 
-    state.currentContactEmail = normalizedEmail;
+    state.currentContactEmail = (contact.email || '').toLowerCase().trim();
 
-    document.getElementById('modalContactName').textContent =
+    document.getElementById('contactModalTitle').textContent =
       (contact.first_name || '') + ' ' + (contact.last_name || '');
 
     var initials = ((contact.first_name || '')[0] || '') + ((contact.last_name || '')[0] || '');
@@ -1619,14 +1605,12 @@ renderPagination();
     html += '<div class="contact-avatar">' + initials.toUpperCase() + '</div>';
     html += '<div class="contact-detail-info">';
     html += '<div class="contact-detail-name">' + escapeHtml((contact.first_name || '') + ' ' + (contact.last_name || '')) + '</div>';
-    html += '<div class="contact-detail-email"><a href="mailto:' + escapeHtml(contact.email) + '">' + escapeHtml(contact.email) + '</a></div>';
+    if (contact.email) {
+      html += '<div class="contact-detail-email"><a href="mailto:' + escapeHtml(contact.email) + '">' + escapeHtml(contact.email) + '</a></div>';
+    }
 
     if (contact.department || contact.agency) {
       html += '<div class="contact-detail-org">' + escapeHtml(contact.department || '') + (contact.agency ? ' / ' + escapeHtml(contact.agency) : '') + '</div>';
-    }
-
-    if (contact.phone) {
-      html += '<div class="contact-detail-org"><span class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">phone</span>' + escapeHtml(contact.phone) + '</div>';
     }
 
     html += '</div></div>';
@@ -1765,7 +1749,7 @@ renderPagination();
         document.getElementById('relatedContactsSection').innerHTML =
           '<div class="detail-section-title">Related Contacts</div><p style="color:var(--color-text-muted)">Could not load related contacts</p>';
       })
-      .getRelatedContacts(email);
+      .getRelatedContacts(contact.email);
   }
 
   function renderEventsParticipated(summary) {
@@ -1881,8 +1865,8 @@ renderPagination();
         select.innerHTML = '<option value="">-- Select Solution --</option>';
         (solutions || []).forEach(function(sol) {
           var opt = document.createElement('option');
-          opt.value = sol.core_id || sol.solution_id || sol.name;
-          opt.textContent = sol.core_name || sol.name || sol.core_id;
+          opt.value = sol.solution_id || sol.solution_id || sol.name;
+          opt.textContent = sol.core_name || sol.name || sol.solution_id;
           select.appendChild(opt);
         });
       })
@@ -1911,6 +1895,7 @@ renderPagination();
 
   function submitNewContact(event) {
     event.preventDefault();
+    if (state.isSaving) return false;
 
     var form = document.getElementById('addContactForm');
     var submitBtn = document.getElementById('submitContactBtn');
@@ -1925,7 +1910,6 @@ renderPagination();
       first_name: form.first_name.value.trim(),
       last_name: form.last_name.value.trim(),
       email: form.email.value.trim().toLowerCase(),
-      phone: form.phone.value.trim(),
       title: form.title.value.trim(),
       department: form.department.value.trim(),
       agency: form.agency.value.trim(),
@@ -1942,8 +1926,10 @@ renderPagination();
       champion_notes: getRichTextContent('newChampionNotes')
     };
 
+    state.isSaving = true;
     google.script.run
       .withSuccessHandler(function(result) {
+        state.isSaving = false;
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
 
@@ -1958,9 +1944,10 @@ renderPagination();
         }
       })
       .withFailureHandler(function(error) {
+        state.isSaving = false;
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
-        showToast('Error: ' + error.message, 'error');
+        showToast('Could not load contact details. Please try again.', 'error');
       })
       .createContact(contactData);
 
@@ -1976,9 +1963,12 @@ renderPagination();
       return;
     }
 
-    var csv = 'First Name,Last Name,Email,Department,Agency,Solutions Count\n';
+    var csv = 'First Name,Last Name,Email,Title,Department,Agency,Roles,Solutions,Years,Solutions Count\n';
     state.filteredContacts.forEach(function(c) {
-      csv += '"' + (c.first_name || '') + '","' + (c.last_name || '') + '","' + (c.email || '') + '","' + (c.department || '') + '","' + (c.agency || '') + '",' + (c.solutions_count || 0) + '\n';
+      var roles = Array.isArray(c.roles) ? c.roles.join('; ') : (c.roles || '');
+      var solutions = Array.isArray(c.solutions) ? c.solutions.join('; ') : (c.solutions || '');
+      var years = Array.isArray(c.years) ? c.years.join('; ') : (c.years || '');
+      csv += '"' + (c.first_name || '') + '","' + (c.last_name || '') + '","' + (c.email || '') + '","' + (c.title || '') + '","' + (c.department || '') + '","' + (c.agency || '') + '","' + roles.replace(/"/g, '""') + '","' + solutions.replace(/"/g, '""') + '","' + years + '",' + (c.solutions_count || 0) + '\n';
     });
 
     var blob = new Blob([csv], { type: 'text/csv' });
@@ -2002,6 +1992,8 @@ renderPagination();
   // ============================================
 
   function updateContactField(email, fieldName, value) {
+    if (state.isSaving) return;
+
     var indicator = document.getElementById('saveIndicator');
     if (indicator) {
       indicator.textContent = 'Saving...';
@@ -2025,8 +2017,10 @@ renderPagination();
       return;
     }
 
+    state.isSaving = true;
     google.script.run
       .withSuccessHandler(function(result) {
+        state.isSaving = false;
         if (result && result.success) {
           if (indicator) {
             indicator.textContent = 'Saved';
@@ -2052,11 +2046,12 @@ renderPagination();
         }
       })
       .withFailureHandler(function(error) {
+        state.isSaving = false;
         if (indicator) {
           indicator.textContent = 'Error';
           setTimeout(function() { indicator.classList.remove('show'); }, 2000);
         }
-        showToast('Error: ' + error.message, 'error');
+        showToast('Could not save contact. Please try again.', 'error');
       })
       [apiFunction](email, value);
   }
@@ -2076,6 +2071,7 @@ renderPagination();
   }
 
   function saveChampionNotes(email) {
+    if (state.isSaving) return;
     var notesEl = document.getElementById('editChampionNotes');
     if (!notesEl) return;
 
@@ -2086,8 +2082,10 @@ renderPagination();
       indicator.classList.add('show');
     }
 
+    state.isSaving = true;
     google.script.run
       .withSuccessHandler(function(result) {
+        state.isSaving = false;
         if (result && result.success) {
           if (indicator) {
             indicator.textContent = 'Saved';
@@ -2126,11 +2124,12 @@ renderPagination();
         }
       })
       .withFailureHandler(function(error) {
+        state.isSaving = false;
         if (indicator) {
           indicator.textContent = 'Error';
           setTimeout(function() { indicator.classList.remove('show'); }, 2000);
         }
-        showToast('Error: ' + error.message, 'error');
+        showToast('Could not save changes. Please try again.', 'error');
       })
       .updateContactChampionNotes(email, notes);
   }
@@ -2174,12 +2173,6 @@ renderPagination();
   };
 })();
 
-// Initialize
-if (typeof google !== 'undefined' && google.script) {
-  Contacts.init();
-} else {
-  document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() { Contacts.init(); }, 500);
-  });
-}
+// Initialize — queued so CachedAPI is available (defined in index.html main script)
+queuePageInit(function() { Contacts.init(); });
 </script>

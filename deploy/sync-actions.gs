@@ -36,7 +36,7 @@ function loadConfig_() {
 
   try {
     var ss = SpreadsheetApp.openById(configSheetId);
-    var sheet = ss.getSheets()[0];
+    var sheet = ss.getSheetByName('Config') || ss.getSheets()[0];
     var data = sheet.getDataRange().getValues();
 
     _configCache = {};
@@ -404,7 +404,7 @@ function parseActionTable_(table, category, docName, docId) {
  * Matches on task + assigned_to + category to avoid duplicates
  */
 function upsertAction_(actionData) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Actions') || SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
   var data = sheet.getDataRange().getValues();
   var headers = data[0];
 
@@ -682,7 +682,7 @@ function formatStatusForAgenda_(status) {
  */
 function pushAllStatusesToAgendas() {
   var ui = SpreadsheetApp.getUi();
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Actions') || SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
   var data = sheet.getDataRange().getValues();
   var headers = data[0];
 

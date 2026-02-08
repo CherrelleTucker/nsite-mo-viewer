@@ -416,7 +416,7 @@
           btn.disabled = false;
           btn.textContent = 'Request Access';
           var errorDiv = document.getElementById('requestError');
-          errorDiv.textContent = 'Failed to send request: ' + (error.message || error);
+          errorDiv.textContent = 'Could not send access request. Please try again.';
           errorDiv.style.display = 'block';
         })
         .submitAccessRequest(userEmail, reason);

@@ -1079,7 +1079,7 @@ function getSEPInitData() {
     // Load full solutions list
     try {
       var allSolutions = getAllSolutions();
-      result.solutions = allSolutions.filter(function(s) { return s && s.core_id; });
+      result.solutions = allSolutions.filter(function(s) { return s && s.solution_id; });
     } catch (e) {
       Logger.log('getSEPInitData - solutions error: ' + e.message);
     }

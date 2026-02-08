@@ -382,7 +382,7 @@ Central configuration sheet with key-value pairs:
 
 1. Open MO-DB_Solutions
 2. Add new row with required fields:
-   - `core_id` (lowercase, no spaces: "new-solution")
+   - `solution_id` (lowercase, no spaces: "new-solution")
    - `core_official_name`
    - `core_cycle` (C1-C6)
    - `admin_lifecycle_phase`
@@ -392,7 +392,7 @@ Central configuration sheet with key-value pairs:
 #### Updating Solution Data
 
 1. Open MO-DB_Solutions
-2. Find solution row by `core_id`
+2. Find solution row by `solution_id`
 3. Edit fields directly
 4. Save (auto-saves in Sheets)
 5. Dashboard reflects changes on next load
@@ -505,7 +505,7 @@ Central configuration sheet with key-value pairs:
 
 | Field | Description |
 |-------|-------------|
-| `core_id` | Unique identifier (e.g., "hls", "opera") |
+| `solution_id` | Unique identifier (e.g., "hls", "opera") |
 | `core_official_name` | Full solution name |
 | `admin_lifecycle_phase` | Current phase |
 | `core_cycle` | Assessment cycle (C1-C6) |
