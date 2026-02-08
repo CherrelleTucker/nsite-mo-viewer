@@ -269,6 +269,19 @@
   </div>
 </div>
 
+<!-- Engagement Detail Modal -->
+<div class="modal-overlay" id="engagementDetailModal" role="dialog" aria-modal="true" aria-labelledby="engagementDetailModalTitle" onclick="Implementation.closeEngagementDetail(event)">
+  <div class="modal-content" style="max-width: 560px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="engagementDetailModalTitle">Engagement Details</h2>
+      <button class="modal-close" onclick="closeModal('engagementDetailModal')" aria-label="Close dialog">&times;</button>
+    </div>
+    <div class="modal-body" id="engagementDetailContent">
+      <div class="loading-state"><span class="loading-spinner"></span></div>
+    </div>
+  </div>
+</div>
+
 <!-- Implementation-NSITE Styles -->
 <style>
   /* Page accent color for shared styles */
@@ -1017,6 +1030,21 @@
     border-radius: var(--radius-sm);
     border-left: 3px solid var(--color-text-muted);
     font-size: var(--font-size-sm);
+  }
+
+  .activity-item.clickable {
+    grid-template-columns: 32px 1fr 24px;
+    transition: background 0.15s;
+  }
+
+  .activity-item.clickable:hover {
+    background: var(--color-surface-hover, #f0f0f0);
+  }
+
+  .activity-chevron {
+    display: flex;
+    align-items: center;
+    color: var(--color-text-muted);
   }
 
   .activity-type-update { border-left-color: var(--color-sep); }
@@ -2831,7 +2859,14 @@ return;
   }
 
   function renderActivityItem(item) {
-    var html = '<div class="activity-item activity-type-' + (item.type || 'unknown') + '">';
+    // Make engagement items clickable if they have an engagement_id
+    var isClickable = item.type === 'engagement' && item.engagement_id;
+    var html = '';
+    if (isClickable) {
+      html = '<div class="activity-item activity-type-engagement clickable" style="cursor:pointer;" onclick="Implementation.showEngagementDetail(\'' + escapeAttr(item.engagement_id) + '\')">';
+    } else {
+      html = '<div class="activity-item activity-type-' + (item.type || 'unknown') + '">';
+    }
 
     // Icon and type indicator
     html += '<div class="activity-icon">';
@@ -2899,6 +2934,9 @@ return;
     }
 
     html += '</div>';
+    if (isClickable) {
+      html += '<div class="activity-chevron"><span class="material-icons">chevron_right</span></div>';
+    }
     html += '</div>';
     return html;
   }
@@ -3072,6 +3110,107 @@ return;
   function closeContactModal(event) {
     if (event && event.target !== event.currentTarget) return;
     document.getElementById('contactDetailModal').classList.remove('active');
+  }
+
+  // Engagement detail modal
+  function showEngagementDetail(engagementId) {
+    if (!engagementId) return;
+
+    var modal = document.getElementById('engagementDetailModal');
+    var content = document.getElementById('engagementDetailContent');
+    if (!modal || !content) return;
+
+    content.innerHTML = '<div class="loading-state"><span class="loading-spinner"></span></div>';
+    modal.classList.add('active');
+
+    var navId = getNavigationId();
+
+    google.script.run
+      .withSuccessHandler(function(e) {
+        if (!isNavigationCurrent(navId)) return;
+        if (!e) {
+          content.innerHTML = '<div class="empty-state"><p>Engagement not found</p></div>';
+          return;
+        }
+
+        var typeIcons = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school', 'Workshop': 'handyman' };
+        var icon = typeIcons[e.activity_type] || 'event';
+
+        var html = '';
+
+        // Header with icon and subject
+        html += '<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">';
+        html += '<div style="width: 48px; height: 48px; border-radius: 50%; background: var(--color-implementation-light, rgba(46,125,50,0.1)); display: flex; align-items: center; justify-content: center;">';
+        html += '<span class="material-icons" style="font-size: 24px; color: var(--page-accent);">' + icon + '</span></div>';
+        html += '<div style="flex: 1;"><div style="font-size: 16px; font-weight: 600;">' + escapeHtml(e.subject || 'No subject') + '</div>';
+        html += '<div style="color: var(--color-text-secondary); font-size: 13px;">' + escapeHtml(e.activity_type || 'Unknown') + '</div></div>';
+        html += '</div>';
+
+        // Detail grid
+        html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">';
+
+        html += '<div><div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 2px;">Date</div>';
+        html += '<div>' + (e.date ? new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--') + '</div></div>';
+
+        html += '<div><div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 2px;">Direction</div>';
+        html += '<div>' + escapeHtml(e.direction || '--') + '</div></div>';
+
+        if (e.follow_up_date) {
+          html += '<div><div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 2px;">Follow-up</div>';
+          html += '<div>' + new Date(e.follow_up_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + '</div></div>';
+        }
+
+        if (e.logged_by) {
+          html += '<div><div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 2px;">Logged By</div>';
+          html += '<div>' + escapeHtml(e.logged_by) + '</div></div>';
+        }
+
+        html += '</div>';
+
+        // Participants
+        if (e.participants) {
+          html += '<div style="margin-bottom: 12px;">';
+          html += '<div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 4px;">Participants</div>';
+          html += '<div>' + escapeHtml(e.participants) + '</div>';
+          html += '</div>';
+        }
+
+        // Summary
+        if (e.summary) {
+          html += '<div style="margin-bottom: 12px;">';
+          html += '<div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 4px;">Summary</div>';
+          html += '<div>' + renderUpdateText(e.summary) + '</div>';
+          html += '</div>';
+        }
+
+        // Notes
+        if (e.notes) {
+          html += '<div style="margin-bottom: 12px;">';
+          html += '<div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 4px;">Notes</div>';
+          html += '<div>' + renderUpdateText(e.notes) + '</div>';
+          html += '</div>';
+        }
+
+        // Supplementary notes
+        if (e.supplementary_notes) {
+          html += '<div style="margin-bottom: 12px;">';
+          html += '<div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 4px;">Supplementary Notes</div>';
+          html += '<div>' + renderUpdateText(e.supplementary_notes) + '</div>';
+          html += '</div>';
+        }
+
+        content.innerHTML = html;
+      })
+      .withFailureHandler(function(error) {
+        if (!isNavigationCurrent(navId)) return;
+        content.innerHTML = '<div class="empty-state"><p>Failed to load engagement details</p></div>';
+      })
+      .getEngagementById(engagementId);
+  }
+
+  function closeEngagementDetail(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('engagementDetailModal').classList.remove('active');
   }
 
   function escapeAttr(text) {
@@ -3375,6 +3514,8 @@ return;
     viewSolutionContacts: viewSolutionContacts,
     showContactDetail: showContactDetail,
     closeContactModal: closeContactModal,
+    showEngagementDetail: showEngagementDetail,
+    closeEngagementDetail: closeEngagementDetail,
     // Team folder upload
     openUploadModal: openUploadModal,
     closeUploadModal: closeUploadModal,

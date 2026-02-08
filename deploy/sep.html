@@ -4028,6 +4028,9 @@ var SEP = (function() {
     var html = renderSolutionDetailContent(solution);
     document.getElementById('solutionModalBody').innerHTML = html;
     document.getElementById('solutionModal').classList.add('active');
+
+    // Load stakeholders and agencies async
+    loadSolutionStakeholders_(solution.solution_id);
   }
 
   function renderSolutionDetailContent(sol) {
@@ -4073,34 +4076,8 @@ var SEP = (function() {
       solEngagements = state.engagements.filter(function(e) { return e.solution_id === sol.solution_id; });
     }
 
-    // Get stakeholders assigned to this solution (from contacts database), deduplicated by email
-    var solutionContacts = [];
-    if (state.allContacts && state.allContacts.length > 0) {
-      var seenEmails = {};
-      state.allContacts.filter(function(c) {
-        return c.solution_id && c.solution_id.toLowerCase() === sol.solution_id.toLowerCase();
-      }).forEach(function(c) {
-        var key = (c.email || c.contact_id || '').toLowerCase();
-        if (key && !seenEmails[key]) {
-          seenEmails[key] = true;
-          solutionContacts.push(c);
-        }
-      });
-    }
-
-    // Get unique agencies from contacts
-    var uniqueAgencies = {};
-    solutionContacts.forEach(function(c) {
-      if (c.agency && !uniqueAgencies[c.agency]) {
-        uniqueAgencies[c.agency] = {
-          name: c.agency,
-          department: c.department || '',
-          contactCount: 0
-        };
-      }
-      if (c.agency) uniqueAgencies[c.agency].contactCount++;
-    });
-    var agencyList = Object.values(uniqueAgencies);
+    // Stakeholders and agencies are loaded async via loadSolutionStakeholders_()
+    // Called after modal HTML is set (see showSolutionDetail)
 
     // Legacy: stakeholders from engagements (for comms tracking)
     var engagedContacts = {};
@@ -4230,79 +4207,22 @@ var SEP = (function() {
     }
     html += '</div>';
 
-    // 5. Stakeholders
+    // 5. Stakeholders (async placeholder — populated by loadSolutionStakeholders_)
+    html += '<div id="solutionStakeholdersSection">';
     html += '<div class="detail-section">';
     html += '<div class="detail-section-header">';
-    html += '<span class="detail-section-title">Stakeholders (' + solutionContacts.length + ')</span>';
-    if (solutionContacts.length > 0) {
-      html += '<button class="btn btn-sm btn-secondary" onclick="SEP.emailSolutionStakeholders(\'' + escapeAttr(sol.solution_id) + '\')"><span class="material-icons">email</span> Email All</button>';
-    }
+    html += '<span class="detail-section-title">Stakeholders</span>';
     html += '</div>';
-    if (solutionContacts.length === 0) {
-      html += '<div class="detail-empty">No stakeholders assigned</div>';
-    } else {
-      html += '<div class="detail-stakeholders">';
-      // Helper to render a stakeholder item
-      function renderStakeholder(c) {
-        var name = ((c.first_name || '') + ' ' + (c.last_name || '')).trim() || c.email;
-        var titleAgency = [];
-        if (c.title) titleAgency.push(c.title);
-        if (c.agency) titleAgency.push(c.agency);
-        var sh = '<div class="detail-stakeholder">';
-        sh += '<span class="stakeholder-name">' + escapeHtml(name) + '</span>';
-        if (titleAgency.length > 0) sh += '<span class="stakeholder-title">' + escapeHtml(titleAgency.join(' · ')) + '</span>';
-        sh += '</div>';
-        return sh;
-      }
-      if (solutionContacts.length <= 6) {
-        solutionContacts.forEach(function(c) { html += renderStakeholder(c); });
-      } else {
-        // Short view - first 6
-        html += '<div id="stakeholdersShort">';
-        solutionContacts.slice(0, 6).forEach(function(c) { html += renderStakeholder(c); });
-        html += '<div class="detail-more"><a href="#" onclick="SEP.expandStakeholders(); return false;" style="color: var(--color-sep); text-decoration: none;">+' + (solutionContacts.length - 6) + ' more</a></div>';
-        html += '</div>';
-        // Full view - all
-        html += '<div id="stakeholdersFull" style="display: none;">';
-        solutionContacts.forEach(function(c) { html += renderStakeholder(c); });
-        html += '<div class="detail-more"><a href="#" onclick="SEP.collapseStakeholders(); return false;" style="color: var(--color-sep); text-decoration: none;">show less</a></div>';
-        html += '</div>';
-      }
-      html += '</div>';
-    }
+    html += '<div class="detail-empty"><span class="loading-spinner"></span> Loading stakeholders...</div>';
+    html += '</div>';
     html += '</div>';
 
-    // 6. Agencies
+    // 6. Agencies (async placeholder — populated by loadSolutionStakeholders_)
+    html += '<div id="solutionAgenciesSection">';
     html += '<div class="detail-section">';
-    html += '<div class="detail-section-title">Agencies (' + agencyList.length + ')</div>';
-    if (agencyList.length === 0) {
-      html += '<div class="detail-empty">No agencies linked</div>';
-    } else {
-      html += '<div class="detail-agencies">';
-      // Helper to render an agency item
-      function renderAgency(a) {
-        var ah = '<div class="detail-agency">';
-        ah += '<span class="agency-name">' + escapeHtml(a.name) + '</span>';
-        if (a.contactCount > 1) ah += '<span class="agency-contact-count">(' + a.contactCount + ')</span>';
-        ah += '</div>';
-        return ah;
-      }
-      if (agencyList.length <= 8) {
-        agencyList.forEach(function(a) { html += renderAgency(a); });
-      } else {
-        // Short view - first 8
-        html += '<div id="agenciesShort">';
-        agencyList.slice(0, 8).forEach(function(a) { html += renderAgency(a); });
-        html += '<div class="detail-more"><a href="#" onclick="SEP.expandAgencies(); return false;" style="color: var(--color-sep); text-decoration: none;">+' + (agencyList.length - 8) + ' more</a></div>';
-        html += '</div>';
-        // Full view - all
-        html += '<div id="agenciesFull" style="display: none;">';
-        agencyList.forEach(function(a) { html += renderAgency(a); });
-        html += '<div class="detail-more"><a href="#" onclick="SEP.collapseAgencies(); return false;" style="color: var(--color-sep); text-decoration: none;">show less</a></div>';
-        html += '</div>';
-      }
-      html += '</div>';
-    }
+    html += '<div class="detail-section-title">Agencies</div>';
+    html += '<div class="detail-empty"><span class="loading-spinner"></span> Loading agencies...</div>';
+    html += '</div>';
     html += '</div>';
 
     // 7. Milestone Timeline (at bottom)
@@ -4313,6 +4233,127 @@ var SEP = (function() {
 
     html += '</div>';
     return html;
+  }
+
+  // Async loader for stakeholders and agencies in solution detail modal
+  function loadSolutionStakeholders_(solutionId) {
+    var navId = getNavigationId();
+
+    google.script.run
+      .withSuccessHandler(function(contacts) {
+        if (!isNavigationCurrent(navId)) return;
+
+        // Deduplicate by email
+        var seenEmails = {};
+        var solutionContacts = [];
+        (contacts || []).forEach(function(c) {
+          var key = (c.email || c.contact_id || '').toLowerCase();
+          if (key && !seenEmails[key]) {
+            seenEmails[key] = true;
+            solutionContacts.push(c);
+          }
+        });
+
+        // Cache for emailSolutionStakeholders
+        state._solutionStakeholders = state._solutionStakeholders || {};
+        state._solutionStakeholders[solutionId] = solutionContacts;
+
+        // Render stakeholders
+        var sh = '<div class="detail-section">';
+        sh += '<div class="detail-section-header">';
+        sh += '<span class="detail-section-title">Stakeholders (' + solutionContacts.length + ')</span>';
+        if (solutionContacts.length > 0) {
+          sh += '<button class="btn btn-sm btn-secondary" onclick="SEP.emailSolutionStakeholders(\'' + escapeAttr(solutionId) + '\')"><span class="material-icons">email</span> Email All</button>';
+        }
+        sh += '</div>';
+        if (solutionContacts.length === 0) {
+          sh += '<div class="detail-empty">No stakeholders assigned</div>';
+        } else {
+          sh += '<div class="detail-stakeholders">';
+          function renderStakeholderItem(c) {
+            var name = ((c.first_name || '') + ' ' + (c.last_name || '')).trim() || c.email;
+            var titleAgency = [];
+            if (c.title) titleAgency.push(c.title);
+            if (c.agency) titleAgency.push(c.agency);
+            var item = '<div class="detail-stakeholder">';
+            item += '<span class="stakeholder-name">' + escapeHtml(name) + '</span>';
+            if (titleAgency.length > 0) item += '<span class="stakeholder-title">' + escapeHtml(titleAgency.join(' · ')) + '</span>';
+            item += '</div>';
+            return item;
+          }
+          if (solutionContacts.length <= 6) {
+            solutionContacts.forEach(function(c) { sh += renderStakeholderItem(c); });
+          } else {
+            sh += '<div id="stakeholdersShort">';
+            solutionContacts.slice(0, 6).forEach(function(c) { sh += renderStakeholderItem(c); });
+            sh += '<div class="detail-more"><a href="#" onclick="SEP.expandStakeholders(); return false;" style="color: var(--color-sep); text-decoration: none;">+' + (solutionContacts.length - 6) + ' more</a></div>';
+            sh += '</div>';
+            sh += '<div id="stakeholdersFull" style="display: none;">';
+            solutionContacts.forEach(function(c) { sh += renderStakeholderItem(c); });
+            sh += '<div class="detail-more"><a href="#" onclick="SEP.collapseStakeholders(); return false;" style="color: var(--color-sep); text-decoration: none;">show less</a></div>';
+            sh += '</div>';
+          }
+          sh += '</div>';
+        }
+        sh += '</div>';
+
+        var stakeholderEl = document.getElementById('solutionStakeholdersSection');
+        if (stakeholderEl) stakeholderEl.innerHTML = sh;
+
+        // Render agencies (derived from contacts)
+        var uniqueAgencies = {};
+        solutionContacts.forEach(function(c) {
+          if (c.agency && !uniqueAgencies[c.agency]) {
+            uniqueAgencies[c.agency] = { name: c.agency, department: c.department || '', contactCount: 0 };
+          }
+          if (c.agency) uniqueAgencies[c.agency].contactCount++;
+        });
+        var agencyList = Object.values(uniqueAgencies);
+
+        var ah = '<div class="detail-section">';
+        ah += '<div class="detail-section-title">Agencies (' + agencyList.length + ')</div>';
+        if (agencyList.length === 0) {
+          ah += '<div class="detail-empty">No agencies linked</div>';
+        } else {
+          ah += '<div class="detail-agencies">';
+          function renderAgencyItem(a) {
+            var ai = '<div class="detail-agency">';
+            ai += '<span class="agency-name">' + escapeHtml(a.name) + '</span>';
+            if (a.contactCount > 1) ai += '<span class="agency-contact-count">(' + a.contactCount + ')</span>';
+            ai += '</div>';
+            return ai;
+          }
+          if (agencyList.length <= 8) {
+            agencyList.forEach(function(a) { ah += renderAgencyItem(a); });
+          } else {
+            ah += '<div id="agenciesShort">';
+            agencyList.slice(0, 8).forEach(function(a) { ah += renderAgencyItem(a); });
+            ah += '<div class="detail-more"><a href="#" onclick="SEP.expandAgencies(); return false;" style="color: var(--color-sep); text-decoration: none;">+' + (agencyList.length - 8) + ' more</a></div>';
+            ah += '</div>';
+            ah += '<div id="agenciesFull" style="display: none;">';
+            agencyList.forEach(function(a) { ah += renderAgencyItem(a); });
+            ah += '<div class="detail-more"><a href="#" onclick="SEP.collapseAgencies(); return false;" style="color: var(--color-sep); text-decoration: none;">show less</a></div>';
+            ah += '</div>';
+          }
+          ah += '</div>';
+        }
+        ah += '</div>';
+
+        var agencyEl = document.getElementById('solutionAgenciesSection');
+        if (agencyEl) agencyEl.innerHTML = ah;
+      })
+      .withFailureHandler(function(error) {
+        if (!isNavigationCurrent(navId)) return;
+        var stakeholderEl = document.getElementById('solutionStakeholdersSection');
+        if (stakeholderEl) {
+          stakeholderEl.innerHTML = '<div class="detail-section"><div class="detail-section-title">Stakeholders</div><div class="detail-empty">Failed to load stakeholders</div></div>';
+        }
+        var agencyEl = document.getElementById('solutionAgenciesSection');
+        if (agencyEl) {
+          agencyEl.innerHTML = '<div class="detail-section"><div class="detail-section-title">Agencies</div><div class="detail-empty">Failed to load agencies</div></div>';
+        }
+      })
+      .getContactsBySolution(solutionId, true);
   }
 
   function renderMilestoneTimeline(sol) {
@@ -5367,6 +5408,87 @@ return;
     if (view === 'solutions' && state.solutions.length > 0) {
       renderSolutionsView();
     }
+    if (view === 'agencies' && !state.selectedAgency) {
+      renderAgenciesOverview();
+    }
+  }
+
+  function renderAgenciesOverview() {
+    var titleEl = document.getElementById('agencyDetailTitle');
+    var detailEl = document.getElementById('agencyDetail');
+    if (!titleEl || !detailEl) return;
+
+    // Flatten agency hierarchy to get all agencies
+    var allAgencies = [];
+    function collectAgencies(list) {
+      (list || []).forEach(function(a) {
+        allAgencies.push(a);
+        if (a.children && a.children.length > 0) collectAgencies(a.children);
+      });
+    }
+    collectAgencies(state.agencyHierarchy);
+
+    titleEl.textContent = 'Agency Overview';
+
+    // Build sorted list by engagement count
+    var counts = state.agencyEngagementCounts || {};
+    var ranked = allAgencies.map(function(a) {
+      return { agency_id: a.agency_id, name: a.name || a.abbreviation || 'Unknown', count: counts[a.agency_id] || 0 };
+    }).sort(function(a, b) { return b.count - a.count; });
+
+    var totalEngagements = 0;
+    var activeAgencies = 0;
+    ranked.forEach(function(a) {
+      totalEngagements += a.count;
+      if (a.count > 0) activeAgencies++;
+    });
+
+    var html = '';
+
+    // Stats row
+    html += '<div class="stats-row" style="margin-bottom: var(--space-md);">';
+    html += '<div class="stat-card"><div class="stat-value">' + allAgencies.length + '</div><div class="stat-label">Total Agencies</div></div>';
+    html += '<div class="stat-card"><div class="stat-value">' + activeAgencies + '</div><div class="stat-label">With Engagements</div></div>';
+    html += '<div class="stat-card"><div class="stat-value">' + totalEngagements + '</div><div class="stat-label">Total Engagements</div></div>';
+    html += '<div class="stat-card"><div class="stat-value">' + (allAgencies.length - activeAgencies) + '</div><div class="stat-label">Need Outreach</div></div>';
+    html += '</div>';
+
+    // Top engaged agencies
+    html += '<div class="detail-section">';
+    html += '<div class="detail-section-title">Top Engaged Agencies</div>';
+    var topAgencies = ranked.filter(function(a) { return a.count > 0; }).slice(0, 10);
+    if (topAgencies.length === 0) {
+      html += '<div class="detail-empty">No engagement data yet</div>';
+    } else {
+      topAgencies.forEach(function(a) {
+        html += '<div class="detail-engagement clickable" style="cursor:pointer;" onclick="SEP.selectAgency(\'' + escapeAttr(a.agency_id) + '\')">';
+        html += '<span class="eng-contact">' + escapeHtml(a.name) + '</span>';
+        html += '<span class="eng-type">' + a.count + ' engagement' + (a.count !== 1 ? 's' : '') + '</span>';
+        html += '<span class="material-icons eng-arrow">chevron_right</span>';
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+
+    // Agencies needing outreach
+    var needOutreach = ranked.filter(function(a) { return a.count === 0; });
+    if (needOutreach.length > 0) {
+      html += '<div class="detail-section">';
+      html += '<div class="detail-section-title">Need Outreach (' + needOutreach.length + ')</div>';
+      needOutreach.slice(0, 10).forEach(function(a) {
+        html += '<div class="detail-engagement clickable" style="cursor:pointer;" onclick="SEP.selectAgency(\'' + escapeAttr(a.agency_id) + '\')">';
+        html += '<span class="eng-contact" style="color: var(--color-text-muted);">' + escapeHtml(a.name) + '</span>';
+        html += '<span class="eng-type" style="color: var(--color-danger);">No engagements</span>';
+        html += '<span class="material-icons eng-arrow">chevron_right</span>';
+        html += '</div>';
+      });
+      if (needOutreach.length > 10) {
+        html += '<div class="detail-more" style="color: var(--color-text-muted);">+' + (needOutreach.length - 10) + ' more</div>';
+      }
+      html += '</div>';
+    }
+
+    detailEl.innerHTML = html;
   }
 
   function filterAgencies() {
@@ -7134,28 +7256,18 @@ return;
   }
 
   function emailSolutionStakeholders(solutionId) {
-    // Get stakeholders for this solution, deduplicated by email
-    var solutionContacts = [];
-    if (state.allContacts && state.allContacts.length > 0) {
-      var seenEmails = {};
-      state.allContacts.filter(function(c) {
-        return c.solution_id && c.solution_id.toLowerCase() === solutionId.toLowerCase() && c.email;
-      }).forEach(function(c) {
-        var email = c.email.toLowerCase();
-        if (!seenEmails[email]) {
-          seenEmails[email] = true;
-          solutionContacts.push(c);
-        }
-      });
-    }
-
-    if (solutionContacts.length === 0) {
+    // Use cached stakeholders from async load
+    var cached = state._solutionStakeholders && state._solutionStakeholders[solutionId];
+    if (!cached || cached.length === 0) {
       showToast('No stakeholders with email addresses found for this solution', 'warning');
       return;
     }
 
-    // Collect emails
-    var emails = solutionContacts.map(function(c) { return c.email; });
+    var emails = cached.filter(function(c) { return c.email; }).map(function(c) { return c.email; });
+    if (emails.length === 0) {
+      showToast('No stakeholders with email addresses found for this solution', 'warning');
+      return;
+    }
 
     // Close solution modal and open email modal
     closeModal('solutionModal');
