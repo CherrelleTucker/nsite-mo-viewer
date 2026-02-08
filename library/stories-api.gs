@@ -54,6 +54,9 @@ function loadAllStories_() {
     });
     // Only include records with story_id
     if (story.story_id) {
+      // Normalize enum fields to lowercase — sheet data may have mixed case
+      if (story.status) story.status = String(story.status).toLowerCase().trim();
+      if (story.content_type) story.content_type = String(story.content_type).toLowerCase().trim();
       _storiesCache.push(story);
     }
   }

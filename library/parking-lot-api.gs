@@ -56,6 +56,10 @@ function loadAllParkingLotItems_() {
     });
     // Only include records with item_id
     if (item.item_id) {
+      // Normalize enum fields to lowercase — sheet data may have mixed case
+      if (item.status) item.status = String(item.status).toLowerCase().trim();
+      if (item.priority) item.priority = String(item.priority).toLowerCase().trim();
+      if (item.item_type) item.item_type = String(item.item_type).toLowerCase().trim();
       _parkingLotCache.push(item);
     }
   }

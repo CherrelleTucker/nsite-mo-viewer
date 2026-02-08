@@ -750,25 +750,14 @@ function getKeyMessages(solutionId) {
  * @returns {Array} Array of solutions that have comms_key_messages populated
  */
 function getSolutionsWithKeyMessages() {
-  // Try new CommsAssets database first
-  try {
-    var commsAssetsConfigured = getConfigValue('COMMS_ASSETS_SHEET_ID');
-    if (commsAssetsConfigured) {
-      var assetResults = getSolutionsWithKeyMessagesFromAssets();
-      if (assetResults && assetResults.length > 0) {
-        return assetResults;
-      }
-    }
-  } catch (e) {
-    Logger.log('CommsAssets not available, falling back to Solutions: ' + e.message);
-  }
-
-  // Fallback to legacy Solutions columns
+  // Gather from Solutions columns (primary source)
   var solutions = getAllSolutions();
-  return solutions.filter(function(sol) {
-    return sol.comms_key_messages && sol.comms_key_messages.trim().length > 0;
-  }).map(function(sol) {
-    return {
+  var byId = {};
+
+  solutions.filter(function(sol) {
+    return sol.comms_key_messages && String(sol.comms_key_messages).trim().length > 0;
+  }).forEach(function(sol) {
+    byId[sol.solution_id] = {
       solution_id: sol.solution_id,
       core_official_name: sol.core_official_name,
       comms_key_messages: sol.comms_key_messages || '',
@@ -779,6 +768,35 @@ function getSolutionsWithKeyMessages() {
       comms_public_links: sol.comms_public_links || ''
     };
   });
+
+  // Merge from CommsAssets (overrides Solutions fields where both exist)
+  try {
+    var commsAssetsConfigured = getConfigValue('COMMS_ASSETS_SHEET_ID');
+    if (commsAssetsConfigured) {
+      var assetResults = getSolutionsWithKeyMessagesFromAssets();
+      if (assetResults && assetResults.length > 0) {
+        assetResults.forEach(function(asset) {
+          if (asset.solution_id) {
+            var existing = byId[asset.solution_id] || {};
+            byId[asset.solution_id] = {
+              solution_id: asset.solution_id,
+              core_official_name: asset.core_official_name || existing.core_official_name || '',
+              comms_key_messages: asset.comms_key_messages || existing.comms_key_messages || '',
+              comms_focus_type: asset.comms_focus_type || existing.comms_focus_type || '',
+              comms_industry: asset.comms_industry || existing.comms_industry || '',
+              comms_science: asset.comms_science || existing.comms_science || '',
+              comms_agency_impact: asset.comms_agency_impact || existing.comms_agency_impact || '',
+              comms_public_links: asset.comms_public_links || existing.comms_public_links || ''
+            };
+          }
+        });
+      }
+    }
+  } catch (e) {
+    Logger.log('CommsAssets merge skipped: ' + e.message);
+  }
+
+  return Object.keys(byId).map(function(id) { return byId[id]; });
 }
 
 /**

@@ -9202,7 +9202,7 @@ var COMMS = (function() {
       return;
     }
 
-    // Debounce
+    // Debounce — 500ms to avoid firing on every keystroke
     clearTimeout(guestSearchTimeout);
     guestSearchTimeout = setTimeout(function() {
       resultsContainer.innerHTML = '<div class="loading-state"><span class="loading-spinner"></span></div>';
@@ -9215,7 +9215,7 @@ var COMMS = (function() {
           resultsContainer.innerHTML = '<div class="empty-state-sm">Search failed</div>';
         })
         .searchContacts(query);
-    }, 300);
+    }, 500);
   }
 
   function renderGuestSearchResults(contacts) {

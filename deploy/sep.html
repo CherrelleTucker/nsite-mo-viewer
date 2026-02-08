@@ -5168,7 +5168,7 @@ return;
 
     document.getElementById('contactSearchResults').innerHTML = '<div class="search-hint">Searching...</div>';
 
-    searchDebounceTimer = setTimeout(function() {
+    searchDebounceTimer = setTimeout(function() {  // 500ms — matches all server-side search debounces
       google.script.run
         .withSuccessHandler(function(contacts) {
           renderContactSearchResults(contacts || []);
@@ -5178,7 +5178,7 @@ return;
           document.getElementById('contactSearchResults').innerHTML = '<div class="search-hint">Search failed</div>';
         })
         .searchContacts(query);
-    }, 300);
+    }, 500);
   }
 
   function renderContactSearchResults(contacts) {

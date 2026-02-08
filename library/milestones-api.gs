@@ -48,6 +48,9 @@ function loadAllMilestones_() {
           obj[header] = value;
         }
       });
+      // Normalize enum fields to lowercase — sheet data may have mixed case
+      if (obj.status) obj.status = String(obj.status).toLowerCase().trim();
+      if (obj.milestone_type) obj.milestone_type = String(obj.milestone_type).toLowerCase().trim();
       return obj;
     }).filter(function(m) {
       return m.milestone_id && String(m.milestone_id).trim();

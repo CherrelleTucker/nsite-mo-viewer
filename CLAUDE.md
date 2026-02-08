@@ -453,6 +453,30 @@ When making significant changes, update ALL relevant files:
 
 10. **Using getSheets()[0] instead of getSheetByName()** - NEVER access tabs by index. All databases have `_Lookups` tabs that can shift tab order. Always use `ss.getSheetByName('TabName')`. See the Database Reference table for correct tab names.
 
+11. **One-off component fixes without auditing all instances** - NEVER fix a single instance of a UI pattern without checking every other instance across all pages. See the Component Consistency Checklist below.
+
+---
+
+## Component Consistency Checklist
+
+**ALWAYS follow this checklist when fixing or changing ANY UI component, field, or pattern.**
+
+Before making a one-off fix, ask:
+
+1. **Is this an issue with ALL instances of this component type?** — Audit every instance across all pages
+2. **Is this component aligned with shared styles?** — Check `shared-page-styles.html` and `styles.html`
+3. **Should there be a shared style/utility for it?** — If 3+ instances exist, create a shared pattern
+4. **If we change one, should we change all?** — Default answer is YES unless there's a good reason
+5. **Why is it allowed to differ from shared styles?** — Document the reason if it must be different
+
+### Debounce Standards
+
+| Context | Debounce | Value |
+|---------|----------|-------|
+| Server-side API calls (`google.script.run`) | REQUIRED | 500ms |
+| Client-side filtering (large datasets, 100+ items) | Optional | 200ms |
+| Client-side filtering (small datasets) | None needed | — |
+
 ---
 
 ## Testing

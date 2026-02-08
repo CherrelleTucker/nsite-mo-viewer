@@ -52,6 +52,9 @@ function loadAllEvents_() {
       }
     });
     if (event.event_id) {
+      // Normalize enum fields to lowercase — sheet data may have mixed case
+      if (event.status) event.status = String(event.status).toLowerCase().trim();
+      if (event.event_type) event.event_type = String(event.event_type).toLowerCase().trim();
       _outreachCache.push(event);
     }
   }

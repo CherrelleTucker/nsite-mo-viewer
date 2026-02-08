@@ -57,6 +57,11 @@ function loadAllCommsAssets_() {
       }
     });
     if (asset.asset_id) {
+      // Normalize enum fields to lowercase — sheet data may have mixed case
+      if (asset.status) asset.status = String(asset.status).toLowerCase().trim();
+      if (asset.content_type) asset.content_type = String(asset.content_type).toLowerCase().trim();
+      if (asset.asset_file_type) asset.asset_file_type = String(asset.asset_file_type).toLowerCase().trim();
+      if (asset.usage_rights) asset.usage_rights = String(asset.usage_rights).toLowerCase().trim();
       _commsAssetsCache.push(asset);
     }
   }
