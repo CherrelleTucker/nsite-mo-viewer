@@ -8,9 +8,9 @@
       <h1>Contacts Directory</h1>
     </div>
     <div class="page-actions">
-      <button class="btn btn-secondary" onclick="Contacts.exportList()">
+      <button class="btn btn-secondary" onclick="Contacts.exportToSheet()">
         <span class="material-icons">download</span>
-        Download Contact List
+        Export Current List
       </button>
       <button class="btn btn-primary" onclick="Contacts.showAddModal()">
         <span class="material-icons">person_add</span>
@@ -76,22 +76,12 @@
         <label>Role:</label>
         <select id="filterRole" class="filter-select" onchange="Contacts.applyFilters()">
           <option value="">All Roles</option>
-          <option value="Primary SME">Primary SME</option>
-          <option value="Secondary SME">Secondary SME</option>
-          <option value="Survey Submitter">Survey Submitter</option>
-          <option value="Stakeholder">Stakeholder</option>
-          <option value="Additional SME">Additional SME</option>
         </select>
       </div>
       <div class="filter-group">
         <label>Year:</label>
         <select id="filterYear" class="filter-select" onchange="Contacts.applyFilters()">
           <option value="">All Years</option>
-          <option value="2024">2024</option>
-          <option value="2022">2022</option>
-          <option value="2020">2020</option>
-          <option value="2018">2018</option>
-          <option value="2016">2016</option>
         </select>
       </div>
       <div class="filter-group">
@@ -145,7 +135,12 @@
   <div class="modal-content modal-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title" id="contactModalTitle">Contact Details</h2>
-      <button class="modal-close" onclick="Contacts.closeModal()" aria-label="Close dialog">&times;</button>
+      <div style="display:flex;align-items:center;gap:var(--space-sm);">
+        <button class="btn btn-secondary btn-sm" id="editContactBtn" onclick="Contacts.toggleEditMode()" style="display:none;">
+          <span class="material-icons" style="font-size:16px;margin-right:2px;">edit</span> Edit
+        </button>
+        <button class="modal-close" onclick="Contacts.closeModal()" aria-label="Close dialog">&times;</button>
+      </div>
     </div>
     <div class="modal-body" id="modalBody">
       <!-- Dynamic content -->
@@ -511,6 +506,11 @@
     transform: translateY(-2px);
   }
 
+  .contact-card:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
   .contact-card-header {
     display: flex;
     justify-content: space-between;
@@ -719,6 +719,11 @@
     cursor: pointer;
   }
 
+  .contacts-table tbody tr:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+  }
+
   .contacts-table td {
     font-size: var(--font-size-sm);
   }
@@ -796,6 +801,48 @@
   .contact-detail-name { font-size: var(--font-size-xl); font-weight: 600; margin-bottom: var(--space-xs); }
   .contact-detail-email { color: var(--color-primary); margin-bottom: var(--space-xs); }
   .contact-detail-org { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+
+  .edit-form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+  }
+  .edit-form-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .edit-form-row label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    min-width: 60px;
+  }
+  .edit-form-row input,
+  .edit-form-row select {
+    flex: 1;
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    background: #fff;
+  }
+  .edit-form-row-full {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .edit-form-row-full .rich-text-field {
+    width: 100%;
+    min-height: 60px;
+  }
+  .contact-edit-mode {
+    background: var(--color-surface-alt);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-light);
+    margin-bottom: var(--space-md);
+  }
 
   .contact-actions {
     display: flex;
@@ -1040,33 +1087,6 @@
     color: var(--color-text);
   }
 
-  .inline-edit-group {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-  }
-
-  .inline-select {
-    flex: 1;
-    padding: var(--space-xs) var(--space-sm);
-    font-size: var(--font-size-sm);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    background: var(--color-surface);
-    cursor: pointer;
-    transition: border-color var(--transition-fast);
-  }
-
-  .inline-select:hover {
-    border-color: var(--color-primary);
-  }
-
-  .inline-select:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
-  }
-
   .inline-textarea {
     width: 100%;
     padding: var(--space-sm);
@@ -1152,6 +1172,9 @@ var Contacts = (function() {
     filteredContacts: [],
     departments: [],
     solutions: [],
+    roles: [],
+    years: [],
+    agencies: [],
     teamMembers: [],
     relationshipOwners: [],
     currentPage: 1,
@@ -1159,7 +1182,9 @@ var Contacts = (function() {
     view: 'cards',
     searchTimeout: null,
     currentContactEmail: null,
-    isSaving: false
+    isSaving: false,
+    _relatedContacts: [],
+    _relatedContactsShown: 10
   };
 
   function init() {
@@ -1317,17 +1342,25 @@ var Contacts = (function() {
   }
 
   function extractFilters() {
-    var depts = {}, sols = {};
+    var depts = {}, sols = {}, roles = {}, years = {};
 
     state.allContacts.forEach(function(c) {
       if (c.department) depts[c.department] = true;
       if (c.solutions) {
         c.solutions.forEach(function(s) { sols[s] = true; });
       }
+      if (c.roles) {
+        c.roles.forEach(function(r) { roles[r] = true; });
+      }
+      if (c.years) {
+        c.years.forEach(function(y) { years[String(y)] = true; });
+      }
     });
 
     state.departments = Object.keys(depts).sort();
     state.solutions = Object.keys(sols).sort();
+    state.roles = Object.keys(roles).sort();
+    state.years = Object.keys(years).sort(function(a, b) { return Number(b) - Number(a); });
 
     populateFilterDropdowns();
     populateOwnerDropdowns();
@@ -1336,12 +1369,11 @@ var Contacts = (function() {
   function populateFilterDropdowns() {
     var deptSelect = document.getElementById('filterDepartment');
     var solSelect = document.getElementById('filterSolution');
+    var roleSelect = document.getElementById('filterRole');
+    var yearSelect = document.getElementById('filterYear');
 
     // Guard against SPA navigation - elements may not exist
-    if (!deptSelect || !solSelect) {
-      // SPA navigation - elements no longer exist
-      return;
-    }
+    if (!deptSelect || !solSelect) return;
 
     deptSelect.innerHTML = '<option value="">All Departments</option>';
     state.departments.forEach(function(d) {
@@ -1358,6 +1390,26 @@ var Contacts = (function() {
       opt.textContent = s.length > 50 ? s.substring(0, 50) + '...' : s;
       solSelect.appendChild(opt);
     });
+
+    if (roleSelect) {
+      roleSelect.innerHTML = '<option value="">All Roles</option>';
+      state.roles.forEach(function(r) {
+        var opt = document.createElement('option');
+        opt.value = r;
+        opt.textContent = r;
+        roleSelect.appendChild(opt);
+      });
+    }
+
+    if (yearSelect) {
+      yearSelect.innerHTML = '<option value="">All Years</option>';
+      state.years.forEach(function(y) {
+        var opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        yearSelect.appendChild(opt);
+      });
+    }
   }
 
   function debounceSearch() {
@@ -1479,7 +1531,7 @@ renderPagination();
     var initials = ((contact.first_name || '')[0] || '') + ((contact.last_name || '')[0] || '');
     var roles = (contact.roles || []).slice(0, 3);
 
-    var html = '<div class="contact-card" onclick="Contacts.showDetail(\'' + escapeAttr(contact.email) + '\')">';
+    var html = '<div class="contact-card" tabindex="0" role="button" onclick="Contacts.showDetail(\'' + escapeAttr(contact.email) + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">';
     html += '<div class="contact-card-header">';
     html += '<span class="contact-name">' + escapeHtml(contact.first_name || '') + ' ' + escapeHtml(contact.last_name || '') + '</span>';
     html += '<div class="contact-badges">';
@@ -1526,7 +1578,7 @@ renderPagination();
     html += '<tbody>';
 
     contacts.forEach(function(c) {
-      html += '<tr onclick="Contacts.showDetail(\'' + escapeAttr(c.email) + '\')">';
+      html += '<tr tabindex="0" role="button" onclick="Contacts.showDetail(\'' + escapeAttr(c.email) + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">';
       html += '<td>' + escapeHtml((c.first_name || '') + ' ' + (c.last_name || '')) + '</td>';
       html += '<td class="table-email">' + escapeHtml(c.email || '') + '</td>';
       html += '<td>' + escapeHtml(c.department || '-') + '</td>';
@@ -1595,78 +1647,88 @@ renderPagination();
     if (!contact) return;
 
     state.currentContactEmail = (contact.email || '').toLowerCase().trim();
+    state._relatedContactsShown = 10;
 
     document.getElementById('contactModalTitle').textContent =
       (contact.first_name || '') + ' ' + (contact.last_name || '');
 
     var initials = ((contact.first_name || '')[0] || '') + ((contact.last_name || '')[0] || '');
 
-    var html = '<div class="contact-detail-header">';
+    var orgDisplay = (contact.department || '') + (contact.agency ? (contact.department ? ' / ' : '') + contact.agency : '');
+
+    // View mode header
+    var html = '<div class="contact-detail-header" id="contactHeaderView">';
     html += '<div class="contact-avatar">' + initials.toUpperCase() + '</div>';
     html += '<div class="contact-detail-info">';
     html += '<div class="contact-detail-name">' + escapeHtml((contact.first_name || '') + ' ' + (contact.last_name || '')) + '</div>';
-    if (contact.email) {
-      html += '<div class="contact-detail-email"><a href="mailto:' + escapeHtml(contact.email) + '">' + escapeHtml(contact.email) + '</a></div>';
+    html += '<div class="contact-detail-email"><a href="mailto:' + escapeHtml(contact.email || '') + '">' + escapeHtml(contact.email || '') + '</a></div>';
+    html += '<div class="contact-detail-org">' + escapeHtml(orgDisplay || 'No agency assigned') + '</div>';
+    if (contact.title) {
+      html += '<div class="contact-detail-org">' + escapeHtml(contact.title) + '</div>';
     }
-
-    if (contact.department || contact.agency) {
-      html += '<div class="contact-detail-org">' + escapeHtml(contact.department || '') + (contact.agency ? ' / ' + escapeHtml(contact.agency) : '') + '</div>';
-    }
-
     html += '</div></div>';
 
-    // SNWG Champion Section - Inline Editable
-    html += '<div class="detail-section">';
-    html += '<div class="detail-section-title"><span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">star</span> SNWG Champion <span class="save-indicator" id="saveIndicator"></span></div>';
-    html += '<div class="detail-grid">';
+    // Champion + Contact Info section — view mode
+    var championLabel = contact.champion_status || 'None';
+    var ownerDisplay = '';
+    if (contact.relationship_owner) {
+      var ownerTm = state.teamMembers.find(function(tm) { return tm.email && tm.email.toLowerCase() === contact.relationship_owner.toLowerCase(); });
+      ownerDisplay = ownerTm ? ((ownerTm.first_name || '') + ' ' + (ownerTm.last_name || '')).trim() || contact.relationship_owner : contact.relationship_owner;
+    }
 
-    // Champion Status - Inline Editable
-    html += '<div class="detail-item"><div class="detail-label">Status</div><div class="detail-value inline-edit-group">';
-    html += '<select class="inline-select" id="editChampionStatus" onchange="Contacts.updateContactField(\'' + escapeAttr(contact.email) + '\', \'champion_status\', this.value)">';
+    html += '<div class="detail-section" id="contactInfoView">';
+    html += '<div class="detail-section-title"><span class="material-icons" style="font-size:16px;vertical-align:middle;margin-right:4px;">badge</span> Contact Info</div>';
+    html += '<div class="detail-grid">';
+    html += '<div class="detail-item"><div class="detail-label">Champion Status</div><div class="detail-value">' + escapeHtml(championLabel) + '</div></div>';
+    html += '<div class="detail-item"><div class="detail-label">NSITE MO Connection</div><div class="detail-value">' + escapeHtml(ownerDisplay || 'None') + '</div></div>';
+    html += '</div>';
+    if (contact.champion_notes && contact.champion_notes.trim()) {
+      html += '<div style="margin-top:var(--space-sm);"><div class="detail-label">Champion Notes</div>';
+      html += '<div class="notes-content" style="font-size:var(--font-size-sm);">' + displayRichContent(contact.champion_notes) + '</div></div>';
+    }
+    html += '</div>';
+
+    // Edit mode form — hidden by default, all 6 fields
+    html += '<div class="contact-edit-mode" id="contactEditForm" style="display:none;">';
+    html += '<div class="detail-section-title"><span class="material-icons" style="font-size:16px;vertical-align:middle;margin-right:4px;">edit</span> Edit Contact</div>';
+    html += '<div class="edit-form-grid">';
+
+    html += '<div class="edit-form-row"><label>Email</label>';
+    html += '<input type="email" id="editEmailInput" value="' + escapeAttr(contact.email || '') + '"></div>';
+
+    html += '<div class="edit-form-row"><label>Agency</label>';
+    html += '<select id="editAgencySelect"><option value="">Loading agencies...</option></select></div>';
+
+    html += '<div class="edit-form-row"><label>Champion</label>';
+    html += '<select id="editChampionStatus">';
     html += '<option value="">Not a Champion</option>';
     ['Active', 'Prospective', 'Alumni', 'Inactive'].forEach(function(status) {
       var selected = contact.champion_status === status ? ' selected' : '';
-      var labels = { 'Active': 'Active - Currently engaged', 'Prospective': 'Prospective - Being cultivated', 'Alumni': 'Alumni - Former champion', 'Inactive': 'Inactive - Dormant' };
-      html += '<option value="' + status + '"' + selected + '>' + labels[status] + '</option>';
+      html += '<option value="' + status + '"' + selected + '>' + escapeHtml(status) + '</option>';
     });
-    html += '</select></div></div>';
+    html += '</select></div>';
 
-    // NSITE MO Connection - Inline Editable
-    html += '<div class="detail-item"><div class="detail-label">NSITE MO Connection</div><div class="detail-value inline-edit-group">';
-    html += '<select class="inline-select" id="editRelationshipOwner" onchange="Contacts.updateContactField(\'' + escapeAttr(contact.email) + '\', \'relationship_owner\', this.value)">';
+    html += '<div class="edit-form-row"><label>Connection</label>';
+    html += '<select id="editRelationshipOwner">';
     html += '<option value="">-- None --</option>';
     state.teamMembers.forEach(function(tm) {
       if (tm.email) {
         var selected = contact.relationship_owner && contact.relationship_owner.toLowerCase() === tm.email.toLowerCase() ? ' selected' : '';
-        var displayName = ((tm.first_name || '') + ' ' + (tm.last_name || '')).trim() || tm.email;
-        html += '<option value="' + escapeAttr(tm.email) + '"' + selected + '>' + escapeHtml(displayName) + '</option>';
+        var name = ((tm.first_name || '') + ' ' + (tm.last_name || '')).trim() || tm.email;
+        html += '<option value="' + escapeAttr(tm.email) + '"' + selected + '>' + escapeHtml(name) + '</option>';
       }
     });
-    html += '</select></div></div>';
+    html += '</select></div>';
+
+    html += '<div class="edit-form-row edit-form-row-full"><label>Notes</label>';
+    html += '<div id="editChampionNotes" class="rich-text-field" contenteditable="true" data-placeholder="Champion notes...">' + escapeHtml(contact.champion_notes || '') + '</div></div>';
 
     html += '</div>';
-
-    // Champion Notes - View/Edit pattern
-    html += '<div class="detail-item" style="margin-top: var(--space-sm);"><div class="detail-label">Champion Notes</div>';
-    // View mode
-    html += '<div id="championNotesView">';
-    if (contact.champion_notes && contact.champion_notes.trim()) {
-      html += '<div class="notes-content" style="font-size: var(--font-size-sm); margin-bottom: var(--space-xs);">' + displayRichContent(contact.champion_notes) + '</div>';
-    } else {
-      html += '<div class="notes-empty" style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: var(--space-xs);">No champion notes yet</div>';
-    }
-    html += '<button class="btn btn-secondary btn-sm" onclick="Contacts.editChampionNotes()"><span class="material-icons" style="font-size: 14px; margin-right: 4px;">edit</span>Edit</button>';
+    html += '<div style="display:flex;gap:var(--space-sm);margin-top:var(--space-md);align-items:center;">';
+    html += '<button class="btn btn-primary btn-sm" onclick="Contacts.saveContactProfile(\'' + escapeAttr(contact.contact_id || '') + '\', \'' + escapeAttr(contact.email || '') + '\')"><span class="material-icons" style="font-size:14px;margin-right:2px;">save</span>Save</button>';
+    html += '<button class="btn btn-secondary btn-sm" onclick="Contacts.cancelEditMode()">Cancel</button>';
+    html += '<span class="save-indicator" id="editSaveIndicator" style="font-size:var(--font-size-xs);"></span>';
     html += '</div>';
-    // Edit mode (hidden by default)
-    html += '<div id="championNotesEdit" style="display: none;">';
-    html += '<div id="editChampionNotes" class="rich-text-field" contenteditable="true" data-placeholder="Why is this person a champion? Value they bring?"></div>';
-    html += '<div style="display: flex; gap: var(--space-xs); margin-top: var(--space-xs);">';
-    html += '<button class="btn btn-secondary btn-sm" onclick="Contacts.cancelChampionNotes()">Cancel</button>';
-    html += '<button class="btn btn-primary btn-sm" onclick="Contacts.saveChampionNotes(\'' + escapeAttr(contact.email) + '\')">Save</button>';
-    html += '</div>';
-    html += '</div>';
-    html += '</div>';
-
     html += '</div>';
 
     // Solutions section - Collapsible, collapsed by default
@@ -1681,7 +1743,7 @@ renderPagination();
       html += '<div class="solutions-grid">';
       contact.solutions.forEach(function(sol) {
         html += '<div class="solution-item">';
-        html += '<span class="solution-item-name">' + escapeHtml(sol.length > 45 ? sol.substring(0, 45) + '...' : sol) + '</span>';
+        html += '<span class="solution-item-name">' + escapeHtml(sol.length > 50 ? sol.substring(0, 50) + '...' : sol) + '</span>';
         html += '</div>';
       });
       html += '</div>';
@@ -1726,6 +1788,7 @@ renderPagination();
     html += '</div>';
 
     document.getElementById('modalBody').innerHTML = html;
+    document.getElementById('editContactBtn').style.display = '';
     document.getElementById('contactModal').classList.add('active');
 
     // Load events participated async
@@ -1801,21 +1864,35 @@ renderPagination();
       return;
     }
 
+    // Store for pagination
+    state._relatedContacts = related;
+    renderRelatedContactsPage_();
+  }
+
+  function renderRelatedContactsPage_() {
+    var section = document.getElementById('relatedContactsSection');
+    if (!section) return;
+    var related = state._relatedContacts;
+    var shown = state._relatedContactsShown;
+
     var html = '<div class="detail-section-title">Related Contacts (' + related.length + ' colleagues)</div>';
     html += '<div class="related-contacts-list">';
 
-    related.slice(0, 10).forEach(function(r) {
-      html += '<div class="related-contact" onclick="Contacts.showDetail(\'' + escapeAttr(r.email) + '\')">';
+    related.slice(0, shown).forEach(function(r) {
+      html += '<div class="related-contact" tabindex="0" role="button" onclick="Contacts.showDetail(\'' + escapeAttr(r.email) + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">';
       html += '<span class="related-contact-name">' + escapeHtml((r.first_name || '') + ' ' + (r.last_name || '')) + '</span>';
       html += '<span class="related-contact-shared">' + r.shared_count + ' shared solutions</span>';
       html += '</div>';
     });
 
-    if (related.length > 10) {
-      html += '<p style="text-align:center;color:var(--color-text-muted);margin-top:var(--space-sm);">+' + (related.length - 10) + ' more colleagues</p>';
+    html += '</div>';
+
+    if (related.length > shown) {
+      html += '<div style="text-align:center;margin-top:var(--space-sm);"><button class="link-btn" onclick="Contacts.showMoreRelated()">+' + (related.length - shown) + ' more colleagues</button></div>';
+    } else if (shown > 10 && related.length > 10) {
+      html += '<div style="text-align:center;margin-top:var(--space-sm);"><button class="link-btn" onclick="Contacts.showLessRelated()">Show less</button></div>';
     }
 
-    html += '</div>';
     section.innerHTML = html;
   }
 
@@ -1956,30 +2033,6 @@ renderPagination();
 
   // showToast removed - uses global showToast() from index.html
 
-  function exportList() {
-    // Export current filtered list
-    if (state.filteredContacts.length === 0) {
-      showToast('No contacts to export', 'warning');
-      return;
-    }
-
-    var csv = 'First Name,Last Name,Email,Title,Department,Agency,Roles,Solutions,Years,Solutions Count\n';
-    state.filteredContacts.forEach(function(c) {
-      var roles = Array.isArray(c.roles) ? c.roles.join('; ') : (c.roles || '');
-      var solutions = Array.isArray(c.solutions) ? c.solutions.join('; ') : (c.solutions || '');
-      var years = Array.isArray(c.years) ? c.years.join('; ') : (c.years || '');
-      csv += '"' + (c.first_name || '') + '","' + (c.last_name || '') + '","' + (c.email || '') + '","' + (c.title || '') + '","' + (c.department || '') + '","' + (c.agency || '') + '","' + roles.replace(/"/g, '""') + '","' + solutions.replace(/"/g, '""') + '","' + years + '",' + (c.solutions_count || 0) + '\n';
-    });
-
-    var blob = new Blob([csv], { type: 'text/csv' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'contacts_export.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
   // escapeHtml() and escapeAttr() - use globals from index.html
 
   function showError(message) {
@@ -1987,167 +2040,243 @@ renderPagination();
       '<div class="empty-state"><span class="material-icons">error</span><p>' + message + '</p></div>';
   }
 
-  // ============================================
-  // Inline Edit Functions
-  // ============================================
-
-  function updateContactField(email, fieldName, value) {
-    if (state.isSaving) return;
-
-    var indicator = document.getElementById('saveIndicator');
-    if (indicator) {
-      indicator.textContent = 'Saving...';
-      indicator.classList.add('show');
-    }
-
-    // Map field names to API functions
-    var apiCallMap = {
-      'champion_status': 'updateContactChampionStatus',
-      'relationship_owner': 'updateContactRelationshipOwner',
-      'champion_notes': 'updateContactChampionNotes'
-    };
-
-    var apiFunction = apiCallMap[fieldName];
-    if (!apiFunction) {
-      console.error('Unknown field:', fieldName);
-      if (indicator) {
-        indicator.textContent = 'Error';
-        setTimeout(function() { indicator.classList.remove('show'); }, 2000);
-      }
-      return;
-    }
-
-    state.isSaving = true;
-    google.script.run
-      .withSuccessHandler(function(result) {
-        state.isSaving = false;
-        if (result && result.success) {
-          if (indicator) {
-            indicator.textContent = 'Saved';
-            setTimeout(function() { indicator.classList.remove('show'); }, 1500);
-          }
-          // Update local state
-          var contact = state.allContacts.find(function(c) {
-            return c.email === email.toLowerCase();
-          });
-          if (contact) {
-            contact[fieldName] = value;
-          }
-          // Invalidate cache so other pages see the update
-          if (typeof CachedAPI !== 'undefined' && CachedAPI.invalidate) {
-            CachedAPI.invalidate.contacts();
-          }
-        } else {
-          if (indicator) {
-            indicator.textContent = 'Failed';
-            setTimeout(function() { indicator.classList.remove('show'); }, 2000);
-          }
-          showToast(result && result.error ? result.error : 'Failed to save', 'error');
-        }
-      })
-      .withFailureHandler(function(error) {
-        state.isSaving = false;
-        if (indicator) {
-          indicator.textContent = 'Error';
-          setTimeout(function() { indicator.classList.remove('show'); }, 2000);
-        }
-        showToast('Could not save contact. Please try again.', 'error');
-      })
-      [apiFunction](email, value);
-  }
-
-  function editChampionNotes() {
-    var viewEl = document.getElementById('championNotesView');
-    var editEl = document.getElementById('championNotesEdit');
-    if (viewEl) viewEl.style.display = 'none';
-    if (editEl) editEl.style.display = 'block';
-    var notesField = document.getElementById('editChampionNotes');
-    if (notesField) {
-      initRichTextField('editChampionNotes', 'Why is this person a champion? Value they bring?');
-      var contact = state.allContacts.find(function(c) { return c.email === state.currentContactEmail; });
-      setRichTextContent('editChampionNotes', (contact && contact.champion_notes) || '');
-      notesField.focus();
-    }
-  }
-
-  function saveChampionNotes(email) {
-    if (state.isSaving) return;
-    var notesEl = document.getElementById('editChampionNotes');
-    if (!notesEl) return;
-
-    var notes = getRichTextContent('editChampionNotes');
-    var indicator = document.getElementById('saveIndicator');
-    if (indicator) {
-      indicator.textContent = 'Saving...';
-      indicator.classList.add('show');
-    }
-
-    state.isSaving = true;
-    google.script.run
-      .withSuccessHandler(function(result) {
-        state.isSaving = false;
-        if (result && result.success) {
-          if (indicator) {
-            indicator.textContent = 'Saved';
-            setTimeout(function() { indicator.classList.remove('show'); }, 1500);
-          }
-          // Update local state
-          var contact = state.allContacts.find(function(c) { return c.email === email.toLowerCase(); });
-          if (contact) {
-            contact.champion_notes = notes;
-          }
-          if (typeof CachedAPI !== 'undefined' && CachedAPI.invalidate) {
-            CachedAPI.invalidate.contacts();
-          }
-          // Update view mode content
-          var viewEl = document.getElementById('championNotesView');
-          if (viewEl) {
-            var contentHtml = '';
-            if (notes && notes.trim()) {
-              contentHtml = '<div class="notes-content" style="font-size: var(--font-size-sm); margin-bottom: var(--space-xs);">' + displayRichContent(notes) + '</div>';
-            } else {
-              contentHtml = '<div class="notes-empty" style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: var(--space-xs);">No champion notes yet</div>';
-            }
-            contentHtml += '<button class="btn btn-secondary btn-sm" onclick="Contacts.editChampionNotes()"><span class="material-icons" style="font-size: 14px; margin-right: 4px;">edit</span>Edit</button>';
-            viewEl.innerHTML = contentHtml;
-          }
-          // Switch back to view mode
-          var editEl = document.getElementById('championNotesEdit');
-          if (viewEl) viewEl.style.display = 'block';
-          if (editEl) editEl.style.display = 'none';
-        } else {
-          if (indicator) {
-            indicator.textContent = 'Failed';
-            setTimeout(function() { indicator.classList.remove('show'); }, 2000);
-          }
-          showToast(result && result.error ? result.error : 'Failed to save', 'error');
-        }
-      })
-      .withFailureHandler(function(error) {
-        state.isSaving = false;
-        if (indicator) {
-          indicator.textContent = 'Error';
-          setTimeout(function() { indicator.classList.remove('show'); }, 2000);
-        }
-        showToast('Could not save changes. Please try again.', 'error');
-      })
-      .updateContactChampionNotes(email, notes);
-  }
-
-  function cancelChampionNotes() {
-    var contact = state.allContacts.find(function(c) { return c.email === state.currentContactEmail; });
-    setRichTextContent('editChampionNotes', (contact && contact.champion_notes) || '');
-    var viewEl = document.getElementById('championNotesView');
-    var editEl = document.getElementById('championNotesEdit');
-    if (viewEl) viewEl.style.display = 'block';
-    if (editEl) editEl.style.display = 'none';
-  }
-
   function toggleDetailSection(sectionId) {
     var section = document.getElementById(sectionId);
     if (section) {
       section.classList.toggle('collapsed');
     }
+  }
+
+  // ============================================
+  // View/Edit Mode Toggle
+  // ============================================
+
+  function toggleEditMode() {
+    var headerView = document.getElementById('contactHeaderView');
+    var infoView = document.getElementById('contactInfoView');
+    var editForm = document.getElementById('contactEditForm');
+    var btn = document.getElementById('editContactBtn');
+
+    if (headerView) headerView.style.display = 'none';
+    if (infoView) infoView.style.display = 'none';
+    if (editForm) editForm.style.display = '';
+    if (btn) btn.style.display = 'none';
+
+    loadAgenciesForDropdown_();
+  }
+
+  function cancelEditMode() {
+    var headerView = document.getElementById('contactHeaderView');
+    var infoView = document.getElementById('contactInfoView');
+    var editForm = document.getElementById('contactEditForm');
+    var btn = document.getElementById('editContactBtn');
+
+    if (headerView) headerView.style.display = '';
+    if (infoView) infoView.style.display = '';
+    if (editForm) editForm.style.display = 'none';
+    if (btn) btn.style.display = '';
+  }
+
+  function saveContactProfile(contactId, currentEmail) {
+    if (state.isSaving) return;
+
+    var emailInput = document.getElementById('editEmailInput');
+    var agencySelect = document.getElementById('editAgencySelect');
+    var championSelect = document.getElementById('editChampionStatus');
+    var ownerSelect = document.getElementById('editRelationshipOwner');
+    var notesEl = document.getElementById('editChampionNotes');
+    var indicator = document.getElementById('editSaveIndicator');
+
+    var newEmail = emailInput ? emailInput.value.trim() : currentEmail;
+    var newAgencyId = agencySelect ? agencySelect.value : '';
+    var newChampion = championSelect ? championSelect.value : '';
+    var newOwner = ownerSelect ? ownerSelect.value : '';
+    var newNotes = notesEl ? notesEl.innerText.trim() : '';
+
+    if (newEmail && !newEmail.includes('@')) {
+      showToast('Please enter a valid email address', 'warning');
+      return;
+    }
+
+    var contact = state.allContacts.find(function(c) {
+      return c.contact_id === contactId || c.email === currentEmail.toLowerCase();
+    });
+    if (!contact) return;
+
+    var emailChanged = newEmail.toLowerCase() !== currentEmail.toLowerCase();
+    var agencyChanged = newAgencyId !== (contact.agency_id || '');
+    var championChanged = newChampion !== (contact.champion_status || '');
+    var ownerChanged = newOwner !== (contact.relationship_owner || '');
+    var notesChanged = newNotes !== (contact.champion_notes || '').trim();
+
+    if (!emailChanged && !agencyChanged && !championChanged && !ownerChanged && !notesChanged) {
+      cancelEditMode();
+      return;
+    }
+
+    state.isSaving = true;
+    if (indicator) { indicator.textContent = 'Saving...'; indicator.style.color = 'var(--color-text-muted)'; }
+
+    var pending = 0;
+    var errors = [];
+
+    function checkDone() {
+      pending--;
+      if (pending > 0) return;
+      state.isSaving = false;
+
+      if (errors.length > 0) {
+        if (indicator) { indicator.textContent = 'Error'; }
+        showToast(errors.join('. '), 'error');
+        return;
+      }
+
+      if (typeof CachedAPI !== 'undefined' && CachedAPI.invalidate) CachedAPI.invalidate.contacts();
+      if (indicator) { indicator.textContent = 'Saved!'; }
+      setTimeout(function() { showDetail(contactId || newEmail); }, 500);
+    }
+
+    function saveField(apiFunc, args, onSuccess) {
+      pending++;
+      var runner = google.script.run
+        .withSuccessHandler(function(result) {
+          if (result && result.success) { if (onSuccess) onSuccess(); }
+          else { errors.push(result && result.error ? result.error : 'Save failed'); }
+          checkDone();
+        })
+        .withFailureHandler(function() { errors.push('Network error'); checkDone(); });
+      runner[apiFunc].apply(runner, args);
+    }
+
+    var effectiveEmail = currentEmail;
+
+    if (emailChanged) {
+      saveField('updateContactEmail', [currentEmail, newEmail], function() {
+        contact.email = newEmail.toLowerCase();
+        state.currentContactEmail = newEmail.toLowerCase();
+        effectiveEmail = newEmail;
+      });
+    }
+
+    if (agencyChanged) {
+      saveField('updateContactAgency', [currentEmail, newAgencyId], function() {
+        contact.agency_id = newAgencyId;
+        var agency = state.agencies.find(function(a) { return a.agency_id === newAgencyId; });
+        contact.agency = agency ? (agency.name || agency.agency_name || '') : '';
+        contact.department = agency ? (agency.department_name || agency.department || '') : '';
+      });
+    }
+
+    if (championChanged) {
+      saveField('updateContactChampionStatus', [currentEmail, newChampion], function() {
+        contact.champion_status = newChampion;
+      });
+    }
+
+    if (ownerChanged) {
+      saveField('updateContactRelationshipOwner', [currentEmail, newOwner], function() {
+        contact.relationship_owner = newOwner;
+      });
+    }
+
+    if (notesChanged) {
+      saveField('updateContactChampionNotes', [currentEmail, newNotes], function() {
+        contact.champion_notes = newNotes;
+      });
+    }
+  }
+
+  function loadAgenciesForDropdown_() {
+    var select = document.getElementById('editAgencySelect');
+    if (!select) return;
+
+    if (state.agencies.length > 0) {
+      populateAgencySelect_(select);
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(agencies) {
+        state.agencies = (agencies || []).sort(function(a, b) {
+          return (a.name || a.agency_name || '').localeCompare(b.name || b.agency_name || '');
+        });
+        populateAgencySelect_(select);
+      })
+      .withFailureHandler(function() {
+        select.innerHTML = '<option value="">Failed to load agencies</option>';
+      })
+      .getAllAgencies();
+  }
+
+  function populateAgencySelect_(select) {
+    var contact = state.allContacts.find(function(c) { return c.email === state.currentContactEmail; });
+    var currentAgencyId = contact ? (contact.agency_id || '') : '';
+
+    select.innerHTML = '<option value="">-- No Agency --</option>';
+    state.agencies.forEach(function(a) {
+      var id = a.agency_id || '';
+      var name = a.name || a.agency_name || id;
+      var dept = a.department_name || a.department || '';
+      var label = dept ? name + ' (' + dept + ')' : name;
+      var selected = id === currentAgencyId ? ' selected' : '';
+      select.innerHTML += '<option value="' + escapeAttr(id) + '"' + selected + '>' + escapeHtml(label) + '</option>';
+    });
+  }
+
+  // ============================================
+  // Related Contacts Pagination
+  // ============================================
+
+  function showMoreRelated() {
+    state._relatedContactsShown += 10;
+    renderRelatedContactsPage_();
+  }
+
+  function showLessRelated() {
+    state._relatedContactsShown = 10;
+    renderRelatedContactsPage_();
+  }
+
+  // ============================================
+  // Export to Google Sheets
+  // ============================================
+
+  function exportToSheet() {
+    if (state.filteredContacts.length === 0) {
+      showToast('No contacts to export', 'warning');
+      return;
+    }
+
+    showToast('Creating spreadsheet...', 'info');
+
+    var exportData = state.filteredContacts.map(function(c) {
+      return {
+        first_name: c.first_name || '',
+        last_name: c.last_name || '',
+        email: c.email || '',
+        title: c.title || '',
+        department: c.department || '',
+        agency: c.agency || '',
+        roles: Array.isArray(c.roles) ? c.roles.join('; ') : (c.roles || ''),
+        solutions: Array.isArray(c.solutions) ? c.solutions.join('; ') : (c.solutions || ''),
+        years: Array.isArray(c.years) ? c.years.join('; ') : (c.years || ''),
+        solutions_count: c.solutions_count || 0
+      };
+    });
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result && result.success && result.url) {
+          window.open(result.url, '_blank');
+          showToast('Spreadsheet created and opened', 'success');
+        } else {
+          showToast(result && result.error ? result.error : 'Failed to create spreadsheet', 'error');
+        }
+      })
+      .withFailureHandler(function(error) {
+        showToast('Could not create spreadsheet. Please try again.', 'error');
+      })
+      .exportContactsToSheet(exportData);
   }
 
   return {
@@ -2160,16 +2289,17 @@ renderPagination();
     showDetail: showDetail,
     closeModal: closeModal,
     refresh: refresh,
-    exportList: exportList,
+    exportToSheet: exportToSheet,
     showAddModal: showAddModal,
     closeAddModal: closeAddModal,
     toggleFormSection: toggleFormSection,
     submitNewContact: submitNewContact,
-    updateContactField: updateContactField,
-    editChampionNotes: editChampionNotes,
-    saveChampionNotes: saveChampionNotes,
-    cancelChampionNotes: cancelChampionNotes,
-    toggleDetailSection: toggleDetailSection
+    toggleDetailSection: toggleDetailSection,
+    toggleEditMode: toggleEditMode,
+    cancelEditMode: cancelEditMode,
+    saveContactProfile: saveContactProfile,
+    showMoreRelated: showMoreRelated,
+    showLessRelated: showLessRelated
   };
 })();
 

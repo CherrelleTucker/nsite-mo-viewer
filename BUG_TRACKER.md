@@ -62,9 +62,6 @@ P0 (Critical) and P1 (High) issues are fixed immediately during review.
 - Dynamic content areas (filtered results, search results, loading states) lack `aria-live` announcements
 - Screen readers won't announce when content updates after filter/search
 
-**A11Y-05** | P3 | sep.html:4278,4283,4311,4316 | `<a href="#">` elements acting as buttons
-- Expand/collapse links should be `<button>` elements, not `<a>` with `href="#"`
-- about.html:16-23 — 8 navigation links use `javascript:void(0)` (problematic for a11y)
 
 **A11Y-06** | P3 | comms.html | Form labels without `for` attribute
 - comms.html:228-251 — labels visible but not semantically linked to inputs
@@ -72,16 +69,8 @@ P0 (Critical) and P1 (High) issues are fixed immediately during review.
 
 ### Mobile/Responsive
 
-**RESP-06** | P3 | shared-page-styles.html:360 | `.btn-sm` touch target too small
-- 4px vertical padding — below 44px mobile touch target guideline
-- Fix: increase to `var(--space-xs) var(--space-sm)` minimum
 
 ### Loading States
-
-**LOAD-01** | P2 | implementation.html | Uses text placeholder instead of proper loading spinner
-- Stats show "Loading..." text button instead of `.loading-state` with spinner
-- Users can't tell if page is still loading vs loaded with no data
-- Fix: add `.loading-state` with `.loading-spinner` on init, hide on data load
 
 ### Schema Validation
 
@@ -110,30 +99,70 @@ P0 (Critical) and P1 (High) issues are fixed immediately during review.
 
 ### Style Consistency
 
-**STYLE-03** | P3 | sep.html:1086 | Reference to undefined CSS variable `--color-sep-light`
-- Has rgba() fallback so renders correctly, but variable never defined in styles.html
+---
 
-**STYLE-04** | P3 | comms.html:3109, 3181 | Hardcoded hover states
-- `.btn-primary:hover` and `.comms-due-action:hover` use hardcoded `#6a1b9a`
-- Should derive from `var(--page-accent)` or color variable
+## Resolved Issues — v4.0.3 (2026-02-08)
 
-### Data Connectivity
+**CONTACTS-EDIT** | P1 | deploy/contacts.html | Contact detail modal edit functionality
+- Added view-then-edit modal with single Edit button for: email, agency, champion status, relationship owner, champion notes
+- New API: `updateContactEmail()` in library + deploy wrapper
 
-**DATA-01** | P2 | All viewer pages | Alignment data (8 columns) 100% hidden from UI
-- These are core SEP decision-making fields (gap/acceptable status for stakeholder needs)
-- Fix: surface in Implementation detail modal and SEP pipeline cards
+**CONTACTS-EXPORT** | P2 | deploy/contacts.html | Export was client-side CSV only
+- Replaced with server-side Google Sheets export via `exportContactsToSheet()`
 
-**DATA-02** | P2 | All viewer pages | Technical specifications (8 product_* columns) hidden
-- Only `product_assigned_daac` is displayed
-- Fix: surface in Implementation detail modal
+**CONTACTS-FILTERS** | P2 | deploy/contacts.html | Year/Role filters hardcoded
+- Year filter: removed hardcoded 2024/2022/2020/2018/2016, now populated from data (sorted descending)
+- Role filter: removed hardcoded 5 options, now populated from data (sorted alphabetically)
 
-**DATA-03** | P2 | All viewer pages | Milestone document URLs (9 columns) hidden
-- Milestone DATES are shown but decision documents are inaccessible
-- Fix: add document links alongside dates in Implementation/SEP modals
+**CONTACTS-RELATED** | P2 | deploy/contacts.html | Related contacts limited to 10 with no expansion
+- "+N more colleagues" now clickable to show next 10; "Show less" to collapse
 
-**DATA-04** | P2 | All viewer pages | Team contacts partially hidden (4 columns)
-- EA Advocate is critical for SEP community outreach
-- Fix: surface in solution detail modals
+**CONTACTS-A11Y** | P3 | deploy/contacts.html | No keyboard navigation through cards
+- Cards and table rows now have tabindex, role="button", Enter/Space handlers, focus-visible CSS
+
+**CONTACTS-TRUNC** | P3 | deploy/contacts.html | Solution truncation inconsistent (45 vs 50 chars)
+- Standardized to 50 characters in both filter dropdown and detail modal
+
+**COMMS-SEARCH** | P2 | deploy/comms.html | Assets search bar overflows page width
+- Added flex-wrap and reduced search input width
+
+**COMMS-CONTENT** | P3 | deploy/comms.html | "New Asset" button misleading label
+- Renamed to "Build a Presentation" and wired to showPresentationBuilder()
+
+**COMMS-NAV** | P3 | deploy/comms.html | "Add Content" button in persistent nav redundant
+- Removed from persistent nav header
+
+---
+
+## Resolved Issues — v4.0.2 (2026-02-08)
+
+**BUG-315** | P1 | deploy/sep.html | SEP solution detail stakeholders show 0
+- Root cause: synchronous filter on `state.allContacts` which loads async and is often empty when modal opens
+- Fix: replaced with async `getContactsBySolution()` API call; shows loading spinner then populates stakeholders + agencies sections; cached data used by "Email All" button
+
+**FEAT-316** | P1 | deploy/sep.html | SEP Agencies tab right panel blank by default
+- Root cause: `setView('agencies')` had no rendering handler — showed passive empty state
+- Fix: added `renderAgenciesOverview()` showing stats row, top 10 engaged agencies (clickable), and agencies needing outreach
+
+**BUG-008** | P1 | deploy/implementation.html | Implementation engagement activity items not clickable
+- Root cause: `renderActivityItem()` had no onclick for engagement items, no detail modal existed
+- Fix: added engagement detail modal fetching full data via `getEngagementById()`, clickable items with hover + chevron, rich text rendering via `renderUpdateText()`
+
+**LOAD-01** | P2 | deploy/implementation.html | Solution picker showed plain "Loading..." text
+- Fix: added inline loading spinner to picker label during initial data load
+
+**STYLE-03** | P3 | deploy/styles.html | `--color-sep-light` variable undefined
+- Fix: defined `--color-sep-light: rgba(21, 101, 192, 0.1)` in `:root`
+
+**STYLE-04** | P3 | deploy/comms.html | Hardcoded hover colors — already fixed in Sprint 2 CSS work
+
+**RESP-06** | P3 | deploy/shared-page-styles.html | `.btn-sm` touch target too small
+- Fix: increased padding from `var(--space-xs)` (4px) to `var(--space-sm)` (8px) vertical, added `min-height: 32px`
+
+**A11Y-05** | P3 | deploy/sep.html, deploy/about.html | `<a href="#">` and `javascript:void(0)` acting as buttons
+- Fix: sep.html — 8 expand/collapse/action links converted to `<button class="link-btn">`
+- Fix: about.html — 8 nav links changed from `javascript:void(0)` to proper `href="#section-id"` anchors
+- Added shared `.link-btn` class to shared-page-styles.html
 
 ---
 

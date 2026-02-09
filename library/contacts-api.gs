@@ -1126,6 +1126,35 @@ function updateContactAgency(email, agencyId) {
 }
 
 /**
+ * Update a contact's email address
+ * @param {string} currentEmail - Current email to locate the contact
+ * @param {string} newEmail - New email address
+ * @returns {Object} Success/failure result
+ */
+function updateContactEmail(currentEmail, newEmail) {
+  try {
+    if (!currentEmail) return { success: false, error: 'Current email is required' };
+    if (!newEmail || !newEmail.includes('@')) return { success: false, error: 'Valid email address is required' };
+
+    var normalizedNew = newEmail.toLowerCase().trim();
+    var normalizedCurrent = currentEmail.toLowerCase().trim();
+    if (normalizedNew === normalizedCurrent) return { success: true };
+
+    // Check for duplicate
+    var people = loadPeople_();
+    var duplicate = people.find(function(c) {
+      return (c.email || '').toLowerCase().trim() === normalizedNew;
+    });
+    if (duplicate) return { success: false, error: 'A contact with this email already exists' };
+
+    return updateContactField_(currentEmail, 'email', normalizedNew);
+  } catch (e) {
+    Logger.log('updateContactEmail error: ' + e);
+    return { success: false, error: 'Failed to update email: ' + e.message };
+  }
+}
+
+/**
  * Create a new contact
  * @param {Object} contactData - Contact data
  * @returns {Object} Success/failure result with created contact
@@ -1575,4 +1604,43 @@ function getContactEventsSummary(contactId) {
   });
 
   return summary;
+}
+
+/**
+ * Export contacts data to a new Google Spreadsheet
+ * @param {Array} contacts - Array of contact objects to export
+ * @returns {Object} {success, url, name, error}
+ */
+function exportContactsToSheet(contacts) {
+  try {
+    if (!contacts || contacts.length === 0) {
+      return { success: false, error: 'No contacts to export' };
+    }
+
+    var name = 'Contacts Export - ' + new Date().toISOString().split('T')[0];
+    var ss = SpreadsheetApp.create(name);
+    var sheet = ss.getActiveSheet();
+
+    var headers = ['First Name', 'Last Name', 'Email', 'Title', 'Department', 'Agency', 'Roles', 'Solutions', 'Years', 'Solutions Count'];
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+
+    var rows = contacts.map(function(c) {
+      return [
+        c.first_name || '', c.last_name || '', c.email || '', c.title || '',
+        c.department || '', c.agency || '', c.roles || '', c.solutions || '',
+        c.years || '', c.solutions_count || 0
+      ];
+    });
+
+    if (rows.length > 0) {
+      sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+    }
+
+    sheet.autoResizeColumns(1, headers.length);
+
+    return { success: true, url: ss.getUrl(), name: name };
+  } catch (e) {
+    Logger.log('exportContactsToSheet error: ' + e);
+    return { success: false, error: 'Failed to create spreadsheet: ' + e.message };
+  }
 }

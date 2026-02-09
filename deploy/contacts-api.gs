@@ -184,6 +184,22 @@ function updateContactAgency(email, agencyId) {
   return MoApi.updateContactAgency(email, agencyId);
 }
 
+function updateContactEmail(currentEmail, newEmail) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.updateContactEmail(currentEmail, newEmail);
+}
+
+function exportContactsToSheet(contacts) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.exportContactsToSheet(contacts);
+}
+
 // Contact Creation (Auth Required)
 function createContact(contactData) {
   var auth = checkAuthorization();

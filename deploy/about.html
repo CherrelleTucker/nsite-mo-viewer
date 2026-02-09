@@ -13,14 +13,14 @@
 
   <!-- Quick Links -->
   <nav class="about-nav">
-    <a href="javascript:void(0)" onclick="document.getElementById('overview').scrollIntoView({behavior:'smooth'})">Overview</a>
-    <a href="javascript:void(0)" onclick="document.getElementById('getting-started').scrollIntoView({behavior:'smooth'})">Getting Started</a>
-    <a href="javascript:void(0)" onclick="document.getElementById('databases').scrollIntoView({behavior:'smooth'})">Databases</a>
-    <a href="javascript:void(0)" onclick="document.getElementById('pages').scrollIntoView({behavior:'smooth'})">Page Documentation</a>
-    <a href="javascript:void(0)" onclick="document.getElementById('security').scrollIntoView({behavior:'smooth'})">Security</a>
-    <a href="javascript:void(0)" onclick="document.getElementById('deployment').scrollIntoView({behavior:'smooth'})">Deployment</a>
-    <a href="javascript:void(0)" onclick="document.getElementById('performance').scrollIntoView({behavior:'smooth'})">Performance</a>
-    <a href="javascript:void(0)" onclick="document.getElementById('version').scrollIntoView({behavior:'smooth'})">Version</a>
+    <a href="#overview" onclick="event.preventDefault(); document.getElementById('overview').scrollIntoView({behavior:'smooth'})">Overview</a>
+    <a href="#getting-started" onclick="event.preventDefault(); document.getElementById('getting-started').scrollIntoView({behavior:'smooth'})">Getting Started</a>
+    <a href="#databases" onclick="event.preventDefault(); document.getElementById('databases').scrollIntoView({behavior:'smooth'})">Databases</a>
+    <a href="#pages" onclick="event.preventDefault(); document.getElementById('pages').scrollIntoView({behavior:'smooth'})">Page Documentation</a>
+    <a href="#security" onclick="event.preventDefault(); document.getElementById('security').scrollIntoView({behavior:'smooth'})">Security</a>
+    <a href="#deployment" onclick="event.preventDefault(); document.getElementById('deployment').scrollIntoView({behavior:'smooth'})">Deployment</a>
+    <a href="#performance" onclick="event.preventDefault(); document.getElementById('performance').scrollIntoView({behavior:'smooth'})">Performance</a>
+    <a href="#version" onclick="event.preventDefault(); document.getElementById('version').scrollIntoView({behavior:'smooth'})">Version</a>
   </nav>
 
   <!-- Platform Overview -->
@@ -507,7 +507,7 @@
             </div>
             <div class="detail-group">
               <span class="detail-label">Transforms:</span>
-              <span>Email normalization, phone formatting, CSV export</span>
+              <span>Email normalization, agency resolution via MO-DB_Agencies, Google Sheets export</span>
             </div>
             <div class="detail-group">
               <span class="detail-label">Updates:</span>
@@ -518,9 +518,10 @@
             <span class="next-label">Key Features:</span>
             <ul>
               <li><strong>Add Contact:</strong> Create new contacts with organization, solution, and engagement fields</li>
-              <li><strong>Email Validation:</strong> Prevents duplicates, normalizes to lowercase</li>
-              <li><strong>CSV Export:</strong> Download filtered contact lists</li>
+              <li><strong>Edit Contact:</strong> View-then-edit modal for email, agency, champion status, NSITE MO connection, and champion notes</li>
+              <li><strong>Export to Sheets:</strong> Export filtered contact list to a Google Spreadsheet on your Drive</li>
               <li><strong>SNWG Champions:</strong> Identify agency friends with status (Active, Prospective, Alumni, Inactive) and NSITE MO Connection</li>
+              <li><strong>Dynamic Filters:</strong> Role and Year filters populated from data; keyboard-navigable cards</li>
             </ul>
           </div>
         </div>

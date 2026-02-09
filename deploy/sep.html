@@ -4286,11 +4286,11 @@ var SEP = (function() {
           } else {
             sh += '<div id="stakeholdersShort">';
             solutionContacts.slice(0, 6).forEach(function(c) { sh += renderStakeholderItem(c); });
-            sh += '<div class="detail-more"><a href="#" onclick="SEP.expandStakeholders(); return false;" style="color: var(--color-sep); text-decoration: none;">+' + (solutionContacts.length - 6) + ' more</a></div>';
+            sh += '<div class="detail-more"><button type="button" onclick="SEP.expandStakeholders()" class="link-btn" style="color: var(--color-sep);">+' + (solutionContacts.length - 6) + ' more</button></div>';
             sh += '</div>';
             sh += '<div id="stakeholdersFull" style="display: none;">';
             solutionContacts.forEach(function(c) { sh += renderStakeholderItem(c); });
-            sh += '<div class="detail-more"><a href="#" onclick="SEP.collapseStakeholders(); return false;" style="color: var(--color-sep); text-decoration: none;">show less</a></div>';
+            sh += '<div class="detail-more"><button type="button" onclick="SEP.collapseStakeholders()" class="link-btn" style="color: var(--color-sep);">show less</button></div>';
             sh += '</div>';
           }
           sh += '</div>';
@@ -4328,11 +4328,11 @@ var SEP = (function() {
           } else {
             ah += '<div id="agenciesShort">';
             agencyList.slice(0, 8).forEach(function(a) { ah += renderAgencyItem(a); });
-            ah += '<div class="detail-more"><a href="#" onclick="SEP.expandAgencies(); return false;" style="color: var(--color-sep); text-decoration: none;">+' + (agencyList.length - 8) + ' more</a></div>';
+            ah += '<div class="detail-more"><button type="button" onclick="SEP.expandAgencies()" class="link-btn" style="color: var(--color-sep);">+' + (agencyList.length - 8) + ' more</button></div>';
             ah += '</div>';
             ah += '<div id="agenciesFull" style="display: none;">';
             agencyList.forEach(function(a) { ah += renderAgencyItem(a); });
-            ah += '<div class="detail-more"><a href="#" onclick="SEP.collapseAgencies(); return false;" style="color: var(--color-sep); text-decoration: none;">show less</a></div>';
+            ah += '<div class="detail-more"><button type="button" onclick="SEP.collapseAgencies()" class="link-btn" style="color: var(--color-sep);">show less</button></div>';
             ah += '</div>';
           }
           ah += '</div>';
@@ -4746,7 +4746,7 @@ return;
     }
     if (agency.successor_agency_id) {
       html += '<div class="detail-item"><div class="detail-label">Successor Agency</div>';
-      html += '<div class="detail-value"><a href="#" onclick="SEP.selectAgency(\'' + escapeAttr(agency.successor_agency_id) + '\'); return false;">' + escapeHtml(agency.successor_agency_id) + '</a></div></div>';
+      html += '<div class="detail-value"><button type="button" onclick="SEP.selectAgency(\'' + escapeAttr(agency.successor_agency_id) + '\')" class="link-btn" style="color: var(--color-sep);">' + escapeHtml(agency.successor_agency_id) + '</button></div></div>';
     }
     html += '</div>';
     // Top solutions for this agency
@@ -4802,8 +4802,7 @@ return;
     // Tab: Engagements
     html += '<div class="agency-tab-panel" id="agencyTab_engagements">';
     if (timeline.length === 0) {
-      html += '<div class="empty-state" style="padding: var(--space-md);"><p>No engagements recorded</p>';
-      html += '<button class="btn btn-primary btn-sm" onclick="SEP.showLogEngagementModalForAgency(\'' + escapeAttr(agency.agency_id) + '\')"><span class="material-icons">add</span> Log Engagement</button></div>';
+      html += '<div class="empty-state" style="padding: var(--space-md);"><p>No engagements recorded</p></div>';
     } else {
       var iconMap = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school' };
       timeline.forEach(function(e, idx) {
@@ -4828,9 +4827,9 @@ return;
       });
       // Add link to view all engagements
       html += '<div style="padding: var(--space-md); text-align: center; border-top: 1px solid var(--color-border-light); margin-top: var(--space-sm);">';
-      html += '<a href="#" onclick="SEP.setView(\'engagements\'); return false;" style="color: var(--page-accent); text-decoration: none; font-size: var(--font-size-sm);">';
+      html += '<button type="button" onclick="SEP.showAllEngagements()" class="link-btn" style="color: var(--page-accent); font-size: var(--font-size-sm);">';
       html += '<span class="material-icons" style="font-size: 14px; vertical-align: middle;">list</span> View All Engagements';
-      html += '</a>';
+      html += '</button>';
       html += '<div style="color: var(--color-text-secondary); font-size: var(--font-size-xs); margin-top: 4px;">Can\'t find an engagement? It may have different participants.</div>';
       html += '</div>';
     }
@@ -6364,8 +6363,8 @@ return;
       } else {
         var shortList = escapeHtml(participantList.slice(0, 5).join(', '));
         var fullList = escapeHtml(participantList.join(', '));
-        participantsHtml = '<span id="participantsShort">' + shortList + ' <a href="#" onclick="SEP.expandParticipants(); return false;" style="color: var(--color-sep); text-decoration: none;">... +' + (participantList.length - 5) + ' more</a></span>';
-        participantsHtml += '<span id="participantsFull" style="display: none;">' + fullList + ' <a href="#" onclick="SEP.collapseParticipants(); return false;" style="color: var(--color-sep); text-decoration: none;">show less</a></span>';
+        participantsHtml = '<span id="participantsShort">' + shortList + ' <button type="button" onclick="SEP.expandParticipants()" class="link-btn" style="color: var(--color-sep);">... +' + (participantList.length - 5) + ' more</button></span>';
+        participantsHtml += '<span id="participantsFull" style="display: none;">' + fullList + ' <button type="button" onclick="SEP.collapseParticipants()" class="link-btn" style="color: var(--color-sep);">show less</button></span>';
       }
     }
     html += '<div class="engagement-detail-item engagement-detail-full"><div class="engagement-detail-label">Participants</div><div class="engagement-detail-value" style="font-weight: normal;">' + participantsHtml + '</div></div>';

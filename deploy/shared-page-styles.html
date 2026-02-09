@@ -357,8 +357,34 @@ a:focus-visible {
 }
 
 .btn-sm {
-  padding: var(--space-xs) var(--space-sm);
+  padding: 6px var(--space-sm);
   font-size: var(--font-size-xs);
+}
+
+.btn-sm .material-icons {
+  font-size: 16px;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+
+@media (pointer: coarse) {
+  .btn-sm {
+    min-height: 32px;
+  }
+}
+
+/* Button that looks like a text link (a11y: use instead of <a href="#">) */
+.link-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  text-decoration: none;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
 }
 
 .btn-danger {

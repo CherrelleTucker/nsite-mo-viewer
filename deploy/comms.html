@@ -23,10 +23,6 @@
           <span>Manage</span>
         </button>
       </div>
-      <button class="btn btn-primary" onclick="COMMS.showAddAssetModal()">
-        <span class="material-icons">add</span>
-        Add Content
-      </button>
     </div>
   </div>
 
@@ -78,9 +74,9 @@
             <select id="contentSolutionSelect" onchange="COMMS.selectContentSolution(this.value)">
               <option value="">All Solutions</option>
             </select>
-            <button class="btn btn-secondary" onclick="COMMS.showAddAssetModal()">
-              <span class="material-icons">add</span>
-              New Asset
+            <button class="btn btn-secondary" onclick="COMMS.showPresentationBuilder()">
+              <span class="material-icons">slideshow</span>
+              Build a Presentation
             </button>
           </div>
         </div>
@@ -2018,8 +2014,10 @@
 
   .assets-header {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    gap: var(--space-sm);
     padding: var(--space-md);
     background: var(--color-surface);
     border: 1px solid var(--color-border-light);
@@ -2028,8 +2026,10 @@
 
   .assets-filters {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-md);
+    gap: var(--space-sm);
+    min-width: 0;
   }
 
   .assets-filters select {
@@ -2062,7 +2062,8 @@
     border: none;
     outline: none;
     font-size: var(--font-size-sm);
-    width: 180px;
+    width: 140px;
+    max-width: 100%;
     background: transparent;
   }
 

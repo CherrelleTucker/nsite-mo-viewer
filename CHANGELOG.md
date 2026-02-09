@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.5] - 2026-02-08
+
+### Changed
+- **Contacts: View-then-Edit modal** — Single "Edit" button in detail modal header toggles all editable fields (email, agency, champion status, connection, notes) into one form with a single Save/Cancel
+- **Contacts: Export to Google Sheets** — Replaced client-side CSV download with server-side Google Sheets export; creates spreadsheet on user's Drive and opens it
+- **Contacts: Dynamic filters** — Role and Year filter dropdowns now populated from actual data instead of hardcoded options
+- **Contacts: Related contacts pagination** — "+N more colleagues" is now clickable to show next 10; "Show less" link to collapse
+- **Contacts: Keyboard navigation** — Cards and table rows now have `tabindex`, `role="button"`, Enter/Space handlers, and `:focus-visible` styles
+- **Contacts: Solution truncation** — Standardized to 50 characters everywhere (was inconsistent 45 vs 50)
+- **Comms: Assets search overflow** — Fixed search bar overflowing page width with flex-wrap
+- **Comms: Content tab** — "New Asset" button renamed to "Build a Presentation" and wired to presentation builder
+- **Comms: Persistent nav** — Removed "Add Content" button from persistent nav header
+
+### Added
+- `updateContactEmail()` API function in library + deploy wrapper (finds by current email, validates no duplicates)
+- `exportContactsToSheet()` API function — creates formatted Google Spreadsheet from contact data
+
+---
+
 ## [2.5.4] - 2026-02-06
 
 ### Added
