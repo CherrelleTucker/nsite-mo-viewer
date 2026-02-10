@@ -37,7 +37,7 @@
 ┌──────────────────────────────────────────────────────────────────────────┐
 │                          MO-VIEWER PLATFORM                              │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐        │
-│  │ Top Sheet   │ │Implementation│ │  SEP-NSITE  │ │Actions-NSITE│        │
+│  │ Top Sheet   │ │Implementation│ │  SEP-NSITE  │ │  Schedule   │        │
 │  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘        │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐        │
 │  │ Comms-NSITE │ │  Contacts   │ │   Reports   │ │    Team     │        │
@@ -49,7 +49,7 @@
                                    ▼
                     ┌──────────────────────────────┐
                     │   Google Sheets Databases    │
-                    │   (18 MO-DB_* workbooks)     │
+                    │   (22 MO-DB_* workbooks)     │
                     └──────────────────────────────┘
                                    │
                ┌───────────────────┼───────────────────┐
@@ -168,9 +168,9 @@
           <h4>"I was assigned an action in Monday's meeting"</h4>
           <ol class="tutorial-steps">
             <li>Actions are automatically synced from agenda documents</li>
-            <li>Go to <strong>Actions-NSITE</strong> to see your assigned items</li>
+            <li>Go to <strong>Team &gt; Capacity</strong> to see your assigned items</li>
             <li>Filter by your name or by solution</li>
-            <li>Mark items complete when done - status syncs back to the agenda</li>
+            <li>Mark items complete when done</li>
           </ol>
           <div class="tutorial-tip">
             <span class="material-icons">lightbulb</span>
@@ -456,43 +456,6 @@
         </div>
       </div>
 
-      <!-- Actions-NSITE -->
-      <div class="page-card">
-        <div class="page-card-header actions">
-          <span class="material-icons">check_box</span>
-          <h4>Actions-NSITE</h4>
-        </div>
-        <div class="page-card-body">
-          <div class="data-flow-mini">
-            <span class="flow-chip source">Agenda docs</span>
-            <span class="flow-arrow">↔</span>
-            <span class="flow-chip output">Assignee cards</span>
-          </div>
-          <div class="page-details">
-            <div class="detail-group">
-              <span class="detail-label">Data:</span>
-              <span>Actions parsed from Internal (Mon) and SEP (Tue) agenda tables</span>
-            </div>
-            <div class="detail-group">
-              <span class="detail-label">Transforms:</span>
-              <span>Solution auto-detect from text, group by assignee</span>
-            </div>
-            <div class="detail-group">
-              <span class="detail-label">Updates:</span>
-              <span class="highlight">Bi-directional: pull via trigger, push status back to docs</span>
-            </div>
-          </div>
-          <div class="next-steps">
-            <span class="next-label">Next Steps:</span>
-            <ul>
-              <li>Set up time-based trigger for syncAllActions()</li>
-              <li>Add due date warnings/overdue highlighting</li>
-              <li>Add filtering by category/solution</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
       <!-- Contacts -->
       <div class="page-card">
         <div class="page-card-header contacts">
@@ -763,11 +726,11 @@
             </div>
             <div class="detail-group">
               <span class="detail-label">Views:</span>
-              <span>Overview (profiles + availability), Kudos, Meetings (weekly grid + detail list), Documents (directing docs), Parking Lot (ideas/topics), Goals (mission/vision, PI objectives with milestones auto-derived from MO-DB_Milestones, category-grouped acceptance criteria with view/edit modals)</span>
+              <span>Capacity (actions + availability + team profiles), Kudos, Guidance (weekly schedule + directing documents), Parking Lot (ideas/topics), Goals (mission/vision, PI objectives with milestones auto-derived from MO-DB_Milestones, category-grouped acceptance criteria with view/edit modals)</span>
             </div>
             <div class="detail-group">
               <span class="detail-label">Meetings:</span>
-              <span>Weekly grid shows time and cadence (e.g., "4th Monday"); click to scroll to expandable detail row with category, type, description, and links</span>
+              <span>Weekly grid shows time and cadence (e.g., "4th Monday"); click meeting chip to open detail modal with category, type, description, and links</span>
             </div>
             <div class="detail-group">
               <span class="detail-label">Profiles:</span>
@@ -782,7 +745,6 @@
             <span class="next-label">Next Steps:</span>
             <ul>
               <li>Add glossary search/browse view</li>
-              <li>Implement meeting add/edit functionality</li>
             </ul>
           </div>
         </div>
@@ -800,7 +762,7 @@
       <div class="security-notice">
         <span class="material-icons">warning</span>
         <div class="notice-text">
-          <strong>Contains PII</strong> — This application displays stakeholder contact information including names, emails, phone numbers, and organizational affiliations.
+          <strong>Contains PII</strong> — This application displays stakeholder contact information including names, emails, and organizational affiliations.
         </div>
       </div>
 
@@ -1072,11 +1034,11 @@ COLOR_PRIMARY = #1A5F2A</pre>
     <div class="version-info">
       <div class="version-item">
         <span class="version-label">Version</span>
-        <span class="version-value">2.5.5</span>
+        <span class="version-value">2.6.1</span>
       </div>
       <div class="version-item">
         <span class="version-label">Updated</span>
-        <span class="version-value">February 6, 2026</span>
+        <span class="version-value">February 10, 2026</span>
       </div>
       <div class="version-item">
         <span class="version-label">Repository</span>

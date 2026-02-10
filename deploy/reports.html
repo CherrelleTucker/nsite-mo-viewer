@@ -2024,7 +2024,7 @@
               successHtml += '<li>' + escapeHtml(sheet) + '</li>';
             });
             successHtml += '</ul>';
-            successHtml += '<a href="' + result.url + '" target="_blank" class="btn btn-primary" style="text-decoration: none;">';
+            successHtml += '<a href="' + escapeHtml(result.url) + '" target="_blank" class="btn btn-primary" style="text-decoration: none;">';
             successHtml += '<span class="material-icons">open_in_new</span> Open in Google Sheets</a>';
             successHtml += '</div>';
 

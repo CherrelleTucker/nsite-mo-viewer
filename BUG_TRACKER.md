@@ -8,6 +8,30 @@ P0 (Critical) and P1 (High) issues are fixed immediately during review.
 
 ## Open Issues
 
+### Security — Review Suite v4.0.4 (2026-02-10)
+
+**SEC-07** | P2 | comms.html:5165 | className injection via `story.content_type`
+- `'type-' + (story.content_type || 'story')` concatenated into class attribute without whitelist
+- Fix: use whitelist map of valid content types → class names
+
+**SEC-08** | P2 | comms.html:6823 | className injection via `blurb.status`
+- `'dot-' + (blurb.status || 'idea')` concatenated into class attribute without whitelist
+- Fix: whitelist valid status values before className construction
+
+**SEC-09** | P2 | contacts.html:1539 | className injection via `contact.champion_status`
+- `'champion-' + contact.champion_status.toLowerCase()` in class attribute
+- Same pattern at line 1589 (renderContactTable)
+- Fix: whitelist valid champion_status values
+
+**SEC-10** | P2 | library/milestones-api.gs:499 | `updateMilestone` field values not validated
+- Writable fields (target_date, status, url, notes) written without value validation
+- Fix: validate date format, whitelist status enum, limit string lengths
+
+**SEC-11** | P3 | Code.gs:216,888,1124,1489 | Session.getActiveUser/getEffectiveUser calls
+- All wrapped in try-catch with graceful fallback (no functional impact)
+- initializePlatform (line 1489) is editor-only, so Session works there
+- Known issue from prior reviews; low risk with current error handling
+
 ### Comms-NSITE Bugs (2026-02-08)
 
 **COMMS-005** | P3 | library/outreach-api.gs | guest_list should use guest_list_contact_id
@@ -15,7 +39,11 @@ P0 (Critical) and P1 (High) issues are fixed immediately during review.
 - Requires: schema change in MO-DB_Outreach (add guest_list_contact_id column), API update to resolve IDs to names for display, migration of existing text data to contact IDs
 - Status: **DEFERRED** — schema change, not safe before demo
 
-### Error Handling
+### Error Handling — Review Suite v4.0.4 (2026-02-10)
+
+**ERR-03** | P2 | library/*.gs | Write function return inconsistency
+- `createAction()` returns `{ success, data: actionId }` but `updateAction()` returns `{ success, error }` without data on success
+- Pattern varies slightly across APIs; should standardize to always return `{ success, data, error }`
 
 **ERR-02** | P3 | library/solutions-api.gs:443 | `updateSolutionSEPMilestone` returns non-standard format
 - Returns `{ success, solutionId, milestone, date }` instead of `{ success, data: {...} }`
@@ -43,20 +71,44 @@ P0 (Critical) and P1 (High) issues are fixed immediately during review.
 - solutions-api.gs:276-278 — sep_active boolean normalization
 - filterByProperty() already exists in config-helpers.gs:369 but underused
 
-### API Consistency
+### API Consistency — Review Suite v4.0.4 (2026-02-10)
+
+**API-02** | P2 | library/milestones-api.gs:511 | `.indexOf(h) !== -1` should be `.includes(h)`
+- membership check anti-pattern in updateMilestone WRITABLE_FIELDS check
+
+**API-03** | P2 | library/outreach-api.gs:845,1000 | `.indexOf(email)` should be `.includes(email)`
+- guest list and attendee list membership checks
+
+**API-04** | P3 | library/goals-api.gs:536, library/team-api.gs:192 | `.indexOf('prefix') === 0` should be `.startsWith()`
+- prefix checks using indexOf instead of startsWith
 
 **API-01** | P3 | library/*.gs | 8 functions with inconsistent underscore naming convention
 - Functions with `_` suffix called from public contexts: `countUniqueAgencies_()`, `performEventSearch_()`, `searchWithGoogleAPI_()`, `generateSearchSuggestions_()`, `detectEventType_()`
 - Debug/internal functions missing `_` suffix: `debugGetSolutions()`, `getSampleSolutions()`, `getImplementationViewerHTML()`
 - Fix: standardize — private helpers get `_`, public API functions don't
 
-### State Management
+### State Management — Review Suite v4.0.4 (2026-02-10)
+
+**STATE-06** | P2 | deploy/team.html:5625 | `loadActions()` failure handler missing navigation guard
+- Error handler does DOM manipulation without checking `isNavigationCurrent()`
+- Could show stale error message if user navigated away
 
 **STATE-05** | P3 | reports.html | NO navigation guards on report generation
 - Report loads take 2-3s; user could navigate away during generation
 - Lower risk since lazy-loaded on demand (user action, not auto-init)
 
 ### Accessibility
+
+**A11Y-07** | P2 | All pages | Search inputs missing aria-label (contacts:58, comms:371, sep:213, implementation:155, team:99)
+- Placeholder text alone not sufficient for screen readers; add aria-label to each search input
+
+**A11Y-08** | P2 | All pages | Decorative Material Icons (~605) missing aria-hidden="true"
+- Most icons are decorative (next to text labels) but announce to screen readers
+- Phase fix: bulk add aria-hidden="true" to icons that have adjacent text labels
+
+**A11Y-09** | P2 | All modals | No focus trap implementation in any of 34+ modals
+- Tab can escape modal to background content; no focus restoration on close
+- Standard pattern needs focus management utility in shared code
 
 **A11Y-04** | P2 | index.html | `aria-live` only on toast container (1 instance app-wide)
 - Dynamic content areas (filtered results, search results, loading states) lack `aria-live` announcements
@@ -72,7 +124,14 @@ P0 (Critical) and P1 (High) issues are fixed immediately during review.
 
 ### Loading States
 
-### Schema Validation
+### Schema Validation — Review Suite v4.0.4 (2026-02-10)
+
+**SCHEMA-08** | P1 | library/*.gs (19 locations) + deploy/*.gs (20+ locations) | Systemic `getSheets()[0]` fallback
+- Nearly every sheet accessor uses `ss.getSheetByName('Tab') || ss.getSheets()[0]`
+- If tab name changes/mismatches, silently reads wrong tab (likely `_Lookups`)
+- Central infrastructure: `config-helpers.gs:94,509,573` (`getDatabaseSheet`, `loadSheetData_`, `getSheetForWrite_`)
+- Per-file accessors: solutions:99,456 stories:23 outreach:22 kudos:55 team:124,357,600,1138 templates:25 parking:25 milestones:33 comms-assets:43,82
+- Fix: replace `|| ss.getSheets()[0]` with `throw new Error('Tab not found')` — follow `loadSheetTab_()` pattern at config-helpers.gs:606
 
 **SCHEMA-01** | P2 | actions-api.gs | Column name mismatches between code and DATA_SCHEMA.md
 - Code uses `assigned_to` but schema says `owner`
@@ -80,12 +139,67 @@ P0 (Critical) and P1 (High) issues are fixed immediately during review.
 - Code uses `task` as alternative field, schema shows `action_id` as primary
 - Fix: standardize naming — update schema OR rename columns in database
 
+**SCHEMA-09** | P2 | library/contacts-api.gs:362-373 | Dead functions filter on dropped columns
+- `getContactsByDepartment()` and `getContactsByAgency()` filter on `department`/`agency` — dropped in v4.0.0
+- Always return empty arrays; replaced by `agency_id` FK + `resolveAgency_()` in `getContactsMultiFilter()`
+- Fix: remove or refactor to use `agency_id` with resolver
+
+**SCHEMA-10** | P2 | library/solutions-api.gs:124 | `parseInt` on string-type `core_cycle`
+- `parseInt(a.core_cycle)` where `core_cycle` is "C1", "C2" etc. — `parseInt("C1")` returns NaN
+- Sort by cycle produces unpredictable results
+- Fix: use `parseInt(String(a.core_cycle).replace(/\D/g, ''))` or compare as strings
+
+**SCHEMA-11** | P2 | library/engagements-api.gs:684 | `logQuickEngagement` missing required `solution_id`
+- Constructs engagement data but omits `solution_id` which is validated as required by `validateEngagementData_()`
+- Function will always fail validation
+- Fix: add `solution_id` as required parameter or make it optional for quick-log
+
+**SCHEMA-12** | P2 | library/outreach-api.gs:365,371 | `deadline` vs schema `submission_deadline`
+- Code references `deadline` column; DATA_SCHEMA.md defines `submission_deadline`
+- If database header is `submission_deadline`, code will never find deadline values
+- Fix: verify actual database header and align code or schema
+
+**SCHEMA-13** | P2 | library/actions-api.gs:1104 | Undefined variable `taskPreview` in Slack notification
+- `taskPreview` referenced but undefined in scope — would cause ReferenceError at runtime
+- Fix: define `taskPreview` or replace with correct variable name
+
 **SCHEMA-07** | P3 | engagements-api.gs:55-64 | "Workshop" in code but not in DATA_SCHEMA.md enum
 - ENGAGEMENT_ACTIVITY_TYPES includes "Workshop" but schema only lists 7 types
 - Code is likely correct (CLAUDE.md mentions Workshop as intentional addition)
 - Fix: update DATA_SCHEMA.md to include Workshop in activity_type enum
 
-### Data Flow
+**SCHEMA-14** | P3 | library/outreach-api.gs:87 | EVENT_TYPES constant incomplete
+- Missing `presentation`, `training`, `other` that are accepted by validation at line 172
+- Constant used for UI display only, not validation — cosmetic issue
+- Fix: sync constant with validation array
+
+**SCHEMA-15** | P3 | library/config-helpers.gs:456-476 | DEFAULT_TAB_NAMES_ GOALS → 'Objectives' vs CLAUDE.md 'MissionVision'
+- goals-api.gs uses explicit tab names so no functional impact
+- Fix: update map to 'MissionVision' or document the inconsistency
+
+**SCHEMA-16** | P3 | deploy/quadchart-data.gs, deploy/st-report-data.gs | Solution columns not in DATA_SCHEMA.md
+- References `earthdata_status_summary`, `earthdata_purpose`, `lead_name`, milestone memo URLs, `ipa`, `icd`, `project_plan`, `sponsor_agency`, `primary_agency`
+- All use safe `|| ''` fallback; schema documentation is incomplete
+- Fix: audit Core tab headers and update DATA_SCHEMA.md
+
+### Data Flow — Review Suite v4.0.4 (2026-02-10)
+
+**FLOW-03** | P2 | deploy/st-report-data.gs:195,208,343 | Timezone sensitivity in status derivation
+- `new Date()` uses server timezone; `parseDate_ST_("2026-02-10")` creates midnight UTC
+- Milestone targeted for today could be marked "Actual" instead of "Planned" depending on time of day
+- Fix: normalize both sides to date-only comparison (strip time component)
+
+**FLOW-04** | P2 | library/contacts-api.gs:362-373 | Dead filter functions (same as SCHEMA-09)
+- `getContactsByDepartment()` and `getContactsByAgency()` filter on dropped columns — always return []
+
+**FLOW-05** | P2 | deploy/team.html:6458,6389 | `criteria_owner_contact_id` displayed as raw ID
+- Shows "CON_johnsmi" instead of human-readable name "John Smith"
+- Fix: resolve contact_id to display name using contacts data
+
+**FLOW-06** | P2 | deploy/sync-common.gs:697 | Dedup key mismatch for legacy → bracket format transition
+- Re-running sync after agenda updates from legacy to bracket format creates duplicates
+- `update.solution` (parsed text) vs stored `solution_id` won't match after format change
+- Fix: normalize both sides to solution_id before key creation
 
 **FLOW-01** | P3 | library/solutions-api.gs:~441 | Cache not invalidated after SEP milestone write
 - `_solutionsCache` persists after `updateSolutionSEPMilestone()` completes
@@ -96,6 +210,58 @@ P0 (Critical) and P1 (High) issues are fixed immediately during review.
 - Schema defines MO-DB_Update_History (Section 8) but no write function populates it
 - Milestone updates, contact changes, engagement creates have no audit log
 - Fix: implement logUpdate() calls after successful writes
+
+**FLOW-07** | P3 | deploy/reports.html:3405-3409 | ST Accomplishments clipboard copy omits `source` column
+- UI renders Date, Title, Additional Info, Source — but copy only outputs first 3
+- Fix: add `a.source` to the tab-separated output
+
+**FLOW-08** | P3 | deploy/st-report-data.gs:355 | `admin_default_in_dashboard` filter includes empty values
+- Empty/undefined values pass the filter, potentially showing test/draft solutions
+- May be intentional to default-include new solutions
+
+### Code Comments — Review Suite v4.0.4 (2026-02-10)
+
+**COMMENT-04** | P3 | deploy/quadchart-data.gs:195 | Stale comment about "temporary" actions workaround
+- Says "until dedicated Actions table is populated" — Actions DB now exists
+- Fix: update comment to explain this function parses solution text fields as supplementary source
+
+**COMMENT-05** | P3 | deploy/sep.html:4394 | Stale TODO
+- "TODO: Show engagements filtered by solution" — feature already exists or is no longer relevant
+- Fix: remove or update with specific context
+
+**COMMENT-06** | P3 | deploy/sync-stories-from-tracking.gs:18 | Stale `@version 1.0.0`
+- Project is at v4.0.0; no other files use @version tags
+- Fix: remove the @version tag
+
+**COMMENT-07** | P3 | library/outreach-api.gs:1151 | Missing algorithm comment on `findPotentialConnections_`
+- 56-line O(n^2) pairwise comparison with non-obvious scoring logic
+- Fix: add comment explaining pairwise comparison, connection criteria, and the slice(0,20) cap
+
+**COMMENT-08** | P3 | library/outreach-api.gs:1450 | Missing algorithm comment on `findPotentialGuestsFromEngagements_`
+- 143-line multi-step guest discovery pipeline
+- Fix: add overview comment describing the multi-source discovery and ranking heuristic
+
+**COMMENT-09** | P3 | library/goals-api.gs:29 | Missing category abbreviation explanation
+- `GOALS_CATEGORY_ORDER_` array uses unexplained abbreviations ('assess', 'sep', 'c1'-'c5')
+- Fix: expand abbreviations in comment
+
+**COMMENT-10** | P3 | deploy/reports.html:3273 | Missing function-level overview on `renderSTReport`
+- 114-line rendering function with 3 distinct HTML sections
+- Fix: add overview comment describing expected data shape and section structure
+
+### About Page — Review Suite v4.0.4 (2026-02-10)
+
+**ABOUT-08** | P3 | deploy/about.html:267 | MO-DB_Contacts description omits two-tab structure
+- Still says "Stakeholder and team contacts" — should mention People + Roles tabs
+- Fix: update to "Two-tab structure: People (one per person) + Roles (one per person-solution-role)"
+
+**ABOUT-09** | P3 | deploy/about.html:262 | MO-DB_Solutions still says "Schema v2"
+- Should reflect multi-tab structure: Core, Comms, Milestones tabs
+- Fix: update description
+
+**ABOUT-07** | P3 | deploy/about.html | Missing database cards for MO-DB_BugLog and MO-DB_Lookups
+- Grid shows 20 databases; 2 are missing from display cards
+- Fix: add cards for BugLog and Lookups
 
 ### Style Consistency
 

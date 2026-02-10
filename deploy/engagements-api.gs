@@ -104,6 +104,10 @@ function getDirectionOptions() {
 }
 
 function logQuickEngagement(params) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.logQuickEngagement(params);
 }
 
@@ -112,25 +116,13 @@ function getSEPInitData() {
   return MoApi.getSEPInitData();
 }
 
-// Event-Specific Queries
-function getAllEvents(limit) {
-  return MoApi.getAllEvents(limit);
-}
-
+// Event-Specific Queries (unique to engagements; shared queries in outreach-api.gs)
 function getEventsForSolution(solutionId) {
   return MoApi.getEventsForSolution(solutionId);
 }
 
-function getUpcomingEvents(limit) {
-  return MoApi.getUpcomingEvents(limit);
-}
-
 function getEventsForContact(contactId) {
   return MoApi.getEventsForContact(contactId);
-}
-
-function getEventsByStatus(status) {
-  return MoApi.getEventsByStatus(status);
 }
 
 // Event Artifact Management
@@ -160,10 +152,6 @@ function updateArtifactCommsAssetId(engagementId, artifactIndex, commsAssetId) {
 
 function getArtifacts(engagementId) {
   return MoApi.getArtifacts(engagementId);
-}
-
-function getEventStatusOptions() {
-  return MoApi.getEventStatusOptions();
 }
 
 function getArtifactTypeOptions() {

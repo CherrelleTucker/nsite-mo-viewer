@@ -23,6 +23,16 @@ function getSTMonthlyReport(options) {
   options = options || {};
   var reportMonth = options.month || getCurrentMonth_ST_();
 
+  // Validate month format (YYYY-MM)
+  if (typeof reportMonth !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(reportMonth)) {
+    return {
+      milestones: [], accomplishments: [], stoplights: [], attentionCount: 0,
+      generated: new Date().toISOString(), reportMonth: reportMonth,
+      reportMonthDisplay: '', dataSources: {},
+      error: 'Invalid month format. Expected YYYY-MM (e.g., 2026-02)'
+    };
+  }
+
   try {
     var range = getMonthDateRange_ST_(reportMonth);
 

@@ -156,6 +156,10 @@ function getEventGuests(eventId) {
 }
 
 function markGuestAttended(eventId, contactEmail, attended) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.markGuestAttended(eventId, contactEmail, attended);
 }
 

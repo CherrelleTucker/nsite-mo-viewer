@@ -117,9 +117,17 @@ function getTeamMembersForAssignment() {
 }
 
 function assignAction(actionId, assigneeName, assigneeEmail, sendNotification) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.assignAction(actionId, assigneeName, assigneeEmail, sendNotification);
 }
 
 function appendToActionNotes(actionId, noteText) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
   return MoApi.appendToActionNotes(actionId, noteText);
 }
