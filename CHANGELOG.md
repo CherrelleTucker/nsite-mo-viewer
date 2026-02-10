@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.1] - 2026-02-10
+
+### Added
+- **Reports: ST Monthly Report** — New report card that auto-generates data for the SharePoint ST Reporting system
+  - **Milestones section** — Pulls from MO-DB_Milestones + MO-DB_Solutions decision gates; 3-month window around selected month
+  - **Accomplishments section** — Aggregates completed milestones, attended events, published stories, and notable updates
+  - **Stoplights section** — Auto-derives Green/Yellow/Red RAG status per solution based on overdue milestones, blocked actions, and update recency
+  - **Copy for SharePoint** buttons on each section — copies tab-separated data for pasting into the PowerApps form
+  - **Attention tags** on milestones — RECENTLY COMPLETED (green), OVERDUE (red), UPCOMING (blue) badges flag items that likely need updating in SharePoint; summary count in section header
+  - Month selector (current + 2 prior months)
+- `deploy/st-report-data.gs` — Server-side aggregation across 6 databases
+
+### Fixed
+- **Reports page init** — Added missing `queuePageInit()` call; Reports.init() was never invoked by the SPA, causing month dropdown not to populate and navigation guards to silently discard server responses
+
+---
+
 ## [2.6.0] - 2026-02-10
 
 ### Added

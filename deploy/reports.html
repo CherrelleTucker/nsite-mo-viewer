@@ -425,6 +425,53 @@
       </div>
     </div>
 
+    <!-- ST Monthly Report -->
+    <div class="report-card">
+      <div class="report-card-header">
+        <div class="report-icon icon-primary">
+          <span class="material-icons">assessment</span>
+        </div>
+        <div class="report-title-area">
+          <h3>ST Monthly Report</h3>
+          <p class="report-description">Auto-generate ST Reporting data</p>
+        </div>
+      </div>
+      <div class="report-card-body">
+        <div class="report-info">
+          <p><strong>Sections:</strong> Milestones, Accomplishments, Stoplights (RAG)</p>
+        </div>
+        <div class="report-options">
+          <div class="filter-inline">
+            <label>Month:</label>
+            <select id="stReportMonth" class="form-select form-select-sm">
+              <!-- Populated by initSTMonthSelector -->
+            </select>
+          </div>
+        </div>
+        <details class="methodology-details">
+          <summary><span class="material-icons">info</span> How is this calculated?</summary>
+          <div class="methodology-content">
+            <p><strong>Data Sources:</strong> MO-DB_Milestones, MO-DB_Solutions, MO-DB_Outreach, MO-DB_Stories, MO-DB_Updates, MO-DB_Actions</p>
+            <table class="methodology-table">
+              <tr><th>Section</th><th>Source</th><th>Logic</th></tr>
+              <tr><td>Milestones</td><td>Milestones + Solutions</td><td>3-month window around selected month; decision gates and deep dives</td></tr>
+              <tr><td>Accomplishments</td><td>All databases</td><td>Completed milestones, attended events, published stories in month</td></tr>
+              <tr><td>Stoplights</td><td>Derived</td><td>RAG per solution: overdue milestones, blocked actions, update recency</td></tr>
+            </table>
+            <p><strong>Stoplight Logic:</strong></p>
+            <ul style="font-size: var(--font-size-xs); margin: var(--space-xs) 0; padding-left: var(--space-md);">
+              <li><strong>Green:</strong> No overdue milestones, no blocked actions, updated within 60 days</li>
+              <li><strong>Yellow:</strong> 1 overdue milestone OR 2+ overdue actions OR no updates in 60 days</li>
+              <li><strong>Red:</strong> 2+ overdue milestones OR blocked actions OR no updates in 90 days</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+      <div class="report-card-actions">
+        <button class="btn btn-secondary btn-sm" onclick="Reports.previewSTReport()"><span class="material-icons">visibility</span> View</button>
+      </div>
+    </div>
+
   </div>
 
   <!-- Coming Soon Notice -->
@@ -1395,6 +1442,116 @@
     color: var(--color-text-secondary);
     max-width: 200px;
   }
+
+  /* ST Monthly Report */
+  .st-section {
+    margin-bottom: var(--space-xl);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .st-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .st-section-header h4 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin: 0;
+    font-size: var(--font-size-md);
+    font-weight: 600;
+  }
+
+  .st-section-header h4 .material-icons {
+    font-size: 20px;
+    color: var(--page-accent);
+  }
+
+  .st-table { margin: 0; }
+
+  .st-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+  }
+
+  .st-status-planned { background: rgba(2, 136, 209, 0.1); color: var(--color-info); }
+  .st-status-baseline { background: rgba(237, 108, 2, 0.1); color: var(--color-warning); }
+  .st-status-actual { background: rgba(46, 125, 50, 0.1); color: var(--color-success); }
+
+  .st-rag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .st-rag-green { background: rgba(46, 125, 50, 0.15); color: var(--color-success); }
+  .st-rag-yellow { background: rgba(237, 108, 2, 0.15); color: var(--color-warning); }
+  .st-rag-red { background: rgba(211, 47, 47, 0.15); color: var(--color-error); }
+
+  .st-source-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border-light);
+  }
+
+  .st-attention {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: var(--radius-sm);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    margin-left: var(--space-xs);
+    vertical-align: middle;
+  }
+  .st-attention-recently-completed {
+    background: rgba(46, 125, 50, 0.12);
+    color: var(--color-success);
+    border: 1px solid rgba(46, 125, 50, 0.3);
+  }
+  .st-attention-overdue {
+    background: rgba(211, 47, 47, 0.12);
+    color: var(--color-error);
+    border: 1px solid rgba(211, 47, 47, 0.3);
+  }
+  .st-attention-upcoming {
+    background: rgba(2, 136, 209, 0.12);
+    color: var(--color-info);
+    border: 1px solid rgba(2, 136, 209, 0.3);
+  }
+  .st-attention-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: 2px 10px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    background: rgba(237, 108, 2, 0.1);
+    color: var(--color-warning);
+    margin-left: var(--space-sm);
+  }
+  .st-attention-summary .material-icons {
+    font-size: 14px;
+  }
 </style>
 
 <!-- Reports JavaScript -->
@@ -1467,6 +1624,7 @@
       // Capture navigation ID to detect if user navigates away during load
       reportsNavId = getNavigationId();
       loadAlignmentSolutions();
+      initSTMonthSelector();
     }
 
     function populateAlignmentPicker() {
@@ -3043,6 +3201,228 @@
       return html;
     }
 
+    // ================================================================
+    // ST MONTHLY REPORT
+    // ================================================================
+
+    function initSTMonthSelector() {
+      var select = document.getElementById('stReportMonth');
+      if (!select) return;
+      var now = new Date();
+      for (var i = 0; i < 3; i++) {
+        var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        var value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        var label = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+        var opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = label;
+        if (i === 0) opt.selected = true;
+        select.appendChild(opt);
+      }
+    }
+
+    function previewSTReport() {
+      currentReportType = 'stReport';
+      var selectEl = document.getElementById('stReportMonth');
+      var month = selectEl ? selectEl.value : '';
+
+      // If month selector didn't populate, initialize it now
+      if (!month) {
+        initSTMonthSelector();
+        month = selectEl ? selectEl.value : '';
+      }
+      // Fallback: compute current month client-side
+      if (!month) {
+        var now = new Date();
+        month = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+      }
+
+      showPreview('Loading...',
+        '<div class="loading-state"><span class="loading-spinner"></span><p>Generating ST Monthly Report...</p></div>',
+        '', false);
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          if (reportsNavId && !isNavigationCurrent(reportsNavId)) return;
+          try {
+            // Null response means server returned too much data
+            if (!data) {
+              showPreview('Error',
+                '<p style="color: var(--color-error);">Server returned empty response. The report data may be too large.</p>', '');
+              return;
+            }
+            previewData = data;
+            var html = renderSTReport(data);
+            var meta = 'Report Month: ' + escapeHtml(data.reportMonthDisplay || month) +
+                       ' | Generated: ' + new Date(data.generated).toLocaleString();
+            showPreview('ST Monthly Report \u2014 ' + escapeHtml(data.reportMonthDisplay || month), html, meta, false);
+          } catch (renderErr) {
+            showPreview('Render Error',
+              '<p style="color: var(--color-error);">Failed to render report: ' + escapeHtml(String(renderErr)) + '</p>' +
+              '<p>Data received: ' + (data ? 'yes (' + data.milestones.length + ' milestones, ' + data.accomplishments.length + ' accomplishments, ' + data.stoplights.length + ' stoplights)' : 'null') + '</p>', '');
+          }
+        })
+        .withFailureHandler(function(err) {
+          if (reportsNavId && !isNavigationCurrent(reportsNavId)) return;
+          showPreview('Error',
+            '<p style="color: var(--color-error);">Failed to generate ST report: ' + escapeHtml(err.message || String(err)) + '</p>', '');
+        })
+        .getSTMonthlyReport({ month: month });
+    }
+
+    function renderSTReport(data) {
+      var html = '';
+
+      // Data provenance
+      if (data.dataSources) {
+        html += renderDataProvenance(data.dataSources);
+      }
+
+      if (data.error) {
+        html += '<div class="report-notice"><span class="material-icons">warning</span><span>Report generated with errors: ' + escapeHtml(data.error) + '</span></div>';
+      }
+
+      // Section 1: Milestones
+      html += '<div class="st-section">';
+      html += '<div class="st-section-header">';
+      html += '<h4><span class="material-icons">flag</span> Milestones (' + data.milestones.length + ')';
+      if (data.attentionCount > 0) {
+        html += '<span class="st-attention-summary"><span class="material-icons">notifications_active</span>' + data.attentionCount + ' need attention</span>';
+      }
+      html += '</h4>';
+      html += '<button class="btn btn-sm btn-secondary" onclick="Reports.copySTSection(\'milestones\')">';
+      html += '<span class="material-icons">content_copy</span> Copy for SharePoint</button>';
+      html += '</div>';
+
+      if (data.milestones.length === 0) {
+        html += '<div class="preview-empty">No milestones in this period.</div>';
+      } else {
+        html += '<table class="preview-table st-table"><thead><tr>';
+        html += '<th>Start Date</th><th>End Date</th><th>Milestone Title</th>';
+        html += '<th>Additional Info</th><th>Status</th><th>Event</th>';
+        html += '</tr></thead><tbody>';
+        data.milestones.forEach(function(m) {
+          html += '<tr>';
+          html += '<td>' + escapeHtml(m.start_date || '') + '</td>';
+          html += '<td>' + escapeHtml(m.end_date || '') + '</td>';
+          html += '<td>' + escapeHtml(m.title || '');
+          if (m.attention) {
+            var attClass = m.attention.toLowerCase().replace(/\s+/g, '-');
+            html += ' <span class="st-attention st-attention-' + attClass + '">' + escapeHtml(m.attention) + '</span>';
+          }
+          html += '</td>';
+          html += '<td>' + escapeHtml(m.additional_info || '') + '</td>';
+          html += '<td><span class="st-status st-status-' + (m.status || '').toLowerCase() + '">' + escapeHtml(m.status || '') + '</span></td>';
+          html += '<td>' + (m.is_event ? 'Yes' : '') + '</td>';
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+      }
+      html += '</div>';
+
+      // Section 2: Accomplishments
+      html += '<div class="st-section">';
+      html += '<div class="st-section-header">';
+      html += '<h4><span class="material-icons">emoji_events</span> Accomplishments (' + data.accomplishments.length + ')</h4>';
+      html += '<button class="btn btn-sm btn-secondary" onclick="Reports.copySTSection(\'accomplishments\')">';
+      html += '<span class="material-icons">content_copy</span> Copy for SharePoint</button>';
+      html += '</div>';
+
+      if (data.accomplishments.length === 0) {
+        html += '<div class="preview-empty">No accomplishments recorded this month.</div>';
+      } else {
+        html += '<table class="preview-table st-table"><thead><tr>';
+        html += '<th>Date</th><th>Title</th><th>Additional Info</th><th>Source</th>';
+        html += '</tr></thead><tbody>';
+        data.accomplishments.forEach(function(a) {
+          html += '<tr>';
+          html += '<td>' + escapeHtml(a.date || '') + '</td>';
+          html += '<td>' + escapeHtml(a.title || '') + '</td>';
+          html += '<td>' + escapeHtml(a.additional_info || '') + '</td>';
+          html += '<td><span class="st-source-badge">' + escapeHtml(a.source || '') + '</span></td>';
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+      }
+      html += '</div>';
+
+      // Section 3: Stoplights
+      html += '<div class="st-section">';
+      html += '<div class="st-section-header">';
+      html += '<h4><span class="material-icons">traffic</span> Stoplights (' + data.stoplights.length + ')</h4>';
+      html += '<button class="btn btn-sm btn-secondary" onclick="Reports.copySTSection(\'stoplights\')">';
+      html += '<span class="material-icons">content_copy</span> Copy for SharePoint</button>';
+      html += '</div>';
+
+      // RAG summary
+      var greenCount = 0, yellowCount = 0, redCount = 0;
+      data.stoplights.forEach(function(s) {
+        if (s.color === 'Green') greenCount++;
+        else if (s.color === 'Yellow') yellowCount++;
+        else if (s.color === 'Red') redCount++;
+      });
+
+      html += '<div class="stats-grid" style="padding: var(--space-md);">';
+      html += '<div class="stat-item"><span class="stat-value" style="color: var(--color-success);">' + greenCount + '</span><span class="stat-label">Green</span></div>';
+      html += '<div class="stat-item"><span class="stat-value" style="color: var(--color-warning);">' + yellowCount + '</span><span class="stat-label">Yellow</span></div>';
+      html += '<div class="stat-item"><span class="stat-value" style="color: var(--color-error);">' + redCount + '</span><span class="stat-label">Red</span></div>';
+      html += '</div>';
+
+      html += '<table class="preview-table st-table"><thead><tr>';
+      html += '<th>Solution</th><th>Cycle</th><th>Phase</th><th>Status</th><th>Justification</th>';
+      html += '</tr></thead><tbody>';
+      data.stoplights.forEach(function(s) {
+        html += '<tr>';
+        html += '<td><strong>' + escapeHtml(s.solution_name || '') + '</strong></td>';
+        html += '<td>C' + escapeHtml(String(s.cycle || '')) + '</td>';
+        html += '<td>' + escapeHtml(s.phase || '') + '</td>';
+        html += '<td><span class="st-rag st-rag-' + (s.color || '').toLowerCase() + '">' + escapeHtml(s.color || '') + '</span></td>';
+        html += '<td>' + escapeHtml(s.justification || '') + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      html += '</div>';
+
+      return html;
+    }
+
+    function copySTSection(section) {
+      if (!previewData) {
+        showNotification('No report data available', 'warning');
+        return;
+      }
+
+      var lines = [];
+
+      if (section === 'milestones') {
+        lines.push('Start Date\tEnd Date\tMilestone Title\tAdditional Info\tStatus\tEvent');
+        previewData.milestones.forEach(function(m) {
+          lines.push([
+            m.start_date || '', m.end_date || '', m.title || '',
+            m.additional_info || '', m.status || '', m.is_event ? 'Yes' : ''
+          ].join('\t'));
+        });
+      } else if (section === 'accomplishments') {
+        lines.push('Date\tTitle\tAdditional Info');
+        previewData.accomplishments.forEach(function(a) {
+          lines.push([a.date || '', a.title || '', a.additional_info || ''].join('\t'));
+        });
+      } else if (section === 'stoplights') {
+        lines.push('Solution\tCycle\tPhase\tStatus\tJustification');
+        previewData.stoplights.forEach(function(s) {
+          lines.push([
+            s.solution_name || '', 'C' + (s.cycle || ''), s.phase || '',
+            s.color || '', s.justification || ''
+          ].join('\t'));
+        });
+      }
+
+      var text = lines.join('\n');
+      copyToClipboard(text);
+      showNotification(section.charAt(0).toUpperCase() + section.slice(1) +
+        ' copied to clipboard (' + (lines.length - 1) + ' rows)', 'success');
+    }
+
     // Public API
     return {
       init: init,
@@ -3056,6 +3436,8 @@
       previewHistoricalUpdates: previewHistoricalUpdates,
       previewSectorReport: previewSectorReport,
       previewRosesGap: previewRosesGap,
+      previewSTReport: previewSTReport,
+      copySTSection: copySTSection,
       closePreview: closePreview,
       exportPreview: exportPreview,
       toggleOptions: toggleOptions,
@@ -3074,6 +3456,9 @@
   if (typeof Reports === 'undefined') {
     console.error('ERROR: Reports object is undefined!');
   }
+
+  // Auto-initialize when page loads (SPA pattern)
+  queuePageInit(function() { Reports.init(); });
 
   // Close alignment picker when clicking outside
   document.addEventListener('click', function(e) {
