@@ -274,6 +274,14 @@ function doGet(e) {
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT);
   }
 
+  // Test page - no auth required (dev only, remove before production)
+  if (page === 'test') {
+    return HtmlService.createHtmlOutputFromFile('test-frontend')
+      .setTitle('Frontend Test')
+      .setFaviconUrl(faviconUrl)
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT);
+  }
+
   // Check if access control is enabled
   var accessSheetId = getConfigValue('ACCESS_SHEET_ID');
   var sitePassphrase = getConfigValue('SITE_PASSPHRASE');
@@ -301,14 +309,6 @@ function doGet(e) {
         .setFaviconUrl(faviconUrl)
         .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT);
     }
-  }
-
-  // Special routes (not in PAGES)
-  if (page === 'test') {
-    return HtmlService.createHtmlOutputFromFile('test-frontend')
-      .setTitle('Frontend Test')
-      .setFaviconUrl(faviconUrl)
-      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT);
   }
 
   // Validate page exists

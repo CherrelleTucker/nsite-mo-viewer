@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.0] - 2026-02-10
+
+### Added
+- **Team: Goals tab** — New 5th tab on Team page for tracking mission, vision, and quarterly objectives
+  - **Mission & Vision** — Collapsible section with inline editing for mission and vision statements
+  - **PI Objectives** — Category-grouped card view where each row is one acceptance criterion, grouped by category (milestones, admin, assess, sep, c1-c5) and sub-grouped by solution_id; checkboxes toggle status, progress rings per solution and category
+  - **Milestone-Goals integration** — Milestones with `target_date` in the active PI's date range auto-appear as a "milestones" category (first in order); toggling writes to MO-DB_Milestones, not MO-DB_Goals; click milestone text to open detail modal with view-then-edit for dates, URLs, and notes
+  - **Milestone detail/edit modals** — View all milestone fields (type, dates, document URLs, memo, notes); edit mode for writable fields writes directly to MO-DB_Milestones
+  - **Sprint Kanban** — Categories as kanban cards across Todo/Doing/Done lanes with aggregate status
+  - **Compact header** — Combined hero banner + stats into single gradient bar with done/total counts and % ring
+  - **Stats card** — Active objectives count in Team page stats row
+- **MO-DB_Goals database** — 4-tab spreadsheet (MissionVision, PIs, Objectives, _Lookups); each Objectives row is one acceptance criterion with `objective_id` format `obj_[pi_id]-[solution_id]-#`
+- `library/goals-api.gs` — Goals API with grouped data returns (categories → solutions → criteria); milestone injection from MO-DB_Milestones
+- `library/milestones-api.gs` — Added `getMilestonesForPI()`, `toggleMilestoneCompletion()`, `updateMilestone()` write functions
+- `deploy/goals-api.gs` — Thin API wrappers with auth guards on write operations
+- `deploy/milestones-api.gs` — Added wrappers for milestone write operations
+- `database-files/generate_goals_db.py` — Script to generate MO-DB_Goals.xlsx from PI Planning Word doc
+- Goals cache integration in CachedAPI (TTL: 30 min, invalidation support)
+
+---
+
 ## [2.5.5] - 2026-02-08
 
 ### Changed

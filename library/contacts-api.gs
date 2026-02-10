@@ -462,6 +462,7 @@ function getUniqueContacts(contacts) {
     if (!emailMap[email]) {
       var resolved = resolveAgency_(c.agency_id);
       emailMap[email] = {
+        contact_id: c.contact_id || '',
         email: c.email,
         first_name: c.first_name || '',
         last_name: c.last_name || '',
@@ -824,14 +825,25 @@ function getSolutionStakeholderSummary(solutionId) {
   // Get primary SMEs
   var primarySMEs = contacts
     .filter(function(c) { return c.role === 'Primary SME'; })
-    .map(function(c) { return { name: c.first_name + ' ' + c.last_name, email: c.email }; });
+    .map(function(c) { return { name: c.first_name + ' ' + c.last_name, email: c.email, contact_id: c.contact_id || '' }; });
 
-  // Dedupe SMEs by email
-  var seenEmails = {};
+  // Dedupe SMEs by contact_id or email
+  var seenSMEs = {};
   primarySMEs = primarySMEs.filter(function(s) {
-    if (seenEmails[s.email]) return false;
-    seenEmails[s.email] = true;
+    var key = s.contact_id || s.email || s.name;
+    if (seenSMEs[key]) return false;
+    seenSMEs[key] = true;
     return true;
+  });
+
+  // Build deduplicated contact name list (by contact_id)
+  var seenContacts = {};
+  var topContacts = [];
+  unique.forEach(function(c) {
+    var name = ((c.first_name || '') + ' ' + (c.last_name || '')).trim();
+    if (!name || seenContacts[c.contact_id || name]) return;
+    seenContacts[c.contact_id || name] = true;
+    topContacts.push({ name: name, contact_id: c.contact_id || '' });
   });
 
   return {
@@ -839,6 +851,7 @@ function getSolutionStakeholderSummary(solutionId) {
     total_contacts: unique.length,
     by_role: byRole,
     primary_smes: primarySMEs.slice(0, 5),
+    top_contacts: topContacts,
     departments: [...new Set(contacts.map(function(c) {
       if (!c.agency_id) return '';
       return resolveAgency_(c.agency_id).department_name || '';

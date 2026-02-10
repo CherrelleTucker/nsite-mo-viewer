@@ -1403,6 +1403,62 @@ Hierarchy: Department → Agency → Organization.
 
 ---
 
+### 22. GOALS (MO-DB_Goals)
+
+Multi-tab database for tracking mission/vision and PI objectives. Each Objectives row is one acceptance criterion, grouped by category and solution.
+
+**Config Key:** `GOALS_SHEET_ID`
+
+#### Tab: MissionVision
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `key` | STRING | Yes | `mission` or `vision` |
+| `content` | STRING | Yes | The statement text |
+| `updated_by` | STRING | No | Who last edited |
+| `updated_date` | DATE | No | ISO date of last edit |
+
+#### Tab: PIs
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `pi_id` | STRING | Yes | PK: e.g. `PI_26.1` |
+| `fiscal_year` | STRING | Yes | e.g. `FY2026` |
+| `quarter` | NUMBER | Yes | 1-4 |
+| `name` | STRING | No | Display name (e.g. "PI 26.1") |
+| `theme` | STRING | No | Optional PI theme |
+| `start_date` | DATE | No | PI start date |
+| `end_date` | DATE | No | PI end date |
+| `status` | ENUM | No | `planning`, `active`, `completed` |
+
+#### Tab: Objectives
+
+Each row is one acceptance criterion. Rows with the same `pi_id` + `category_title` form a logical objective. Within that, rows are sub-grouped by `solution_id`. Shared fields (`category_summary`, `dependencies`, `risks`, `future_pi`, `criteria_owner_contact_id`) repeat on every row but are edited at the category level.
+
+| Column | Type | Required | Description |
+|--------|------|----------|-------------|
+| `objective_id` | STRING | Yes | PK: `obj_[pi_id]-[solution_id]-#` (e.g. `obj_PI_26.1-hls-1`) |
+| `pi_id` | STRING | Yes | FK to PIs tab |
+| `category_title` | STRING | Yes | `admin`, `assess`, `sep`, `c1`, `c2`, `c3`, `c4`, `c5` |
+| `solution_id` | STRING | Yes | FK to MO-DB_Solutions (e.g. `hls`, `mo`) |
+| `category_summary` | STRING | No | Description of the category objective |
+| `acceptance_criteria` | STRING | Yes | The single criterion text for this row |
+| `status` | ENUM | No | `not_started`, `in_progress`, `completed`, `deferred` |
+| `dependencies` | STRING | No | Shared per category group |
+| `criteria_owner_contact_id` | STRING | No | Owner(s) — contact_id(s) or names |
+| `risks` | STRING | No | Shared per category group |
+| `future_pi` | STRING | No | Items deferred to future PIs |
+| `created_date` | DATE | No | ISO date |
+| `updated_date` | DATE | No | ISO date |
+
+**Category order:** admin, assess, sep, c1, c2, c3, c4, c5
+
+#### Tab: _Lookups
+
+Standard IMPORTRANGE tab with solution_ids, contact_ids, etc.
+
+---
+
 ### 21. LOOKUPS (MO-DB_Lookups)
 
 Centralized database for all standardized lookup IDs. Each consuming database has a local `_Lookups` tab that IMPORTRANGEs from here.

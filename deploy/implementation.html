@@ -269,19 +269,6 @@
   </div>
 </div>
 
-<!-- Engagement Detail Modal -->
-<div class="modal-overlay" id="engagementDetailModal" role="dialog" aria-modal="true" aria-labelledby="engagementDetailModalTitle" onclick="Implementation.closeEngagementDetail(event)">
-  <div class="modal-content" style="max-width: 560px;" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <h2 class="modal-title" id="engagementDetailModalTitle">Engagement Details</h2>
-      <button class="modal-close" onclick="closeModal('engagementDetailModal')" aria-label="Close dialog">&times;</button>
-    </div>
-    <div class="modal-body" id="engagementDetailContent">
-      <div class="loading-state"><span class="loading-spinner"></span></div>
-    </div>
-  </div>
-</div>
-
 <!-- Implementation-NSITE Styles -->
 <style>
   /* Page accent color for shared styles */
@@ -835,6 +822,7 @@
     text-align: center;
   }
 
+
   /* Updates Styles */
   .updates-summary {
     display: flex;
@@ -1035,16 +1023,6 @@
   .activity-item.clickable {
     grid-template-columns: 32px 1fr 24px;
     transition: background 0.15s;
-  }
-
-  .activity-item.clickable:hover {
-    background: var(--color-surface-hover, #f0f0f0);
-  }
-
-  .activity-chevron {
-    display: flex;
-    align-items: center;
-    color: var(--color-text-muted);
   }
 
   .activity-type-update { border-left-color: var(--color-sep); }
@@ -2348,11 +2326,11 @@ return;
     // Load stakeholder data (updates section when complete)
     google.script.run
       .withSuccessHandler(function(stakeholders) {
-        updateStakeholdersSection(stakeholders);
+        updateStakeholdersSection(stakeholders, sol);
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load stakeholders:', error);
-        updateStakeholdersSection(null);
+        updateStakeholdersSection(null, sol);
       })
       .getSolutionStakeholderSummary(sol.solution_id || sol.core_official_name);
 
@@ -2369,7 +2347,7 @@ return;
   }
 
   // Update stakeholders section when data arrives
-  function updateStakeholdersSection(stakeholders) {
+  function updateStakeholdersSection(stakeholders, sol) {
     var container = document.getElementById('stakeholdersContent');
     if (!container) return;
 
@@ -2377,31 +2355,51 @@ return;
     markProgressStepComplete('step-stakeholders', 'Stakeholders');
 
     var html = '';
+    var solutionName = sol ? (sol.solution_id || sol.core_official_name || '') : '';
+
     if (stakeholders && stakeholders.total_contacts > 0) {
+      // Role breakdown stats
       html += '<div class="stakeholder-summary">';
       html += '<div class="stakeholder-stat"><span class="stat-number">' + stakeholders.total_contacts + '</span><span class="stat-label">Total Contacts</span></div>';
-
-      // Role breakdown
       if (stakeholders.by_role) {
         var roles = Object.keys(stakeholders.by_role);
         roles.forEach(function(role) {
-          html += '<div class="stakeholder-stat"><span class="stat-number">' + stakeholders.by_role[role] + '</span><span class="stat-label">' + role + '</span></div>';
+          html += '<div class="stakeholder-stat"><span class="stat-number">' + stakeholders.by_role[role] + '</span><span class="stat-label">' + escapeHtml(role) + '</span></div>';
         });
       }
       html += '</div>';
 
-      // Primary SMEs
-      if (stakeholders.primary_smes && stakeholders.primary_smes.length > 0) {
+      // Contact name list — first 5 visible, rest expandable
+      var allContacts = stakeholders.top_contacts || [];
+      if (allContacts.length > 0) {
+        var limit = 5;
+        var visible = allContacts.slice(0, limit);
+        var overflow = allContacts.slice(limit);
+
+        function contactLink(c) {
+          if (c.contact_id) {
+            return '<span class="clickable-name" onclick="Implementation.showContactDetail(\'' + escapeAttr(c.contact_id) + '\', \'' + escapeAttr(c.name) + '\')">' + escapeHtml(c.name) + '</span>';
+          }
+          return escapeHtml(c.name);
+        }
+
         html += '<div class="sme-list">';
-        html += '<strong>Primary SMEs:</strong> ';
-        var smeNames = stakeholders.primary_smes.map(function(sme) {
-          return '<a href="mailto:' + escapeHtml(sme.email) + '" class="sme-link">' + escapeHtml(sme.name) + '</a>';
-        });
-        html += smeNames.join(', ');
+        html += '<span id="stakeholder-names-short">';
+        html += visible.map(contactLink).join(', ');
+        if (overflow.length > 0) {
+          html += ' <a href="#" class="see-more-link" onclick="Implementation.toggleStakeholderNames(); return false;">...+' + overflow.length + ' more</a>';
+        }
+        html += '</span>';
+        if (overflow.length > 0) {
+          html += '<span id="stakeholder-names-full" style="display:none;">';
+          html += allContacts.map(contactLink).join(', ');
+          html += ' <a href="#" class="see-more-link" onclick="Implementation.toggleStakeholderNames(); return false;">show less</a>';
+          html += '</span>';
+        }
         html += '</div>';
       }
 
-      // Departments
+      // Agencies represented
       if (stakeholders.departments && stakeholders.departments.length > 0) {
         html += '<div class="dept-list">';
         html += '<strong>Agencies:</strong> ' + stakeholders.departments.slice(0, 5).map(escapeHtml).join(', ');
@@ -2410,9 +2408,23 @@ return;
         }
         html += '</div>';
       }
+
+      // Discrete directory link
+      if (solutionName) {
+        html += '<div style="margin-top: var(--space-sm); text-align: right;">';
+        html += '<a href="#" class="see-more-link" onclick="Implementation.viewSolutionContacts(\'' + escapeAttr(solutionName) + '\'); return false;" style="font-size: var(--font-size-xs);">';
+        html += '<span class="material-icons" style="font-size: 12px; vertical-align: middle; margin-right: 2px;">open_in_new</span>Open in directory</a>';
+        html += '</div>';
+      }
     } else {
-      html += '<div class="empty-stakeholders">No stakeholder data available for this solution.</div>';
+      html += '<div class="empty-stakeholders">';
+      html += 'No stakeholder data available yet.';
+      if (solutionName) {
+        html += ' <span onclick="Implementation.viewSolutionContacts(\'' + escapeAttr(solutionName) + '\')" style="color: var(--color-primary); cursor: pointer; text-decoration: underline;">View Contacts page</span>';
+      }
+      html += '</div>';
     }
+
     container.innerHTML = html;
   }
 
@@ -2576,6 +2588,20 @@ return;
     html += '<div class="detail-row"><span class="detail-label">Stakeholder List</span><span class="detail-value">' + stakeholderValue + '</span></div>';
     html += '</div>';
 
+    if (sol.earthdata_background) {
+      html += '<div class="detail-section">';
+      html += '<div class="detail-section-title">Background</div>';
+      html += '<div class="detail-text">' + formatTextWithLinks(sol.earthdata_background) + '</div>';
+      html += '</div>';
+    }
+
+    if (sol.earthdata_societal_impact) {
+      html += '<div class="detail-section">';
+      html += '<div class="detail-section-title">Societal Impact</div>';
+      html += '<div class="detail-text">' + formatTextWithLinks(sol.earthdata_societal_impact) + '</div>';
+      html += '</div>';
+    }
+
     html += '</div>';
 
     // Right column - Team & Content (INSTANT - from solution data)
@@ -2605,20 +2631,6 @@ return;
     html += '<div class="detail-section-title">Purpose</div>';
     html += '<div class="detail-text">' + formatTextWithLinks(sol.earthdata_purpose || 'No description available.') + '</div>';
     html += '</div>';
-
-    if (sol.earthdata_background) {
-      html += '<div class="detail-section">';
-      html += '<div class="detail-section-title">Background</div>';
-      html += '<div class="detail-text">' + formatTextWithLinks(sol.earthdata_background) + '</div>';
-      html += '</div>';
-    }
-
-    if (sol.earthdata_societal_impact) {
-      html += '<div class="detail-section">';
-      html += '<div class="detail-section-title">Societal Impact</div>';
-      html += '<div class="detail-text">' + formatTextWithLinks(sol.earthdata_societal_impact) + '</div>';
-      html += '</div>';
-    }
 
     html += '<div class="detail-section">';
     html += '<div class="detail-section-title">Status Summary</div>';
@@ -2859,14 +2871,7 @@ return;
   }
 
   function renderActivityItem(item) {
-    // Make engagement items clickable if they have an engagement_id
-    var isClickable = item.type === 'engagement' && item.engagement_id;
-    var html = '';
-    if (isClickable) {
-      html = '<div class="activity-item activity-type-engagement clickable" style="cursor:pointer;" onclick="Implementation.showEngagementDetail(\'' + escapeAttr(item.engagement_id) + '\')">';
-    } else {
-      html = '<div class="activity-item activity-type-' + (item.type || 'unknown') + '">';
-    }
+    var html = '<div class="activity-item activity-type-' + (item.type || 'unknown') + '">';
 
     // Icon and type indicator
     html += '<div class="activity-icon">';
@@ -2887,26 +2892,28 @@ return;
     // Title
     html += '<div class="activity-title">' + escapeHtml(item.title || '') + '</div>';
 
-    // Description (truncated if long, with "see more" link)
+    // Description — render as rich content (HTML or plain text)
     if (item.description) {
       var desc = item.description;
+      // Strip HTML tags to get plain text length for truncation check
+      var plainText = desc.replace(/<[^>]+>/g, '').trim();
       var charLimit = 200;
-      if (desc.length > charLimit) {
-        var truncated = desc.substring(0, charLimit);
-        // Don't cut mid-word
+      if (plainText.length > charLimit) {
+        var itemId = 'activity-desc-' + Math.random().toString(36).substr(2, 9);
+        // Truncate the plain text for preview
+        var truncated = plainText.substring(0, charLimit);
         var lastSpace = truncated.lastIndexOf(' ');
         if (lastSpace > charLimit - 50) {
           truncated = truncated.substring(0, lastSpace);
         }
-        var itemId = 'activity-desc-' + Math.random().toString(36).substr(2, 9);
         html += '<div class="activity-description">';
-        html += '<span id="' + itemId + '-short">' + renderUpdateText(truncated) + '... ';
+        html += '<span id="' + itemId + '-short">' + escapeHtml(truncated) + '... ';
         html += '<a href="#" class="see-more-link" onclick="Implementation.toggleActivityDesc(\'' + itemId + '\'); return false;">see more</a></span>';
-        html += '<span id="' + itemId + '-full" style="display:none;">' + renderUpdateText(desc) + ' ';
+        html += '<span id="' + itemId + '-full" style="display:none;">' + displayRichContent(desc) + ' ';
         html += '<a href="#" class="see-more-link" onclick="Implementation.toggleActivityDesc(\'' + itemId + '\'); return false;">see less</a></span>';
         html += '</div>';
       } else {
-        html += '<div class="activity-description">' + renderUpdateText(desc) + '</div>';
+        html += '<div class="activity-description">' + displayRichContent(desc) + '</div>';
       }
     }
 
@@ -2934,9 +2941,6 @@ return;
     }
 
     html += '</div>';
-    if (isClickable) {
-      html += '<div class="activity-chevron"><span class="material-icons">chevron_right</span></div>';
-    }
     html += '</div>';
     return html;
   }
@@ -3110,107 +3114,6 @@ return;
   function closeContactModal(event) {
     if (event && event.target !== event.currentTarget) return;
     document.getElementById('contactDetailModal').classList.remove('active');
-  }
-
-  // Engagement detail modal
-  function showEngagementDetail(engagementId) {
-    if (!engagementId) return;
-
-    var modal = document.getElementById('engagementDetailModal');
-    var content = document.getElementById('engagementDetailContent');
-    if (!modal || !content) return;
-
-    content.innerHTML = '<div class="loading-state"><span class="loading-spinner"></span></div>';
-    modal.classList.add('active');
-
-    var navId = getNavigationId();
-
-    google.script.run
-      .withSuccessHandler(function(e) {
-        if (!isNavigationCurrent(navId)) return;
-        if (!e) {
-          content.innerHTML = '<div class="empty-state"><p>Engagement not found</p></div>';
-          return;
-        }
-
-        var typeIcons = { 'Email': 'email', 'Phone': 'phone', 'Meeting': 'groups', 'Webinar': 'videocam', 'Conference': 'location_city', 'Site Visit': 'place', 'Training': 'school', 'Workshop': 'handyman' };
-        var icon = typeIcons[e.activity_type] || 'event';
-
-        var html = '';
-
-        // Header with icon and subject
-        html += '<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">';
-        html += '<div style="width: 48px; height: 48px; border-radius: 50%; background: var(--color-implementation-light, rgba(46,125,50,0.1)); display: flex; align-items: center; justify-content: center;">';
-        html += '<span class="material-icons" style="font-size: 24px; color: var(--page-accent);">' + icon + '</span></div>';
-        html += '<div style="flex: 1;"><div style="font-size: 16px; font-weight: 600;">' + escapeHtml(e.subject || 'No subject') + '</div>';
-        html += '<div style="color: var(--color-text-secondary); font-size: 13px;">' + escapeHtml(e.activity_type || 'Unknown') + '</div></div>';
-        html += '</div>';
-
-        // Detail grid
-        html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">';
-
-        html += '<div><div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 2px;">Date</div>';
-        html += '<div>' + (e.date ? new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--') + '</div></div>';
-
-        html += '<div><div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 2px;">Direction</div>';
-        html += '<div>' + escapeHtml(e.direction || '--') + '</div></div>';
-
-        if (e.follow_up_date) {
-          html += '<div><div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 2px;">Follow-up</div>';
-          html += '<div>' + new Date(e.follow_up_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + '</div></div>';
-        }
-
-        if (e.logged_by) {
-          html += '<div><div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 2px;">Logged By</div>';
-          html += '<div>' + escapeHtml(e.logged_by) + '</div></div>';
-        }
-
-        html += '</div>';
-
-        // Participants
-        if (e.participants) {
-          html += '<div style="margin-bottom: 12px;">';
-          html += '<div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 4px;">Participants</div>';
-          html += '<div>' + escapeHtml(e.participants) + '</div>';
-          html += '</div>';
-        }
-
-        // Summary
-        if (e.summary) {
-          html += '<div style="margin-bottom: 12px;">';
-          html += '<div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 4px;">Summary</div>';
-          html += '<div>' + renderUpdateText(e.summary) + '</div>';
-          html += '</div>';
-        }
-
-        // Notes
-        if (e.notes) {
-          html += '<div style="margin-bottom: 12px;">';
-          html += '<div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 4px;">Notes</div>';
-          html += '<div>' + renderUpdateText(e.notes) + '</div>';
-          html += '</div>';
-        }
-
-        // Supplementary notes
-        if (e.supplementary_notes) {
-          html += '<div style="margin-bottom: 12px;">';
-          html += '<div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 4px;">Supplementary Notes</div>';
-          html += '<div>' + renderUpdateText(e.supplementary_notes) + '</div>';
-          html += '</div>';
-        }
-
-        content.innerHTML = html;
-      })
-      .withFailureHandler(function(error) {
-        if (!isNavigationCurrent(navId)) return;
-        content.innerHTML = '<div class="empty-state"><p>Failed to load engagement details</p></div>';
-      })
-      .getEngagementById(engagementId);
-  }
-
-  function closeEngagementDetail(event) {
-    if (event && event.target !== event.currentTarget) return;
-    document.getElementById('engagementDetailModal').classList.remove('active');
   }
 
   function escapeAttr(text) {
@@ -3493,6 +3396,20 @@ return;
     }
   }
 
+  function toggleStakeholderNames() {
+    var shortEl = document.getElementById('stakeholder-names-short');
+    var fullEl = document.getElementById('stakeholder-names-full');
+    if (shortEl && fullEl) {
+      if (shortEl.style.display === 'none') {
+        shortEl.style.display = '';
+        fullEl.style.display = 'none';
+      } else {
+        shortEl.style.display = 'none';
+        fullEl.style.display = '';
+      }
+    }
+  }
+
   return {
     init: init,
     loadSolutions: loadSolutions,
@@ -3511,11 +3428,10 @@ return;
     toggleStatusSummary: toggleStatusSummary,
     toggleCollapsibleSection: toggleCollapsibleSection,
     toggleActivityDesc: toggleActivityDesc,
+    toggleStakeholderNames: toggleStakeholderNames,
     viewSolutionContacts: viewSolutionContacts,
     showContactDetail: showContactDetail,
     closeContactModal: closeContactModal,
-    showEngagementDetail: showEngagementDetail,
-    closeEngagementDetail: closeEngagementDetail,
     // Team folder upload
     openUploadModal: openUploadModal,
     closeUploadModal: closeUploadModal,

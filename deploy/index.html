@@ -434,7 +434,8 @@
         availability: 30,   // Availability updates moderately
         directingDocs: 60,  // Documents rarely change
         kudos: 30,          // Kudos may be added during session
-        kudosStats: 30      // Stats change with kudos
+        kudosStats: 30,     // Stats change with kudos
+        goalsInit: 30       // Goals/objectives moderately stable
       },
 
       /**
@@ -730,6 +731,9 @@
         kudos: function() {
           DataCache.clear('kudos');
           DataCache.clear('kudosStats');
+        },
+        goals: function() {
+          DataCache.clear('goalsInit');
         },
         all: function() {
           DataCache.clearAll();

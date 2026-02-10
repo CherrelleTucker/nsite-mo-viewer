@@ -58,11 +58,11 @@
             <span class="stat-label">Solutions Engaged</span>
           </div>
         </div>
-        <div class="stat-card" id="statHeatCard">
-          <div class="stat-icon"><span class="material-icons" id="statHeatIcon">whatshot</span></div>
+        <div class="stat-card">
+          <div class="stat-icon"><span class="material-icons">domain</span></div>
           <div class="stat-info">
-            <span class="stat-value" id="statHeatLabel">--</span>
-            <span class="stat-label">Activity Level</span>
+            <span class="stat-value" id="statAgenciesEngaged">--</span>
+            <span class="stat-label">Agencies Engaged</span>
           </div>
         </div>
       </div>
@@ -964,26 +964,6 @@
   }
   .card-date-warning { color: var(--color-warning); }
   .card-date-overdue { color: var(--color-error); font-weight: 600; }
-
-  /* Heat level styling for activity stat */
-  .stat-card.heat-hot .stat-icon {
-    color: var(--color-error);
-  }
-  .stat-card.heat-warm .stat-icon {
-    color: var(--color-warning);
-  }
-  .stat-card.heat-cold .stat-icon {
-    color: var(--color-info);
-  }
-  .stat-card.heat-hot .stat-value {
-    color: var(--color-error);
-  }
-  .stat-card.heat-warm .stat-value {
-    color: var(--color-warning);
-  }
-  .stat-card.heat-cold .stat-value {
-    color: var(--color-info);
-  }
 
   /* SEP panels use border-top accent like Implementation */
   .sep-viewer .panel {
@@ -2835,30 +2815,12 @@ var SEP = (function() {
     var engEl = document.getElementById('statEngagementsMonth');
     var contactsEl = document.getElementById('statContactsEngaged');
     var solutionsEl = document.getElementById('statSolutionsEngaged');
-    var heatLabelEl = document.getElementById('statHeatLabel');
-    var heatIconEl = document.getElementById('statHeatIcon');
-    var heatCardEl = document.getElementById('statHeatCard');
+    var agenciesEl = document.getElementById('statAgenciesEngaged');
 
     if (engEl) engEl.textContent = stats.engagements_this_month || 0;
     if (contactsEl) contactsEl.textContent = stats.contacts_this_month || 0;
     if (solutionsEl) solutionsEl.textContent = stats.solutions_this_month || 0;
-
-    if (heatLabelEl && heatIconEl) {
-      var level = stats.heat_level || 'cold';
-      heatLabelEl.textContent = level.charAt(0).toUpperCase() + level.slice(1);
-      heatIconEl.textContent = stats.heat_icon || 'ac_unit';
-
-      if (heatCardEl) {
-        heatCardEl.classList.remove('heat-hot', 'heat-warm', 'heat-cold');
-        heatCardEl.classList.add('heat-' + level);
-
-        var weekCount = stats.last_week_count || 0;
-        var twoWeekCount = stats.last_two_weeks_count || 0;
-        var tooltipText = weekCount + ' engagement' + (weekCount !== 1 ? 's' : '') + ' this week, ' +
-                          twoWeekCount + ' in past 2 weeks';
-        heatCardEl.title = tooltipText;
-      }
-    }
+    if (agenciesEl) agenciesEl.textContent = stats.agencies_this_month || 0;
   }
 
   // Fetches all contacts via CachedAPI and stores in state.allContacts.
@@ -3206,37 +3168,7 @@ var SEP = (function() {
     google.script.run
       .withSuccessHandler(function(stats) {
         if (!stats) return;
-
-        // Populate stat values
-        var engEl = document.getElementById('statEngagementsMonth');
-        var contactsEl = document.getElementById('statContactsEngaged');
-        var solutionsEl = document.getElementById('statSolutionsEngaged');
-        var heatLabelEl = document.getElementById('statHeatLabel');
-        var heatIconEl = document.getElementById('statHeatIcon');
-        var heatCardEl = document.getElementById('statHeatCard');
-
-        if (engEl) engEl.textContent = stats.engagements_this_month || 0;
-        if (contactsEl) contactsEl.textContent = stats.contacts_this_month || 0;
-        if (solutionsEl) solutionsEl.textContent = stats.solutions_this_month || 0;
-
-        if (heatLabelEl && heatIconEl) {
-          var level = stats.heat_level || 'cold';
-          heatLabelEl.textContent = level.charAt(0).toUpperCase() + level.slice(1);
-          heatIconEl.textContent = stats.heat_icon || 'ac_unit';
-
-          // Update card styling based on heat level
-          if (heatCardEl) {
-            heatCardEl.classList.remove('heat-hot', 'heat-warm', 'heat-cold');
-            heatCardEl.classList.add('heat-' + level);
-
-            // Add tooltip with engagement counts
-            var weekCount = stats.last_week_count || 0;
-            var twoWeekCount = stats.last_two_weeks_count || 0;
-            var tooltipText = weekCount + ' engagement' + (weekCount !== 1 ? 's' : '') + ' this week, ' +
-                              twoWeekCount + ' in past 2 weeks';
-            heatCardEl.title = tooltipText;
-          }
-        }
+        updateDashboardStatsUI(stats);
       })
       .withFailureHandler(function(error) {
         console.error('Failed to load dashboard stats:', error);
@@ -5445,11 +5377,11 @@ return;
     var html = '';
 
     // Stats row
-    html += '<div class="stats-row" style="margin-bottom: var(--space-md);">';
-    html += '<div class="stat-card"><div class="stat-value">' + allAgencies.length + '</div><div class="stat-label">Total Agencies</div></div>';
-    html += '<div class="stat-card"><div class="stat-value">' + activeAgencies + '</div><div class="stat-label">With Engagements</div></div>';
-    html += '<div class="stat-card"><div class="stat-value">' + totalEngagements + '</div><div class="stat-label">Total Engagements</div></div>';
-    html += '<div class="stat-card"><div class="stat-value">' + (allAgencies.length - activeAgencies) + '</div><div class="stat-label">Need Outreach</div></div>';
+    html += '<div class="stats-row">';
+    html += '<div class="stat-card"><div class="stat-icon"><span class="material-icons">account_balance</span></div><div class="stat-info"><div class="stat-value">' + allAgencies.length + '</div><div class="stat-label">Total Agencies</div></div></div>';
+    html += '<div class="stat-card stat-success"><div class="stat-icon"><span class="material-icons">handshake</span></div><div class="stat-info"><div class="stat-value">' + activeAgencies + '</div><div class="stat-label">With Engagements</div></div></div>';
+    html += '<div class="stat-card"><div class="stat-icon"><span class="material-icons">forum</span></div><div class="stat-info"><div class="stat-value">' + totalEngagements + '</div><div class="stat-label">Total Engagements</div></div></div>';
+    html += '<div class="stat-card stat-warning"><div class="stat-icon"><span class="material-icons">priority_high</span></div><div class="stat-info"><div class="stat-value">' + (allAgencies.length - activeAgencies) + '</div><div class="stat-label">Need Outreach</div></div></div>';
     html += '</div>';
 
     // Top engaged agencies

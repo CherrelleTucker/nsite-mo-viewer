@@ -521,19 +521,15 @@ function getEngagementStats() {
 
 /**
  * Get SEP dashboard statistics (for the main SEP dashboard view)
- * Returns stats for current month and heat level indicator
+ * Returns counts for current month: engagements, contacts, solutions, agencies
  * @returns {Object} Dashboard statistics
  */
 function getSEPDashboardStats() {
   var engagements = loadAllEngagements_();
 
-  // Calculate date ranges
+  // Calculate date range for current month
   var now = new Date();
   var firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  var oneWeekAgo = new Date();
-  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-  var twoWeeksAgo = new Date();
-  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
   // Filter engagements for this month
   var thisMonthEngagements = engagements.filter(function(e) {
@@ -568,36 +564,35 @@ function getSEPDashboardStats() {
     }
   });
 
-  // Calculate heat level based on recent activity
-  // Hot: 5+ engagements in past week
-  // Warm: 3-4 engagements in past week OR 5+ in past 2 weeks
-  // Cold: Less than that
-  var lastWeekCount = engagements.filter(function(e) {
-    return e.date && new Date(e.date) >= oneWeekAgo;
-  }).length;
+  // Count unique agencies engaged this month
+  // Uses both direct agency_id field and participant email-to-agency lookup
+  var uniqueAgencies = {};
+  var contacts = getAllContacts();
+  var emailToAgency = {};
+  contacts.forEach(function(c) {
+    if (c.email && c.agency_id) {
+      emailToAgency[c.email.toLowerCase()] = c.agency_id;
+    }
+  });
 
-  var lastTwoWeeksCount = engagements.filter(function(e) {
-    return e.date && new Date(e.date) >= twoWeeksAgo;
-  }).length;
-
-  var heatLevel = 'cold';
-  var heatIcon = 'ac_unit';
-  if (lastWeekCount >= 5) {
-    heatLevel = 'hot';
-    heatIcon = 'whatshot';
-  } else if (lastWeekCount >= 3 || lastTwoWeeksCount >= 5) {
-    heatLevel = 'warm';
-    heatIcon = 'wb_sunny';
-  }
+  thisMonthEngagements.forEach(function(e) {
+    if (e.agency_id) {
+      uniqueAgencies[e.agency_id] = true;
+    }
+    if (e.participants) {
+      e.participants.split(',').forEach(function(p) {
+        var email = p.trim().toLowerCase();
+        var agencyId = emailToAgency[email];
+        if (agencyId) uniqueAgencies[agencyId] = true;
+      });
+    }
+  });
 
   return {
     engagements_this_month: thisMonthEngagements.length,
     contacts_this_month: Object.keys(uniqueContacts).length,
     solutions_this_month: Object.keys(uniqueSolutions).length,
-    heat_level: heatLevel,
-    heat_icon: heatIcon,
-    last_week_count: lastWeekCount,
-    last_two_weeks_count: lastTwoWeeksCount
+    agencies_this_month: Object.keys(uniqueAgencies).length
   };
 }
 

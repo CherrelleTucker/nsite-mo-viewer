@@ -59,3 +59,24 @@ function getMilestoneCountsBySolution() {
 function searchMilestones(query) {
   return MoApi.searchMilestones(query);
 }
+
+// PI Integration & Write Functions
+function getMilestonesForPI(startDate, endDate) {
+  return MoApi.getMilestonesForPI(startDate, endDate);
+}
+
+function toggleMilestoneCompletion(milestoneId, completed) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.toggleMilestoneCompletion(milestoneId, completed);
+}
+
+function updateMilestone(milestoneId, updates) {
+  var auth = checkAuthorization();
+  if (!auth.authorized) {
+    return { success: false, error: auth.message };
+  }
+  return MoApi.updateMilestone(milestoneId, updates);
+}

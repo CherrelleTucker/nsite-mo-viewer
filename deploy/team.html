@@ -24,6 +24,10 @@
           <span class="material-icons">lightbulb</span>
           <span>Parking Lot</span>
         </button>
+        <button class="view-btn" data-view="goals" onclick="Team.setView('goals')">
+          <span class="material-icons">flag</span>
+          <span>Goals</span>
+        </button>
       </div>
       <button class="btn btn-primary" id="addEntryBtn" onclick="Team.showAddModal()" style="display:none">
         <span class="material-icons">add</span>
@@ -33,7 +37,8 @@
   </div>
 
   <!-- Stats Row -->
-  <div class="stats-row">
+  <!-- Team stats (default for non-Goals views) -->
+  <div class="stats-row" id="teamStatsRow">
     <div class="stat-card">
       <div class="stat-icon"><span class="material-icons">task_alt</span></div>
       <div class="stat-info">
@@ -463,6 +468,276 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Goals View -->
+    <div class="view-panel" id="goalsView">
+
+      <!-- Hero Banner -->
+      <div class="goals-hero" id="goalsHero">
+        <div class="goals-hero-text">
+          <h1 id="goalsHeroTitle">Goals</h1>
+          <p id="goalsHeroDate"></p>
+        </div>
+        <div class="goals-hero-stats">
+          <div class="goals-hero-stat">
+            <span class="goals-hero-stat-num" id="statGoalsCompleted">--</span>
+            <span class="goals-hero-stat-label">done</span>
+          </div>
+          <span class="goals-hero-stat-sep">/</span>
+          <div class="goals-hero-stat">
+            <span class="goals-hero-stat-num" id="statGoalsTotal">--</span>
+            <span class="goals-hero-stat-label">total</span>
+          </div>
+        </div>
+        <div class="goals-hero-ring" id="goalsHeroRing">
+          <svg viewBox="0 0 80 80">
+            <circle class="ring-bg" cx="40" cy="40" r="34"></circle>
+            <circle class="ring-fill" id="goalsHeroRingFill" cx="40" cy="40" r="34"
+              stroke-dasharray="213.6" stroke-dashoffset="213.6"></circle>
+          </svg>
+          <div class="ring-label">
+            <span class="ring-pct" id="goalsHeroRingPct">--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="goals-toolbar">
+        <div class="goals-view-pills">
+          <button class="goals-pill active" data-goals-view="quarterly" onclick="Team.setGoalsSubView('quarterly')">
+            <span class="material-icons">flag</span> Objectives
+          </button>
+          <button class="goals-pill" data-goals-view="sprint" onclick="Team.setGoalsSubView('sprint')">
+            <span class="material-icons">directions_run</span> Sprint
+          </button>
+        </div>
+        <div class="goals-toolbar-right">
+          <div class="goals-selector-inline" id="goalsPiSelectorGroup">
+            <select class="goals-pi-select" id="goalsPiSelect" onchange="Team.selectPI(this.value)">
+              <option value="">Loading PIs...</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" id="goalsAddBtn" onclick="Team.goalsAddAction()">
+            <span class="material-icons">add</span>
+            <span id="goalsAddLabel">Add Criterion</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading indicator -->
+      <div class="goals-loading" id="goalsLoading">
+        <div class="loading-state"><span class="loading-spinner"></span><span>Loading goals...</span></div>
+      </div>
+
+      <!-- Content panels -->
+      <div class="goals-content" id="goalsContent" style="display:none">
+        <div class="goals-sub-panel active" id="goalsQuarterlyPanel">
+          <div id="goalsObjectivesFeed"></div>
+        </div>
+        <div class="goals-sub-panel" id="goalsSprintPanel">
+          <div id="goalsSprintFeed"></div>
+        </div>
+      </div>
+
+      <!-- Mission & Vision -->
+      <div class="goals-mv-section">
+        <div class="goals-mv-grid">
+          <div class="goals-mv-card">
+            <div class="goals-mv-card-label"><span class="material-icons">flag</span> Mission</div>
+            <div class="goals-mv-card-text" id="goalsMissionContent"><span class="text-muted">Not set yet.</span></div>
+            <div class="goals-mv-edit hidden" id="goalsMissionEdit">
+              <textarea id="goalsMissionInput" rows="3" placeholder="Enter mission statement..."></textarea>
+              <div class="goals-mv-edit-actions">
+                <button class="btn btn-sm btn-secondary" onclick="Team.cancelMissionVisionEdit('mission')">Cancel</button>
+                <button class="btn btn-sm btn-primary" onclick="Team.saveMissionVision('mission')">Save</button>
+              </div>
+            </div>
+            <div class="goals-mv-meta" id="goalsMissionMeta"></div>
+            <button class="btn-icon goals-mv-edit-btn" onclick="Team.editMissionVision('mission')" aria-label="Edit mission"><span class="material-icons">edit</span></button>
+          </div>
+          <div class="goals-mv-card vision">
+            <div class="goals-mv-card-label"><span class="material-icons">visibility</span> Vision</div>
+            <div class="goals-mv-card-text" id="goalsVisionContent"><span class="text-muted">Not set yet.</span></div>
+            <div class="goals-mv-edit hidden" id="goalsVisionEdit">
+              <textarea id="goalsVisionInput" rows="3" placeholder="Enter vision statement..."></textarea>
+              <div class="goals-mv-edit-actions">
+                <button class="btn btn-sm btn-secondary" onclick="Team.cancelMissionVisionEdit('vision')">Cancel</button>
+                <button class="btn btn-sm btn-primary" onclick="Team.saveMissionVision('vision')">Save</button>
+              </div>
+            </div>
+            <div class="goals-mv-meta" id="goalsVisionMeta"></div>
+            <button class="btn-icon goals-mv-edit-btn" onclick="Team.editMissionVision('vision')" aria-label="Edit vision"><span class="material-icons">edit</span></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- Add/Edit Criterion Modal -->
+<div class="modal" id="addObjectiveModal" role="dialog" aria-modal="true" aria-labelledby="addObjectiveModalTitle">
+  <div class="modal-content modal-md">
+    <div class="modal-header">
+      <h3 id="addObjectiveModalTitle">Add Criterion</h3>
+      <button class="modal-close" onclick="Team.closeModal('addObjectiveModal')" aria-label="Close dialog">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="objectiveForm" onsubmit="return false;">
+        <input type="hidden" id="objEditId" value="">
+        <div class="form-row">
+          <div class="form-group form-group-half">
+            <label>Category</label>
+            <select id="objCategoryTitle" required>
+              <option value="">Select category...</option>
+              <option value="admin">Admin</option>
+              <option value="assess">Assess</option>
+              <option value="sep">SEP</option>
+              <option value="c1">Cycle 1</option>
+              <option value="c2">Cycle 2</option>
+              <option value="c3">Cycle 3</option>
+              <option value="c4">Cycle 4</option>
+              <option value="c5">Cycle 5</option>
+            </select>
+          </div>
+          <div class="form-group form-group-half">
+            <label>Solution ID</label>
+            <input type="text" id="objSolutionId" placeholder="e.g., hls" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Acceptance Criteria</label>
+          <textarea id="objAcceptanceCriteria" rows="3" placeholder="What must be true for this criterion to be met..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Category Summary</label>
+          <textarea id="objCategorySummary" rows="2" placeholder="Description of the category objective (shared across criteria)..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group form-group-half">
+            <label>Owner</label>
+            <input type="text" id="objOwner" placeholder="Person responsible...">
+          </div>
+          <div class="form-group form-group-half">
+            <label>Status</label>
+            <select id="objStatus">
+              <option value="not_started">Not Started</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="deferred">Deferred</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Dependencies</label>
+          <textarea id="objDependencies" rows="2" placeholder="Dependencies on other teams or objectives..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Risks</label>
+          <textarea id="objRisks" rows="2" placeholder="Known risks..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Future PI Items</label>
+          <textarea id="objFuturePI" rows="2" placeholder="Items to carry to future PIs..."></textarea>
+        </div>
+
+        <div class="modal-form-actions">
+          <button type="button" class="btn btn-secondary" onclick="Team.closeModal('addObjectiveModal')">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="Team.submitObjective()">Save Criterion</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Objective Detail Modal -->
+<div class="modal" id="objectiveDetailModal" role="dialog" aria-modal="true" aria-labelledby="objectiveDetailModalTitle">
+  <div class="modal-content modal-md">
+    <div class="modal-header">
+      <h3 id="objectiveDetailModalTitle">Objective Details</h3>
+      <button class="modal-close" onclick="Team.closeModal('objectiveDetailModal')" aria-label="Close dialog">&times;</button>
+    </div>
+    <div class="modal-body" id="objectiveDetailBody">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="objDetailDeleteBtn" onclick="Team.deleteCurrentObjective()">Delete</button>
+      <button class="btn btn-secondary btn-sm" id="objDetailEditBtn" onclick="Team.editCurrentObjective()">
+        <span class="material-icons">edit</span> Edit
+      </button>
+      <button class="btn btn-secondary" onclick="Team.closeModal('objectiveDetailModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Milestone Detail Modal -->
+<div class="modal" id="milestoneDetailModal" role="dialog" aria-modal="true" aria-labelledby="milestoneDetailModalTitle">
+  <div class="modal-content modal-md">
+    <div class="modal-header">
+      <h3 id="milestoneDetailModalTitle">Milestone Details</h3>
+      <button class="modal-close" onclick="Team.closeModal('milestoneDetailModal')" aria-label="Close dialog">&times;</button>
+    </div>
+    <div class="modal-body" id="milestoneDetailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" id="msDetailEditBtn" onclick="Team.editCurrentMilestone()">
+        <span class="material-icons">edit</span> Edit
+      </button>
+      <button class="btn btn-secondary" onclick="Team.closeModal('milestoneDetailModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Milestone Edit Modal -->
+<div class="modal" id="milestoneEditModal" role="dialog" aria-modal="true" aria-labelledby="milestoneEditModalTitle">
+  <div class="modal-content modal-md">
+    <div class="modal-header">
+      <h3 id="milestoneEditModalTitle">Edit Milestone</h3>
+      <button class="modal-close" onclick="Team.closeModal('milestoneEditModal')" aria-label="Close dialog">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Status</label>
+        <select id="msEditStatus">
+          <option value="planned">Planned</option>
+          <option value="completed">Completed</option>
+          <option value="not_started">Not Started</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Target Date</label>
+          <input type="date" id="msEditTargetDate">
+        </div>
+        <div class="form-group">
+          <label>Completion Date</label>
+          <input type="date" id="msEditDate">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Document URL</label>
+        <input type="url" id="msEditUrl" placeholder="https://...">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Memo Date</label>
+          <input type="date" id="msEditMemoDate">
+        </div>
+        <div class="form-group">
+          <label>Memo URL</label>
+          <input type="url" id="msEditMemoUrl" placeholder="https://...">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="msEditNotes" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Team.closeModal('milestoneEditModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="Team.saveMilestone()">
+        <span class="material-icons">save</span> Save
+      </button>
     </div>
   </div>
 </div>
@@ -3097,6 +3372,417 @@
     .actions-filters { flex-direction: column; align-items: stretch; }
     .filter-search { max-width: none; }
   }
+
+  /* ========================================================================
+     GOALS VIEW — Top-down layout: stats, toolbar, content, M&V
+     ======================================================================== */
+
+  /* ===== GOALS HERO BANNER ===== */
+  .goals-hero {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 50%, var(--color-accent) 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md) var(--space-xl);
+    color: #fff;
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xl);
+    position: relative;
+    overflow: hidden;
+  }
+  .goals-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%; right: -20%;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .goals-hero-text { flex: 1; min-width: 0; }
+  .goals-hero-text h1 { font-size: 20px; font-weight: 700; margin: 0; }
+  .goals-hero-text p { font-size: var(--font-size-sm); opacity: 0.8; margin: 2px 0 0 0; }
+  .goals-hero-stats {
+    display: flex; align-items: baseline; gap: 4px;
+    flex-shrink: 0;
+  }
+  .goals-hero-stat { text-align: center; }
+  .goals-hero-stat-num { font-size: 24px; font-weight: 700; display: block; line-height: 1; }
+  .goals-hero-stat-label { font-size: 10px; text-transform: uppercase; opacity: 0.7; letter-spacing: 0.5px; }
+  .goals-hero-stat-sep { font-size: 20px; opacity: 0.5; font-weight: 300; align-self: center; padding: 0 2px; }
+  .goals-hero-ring {
+    flex-shrink: 0;
+    position: relative;
+    width: 56px; height: 56px;
+  }
+  .goals-hero-ring svg { width: 56px; height: 56px; transform: rotate(-90deg); }
+  .goals-hero-ring .ring-bg { fill: none; stroke: rgba(255,255,255,0.15); stroke-width: 6; }
+  .goals-hero-ring .ring-fill {
+    fill: none; stroke: #fff; stroke-width: 6;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease;
+  }
+  .goals-hero-ring .ring-label {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .goals-hero-ring .ring-pct { font-size: 14px; font-weight: 700; display: block; line-height: 1; }
+
+  /* ===== GOALS TOOLBAR ===== */
+  .goals-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+  .goals-view-pills {
+    display: inline-flex;
+    background: var(--color-surface);
+    border-radius: 24px;
+    padding: 3px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border);
+  }
+  .goals-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 18px; border: none; background: transparent;
+    cursor: pointer; border-radius: 20px; font-size: var(--font-size-sm);
+    font-weight: 500; color: var(--color-text-muted);
+    transition: all 0.2s ease; font-family: inherit;
+  }
+  .goals-pill:hover { color: var(--color-text); background: var(--color-bg); }
+  .goals-pill.active { background: var(--page-accent, var(--color-primary)); color: #fff; box-shadow: 0 2px 8px rgba(11,61,145,0.3); }
+  .goals-pill .material-icons { font-size: 18px; }
+  .goals-toolbar-right {
+    display: flex; align-items: center; gap: var(--space-sm);
+  }
+  .goals-pi-select {
+    font-family: inherit; font-size: var(--font-size-sm); font-weight: 500;
+    padding: 8px 14px; border: 1px solid var(--color-border);
+    border-radius: 20px; background: var(--color-surface);
+    color: var(--color-text); cursor: pointer;
+  }
+  .goals-selector-inline.hidden { display: none; }
+
+  /* ===== GOALS LOADING & CONTENT ===== */
+  .goals-loading { padding: var(--space-xl) 0; }
+  .goals-content { min-height: 100px; }
+  .stats-row.hidden { display: none; }
+
+  /* ===== MISSION & VISION CARDS ===== */
+  .goals-mv-section { margin-top: var(--space-xl); }
+  .goals-mv-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);
+  }
+  .goals-mv-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+    border-top: 3px solid var(--color-primary);
+    position: relative;
+  }
+  .goals-mv-card.vision { border-top-color: var(--color-accent); }
+  .goals-mv-card-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 1px;
+    font-weight: 700; color: var(--color-primary);
+    margin-bottom: var(--space-sm);
+  }
+  .goals-mv-card.vision .goals-mv-card-label { color: var(--color-accent); }
+  .goals-mv-card-label .material-icons { font-size: 16px; }
+  .goals-mv-card-text {
+    font-size: 15px; line-height: 1.7; color: var(--color-text-secondary);
+    font-style: italic; white-space: pre-wrap;
+  }
+  .goals-mv-edit-btn {
+    position: absolute; top: var(--space-sm); right: var(--space-sm);
+    opacity: 0.4; transition: opacity var(--transition-fast);
+  }
+  .goals-mv-card:hover .goals-mv-edit-btn { opacity: 1; }
+  .goals-mv-edit { margin-top: var(--space-sm); }
+  .goals-mv-edit textarea {
+    width: 100%; padding: var(--space-sm);
+    border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+    font-family: inherit; font-size: var(--font-size-sm);
+    resize: vertical; background: #fff;
+  }
+  .goals-mv-edit-actions {
+    display: flex; gap: var(--space-xs);
+    justify-content: flex-end; margin-top: var(--space-xs);
+  }
+  .goals-mv-meta {
+    font-size: var(--font-size-xs); color: var(--color-text-muted); margin-top: var(--space-xs);
+  }
+
+  /* ===== GOALS VIEW PILLS (sub-panels) ===== */
+  .goals-sub-panel { display: none; }
+  .goals-sub-panel.active { display: block; }
+
+  /* ===== OBJECTIVE CARDS (visual) ===== */
+  .obj-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: box-shadow 0.2s ease, transform 0.15s ease;
+    margin-bottom: var(--space-md);
+  }
+  .obj-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .obj-card-header {
+    display: flex; align-items: stretch;
+    cursor: pointer; user-select: none;
+  }
+  .obj-status-bar {
+    width: 6px; flex-shrink: 0;
+  }
+  .obj-status-bar.completed { background: var(--color-success); }
+  .obj-status-bar.in_progress { background: var(--color-info); }
+  .obj-status-bar.not_started { background: #BDBDBD; }
+  .obj-status-bar.deferred { background: var(--color-warning); }
+  .obj-header-content {
+    flex: 1; padding: var(--space-md) var(--space-lg);
+    display: flex; align-items: center; gap: var(--space-lg);
+    min-height: 72px;
+  }
+  .obj-number {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px; flex-shrink: 0;
+    background: #E3F2FD; color: #1565C0;
+  }
+  .obj-card.completed .obj-number { background: #E8F5E9; color: var(--color-success); }
+  .obj-card.deferred .obj-number { background: #FFF3E0; color: #E65100; }
+  .obj-card.not_started .obj-number { background: #F5F5F5; color: #757575; }
+  .obj-info { flex: 1; min-width: 0; }
+  .obj-title { font-weight: 600; font-size: 15px; margin-bottom: 2px; }
+  .obj-subtitle {
+    font-size: var(--font-size-xs); color: var(--color-text-muted);
+    display: flex; align-items: center; gap: var(--space-md); flex-wrap: wrap;
+  }
+  .obj-subtitle span { display: inline-flex; align-items: center; gap: 3px; }
+  .obj-subtitle .material-icons { font-size: 14px; }
+
+  /* Mini progress ring */
+  .obj-ring { flex-shrink: 0; position: relative; width: 48px; height: 48px; }
+  .obj-ring svg { width: 48px; height: 48px; transform: rotate(-90deg); }
+  .obj-ring .ring-bg { fill: none; stroke: var(--color-border); stroke-width: 4; }
+  .obj-ring .ring-fill { fill: none; stroke-width: 4; stroke-linecap: round; }
+  .obj-ring .ring-fill.completed { stroke: var(--color-success); }
+  .obj-ring .ring-fill.in_progress { stroke: var(--color-info); }
+  .obj-ring .ring-fill.not_started { stroke: #BDBDBD; }
+  .obj-ring .ring-fill.deferred { stroke: var(--color-warning); }
+  .obj-ring .ring-pct {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: var(--font-size-xs); font-weight: 700;
+  }
+  .obj-expand {
+    padding: 0 var(--space-md); display: flex; align-items: center;
+    color: var(--color-text-muted); transition: color 0.15s;
+  }
+  .obj-expand .material-icons { font-size: 20px; transition: transform 0.2s; }
+  .obj-card.expanded .obj-expand .material-icons { transform: rotate(180deg); }
+
+  /* Expandable criteria panel */
+  .obj-body {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.3s ease;
+    border-top: 1px solid transparent;
+  }
+  .obj-card.expanded .obj-body {
+    max-height: 1200px;
+    border-top-color: var(--color-border);
+  }
+  .obj-body-inner { padding: var(--space-md) var(--space-lg) var(--space-lg); }
+  .obj-summary {
+    font-size: var(--font-size-sm); color: var(--color-text-secondary);
+    margin-bottom: var(--space-md); line-height: 1.6;
+  }
+  .criteria-heading {
+    font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--color-text-muted); font-weight: 600; margin-bottom: var(--space-sm);
+  }
+  .criteria-list { list-style: none; padding: 0; margin: 0; }
+  .criteria-item {
+    display: flex; align-items: flex-start; gap: var(--space-sm);
+    padding: 8px 0; border-bottom: 1px solid #F5F5F5;
+    font-size: var(--font-size-sm); line-height: 1.5;
+  }
+  .criteria-item:last-child { border-bottom: none; }
+  .criteria-check {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid #BDBDBD; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; margin-top: 1px;
+  }
+  .criteria-check:hover { border-color: var(--color-info); background: #E3F2FD; }
+  .criteria-check.done { border-color: var(--color-success); background: var(--color-success); }
+  .criteria-check.done .material-icons { display: block; color: #fff; font-size: 14px; }
+  .criteria-check .material-icons { display: none; }
+  .criteria-text { flex: 1; }
+  .criteria-item.done .criteria-text { color: var(--color-text-muted); text-decoration: line-through; }
+  .criteria-completed-info {
+    font-size: 10px; color: var(--color-text-muted); white-space: nowrap;
+  }
+  .obj-meta-pills {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-md);
+    padding-top: var(--space-sm); border-top: 1px solid #F5F5F5;
+  }
+  .meta-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 12px; font-size: var(--font-size-xs);
+    background: #F0F4FF; color: #1565C0;
+  }
+  .meta-pill.risk { background: #FFF3E0; color: #E65100; }
+  .meta-pill.dep { background: #F3E5F5; color: #7B1FA2; }
+  .meta-pill .material-icons { font-size: 13px; }
+
+  /* Objective detail sections (in modal) */
+  .obj-detail-section {
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+  }
+  .obj-detail-section h4 {
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-xs) 0;
+  }
+  .obj-detail-section p {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  /* Modal criteria edit list */
+  .obj-criteria-edit-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-sm);
+  }
+  .obj-criteria-edit-row {
+    display: flex;
+    gap: var(--space-xs);
+    align-items: center;
+  }
+  .obj-criteria-edit-row input[type="text"] {
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    background: #fff;
+  }
+  .obj-criteria-edit-row .btn-icon {
+    color: var(--color-danger, #d32f2f);
+  }
+
+  /* Modal form actions */
+  .modal-form-actions {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: flex-end;
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* ===== SPRINT KANBAN ===== */
+  .sprint-lanes {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md);
+  }
+  .sprint-lane {
+    background: var(--color-surface); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm); overflow: hidden;
+  }
+  .sprint-lane-header {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-xs); font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; border-bottom: 2px solid;
+  }
+  .sprint-lane.todo .sprint-lane-header { background: #F5F5F5; color: #757575; border-color: #BDBDBD; }
+  .sprint-lane.doing .sprint-lane-header { background: #E3F2FD; color: #1565C0; border-color: var(--color-info); }
+  .sprint-lane.done .sprint-lane-header { background: #E8F5E9; color: var(--color-success); border-color: var(--color-success); }
+  .sprint-lane-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.08);
+    font-size: var(--font-size-xs); font-weight: 700; margin-left: 6px;
+  }
+  .sprint-lane-body { padding: var(--space-sm); min-height: 200px; }
+  .sprint-card {
+    background: var(--color-bg); border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md); margin-bottom: var(--space-sm);
+    border-left: 3px solid transparent; font-size: var(--font-size-sm);
+  }
+  .sprint-lane.todo .sprint-card { border-left-color: #BDBDBD; }
+  .sprint-lane.doing .sprint-card { border-left-color: var(--color-info); }
+  .sprint-lane.done .sprint-card { border-left-color: var(--color-success); }
+  .sprint-card-title { font-weight: 600; font-size: var(--font-size-sm); margin-bottom: 2px; }
+  .sprint-card-sub { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+  .sprint-card-progress { height: 3px; background: var(--color-border); border-radius: 2px; margin-top: 6px; }
+  .sprint-card-progress-fill { height: 100%; border-radius: 2px; }
+  .sprint-lane.doing .sprint-card-progress-fill { background: var(--color-info); }
+  .sprint-lane.done .sprint-card-progress-fill { background: var(--color-success); }
+
+  /* Sprint nav (in toolbar area) */
+  .sprint-nav {
+    display: flex; align-items: center; gap: var(--space-xs);
+  }
+  .sprint-nav .btn-icon { padding: 2px; }
+  .sprint-date-range {
+    font-size: var(--font-size-sm);
+    color: var(--page-accent, var(--color-primary));
+    font-weight: 600;
+  }
+
+  /* Goals empty state */
+  .goals-empty-state {
+    text-align: center;
+    padding: var(--space-xl) var(--space-lg);
+    color: var(--color-text-muted);
+  }
+  .goals-empty-state .material-icons {
+    font-size: 48px; margin-bottom: var(--space-sm); opacity: 0.4;
+  }
+
+  /* ===== MILESTONE CRITERIA STYLES ===== */
+  .milestone-badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 1px 8px; border-radius: 10px;
+    background: #E8F5E9; color: #2E7D32;
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.3px;
+    vertical-align: middle; margin-right: 4px;
+  }
+  .milestone-badge .material-icons { font-size: 12px; }
+  .milestone-date {
+    display: block; font-size: 11px;
+    color: var(--color-text-muted); margin-top: 2px;
+  }
+  .milestone-date.completed-date { color: var(--color-success); }
+  .criteria-item.milestone-criteria {
+    background: #F6FFF0; border-radius: var(--radius-sm);
+    padding: 8px; margin-bottom: 2px;
+  }
+  .obj-number.milestone-num {
+    background: #E8F5E9; color: #2E7D32;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .obj-number.milestone-num .material-icons { font-size: 18px; }
+
+  @media (max-width: 768px) {
+    .goals-hero { flex-wrap: wrap; justify-content: center; text-align: center; }
+    .goals-hero-text { flex-basis: 100%; }
+    .goals-toolbar { flex-direction: column; align-items: stretch; }
+    .goals-toolbar-right { margin-left: 0; }
+    .goals-mv-grid { grid-template-columns: 1fr; }
+    .sprint-lanes { grid-template-columns: 1fr; }
+  }
 </style>
 
 <!-- Team Page JavaScript -->
@@ -3134,6 +3820,7 @@
       this.loadData();       // Load team members + availability
       this.loadActions();    // Load actions (Capacity is default view)
       this.loadParkingLot(); // Load parking lot for stats
+      this.loadGoalsStats(); // Load goals stats for stat card
       this.setupKudosForm();
       this.loadCurrentUser();
       // Initialize rich text fields for action add/edit form (once)
@@ -3561,8 +4248,8 @@
     setView: function(view) {
       this.currentView = view;
 
-      // Update view buttons
-      document.querySelectorAll('.view-btn').forEach(function(btn) {
+      // Update top-level view buttons only (not goals sub-toggle)
+      document.querySelectorAll('.view-toggle > .view-btn').forEach(function(btn) {
         btn.classList.remove('active');
       });
       document.querySelector('[data-view="' + view + '"]').classList.add('active');
@@ -3572,6 +4259,12 @@
         panel.classList.remove('active');
       });
       document.getElementById(view + 'View').classList.add('active');
+
+      // Hide team stats row on Goals view (stats are in sidebar)
+      var teamStats = document.getElementById('teamStatsRow');
+      if (teamStats) {
+        teamStats.classList.toggle('hidden', view === 'goals');
+      }
 
       // Update add button label based on view
       var addBtn = document.getElementById('addEntryBtn');
@@ -3591,6 +4284,11 @@
         // Load parking lot data if not already loaded
         if (Team.parkingLotItems.length === 0) {
           Team.loadParkingLot();
+        }
+      } else if (view === 'goals') {
+        addBtn.style.display = 'none'; // Goals has its own add buttons
+        if (!Team.goalsLoaded) {
+          Team.loadGoals();
         }
       } else {
         addBtn.style.display = 'none';
@@ -3943,18 +4641,14 @@
     updateStats: function() {
       // Guard against SPA navigation
       var statEl = document.getElementById('statOpenActions');
-      if (!statEl) {
-        // SPA navigation - elements no longer exist
-        return;
-      }
+      if (!statEl) return;
 
-      // Open actions count
+      // Team stats
       var openActions = this.actionsData.filter(function(a) {
         return a.status !== 'done';
       });
       statEl.textContent = openActions.length;
 
-      // Count people out this week
       var today = new Date();
       var self = this;
       var outThisWeek = this.availability.filter(function(a) {
@@ -3964,7 +4658,6 @@
       });
       document.getElementById('statOutThisWeek').textContent = outThisWeek.length;
 
-      // Kudos this month
       var thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       var kudosThisMonth = this.kudos.filter(function(k) {
@@ -3972,11 +4665,68 @@
       }).length;
       document.getElementById('statKudosMonth').textContent = kudosThisMonth;
 
-      // Parking lot items (open)
       var openParkingLot = this.parkingLotItems.filter(function(item) {
         return item.status !== 'resolved' && item.status !== 'archived';
       });
       document.getElementById('statParkingLot').textContent = openParkingLot.length;
+
+      // Goals stats
+      Team.updateGoalsStats();
+    },
+
+    updateGoalsStats: function() {
+      var categories = this.goalsObjectives;
+      var completed = 0;
+      var inProgress = 0;
+      var notStarted = 0;
+      var deferred = 0;
+      var totalCriteria = 0;
+      var completedCriteria = 0;
+
+      // Count individual criteria rows across all categories/solutions
+      categories.forEach(function(cat) {
+        cat.solutions.forEach(function(sol) {
+          sol.criteria.forEach(function(c) {
+            if (c.status === 'completed') completed++;
+            else if (c.status === 'in_progress') inProgress++;
+            else if (c.status === 'deferred') deferred++;
+            else notStarted++;
+          });
+          totalCriteria += sol.criteria_total || 0;
+          completedCriteria += sol.criteria_complete || 0;
+        });
+      });
+
+      // Update hero stats
+      var el;
+      el = document.getElementById('statGoalsCompleted');
+      if (el) el.textContent = completed;
+      el = document.getElementById('statGoalsTotal');
+      if (el) el.textContent = totalCriteria;
+
+      // Update hero banner text
+      var pi = this.goalsCurrentPI;
+      var titleEl = document.getElementById('goalsHeroTitle');
+      var dateEl = document.getElementById('goalsHeroDate');
+      if (titleEl && pi) titleEl.textContent = (pi.name || pi.pi_id || 'Goals') + ' Goals';
+      if (dateEl && pi) {
+        var startStr = pi.start_date ? new Date(pi.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+        var endStr = pi.end_date ? new Date(pi.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+        var statusLabel = pi.status === 'active' ? 'Active' : (pi.status === 'completed' ? 'Completed' : 'Planning');
+        dateEl.textContent = (startStr && endStr ? startStr + ' \u2013 ' + endStr + ' \u00B7 ' : '') + statusLabel;
+      }
+
+      // Update hero progress ring (r=34, circumference=213.6)
+      var critPct = totalCriteria > 0 ? Math.round((completedCriteria / totalCriteria) * 100) : 0;
+      var ringFill = document.getElementById('goalsHeroRingFill');
+      var ringPct = document.getElementById('goalsHeroRingPct');
+      if (ringFill) {
+        var heroR = 34, heroCirc = 2 * Math.PI * heroR;
+        var heroOffset = heroCirc - (critPct / 100) * heroCirc;
+        ringFill.setAttribute('stroke-dasharray', heroCirc.toFixed(1));
+        ringFill.setAttribute('stroke-dashoffset', heroOffset.toFixed(1));
+      }
+      if (ringPct) ringPct.textContent = critPct + '%';
     },
 
     populatePersonSelect: function() {
@@ -4439,6 +5189,18 @@
     parkingLotItems: [],
     currentPLItem: null,
     selectedPLType: 'idea',
+
+    // Goals state
+    goalsLoaded: false,
+    goalsInitData: null,
+    goalsObjectives: [],
+    goalsPIs: [],
+    goalsMissionVision: {},
+    goalsCurrentPI: null,
+    goalsSubView: 'quarterly',
+    currentObjective: null,
+    currentMilestone: null,
+    isSavingGoal: false,
 
     loadParkingLot: function() {
       // Set default type selection
@@ -5371,6 +6133,784 @@
         'done': 'Done'
       };
       return map[status] || status;
+    },
+
+    // ========================================================================
+    // GOALS FUNCTIONS
+    // ========================================================================
+
+    loadGoalsStats: function() {
+      // Lightweight: loads stats for the goals hero banner on initial page load
+      google.script.run
+        .withSuccessHandler(function(stats) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
+          if (stats) {
+            var el;
+            el = document.getElementById('statGoalsCompleted');
+            if (el) el.textContent = stats.completed || 0;
+            el = document.getElementById('statGoalsTotal');
+            if (el) el.textContent = stats.criteria_total || 0;
+
+            // Update ring
+            var total = stats.criteria_total || 0;
+            var done = stats.completed || 0;
+            var pct = total > 0 ? Math.round((done / total) * 100) : 0;
+            var ringFill = document.getElementById('goalsHeroRingFill');
+            var ringPct = document.getElementById('goalsHeroRingPct');
+            if (ringFill) {
+              var r = 34, circ = 2 * Math.PI * r;
+              ringFill.setAttribute('stroke-dasharray', circ.toFixed(1));
+              ringFill.setAttribute('stroke-dashoffset', (circ - (pct / 100) * circ).toFixed(1));
+            }
+            if (ringPct) ringPct.textContent = pct + '%';
+          }
+        })
+        .withFailureHandler(handleError)
+        .getGoalsStats();
+    },
+
+    loadGoals: function() {
+      // Show loading, hide content
+      var loadingEl = document.getElementById('goalsLoading');
+      var contentEl = document.getElementById('goalsContent');
+      if (loadingEl) loadingEl.style.display = '';
+      if (contentEl) contentEl.style.display = 'none';
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
+          Team.goalsLoaded = true;
+          Team.goalsInitData = data;
+          Team.goalsMissionVision = data.missionVision || {};
+          Team.goalsPIs = data.pis || [];
+          Team.goalsObjectives = data.objectives || [];
+          Team.goalsCurrentPI = data.activePI;
+          // Hide loading, show content
+          var loadingEl = document.getElementById('goalsLoading');
+          var contentEl = document.getElementById('goalsContent');
+          if (loadingEl) loadingEl.style.display = 'none';
+          if (contentEl) contentEl.style.display = '';
+          Team.renderMissionVision();
+          Team.populateSelectors();
+          Team.renderGoalsView();
+          Team.updateStats();
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load goals:', error);
+          Team.goalsLoaded = true;
+          var loadingEl = document.getElementById('goalsLoading');
+          var contentEl = document.getElementById('goalsContent');
+          if (loadingEl) loadingEl.style.display = 'none';
+          if (contentEl) contentEl.style.display = '';
+          Team.renderGoalsEmpty('Failed to load goals data.');
+        })
+        .getGoalsInitData();
+    },
+
+    renderMissionVision: function() {
+      var mv = Team.goalsMissionVision;
+
+      var missionEl = document.getElementById('goalsMissionContent');
+      var visionEl = document.getElementById('goalsVisionContent');
+      var missionMeta = document.getElementById('goalsMissionMeta');
+      var visionMeta = document.getElementById('goalsVisionMeta');
+
+      if (missionEl) {
+        missionEl.textContent = mv.mission || '';
+        if (!mv.mission) missionEl.innerHTML = '<span class="text-muted">No mission statement yet.</span>';
+      }
+      if (visionEl) {
+        visionEl.textContent = mv.vision || '';
+        if (!mv.vision) visionEl.innerHTML = '<span class="text-muted">No vision statement yet.</span>';
+      }
+      if (missionMeta && mv.mission_updated_by) {
+        missionMeta.textContent = 'Updated by ' + mv.mission_updated_by + (mv.mission_updated_date ? ' on ' + mv.mission_updated_date : '');
+      }
+      if (visionMeta && mv.vision_updated_by) {
+        visionMeta.textContent = 'Updated by ' + mv.vision_updated_by + (mv.vision_updated_date ? ' on ' + mv.vision_updated_date : '');
+      }
+    },
+
+    editMissionVision: function(key) {
+      var contentEl = document.getElementById('goals' + (key === 'mission' ? 'Mission' : 'Vision') + 'Content');
+      var editEl = document.getElementById('goals' + (key === 'mission' ? 'Mission' : 'Vision') + 'Edit');
+      var inputEl = document.getElementById('goals' + (key === 'mission' ? 'Mission' : 'Vision') + 'Input');
+
+      if (contentEl) contentEl.classList.add('hidden');
+      if (editEl) editEl.classList.remove('hidden');
+      if (inputEl) {
+        inputEl.value = Team.goalsMissionVision[key] || '';
+        inputEl.focus();
+      }
+    },
+
+    cancelMissionVisionEdit: function(key) {
+      var contentEl = document.getElementById('goals' + (key === 'mission' ? 'Mission' : 'Vision') + 'Content');
+      var editEl = document.getElementById('goals' + (key === 'mission' ? 'Mission' : 'Vision') + 'Edit');
+      if (contentEl) contentEl.classList.remove('hidden');
+      if (editEl) editEl.classList.add('hidden');
+    },
+
+    saveMissionVision: function(key) {
+      if (Team.isSavingGoal) return;
+      var inputEl = document.getElementById('goals' + (key === 'mission' ? 'Mission' : 'Vision') + 'Input');
+      if (!inputEl) return;
+
+      Team.isSavingGoal = true;
+      var data = {
+        key: key,
+        content: inputEl.value,
+        updated_by: window.currentUserName || 'Unknown'
+      };
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          Team.isSavingGoal = false;
+          if (!isNavigationCurrent(Team.teamNavId)) return;
+          if (result && result.success) {
+            Team.goalsMissionVision[key] = data.content;
+            Team.goalsMissionVision[key + '_updated_by'] = data.updated_by;
+            Team.goalsMissionVision[key + '_updated_date'] = new Date().toISOString().split('T')[0];
+            Team.renderMissionVision();
+            Team.cancelMissionVisionEdit(key);
+            showToast(key.charAt(0).toUpperCase() + key.slice(1) + ' updated!', 'success');
+          } else {
+            showToast('Failed to save: ' + (result ? result.error : 'Unknown error'), 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          Team.isSavingGoal = false;
+          showToast('Failed to save: ' + error, 'error');
+        })
+        .updateMissionVision(data);
+    },
+
+    populateSelectors: function() {
+      // PI select
+      var piSelect = document.getElementById('goalsPiSelect');
+      if (piSelect) {
+        piSelect.innerHTML = '';
+        Team.goalsPIs.forEach(function(pi) {
+          var opt = document.createElement('option');
+          opt.value = pi.pi_id;
+          opt.textContent = (pi.name || pi.pi_id) + (pi.status === 'active' ? ' (Active)' : '');
+          piSelect.appendChild(opt);
+        });
+        if (Team.goalsCurrentPI) piSelect.value = Team.goalsCurrentPI.pi_id;
+      }
+    },
+
+    selectPI: function(piId) {
+      if (!piId) return;
+      Team.goalsCurrentPI = Team.goalsPIs.find(function(pi) { return pi.pi_id === piId; }) || null;
+
+      google.script.run
+        .withSuccessHandler(function(objectives) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
+          Team.goalsObjectives = objectives || [];
+          Team.renderGoalsView();
+          Team.updateStats();
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to load objectives:', error);
+          Team.goalsObjectives = [];
+          Team.renderGoalsView();
+        })
+        .getObjectivesByPI(piId);
+    },
+
+    setGoalsSubView: function(subView) {
+      Team.goalsSubView = subView;
+
+      // Toggle pill buttons
+      document.querySelectorAll('.goals-pill').forEach(function(btn) {
+        btn.classList.remove('active');
+      });
+      var activeBtn = document.querySelector('.goals-pill[data-goals-view="' + subView + '"]');
+      if (activeBtn) activeBtn.classList.add('active');
+
+      // Toggle sub-panels
+      document.querySelectorAll('.goals-sub-panel').forEach(function(panel) {
+        panel.classList.remove('active');
+      });
+
+      var piSel = document.getElementById('goalsPiSelectorGroup');
+      var addBtn = document.getElementById('goalsAddBtn');
+      var addLabel = document.getElementById('goalsAddLabel');
+
+      if (subView === 'quarterly') {
+        document.getElementById('goalsQuarterlyPanel').classList.add('active');
+        if (piSel) piSel.classList.remove('hidden');
+        if (addLabel) addLabel.textContent = 'Add Criterion';
+        Team.renderObjectives();
+      } else if (subView === 'sprint') {
+        document.getElementById('goalsSprintPanel').classList.add('active');
+        if (piSel) piSel.classList.add('hidden');
+        if (addBtn) addBtn.style.display = 'none';
+        Team.renderSprint();
+        return;
+      }
+      if (addBtn) addBtn.style.display = '';
+
+      Team.updateGoalsSummary();
+    },
+
+    goalsAddAction: function() {
+      Team.showAddObjectiveModal();
+    },
+
+    updateGoalsSummary: function() {
+      // Summary info is now shown in the hero banner via updateGoalsStats()
+    },
+
+    renderGoalsView: function() {
+      if (Team.goalsSubView === 'sprint') {
+        Team.renderSprint();
+      } else {
+        Team.renderObjectives();
+      }
+      Team.updateGoalsSummary();
+    },
+
+    renderSprint: function() {
+      var feed = document.getElementById('goalsSprintFeed');
+      if (!feed) return;
+
+      var categories = Team.goalsObjectives;
+      var todo = [], doing = [], done = [];
+
+      // Group categories into kanban lanes based on aggregate status
+      categories.forEach(function(cat) {
+        var total = cat.criteria_total || 0;
+        var d = cat.criteria_complete || 0;
+        var pct = cat.progress_pct || 0;
+        var card = {
+          title: cat.category_title.toUpperCase(),
+          sub: (cat.criteria_owner_contact_id || 'Unassigned') + ' \u00B7 ' + d + '/' + total,
+          pct: pct
+        };
+        if (d === total && total > 0) done.push(card);
+        else if (d > 0) doing.push(card);
+        else todo.push(card);
+      });
+
+      if (todo.length === 0 && doing.length === 0 && done.length === 0) {
+        feed.innerHTML = '<div class="goals-empty-state">' +
+          '<span class="material-icons">directions_run</span>' +
+          '<p>No objectives for this PI yet.</p></div>';
+        return;
+      }
+
+      function renderLane(name, cls, items) {
+        var h = '<div class="sprint-lane ' + cls + '">';
+        h += '<div class="sprint-lane-header">' + escapeHtml(name) + '<span class="sprint-lane-count">' + items.length + '</span></div>';
+        h += '<div class="sprint-lane-body">';
+        items.forEach(function(item) {
+          h += '<div class="sprint-card">';
+          h += '<div class="sprint-card-title">' + escapeHtml(item.title) + '</div>';
+          h += '<div class="sprint-card-sub">' + escapeHtml(item.sub) + '</div>';
+          h += '<div class="sprint-card-progress"><div class="sprint-card-progress-fill" style="width:' + item.pct + '%"></div></div>';
+          h += '</div>';
+        });
+        if (items.length === 0) {
+          h += '<div style="text-align:center;padding:var(--space-lg);color:var(--color-text-muted);font-size:var(--font-size-sm);">No items</div>';
+        }
+        h += '</div></div>';
+        return h;
+      }
+
+      feed.innerHTML = '<div class="sprint-lanes">' +
+        renderLane('To Do', 'todo', todo) +
+        renderLane('In Progress', 'doing', doing) +
+        renderLane('Done', 'done', done) +
+        '</div>';
+    },
+
+    renderCategoryCard: function(cat) {
+      var catId = escapeAttr(cat.category_title || 'unknown');
+      var total = cat.criteria_total || 0;
+      var done = cat.criteria_complete || 0;
+      var pct = cat.progress_pct || 0;
+
+      // Determine aggregate status for the card color
+      var statusClass = 'not_started';
+      if (done === total && total > 0) statusClass = 'completed';
+      else if (done > 0) statusClass = 'in_progress';
+
+      // SVG ring math
+      var r = 18, circ = 2 * Math.PI * r;
+      var offset = circ - (pct / 100) * circ;
+
+      var html = '<div class="obj-card ' + statusClass + '" id="objCard_' + catId + '">';
+
+      // Card header with status bar
+      html += '<div class="obj-card-header" onclick="Team.toggleObjectiveExpand(\'' + catId + '\')">';
+      html += '<div class="obj-status-bar ' + statusClass + '"></div>';
+      html += '<div class="obj-header-content">';
+      if (cat.is_milestone_category) {
+        html += '<div class="obj-number milestone-num"><span class="material-icons">event</span></div>';
+      } else {
+        html += '<div class="obj-number">' + escapeHtml(cat.category_title.toUpperCase()) + '</div>';
+      }
+      html += '<div class="obj-info">';
+      html += '<div class="obj-title">' + escapeHtml(cat.category_summary || cat.category_title) + '</div>';
+      html += '<div class="obj-subtitle">';
+      if (cat.criteria_owner_contact_id) html += '<span><span class="material-icons">person</span>' + escapeHtml(cat.criteria_owner_contact_id) + '</span>';
+      html += '<span>' + cat.solutions.length + ' solution' + (cat.solutions.length !== 1 ? 's' : '') + '</span>';
+      html += '<span>' + done + '/' + total + ' criteria</span>';
+      html += '</div></div>';
+
+      // Mini progress ring
+      if (total > 0) {
+        html += '<div class="obj-ring">';
+        html += '<svg viewBox="0 0 48 48"><circle class="ring-bg" cx="24" cy="24" r="' + r + '"></circle>';
+        html += '<circle class="ring-fill ' + statusClass + '" cx="24" cy="24" r="' + r + '" ';
+        html += 'stroke-dasharray="' + circ.toFixed(1) + '" stroke-dashoffset="' + offset.toFixed(1) + '"></circle></svg>';
+        html += '<div class="ring-pct">' + pct + '%</div>';
+        html += '</div>';
+      }
+
+      html += '<div class="obj-expand"><span class="material-icons">expand_more</span></div>';
+      html += '</div></div>';
+
+      // Expandable body: solution sub-groups with criteria checkboxes
+      html += '<div class="obj-body"><div class="obj-body-inner">';
+
+      cat.solutions.forEach(function(sol) {
+        html += '<div class="criteria-heading">' + escapeHtml(sol.solution_id.toUpperCase()) +
+          ' <span style="font-weight:400;color:var(--color-text-muted)">(' + sol.criteria_complete + '/' + sol.criteria_total + ')</span></div>';
+        html += '<ul class="criteria-list">';
+        sol.criteria.forEach(function(c) {
+          var isChecked = c.status === 'completed';
+          var isMilestone = c.is_milestone;
+          html += '<li class="criteria-item' + (isChecked ? ' done' : '') + (isMilestone ? ' milestone-criteria' : '') + '">';
+          html += '<div class="criteria-check' + (isChecked ? ' done' : '') + '" onclick="event.stopPropagation(); Team.toggleCriteria(\'' + escapeAttr(c.objective_id) + '\', \'' + (isChecked ? 'not_started' : 'completed') + '\')">';
+          html += '<span class="material-icons">check</span></div>';
+          if (isMilestone) {
+            html += '<span class="criteria-text" style="cursor:pointer" onclick="event.stopPropagation(); Team.showMilestoneDetail(\'' + escapeAttr(c.objective_id) + '\')">';
+            html += '<span class="milestone-badge"><span class="material-icons">event</span>Milestone</span> ';
+            html += escapeHtml(c.acceptance_criteria || '');
+            if (c.target_date) {
+              try { html += '<span class="milestone-date">Target: ' + escapeHtml(new Date(c.target_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })) + '</span>'; }
+              catch (e) { html += '<span class="milestone-date">Target: ' + escapeHtml(c.target_date) + '</span>'; }
+            }
+            if (c.actual_date) {
+              try { html += '<span class="milestone-date completed-date">Completed: ' + escapeHtml(new Date(c.actual_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })) + '</span>'; }
+              catch (e) { html += '<span class="milestone-date completed-date">Completed: ' + escapeHtml(c.actual_date) + '</span>'; }
+            }
+            html += '</span>';
+          } else {
+            html += '<span class="criteria-text" style="cursor:pointer" onclick="event.stopPropagation(); Team.showObjectiveDetail(\'' + escapeAttr(c.objective_id) + '\')">' + escapeHtml(c.acceptance_criteria || '') + '</span>';
+          }
+          html += '</li>';
+        });
+        html += '</ul>';
+      });
+
+      // Meta pills
+      if (cat.dependencies || cat.risks) {
+        html += '<div class="obj-meta-pills">';
+        if (cat.dependencies) html += '<span class="meta-pill dep"><span class="material-icons">link</span>' + escapeHtml(cat.dependencies) + '</span>';
+        if (cat.risks) html += '<span class="meta-pill risk"><span class="material-icons">warning</span>' + escapeHtml(cat.risks) + '</span>';
+        html += '</div>';
+      }
+
+      html += '</div></div>';
+      html += '</div>';
+      return html;
+    },
+
+    toggleObjectiveExpand: function(objectiveId) {
+      var el = document.getElementById('objCard_' + objectiveId);
+      if (el) el.classList.toggle('expanded');
+    },
+
+    renderObjectives: function() {
+      var feed = document.getElementById('goalsObjectivesFeed');
+      if (!feed) return;
+
+      Team.updateGoalsSummary();
+
+      var categories = Team.goalsObjectives;
+      if (categories.length === 0) {
+        feed.innerHTML = '<div class="goals-empty-state">' +
+          '<span class="material-icons">flag</span>' +
+          '<p>No objectives for this PI yet.</p>' +
+          '</div>';
+        return;
+      }
+
+      var html = '';
+      categories.forEach(function(cat) {
+        html += Team.renderCategoryCard(cat);
+      });
+      feed.innerHTML = html;
+    },
+
+    toggleCriteria: function(objectiveId, newStatus) {
+      // Debounced server call (500ms for server-side)
+      if (Team._criteriaToggleTimer) clearTimeout(Team._criteriaToggleTimer);
+      Team._criteriaToggleTimer = setTimeout(function() {
+
+        // Shared success handler for both milestone and regular criteria
+        var onSuccess = function(result) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
+          if (result && result.success) {
+            // Update local state: find this criterion in category groups
+            Team.goalsObjectives.forEach(function(cat) {
+              cat.solutions.forEach(function(sol) {
+                sol.criteria.forEach(function(c) {
+                  if (c.objective_id === objectiveId) {
+                    c.status = newStatus;
+                    if (c.is_milestone) {
+                      c.actual_date = (newStatus === 'completed') ? new Date().toISOString().split('T')[0] : '';
+                    }
+                  }
+                });
+                // Recompute solution stats
+                sol.criteria_complete = sol.criteria.filter(function(c) { return c.status === 'completed'; }).length;
+                sol.progress_pct = sol.criteria.length > 0 ? Math.round((sol.criteria_complete / sol.criteria.length) * 100) : 0;
+              });
+              // Recompute category stats
+              var catTotal = 0, catComplete = 0;
+              cat.solutions.forEach(function(sol) {
+                catTotal += sol.criteria.length;
+                catComplete += sol.criteria_complete;
+              });
+              cat.criteria_total = catTotal;
+              cat.criteria_complete = catComplete;
+              cat.progress_pct = catTotal > 0 ? Math.round((catComplete / catTotal) * 100) : 0;
+            });
+            Team.renderGoalsView();
+            Team.updateGoalsStats();
+          } else {
+            showToast('Failed to update: ' + (result ? result.error : 'Unknown'), 'error');
+            Team.renderGoalsView();
+          }
+        };
+
+        var onFailure = function(error) {
+          showToast('Failed to update: ' + error, 'error');
+          Team.renderGoalsView();
+        };
+
+        // Route: milestone (ms_ prefix) vs regular objective
+        if (objectiveId.indexOf('ms_') === 0) {
+          var milestoneId = objectiveId.substring(3);
+          google.script.run
+            .withSuccessHandler(onSuccess)
+            .withFailureHandler(onFailure)
+            .toggleMilestoneCompletion(milestoneId, newStatus === 'completed');
+        } else {
+          google.script.run
+            .withSuccessHandler(onSuccess)
+            .withFailureHandler(onFailure)
+            .toggleObjectiveStatus(objectiveId, newStatus);
+        }
+      }, 500);
+    },
+
+    showObjectiveDetail: function(objectiveId) {
+      // Find the criterion across all categories/solutions
+      var criterion = null;
+      var parentCategory = null;
+      Team.goalsObjectives.forEach(function(cat) {
+        cat.solutions.forEach(function(sol) {
+          sol.criteria.forEach(function(c) {
+            if (c.objective_id === objectiveId) {
+              criterion = c;
+              parentCategory = cat;
+            }
+          });
+        });
+      });
+      if (!criterion || !parentCategory) return;
+
+      Team.currentObjective = { objective_id: objectiveId, category: parentCategory, criterion: criterion };
+
+      document.getElementById('objectiveDetailModalTitle').textContent = escapeHtml(parentCategory.category_title.toUpperCase()) + ' Criterion';
+
+      var body = document.getElementById('objectiveDetailBody');
+      if (!body) return;
+
+      var statusInfo = { 'not_started': 'Not Started', 'in_progress': 'In Progress', 'completed': 'Completed', 'deferred': 'Deferred' };
+      var html = '<div class="obj-detail-section">';
+      html += '<p><strong>Category:</strong> ' + escapeHtml(parentCategory.category_title) + '</p>';
+      html += '<p><strong>Status:</strong> ' + escapeHtml(statusInfo[criterion.status] || criterion.status || 'Unknown') + '</p>';
+      if (criterion.is_milestone) {
+        if (criterion.target_date) html += '<p><strong>Target Date:</strong> ' + escapeHtml(criterion.target_date) + '</p>';
+        if (criterion.actual_date) html += '<p><strong>Completed Date:</strong> ' + escapeHtml(criterion.actual_date) + '</p>';
+        if (criterion.milestone_id) html += '<p><strong>Milestone ID:</strong> ' + escapeHtml(criterion.milestone_id) + '</p>';
+      }
+      if (parentCategory.criteria_owner_contact_id) html += '<p><strong>Owner:</strong> ' + escapeHtml(parentCategory.criteria_owner_contact_id) + '</p>';
+      html += '</div>';
+
+      if (criterion.acceptance_criteria) {
+        html += '<div class="obj-detail-section"><h4>Acceptance Criteria</h4><p>' + escapeHtml(criterion.acceptance_criteria) + '</p></div>';
+      }
+      if (parentCategory.category_summary) {
+        html += '<div class="obj-detail-section"><h4>Category Summary</h4><p>' + escapeHtml(parentCategory.category_summary) + '</p></div>';
+      }
+
+      if (parentCategory.dependencies || parentCategory.risks || parentCategory.future_pi) {
+        html += '<div class="obj-meta-pills" style="margin-top:var(--space-sm)">';
+        if (parentCategory.dependencies) html += '<span class="meta-pill dep"><span class="material-icons">link</span>' + escapeHtml(parentCategory.dependencies) + '</span>';
+        if (parentCategory.risks) html += '<span class="meta-pill risk"><span class="material-icons">warning</span>' + escapeHtml(parentCategory.risks) + '</span>';
+        if (parentCategory.future_pi) html += '<span class="meta-pill"><span class="material-icons">fast_forward</span>' + escapeHtml(parentCategory.future_pi) + '</span>';
+        html += '</div>';
+      }
+
+      body.innerHTML = html;
+
+      // Hide edit/delete buttons for milestone criteria (managed via Milestones DB)
+      var editBtn = document.getElementById('objDetailEditBtn');
+      var deleteBtn = document.getElementById('objDetailDeleteBtn');
+      if (editBtn) editBtn.style.display = criterion.is_milestone ? 'none' : '';
+      if (deleteBtn) deleteBtn.style.display = criterion.is_milestone ? 'none' : '';
+
+      document.getElementById('objectiveDetailModal').classList.add('show');
+    },
+
+    showMilestoneDetail: function(objectiveId) {
+      var criterion = null;
+      Team.goalsObjectives.forEach(function(cat) {
+        cat.solutions.forEach(function(sol) {
+          sol.criteria.forEach(function(c) {
+            if (c.objective_id === objectiveId) criterion = c;
+          });
+        });
+      });
+      if (!criterion || !criterion.is_milestone) return;
+
+      Team.currentMilestone = criterion;
+
+      var titleEl = document.getElementById('milestoneDetailModalTitle');
+      if (titleEl) titleEl.textContent = criterion.milestone_name || criterion.milestone_type || 'Milestone';
+
+      var body = document.getElementById('milestoneDetailBody');
+      if (!body) return;
+
+      var statusLabels = { completed: 'Completed', planned: 'Planned', not_started: 'Not Started' };
+      var html = '<div class="obj-detail-section">';
+      html += '<p><strong>Solution:</strong> ' + escapeHtml(criterion.solution_id || '') + '</p>';
+      html += '<p><strong>Type:</strong> ' + escapeHtml(criterion.milestone_type || '') + '</p>';
+      html += '<p><strong>Status:</strong> ' + escapeHtml(statusLabels[criterion.status] || criterion.status || 'Unknown') + '</p>';
+      if (criterion.target_date) html += '<p><strong>Target Date:</strong> ' + escapeHtml(formatDateFull(criterion.target_date)) + '</p>';
+      if (criterion.actual_date) html += '<p><strong>Completion Date:</strong> ' + escapeHtml(formatDateFull(criterion.actual_date)) + '</p>';
+      if (criterion.url) html += '<p><strong>Document:</strong> <a href="' + escapeAttr(criterion.url) + '" target="_blank" rel="noopener">' + escapeHtml(criterion.url) + '</a></p>';
+      if (criterion.memo_date) html += '<p><strong>Memo Date:</strong> ' + escapeHtml(formatDateFull(criterion.memo_date)) + '</p>';
+      if (criterion.memo_url) html += '<p><strong>Memo:</strong> <a href="' + escapeAttr(criterion.memo_url) + '" target="_blank" rel="noopener">' + escapeHtml(criterion.memo_url) + '</a></p>';
+      html += '</div>';
+      if (criterion.notes) {
+        html += '<div class="obj-detail-section"><h4>Notes</h4><p>' + escapeHtml(criterion.notes) + '</p></div>';
+      }
+      html += '<p style="color:var(--color-text-muted);font-size:var(--font-size-xs)">ID: ' + escapeHtml(criterion.milestone_id) + '</p>';
+      body.innerHTML = html;
+
+      document.getElementById('milestoneDetailModal').classList.add('show');
+    },
+
+    editCurrentMilestone: function() {
+      if (!Team.currentMilestone) return;
+      Team.closeModal('milestoneDetailModal');
+      var c = Team.currentMilestone;
+
+      var titleEl = document.getElementById('milestoneEditModalTitle');
+      if (titleEl) titleEl.textContent = 'Edit: ' + (c.milestone_name || c.milestone_type || 'Milestone');
+
+      document.getElementById('msEditStatus').value = (c.status === 'completed') ? 'completed' : (c.status || 'planned');
+      document.getElementById('msEditTargetDate').value = formatDateForInput(c.target_date);
+      document.getElementById('msEditDate').value = formatDateForInput(c.actual_date);
+      document.getElementById('msEditUrl').value = c.url || '';
+      document.getElementById('msEditMemoDate').value = formatDateForInput(c.memo_date);
+      document.getElementById('msEditMemoUrl').value = c.memo_url || '';
+      document.getElementById('msEditNotes').value = c.notes || '';
+
+      document.getElementById('milestoneEditModal').classList.add('show');
+    },
+
+    saveMilestone: function() {
+      if (!Team.currentMilestone) return;
+      var milestoneId = Team.currentMilestone.milestone_id;
+
+      var updates = {
+        status: document.getElementById('msEditStatus').value,
+        target_date: document.getElementById('msEditTargetDate').value,
+        date: document.getElementById('msEditDate').value,
+        url: document.getElementById('msEditUrl').value,
+        memo_date: document.getElementById('msEditMemoDate').value,
+        memo_url: document.getElementById('msEditMemoUrl').value,
+        notes: document.getElementById('msEditNotes').value
+      };
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
+          if (result && result.success) {
+            Team.closeModal('milestoneEditModal');
+            showToast('Milestone updated', 'success');
+            if (Team.goalsCurrentPI) Team.selectPI(Team.goalsCurrentPI.pi_id);
+          } else {
+            showToast('Failed: ' + (result ? result.error : 'Unknown'), 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
+          showToast('Failed: ' + error, 'error');
+        })
+        .updateMilestone(milestoneId, updates);
+    },
+
+    editCurrentObjective: function() {
+      if (!Team.currentObjective) return;
+      Team.closeModal('objectiveDetailModal');
+      var cat = Team.currentObjective.category;
+      var crit = Team.currentObjective.criterion;
+      // Find the solution_id for this criterion
+      var solId = '';
+      cat.solutions.forEach(function(sol) {
+        sol.criteria.forEach(function(c) {
+          if (c.objective_id === crit.objective_id) solId = sol.solution_id;
+        });
+      });
+      Team.showEditObjectiveModal({
+        objective_id: crit.objective_id,
+        category_title: cat.category_title,
+        solution_id: solId,
+        category_summary: cat.category_summary,
+        acceptance_criteria: crit.acceptance_criteria,
+        criteria_owner_contact_id: cat.criteria_owner_contact_id,
+        status: crit.status,
+        dependencies: cat.dependencies,
+        risks: cat.risks,
+        future_pi: cat.future_pi
+      });
+    },
+
+    deleteCurrentObjective: function() {
+      if (!Team.currentObjective) return;
+      if (!confirm('Delete this criterion?')) return;
+
+      var objId = Team.currentObjective.objective_id;
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (!isNavigationCurrent(Team.teamNavId)) return;
+          if (result && result.success) {
+            Team.closeModal('objectiveDetailModal');
+            showToast('Criterion deleted', 'success');
+            if (Team.goalsCurrentPI) {
+              Team.selectPI(Team.goalsCurrentPI.pi_id);
+            }
+          } else {
+            showToast('Failed to delete: ' + (result ? result.error : 'Unknown'), 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          showToast('Failed to delete: ' + error, 'error');
+        })
+        .deleteObjective(objId);
+    },
+
+    showAddObjectiveModal: function() {
+      document.getElementById('addObjectiveModalTitle').textContent = 'Add Criterion';
+      document.getElementById('objectiveForm').reset();
+      document.getElementById('objEditId').value = '';
+      document.getElementById('addObjectiveModal').classList.add('show');
+    },
+
+    showEditObjectiveModal: function(criterionData) {
+      document.getElementById('addObjectiveModalTitle').textContent = 'Edit Criterion';
+      document.getElementById('objEditId').value = criterionData.objective_id || '';
+      document.getElementById('objCategoryTitle').value = criterionData.category_title || '';
+      document.getElementById('objSolutionId').value = criterionData.solution_id || '';
+      document.getElementById('objCategorySummary').value = criterionData.category_summary || '';
+      document.getElementById('objAcceptanceCriteria').value = criterionData.acceptance_criteria || '';
+      document.getElementById('objOwner').value = criterionData.criteria_owner_contact_id || '';
+      document.getElementById('objStatus').value = criterionData.status || 'not_started';
+      document.getElementById('objDependencies').value = criterionData.dependencies || '';
+      document.getElementById('objRisks').value = criterionData.risks || '';
+      document.getElementById('objFuturePI').value = criterionData.future_pi || '';
+      document.getElementById('addObjectiveModal').classList.add('show');
+    },
+
+    submitObjective: function() {
+      if (Team.isSavingGoal) return;
+
+      var editId = document.getElementById('objEditId').value;
+      var solutionId = document.getElementById('objSolutionId').value.trim();
+      var categoryTitle = document.getElementById('objCategoryTitle').value;
+      var acceptanceCriteria = document.getElementById('objAcceptanceCriteria').value.trim();
+
+      if (!solutionId) { showToast('Solution ID is required', 'warning'); return; }
+      if (!categoryTitle) { showToast('Category is required', 'warning'); return; }
+
+      var piId = Team.goalsCurrentPI ? Team.goalsCurrentPI.pi_id : '';
+      if (!piId) { showToast('No PI selected', 'warning'); return; }
+
+      Team.isSavingGoal = true;
+
+      var data = {
+        pi_id: piId,
+        category_title: categoryTitle,
+        solution_id: solutionId,
+        category_summary: document.getElementById('objCategorySummary').value.trim(),
+        acceptance_criteria: acceptanceCriteria,
+        status: document.getElementById('objStatus').value,
+        dependencies: document.getElementById('objDependencies').value.trim(),
+        criteria_owner_contact_id: document.getElementById('objOwner').value.trim(),
+        risks: document.getElementById('objRisks').value.trim(),
+        future_pi: document.getElementById('objFuturePI').value.trim()
+      };
+
+      if (editId) {
+        google.script.run
+          .withSuccessHandler(function(result) {
+            Team.isSavingGoal = false;
+            if (!isNavigationCurrent(Team.teamNavId)) return;
+            if (result && result.success) {
+              Team.closeModal('addObjectiveModal');
+              showToast('Criterion updated!', 'success');
+              Team.selectPI(piId);
+            } else {
+              showToast('Failed to update: ' + (result ? result.error : 'Unknown'), 'error');
+            }
+          })
+          .withFailureHandler(function(error) {
+            Team.isSavingGoal = false;
+            showToast('Failed to update: ' + error, 'error');
+          })
+          .updateObjective(editId, data);
+      } else {
+        google.script.run
+          .withSuccessHandler(function(result) {
+            Team.isSavingGoal = false;
+            if (!isNavigationCurrent(Team.teamNavId)) return;
+            if (result && result.success) {
+              Team.closeModal('addObjectiveModal');
+              showToast('Criterion created!', 'success');
+              Team.selectPI(piId);
+            } else {
+              showToast('Failed to create: ' + (result ? result.error : 'Unknown'), 'error');
+            }
+          })
+          .withFailureHandler(function(error) {
+            Team.isSavingGoal = false;
+            showToast('Failed to create: ' + error, 'error');
+          })
+          .createObjective(data);
+      }
+    },
+
+    // (Annual roadmap functions removed in v4.1.0 — Goals restructure)
+
+    renderGoalsEmpty: function(message) {
+      var feed = document.getElementById('goalsObjectivesFeed');
+      if (feed) {
+        feed.innerHTML = '<div class="goals-empty-state">' +
+          '<span class="material-icons">error_outline</span>' +
+          '<p>' + escapeHtml(message || 'No data available.') + '</p>' +
+          '</div>';
+      }
     },
 
     showActionsEmpty: function(show) {

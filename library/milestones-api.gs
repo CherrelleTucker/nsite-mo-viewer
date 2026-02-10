@@ -419,3 +419,103 @@ function searchMilestones(query) {
 
   return deepCopy(milestones);
 }
+
+// ============================================================================
+// PI INTEGRATION & WRITE FUNCTIONS
+// ============================================================================
+
+/**
+ * Get milestones within a date range (for PI Goals integration).
+ * Returns milestones where target_date falls within [startDate, endDate].
+ *
+ * @param {string} startDate - PI start date (YYYY-MM-DD)
+ * @param {string} endDate - PI end date (YYYY-MM-DD)
+ * @returns {Array} Milestones within the date range, sorted by target_date asc
+ */
+function getMilestonesForPI(startDate, endDate) {
+  if (!startDate || !endDate) return [];
+
+  var start = new Date(startDate);
+  var end = new Date(endDate);
+
+  var milestones = loadAllMilestones_().filter(function(m) {
+    if (!m.target_date) return false;
+    try {
+      var td = new Date(m.target_date);
+      return td >= start && td <= end;
+    } catch (e) {
+      return false;
+    }
+  });
+
+  milestones.sort(function(a, b) {
+    return new Date(a.target_date) - new Date(b.target_date);
+  });
+
+  return deepCopy(milestones);
+}
+
+/**
+ * Toggle a milestone's completion status.
+ * When completed: sets actual_date to today, status to 'completed'.
+ * When uncompleted: clears actual_date, sets status to 'planned'.
+ *
+ * @param {string} milestoneId - milestone_id to toggle
+ * @param {boolean} completed - true to mark completed, false to unmark
+ * @returns {Object} { success: boolean, error?: string }
+ */
+function toggleMilestoneCompletion(milestoneId, completed) {
+  try {
+    if (!milestoneId) return { success: false, error: 'Milestone ID is required' };
+
+    var writeInfo = getSheetTabForWrite_('MILESTONES_SHEET_ID', 'Milestones');
+    var rowNum = findRowByField_(writeInfo.sheet, writeInfo.headers, 'milestone_id', milestoneId);
+    if (rowNum === -1) return { success: false, error: 'Milestone not found: ' + milestoneId };
+
+    var now = new Date().toISOString().split('T')[0];
+
+    writeInfo.headers.forEach(function(h, colIndex) {
+      if (h === 'status') {
+        writeInfo.sheet.getRange(rowNum, colIndex + 1).setValue(completed ? 'completed' : 'planned');
+      } else if (h === 'date') {
+        writeInfo.sheet.getRange(rowNum, colIndex + 1).setValue(completed ? now : '');
+      }
+    });
+
+    return { success: true };
+  } catch (e) {
+    Logger.log('toggleMilestoneCompletion error: ' + e.message);
+    return { success: false, error: 'Failed to toggle milestone: ' + e.message };
+  }
+}
+
+/**
+ * Update a milestone's editable fields.
+ *
+ * @param {string} milestoneId - milestone_id to update
+ * @param {Object} updates - Key-value pairs of fields to update
+ * @returns {Object} { success: boolean, error?: string }
+ */
+function updateMilestone(milestoneId, updates) {
+  try {
+    if (!milestoneId) return { success: false, error: 'Milestone ID is required' };
+    if (!updates || typeof updates !== 'object') return { success: false, error: 'Updates object is required' };
+
+    var WRITABLE_FIELDS = ['target_date', 'date', 'status', 'url', 'memo_date', 'memo_url', 'notes'];
+
+    var writeInfo = getSheetTabForWrite_('MILESTONES_SHEET_ID', 'Milestones');
+    var rowNum = findRowByField_(writeInfo.sheet, writeInfo.headers, 'milestone_id', milestoneId);
+    if (rowNum === -1) return { success: false, error: 'Milestone not found: ' + milestoneId };
+
+    writeInfo.headers.forEach(function(h, colIndex) {
+      if (WRITABLE_FIELDS.indexOf(h) !== -1 && updates.hasOwnProperty(h)) {
+        writeInfo.sheet.getRange(rowNum, colIndex + 1).setValue(updates[h]);
+      }
+    });
+
+    return { success: true };
+  } catch (e) {
+    Logger.log('updateMilestone error: ' + e.message);
+    return { success: false, error: 'Failed to update milestone: ' + e.message };
+  }
+}

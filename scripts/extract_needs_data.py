@@ -9,6 +9,7 @@ Usage:
 
 Output:
     - mo_db_needs.csv - Full needs database for Google Sheets import
+    - contact_need_mappings.csv - Contact-to-need role mappings for Roles tab backfill
     - extraction_report.txt - Summary of extraction results
 """
 
@@ -19,7 +20,7 @@ from pathlib import Path
 from datetime import datetime
 
 # Configuration
-STAKEHOLDER_DIR = Path(r"C:\Users\cjtucke3\Documents\Personal\MO-development\stakeholder-mapping\DB-Solution Stakeholder Lists")
+STAKEHOLDER_DIR = Path(r"C:\Users\cjtucke3\Documents\Personal\MO-development\source-archives\stakeholder-data\DB-solution-stakeholder-lists")
 OUTPUT_DIR = Path(r"C:\Users\cjtucke3\Documents\Personal\MO-development\nsite-mo-viewer\data")
 SURVEY_YEARS = ['2016', '2018', '2020', '2022', '2024']
 
@@ -105,6 +106,12 @@ OUTPUT_COLUMNS = [
     'source_file', 'extracted_at'
 ]
 
+# Contact-to-need mapping columns (for Roles tab backfill)
+MAPPING_COLUMNS = [
+    'need_id', 'contact_name', 'role', 'solution', 'survey_year',
+    'department', 'agency', 'organization', 'source_file'
+]
+
 
 def extract_solution_name(filename):
     """Extract solution name from filename."""
@@ -172,9 +179,14 @@ def map_columns(df):
 
 
 def process_sheet(df, solution, year, filename):
-    """Process a single survey year sheet."""
+    """Process a single survey year sheet.
+
+    Returns:
+        tuple: (records, mappings) where records are need rows and
+               mappings are contact-to-need role associations.
+    """
     if df.empty:
-        return []
+        return [], []
 
     # Map columns
     column_map = map_columns(df)
@@ -183,6 +195,7 @@ def process_sheet(df, solution, year, filename):
     df_mapped = df.rename(columns=column_map)
 
     records = []
+    mappings = []
     for idx, row in df_mapped.iterrows():
         # Skip rows without any meaningful data
         has_data = False
@@ -259,11 +272,52 @@ def process_sheet(df, solution, year, filename):
 
         records.append(record)
 
-    return records
+        # --- Build contact-to-need mappings ---
+        need_id = record['need_id']
+        submitter = record['submitter_name']
+        dept = record.get('department', '')
+        agcy = record.get('agency', '')
+        org = record.get('organization', '')
+
+        # Submitter mapping (the person who filled out this row)
+        if submitter:
+            mappings.append({
+                'need_id': need_id,
+                'contact_name': submitter,
+                'role': 'Survey Submitter',
+                'solution': solution,
+                'survey_year': int(year),
+                'department': dept,
+                'agency': agcy,
+                'organization': org,
+                'source_file': filename,
+            })
+
+        # SME mapping (field 1e — different person listed as subject matter expert)
+        sme_name = get_scalar(row, 'sme_name')
+        if sme_name and sme_name.lower() != submitter.lower():
+            mappings.append({
+                'need_id': need_id,
+                'contact_name': sme_name,
+                'role': 'SME',
+                'solution': solution,
+                'survey_year': int(year),
+                # SME's dept/agency/org not available from this row
+                'department': '',
+                'agency': '',
+                'organization': '',
+                'source_file': filename,
+            })
+
+    return records, mappings
 
 
 def process_file(filepath):
-    """Process a single stakeholder Excel file."""
+    """Process a single stakeholder Excel file.
+
+    Returns:
+        tuple: (records, mappings)
+    """
     import traceback
     filename = filepath.name
     solution = extract_solution_name(filename)
@@ -271,6 +325,7 @@ def process_file(filepath):
     print(f"  Processing: {solution}")
 
     all_records = []
+    all_mappings = []
 
     try:
         # Read all sheets
@@ -281,9 +336,10 @@ def process_file(filepath):
             if sheet in SURVEY_YEARS:
                 try:
                     df = pd.read_excel(filepath, sheet_name=sheet)
-                    records = process_sheet(df, solution, sheet, filename)
+                    records, mappings = process_sheet(df, solution, sheet, filename)
                     all_records.extend(records)
-                    print(f"    {sheet}: {len(records)} records")
+                    all_mappings.extend(mappings)
+                    print(f"    {sheet}: {len(records)} records, {len(mappings)} mappings")
                 except Exception as e:
                     print(f"    {sheet}: Error - {e}")
                     traceback.print_exc()
@@ -297,7 +353,7 @@ def process_file(filepath):
         print(f"  Error reading file: {e}")
         traceback.print_exc()
 
-    return all_records
+    return all_records, all_mappings
 
 
 def main():
@@ -319,29 +375,53 @@ def main():
 
     # Process each file
     all_records = []
+    all_mappings = []
     file_stats = []
 
     for filepath in sorted(excel_files):
-        records = process_file(filepath)
+        records, mappings = process_file(filepath)
         all_records.extend(records)
+        all_mappings.extend(mappings)
         file_stats.append({
             'file': filepath.name,
             'solution': extract_solution_name(filepath.name),
-            'records': len(records)
+            'records': len(records),
+            'mappings': len(mappings),
         })
 
     print()
     print("=" * 60)
-    print(f"Total records extracted: {len(all_records)}")
+    print(f"Total needs extracted: {len(all_records)}")
+    print(f"Total contact-need mappings: {len(all_mappings)}")
     print("=" * 60)
 
-    # Create DataFrame
+    # Create needs DataFrame
     df_output = pd.DataFrame(all_records, columns=OUTPUT_COLUMNS)
 
-    # Save to CSV
+    # Save needs CSV
     output_csv = OUTPUT_DIR / "mo_db_needs.csv"
     df_output.to_csv(output_csv, index=False)
     print(f"\nSaved: {output_csv}")
+
+    # Create mappings DataFrame
+    df_mappings = pd.DataFrame(all_mappings, columns=MAPPING_COLUMNS)
+
+    # Deduplicate: same contact can appear on multiple need rows for the
+    # same solution/year with the same role — collapse and aggregate need_ids
+    group_cols = ['contact_name', 'role', 'solution', 'survey_year',
+                  'department', 'agency', 'organization']
+    df_roles = (df_mappings
+                .groupby(group_cols, as_index=False)
+                .agg({
+                    'need_id': lambda ids: ','.join(sorted(set(ids))),
+                    'source_file': 'first',
+                })
+                .rename(columns={'need_id': 'need_ids'}))
+
+    # Save mappings CSV
+    mappings_csv = OUTPUT_DIR / "contact_need_mappings.csv"
+    df_roles.to_csv(mappings_csv, index=False)
+    print(f"Saved: {mappings_csv}")
 
     # Create extraction report
     report_path = OUTPUT_DIR / "needs_extraction_report.txt"
@@ -349,21 +429,42 @@ def main():
         f.write("MO-DB_Needs Extraction Report\n")
         f.write("=" * 50 + "\n")
         f.write(f"Extracted: {datetime.now().isoformat()}\n")
-        f.write(f"Total Records: {len(all_records)}\n")
+        f.write(f"Total Need Records: {len(all_records)}\n")
+        f.write(f"Total Contact-Need Mappings (raw): {len(all_mappings)}\n")
+        f.write(f"Total Contact-Need Mappings (deduplicated): {len(df_roles)}\n")
         f.write(f"Total Files: {len(excel_files)}\n\n")
 
         f.write("Records by Solution:\n")
-        f.write("-" * 50 + "\n")
+        f.write("-" * 60 + "\n")
+        f.write(f"  {'Solution':<40} {'Needs':>5} {'Mappings':>8}\n")
+        f.write(f"  {'-'*40} {'-'*5} {'-'*8}\n")
         for stat in sorted(file_stats, key=lambda x: -x['records']):
-            f.write(f"  {stat['solution'][:40]:<40} {stat['records']:>5}\n")
+            f.write(f"  {stat['solution'][:40]:<40} {stat['records']:>5} {stat['mappings']:>8}\n")
 
-        f.write("\nRecords by Year:\n")
+        f.write("\nNeeds by Year:\n")
         f.write("-" * 50 + "\n")
         year_counts = df_output.groupby('survey_year').size()
         for year, count in year_counts.items():
             f.write(f"  {year}: {count}\n")
 
-        f.write("\nColumn Coverage:\n")
+        f.write("\nMappings by Role:\n")
+        f.write("-" * 50 + "\n")
+        role_counts = df_roles.groupby('role').size()
+        for role, count in role_counts.items():
+            f.write(f"  {role}: {count}\n")
+
+        f.write("\nMappings by Year:\n")
+        f.write("-" * 50 + "\n")
+        mapping_year_counts = df_roles.groupby('survey_year').size()
+        for year, count in mapping_year_counts.items():
+            f.write(f"  {year}: {count}\n")
+
+        f.write("\nUnique Contacts in Mappings:\n")
+        f.write("-" * 50 + "\n")
+        unique_names = df_roles['contact_name'].nunique()
+        f.write(f"  {unique_names} unique contact names\n")
+
+        f.write("\nColumn Coverage (Needs):\n")
         f.write("-" * 50 + "\n")
         for col in OUTPUT_COLUMNS:
             non_empty = df_output[col].notna().sum()
@@ -373,10 +474,15 @@ def main():
     print(f"Saved: {report_path}")
 
     # Print summary stats
-    print("\nRecords by Year:")
+    print("\nNeeds by Year:")
     print(df_output.groupby('survey_year').size())
 
-    print("\nTop 10 Solutions by Record Count:")
+    print("\nMappings by Role:")
+    print(df_roles.groupby('role').size())
+
+    print(f"\nUnique contacts: {df_roles['contact_name'].nunique()}")
+
+    print("\nTop 10 Solutions by Need Count:")
     print(df_output.groupby('solution').size().sort_values(ascending=False).head(10))
 
 

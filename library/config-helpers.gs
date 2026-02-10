@@ -463,6 +463,7 @@ var DEFAULT_TAB_NAMES_ = {
   'CONTACTS_SHEET_ID':     'People',
   'ENGAGEMENTS_SHEET_ID':  'Engagements',
   'GLOSSARY_SHEET_ID':     'Glossary',
+  'GOALS_SHEET_ID':        'Objectives',
   'KUDOS_SHEET_ID':        'Kudos',
   'MEETINGS_SHEET_ID':     'Meetings',
   'MILESTONES_SHEET_ID':   'Milestones',

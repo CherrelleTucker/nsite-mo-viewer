@@ -1126,14 +1126,17 @@ function getSolutionRecentActivity(solutionId, days) {
       var actDate = e.date ? new Date(e.date) : null;
       if (actDate && actDate >= cutoffDate) {
         var participantNames = (e.participants || '').split(',').slice(0, 3).join(', ');
+        var engTitle = e.subject || e.type || 'Engagement';
+        if (e.subject && e.type) {
+          engTitle = e.type + ': ' + e.subject;
+        }
         activities.push({
           date: e.date,
           type: 'engagement',
-          title: e.type || 'Engagement',
+          title: engTitle,
           description: e.summary || e.notes || '',
           icon: 'groups',
-          participants: participantNames,
-          engagement_id: e.engagement_id
+          participants: participantNames
         });
         sources.engagements++;
       }
@@ -1156,8 +1159,8 @@ function getSolutionRecentActivity(solutionId, days) {
         activities.push({
           date: actDateStr,
           type: 'action',
-          title: a.title || 'Action Item',
-          description: a.description || '',
+          title: 'Action Item',
+          description: a.task || a.description || '',
           icon: 'task_alt',
           status: a.status || 'open',
           assignee: a.assigned_to || '',

@@ -295,6 +295,7 @@ Users can click the refresh icon in the navigation bar to:
 │  kudos-api.gs       │ Recognition/kudos queries                              │
 │  templates-api.gs   │ Email/meeting templates for SEP & Comms                │
 │  parking-lot-api.gs │ Parking lot ideas/topics capture                       │
+│  goals-api.gs       │ Mission/vision, PI objectives, criteria                │
 └──────────────────────────────┬──────────────────────────────────────────────┘
                                │
                                ▼
@@ -334,6 +335,7 @@ Users can click the refresh icon in the navigation bar to:
 | MO-DB_Actions | actions-api.gs | `getOpenActions()` | Implementation, Team |
 | MO-DB_Team | team-api.gs | `getTeamMembers()` | Team |
 | MO-DB_Meetings | Code.gs (direct) | `getMeetings()` | Schedule, Team |
+| MO-DB_Goals | goals-api.gs | `getGoalsInitData()`, `getObjectivesByPI()` | Team |
 
 ### Critical Column Name Dependencies
 
@@ -403,7 +405,7 @@ The project uses a **thin wrapper pattern**:
 - config-helpers.gs (library only - provides getConfigValue(), getDatabaseSheet())
 - solutions-api.gs, contacts-api.gs, agencies-api.gs, updates-api.gs
 - engagements-api.gs, team-api.gs, actions-api.gs, milestones-api.gs
-- outreach-api.gs, stories-api.gs, kudos-api.gs
+- outreach-api.gs, stories-api.gs, kudos-api.gs, goals-api.gs
 
 ### About Page Maintenance
 
@@ -811,6 +813,7 @@ nsite-mo-viewer/
 | MO-DB_Contacts | CONTACTS_SHEET_ID | People | Roles, _Lookups |
 | MO-DB_Engagements | ENGAGEMENTS_SHEET_ID | Engagements | _Lookups |
 | MO-DB_Glossary | GLOSSARY_SHEET_ID | Glossary | _Lookups |
+| MO-DB_Goals | GOALS_SHEET_ID | MissionVision | PIs, Objectives, _Lookups |
 | MO-DB_Kudos | KUDOS_SHEET_ID | Kudos | _Lookups |
 | MO-DB_Meetings | MEETINGS_SHEET_ID | Meetings | _Lookups |
 | MO-DB_Milestones | MILESTONES_SHEET_ID | Milestones | _Lookups |
